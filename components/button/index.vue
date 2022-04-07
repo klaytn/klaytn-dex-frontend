@@ -1,5 +1,5 @@
 <template>
-  <button @click="$emit('click')" class="btn">
+  <button v-bind="$attrs" v-on="$listeners" class="btn">
     <slot></slot>
   </button>
 </template>
@@ -24,7 +24,7 @@ export default {
   props: {
     text: {
       type: String,
-      isRequire: true,
+      required: true
     }
   }
 }

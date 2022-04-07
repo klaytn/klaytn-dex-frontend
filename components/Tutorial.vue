@@ -9,13 +9,13 @@
       </p>
     </div>
 
-    <div v-else-if="!isNotInstalled && !address">
+    <div v-else-if="!address">
       <h2>Connect kaikas </h2>
       <br>
       <Button @click="connect()">Connect</Button>
     </div>
 
-    <div v-else-if="address">
+    <div v-else>
       <h2>Kaikas Connected!</h2>
       <br>
       <h3>your address is {{ address }}</h3>
@@ -28,17 +28,12 @@
 
 <script>
 
-import {mapActions} from "vuex";
+import {mapActions, mapState} from "vuex";
 
 export default {
   name: 'NuxtTutorial',
   computed: {
-    address () {
-      return this.$store.state.kaikas.address
-    },
-    isNotInstalled () {
-      return this.$store.state.kaikas.isNotInstalled
-    },
+    ...mapState('kaikas', ['address', 'isNotInstalled'])
   },
   methods: {
     ...mapActions({
