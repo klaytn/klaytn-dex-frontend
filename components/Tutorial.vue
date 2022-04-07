@@ -1,36 +1,45 @@
 <template>
   <div class="wrap">
-    <nuxt-link :to="switchLocalePath('en')">EN</nuxt-link>
-    <nuxt-link :to="switchLocalePath('fr')">FR</nuxt-link>
-    <nuxt-link :to="switchLocalePath('es')">ES</nuxt-link>
-    <NuxtLogo/>
-    <h1>{{ $t('welcome', { projectName: 'Klatn' }) }}</h1>
+
+    <div v-if="isNotInstalled">
+      <h2>Please install kaikas to use the app</h2>
+      <br>
+      <p>
+        You can install kaikas  <a href="https://docs.kaikas.io/" target="_blank">here</a>
+      </p>
+    </div>
+
+    <div v-else-if="!address">
+      <h2>Connect kaikas </h2>
+      <br>
+      <Button @click="connect()">Connect</Button>
+    </div>
+
+    <div v-else>
+      <h2>Kaikas Connected!</h2>
+      <br>
+      <h3>your address is {{ address }}</h3>
+    </div>
+
     <br>
-    <p>{{ $t('lorem') }}</p>
-    <br>
-    <h2>{{ count }}</h2>
-    <button @click="plus()">Plus</button>
-    <button @click="minus()">Minus</button>
+
   </div>
 </template>
 
 <script>
 
+import {mapActions, mapState} from "vuex";
+
 export default {
   name: 'NuxtTutorial',
   computed: {
-    count () {
-      return this.$store.state.count.count
-    }
+    ...mapState('kaikas', ['address', 'isNotInstalled'])
   },
   methods: {
-    plus (e) {
-      this.$store.commit('count/plus')
-    },
-    minus (e) {
-      this.$store.commit('count/minus')
-    }
-  }
+    ...mapActions({
+      connect: 'kaikas/connect',
+    }),
+  },
 }
 </script>
 
