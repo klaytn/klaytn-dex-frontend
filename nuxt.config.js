@@ -23,7 +23,8 @@ export default {
     // CSS file in the project
     // '~/assets/css/main.css',
     // SCSS file in the project
-    '~/assets/scss/main.scss'
+    '~assets/scss/main.css',
+    '~assets/scss/vars.scss'
   ],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
@@ -38,7 +39,11 @@ export default {
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
     '@nuxtjs/i18n',
+    '@nuxtjs/style-resources',
   ],
+  styleResources: {
+    scss: ['./assets/scss/*.scss']
+  },
   i18n: {
     locales: ['en', 'fr', 'es'],
     defaultLocale: 'en',
