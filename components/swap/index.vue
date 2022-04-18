@@ -27,13 +27,21 @@
     </div>
 
     <div class="slippage">
-      <Collapse label="Slippage tolerance"></Collapse>
+      <Collapse label="Slippage tolerance">
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Delectus dolorum ea excepturi facilis nam nihil,
+        provident voluptas voluptates. Accusamus magni natus obcaecati omnis reprehenderit! Doloremque quos, voluptatem!
+        Odit repudiandae, unde!
+      </Collapse>
     </div>
 
     <Button>Swap</Button>
 
     <div class="slippage">
-      <Collapse label="Transaction Details"></Collapse>
+      <Collapse label="Transaction Details">
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Delectus dolorum ea excepturi facilis nam nihil,
+        provident voluptas voluptates. Accusamus magni natus obcaecati omnis reprehenderit! Doloremque quos, voluptatem!
+        Odit repudiandae, unde!
+      </Collapse>
     </div>
   </div>
 </template>
@@ -72,6 +80,7 @@
     &:last-child {
       margin-right: 0;
     }
+
     &-active {
       color: $dark
     }

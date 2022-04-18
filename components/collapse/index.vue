@@ -1,6 +1,6 @@
 <template>
   <div class="collapse">
-    <div class="collapse--head">
+    <div class="collapse--head" @click="isOpen = !isOpen">
     <span class="label">
       {{label}}
     </span>
@@ -12,8 +12,8 @@
       <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
        <Icon name="important"></Icon>
       </svg>
-
     </div>
+    <slot v-if="isOpen"></slot>
   </div>
 </template>
 
@@ -23,6 +23,11 @@ export default {
   props: {
     label: String,
     required: true
+  },
+  data(){
+    return {
+      isOpen: false
+    }
   }
 }
 </script>
@@ -34,6 +39,7 @@ export default {
   border-radius: 8px;
   padding: 8px 16px;
   background: $white;
+  text-align: left;
 
   &--head {
     display: flex;

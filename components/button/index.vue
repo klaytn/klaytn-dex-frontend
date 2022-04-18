@@ -1,5 +1,5 @@
 <template>
-  <button v-bind="$attrs" v-on="$listeners" class="btn" :class="{loading: loading}">
+  <button v-bind="$attrs" v-on="$listeners" class="btn" :class="{loading}">
     <slot></slot>
   </button>
 </template>
@@ -45,8 +45,7 @@ export default {
   name: 'Button',
   props: {
     loading: {
-      type: Boolean,
-      required: false
+      type: Boolean
     }
   }
 }
