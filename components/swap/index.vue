@@ -44,7 +44,7 @@
   box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05);
   padding: 19px 16px;
   border-radius: 20px;
-  overflow: hidden;
+  overflow: visible;
   margin: auto;
   max-width: 420px;
   width: 100%;
