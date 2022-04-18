@@ -20,6 +20,15 @@
       <br>
       <h3>your address is {{ address }}</h3>
     </div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <Button>Button</Button>
+    <Button :loading="true">Loading</Button>
+    <Button disabled>Button</Button>
+    <br>
+
 
     <br>
 
@@ -32,6 +41,8 @@ import {mapActions, mapState} from "vuex";
 
 export default {
   name: 'NuxtTutorial',
+  components: {},
+
   computed: {
     ...mapState('kaikas', ['address', 'isNotInstalled'])
   },

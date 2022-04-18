@@ -1,0 +1,216 @@
+<template>
+  <div class="token-input">
+    <div class="token-value">
+      <input placeholder="0.123" type="text">
+      <button>MAX</button>
+      <div class="select">
+      </div>
+    </div>
+    <div class="token-meta">
+      <span class="price">$142.57</span>
+      <div class="row">
+        <span class="price">Balace: 0.05754</span>
+        <Icon name="important"></Icon>
+
+        <div class="token-info">
+          <p>Ethereum (ETH)</p>
+          <span class="price">$3,128.47</span>
+          <span class="percent"> 0.26%</span>
+          <a href="#" class="link">
+            <span class="link-name">Coinmarketcap</span>
+            <Icon name="link"></Icon>
+          </a>
+          <div class="address">
+            <span class="address-name">0x64ff...428a1fd</span>
+            <Icon name="copy"></Icon>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.token {
+
+  &-input {
+    background: $gray3;
+    padding: 16px 16px;
+    border-radius: 8px;
+  }
+
+  &-value {
+    display: flex;
+    align-items: center;
+
+    & input {
+      font-style: normal;
+      font-weight: 600;
+      font-size: 30px;
+      line-height: 130%;
+      color: $dark2;
+      background: transparent;
+      border: none;
+      max-width: 212px;
+      width: 100%;
+    }
+
+    & button {
+      font-weight: 700;
+      font-size: 10px;
+      line-height: 16px;
+      background: $blue;
+      border-radius: 8px;
+      color: $white;
+      padding: 4px 8px;
+      margin-left: 8px;
+    }
+
+    & .select {
+      width: 88px;
+      height: 40px;
+      background: $white;
+      border-radius: 8px;
+      box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.07);
+      margin-left: 8px;
+    }
+  }
+
+  &-meta {
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+
+    & .price {
+      font-style: normal;
+      font-weight: 500;
+      font-size: 12px;
+      line-height: 15px;
+      color: $gray4;
+      margin-right: 6px;
+    }
+
+    & .row {
+      display: flex;
+      align-items: center;
+      &:hover {
+        cursor: pointer;
+        & .token-info {
+          display: block!important;
+        }
+      }
+    }
+  }
+
+
+
+  &-info {
+    display: none;
+    background: $white;
+    position: absolute;
+    top: 20px;
+    right: -80px;
+    width: 176px;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    padding: 16px;
+    box-sizing: border-box;
+    z-index: 9;
+    text-align: left;
+
+    &:after {
+      display: block;
+      content: "";
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 10px solid $white;
+      top: -9px;
+      left: calc(50% - 6px);
+      position: absolute;
+    }
+
+    & p {
+      font-style: normal;
+      font-weight: 700;
+      font-size: 13px;
+      line-height: 16px;
+      margin-bottom: 8px;
+    }
+
+    & .price {
+      font-style: normal;
+      font-weight: 500;
+      font-size: 12px;
+      line-height: 15px;
+    }
+
+    & .percent {
+      color: $green;
+      font-style: normal;
+      font-weight: 500;
+      font-size: 12px;
+      line-height: 15px;
+    }
+
+    & .link {
+      font-style: normal;
+      font-weight: 500;
+      font-size: 12px;
+      line-height: 180%;
+      display: flex;
+      align-items: center;
+      color: $dark2;
+      margin-top: 8px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid $gray5;
+
+      & .svg-icon {
+        height: 15px;
+      }
+
+      & span {
+        margin-right: 5px;
+        font-style: normal;
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 180%;
+        &:hover {
+          color: $blue
+        }
+      }
+    }
+
+    & .address {
+      font-style: normal;
+      font-weight: 500;
+      font-size: 12px;
+      line-height: 180%;
+      display: flex;
+      align-items: center;
+      color: $dark2;
+      margin-top: 4px;
+      cursor: pointer;
+
+      & .svg-icon {
+        height: 15px;
+      }
+
+      & span {
+        margin-right: 5px;
+        font-style: normal;
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 180%;
+        &:hover {
+          color: $blue
+        }
+      }
+    }
+  }
+}
+
+</style>
