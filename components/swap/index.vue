@@ -16,14 +16,14 @@
       </button>
     </div>
 
-    <TokenInput></TokenInput>
+    <TokenInput tokenType="tokenA"></TokenInput>
 
     <button class="change-btn">
       <Icon name="arrow-down"></Icon>
     </button>
 
     <div class="margin-block">
-      <TokenInput></TokenInput>
+      <TokenInput tokenType="tokenB"></TokenInput>
     </div>
 
     <div class="slippage">
@@ -34,7 +34,7 @@
       </Collapse>
     </div>
 
-    <Button>Swap</Button>
+    <Button :disabled="!isValidTokens">Swap</Button>
 
     <div class="slippage">
       <Collapse label="Transaction Details">
@@ -45,6 +45,28 @@
     </div>
   </div>
 </template>
+
+<script>
+import {mapActions} from "vuex";
+
+export default {
+  name: 'Swap',
+  methods: {
+    ...mapActions({
+      getTokens: 'swap/getTokens'
+    })
+  },
+  computed: {
+    isValidTokens(){
+      return this.$store.state.swap.selectedTokens['tokenA'] && this.$store.state.swap.selectedTokens['tokenB']
+    }
+  },
+  beforeMount() {
+    this.getTokens()
+  }
+}
+
+</script>
 
 <style lang="scss" scoped>
 .wrap {

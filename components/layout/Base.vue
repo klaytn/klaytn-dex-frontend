@@ -16,7 +16,7 @@
       </div>
 
       <div class="col col-right">
-        <div v-if="!address" @click="connect()">
+        <div v-if="!isNotInstalled && !address" @click="connect">
           Connect
         </div>
         <div v-if="address" class="address">
@@ -40,9 +40,10 @@
 </template>
 
 <script>
-import {mapActions, mapState} from "vuex";
+import {mapState} from "vuex";
 
 export default {
+  middleware: 'kaikas',
   computed: {
     ...mapState('kaikas', ['address', 'isNotInstalled']),
     getFormattedAddress() {
@@ -73,10 +74,17 @@ export default {
     }
   },
   methods: {
-    ...mapActions({
-      connect: 'kaikas/connect',
-    }),
+    async connect() {
+      const address = await this.$kaikas.connectKaikas()
+      this.$store.commit('kaikas/CONNECT_KAIKAS', address)
+    },
   },
+  // mounted() {
+  //   if (!process.server && !this.isNotInstalled && window?.klaytn.selectedAddress && !this.address) {
+  //     this.connect()
+  //   }
+  // }
+
 }
 </script>
 

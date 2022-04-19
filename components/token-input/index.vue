@@ -1,10 +1,9 @@
 <template>
   <div class="token-input">
     <div class="token-value">
-      <input placeholder="0.123" type="text">
+      <input type="number" placeholder="0.045">
       <button>MAX</button>
-      <div class="select">
-      </div>
+      <TokenSelect @select="setToken"></TokenSelect>
     </div>
     <div class="token-meta">
       <span class="price">$142.57</span>
@@ -29,6 +28,26 @@
     </div>
   </div>
 </template>
+
+<script>
+import {mapMutations} from "vuex";
+
+export default {
+  name: 'TokenInput',
+  props: {
+    tokenType: String,
+    required: true
+  },
+  methods: {
+    ...mapMutations({
+      setSelectedToken: 'swap/SET_SELECTED_TOKEN'
+    }),
+    setToken(token) {
+      this.setSelectedToken({ token, type: this.tokenType })
+    }
+  }
+}
+</script>
 
 <style scoped lang="scss">
 .token {
@@ -65,15 +84,6 @@
       padding: 4px 8px;
       margin-left: 8px;
     }
-
-    & .select {
-      width: 88px;
-      height: 40px;
-      background: $white;
-      border-radius: 8px;
-      box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.07);
-      margin-left: 8px;
-    }
   }
 
   &-meta {
@@ -95,15 +105,16 @@
     & .row {
       display: flex;
       align-items: center;
+
       &:hover {
         cursor: pointer;
+
         & .token-info {
-          display: block!important;
+          display: block !important;
         }
       }
     }
   }
-
 
 
   &-info {
@@ -178,6 +189,7 @@
         font-weight: 500;
         font-size: 12px;
         line-height: 180%;
+
         &:hover {
           color: $blue
         }
@@ -205,6 +217,7 @@
         font-weight: 500;
         font-size: 12px;
         line-height: 180%;
+
         &:hover {
           color: $blue
         }
