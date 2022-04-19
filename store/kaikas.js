@@ -1,23 +1,22 @@
 export const state = () => ({
   address: null,
-  isNotInstalled: !process.server && typeof window?.klaytn === 'undefined'
+  isNotInstalled: !process.server && typeof window?.klaytn === 'undefined',
 })
 
 export const mutations = {
-  connect(state, p) {
-    state.address = p
+  CONNECT_KAIKAS(state, address) {
+    state.address = address
   }
 }
 
 export const actions = {
-  async connect({ commit }) {
-    if(process.server || typeof window?.klaytn === 'undefined') {
+  async connect({commit}) {
+    if (process.server || typeof window?.klaytn === 'undefined') {
       return
     }
 
-    const { klaytn } = window;
+    const address = this.$kaikas.connectKaikas
 
-    const addresses = await klaytn.enable();
-    commit('connect', addresses[0])
+    commit('CONNECT_KAIKAS', address)
   },
 }
