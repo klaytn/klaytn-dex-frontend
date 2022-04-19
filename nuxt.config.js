@@ -28,19 +28,27 @@ export default {
   ],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
-  plugins: [],
+  plugins: ['~/plugins/kaikas.js'],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: ["@nuxtjs/svg"],
-
+  serverMiddleware: {
+    '/api': '~/api'
+  },
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
     '@nuxtjs/i18n',
     '@nuxtjs/style-resources',
+    '@nuxtjs/axios'
   ],
+  publicRuntimeConfig: {
+    axios: {
+      baseURL: 'http://localhost:3000'
+    }
+  },
   styleResources: {
     scss: ['./assets/scss/*.scss']
   },
