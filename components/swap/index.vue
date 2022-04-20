@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import {mapActions} from "vuex";
+import {mapActions, mapState} from "vuex";
 
 export default {
   name: 'Swap',
@@ -57,8 +57,9 @@ export default {
     })
   },
   computed: {
+    ...mapState('swap', ['selectedTokens']),
     isValidTokens(){
-      return this.$store.state.swap.selectedTokens['tokenA'] && this.$store.state.swap.selectedTokens['tokenB']
+      return Number(this.selectedTokens.tokenA?.balance) > 0 && Number(this.selectedTokens.tokenB?.balance) > 0
     }
   },
   beforeMount() {

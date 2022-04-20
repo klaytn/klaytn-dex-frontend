@@ -13,10 +13,10 @@ export default ({ app }, inject) => {
     wethContract: null,
 
     async connectKaikas(){
-      if (process.server || typeof window?.klaytn === 'undefined') {
+      if (process.server || typeof window?.klaytn === 'undefined' || typeof window?.caver === 'undefined') {
         return
       }
-      const {klaytn} = window;
+      const {klaytn, caver} = window;
       const addresses = await klaytn.enable()
 
       this.address = addresses[0]
@@ -24,6 +24,15 @@ export default ({ app }, inject) => {
       this.factoryContract = new caver.klay.Contract(factoryABI.abi, this.factoryAddress)
       this.wethContract = new caver.klay.Contract(wethABI.abi, this.wethAddress)
       return addresses[0]
+    },
+
+    createContract(address, abi) {
+      return new caver.klay.Contract(abi, address)
+    },
+
+    getFormattedAddress(address) {
+      const addressLength = address.length;
+      return `${address.slice(2, 6)}...${address.slice(addressLength - 6, addressLength - 2)}`
     }
   })
 }

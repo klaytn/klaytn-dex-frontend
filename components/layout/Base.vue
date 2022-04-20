@@ -79,11 +79,11 @@ export default {
       this.$store.commit('kaikas/CONNECT_KAIKAS', address)
     },
   },
-  // mounted() {
-  //   if (!process.server && !this.isNotInstalled && window?.klaytn.selectedAddress && !this.address) {
-  //     this.connect()
-  //   }
-  // }
+  mounted() {
+    if (!process.server && !this.isNotInstalled && window?.klaytn.selectedAddress && !this.address) {
+      this.connect()
+    }
+  }
 
 }
 </script>
