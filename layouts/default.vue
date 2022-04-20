@@ -92,7 +92,7 @@ export default {
     },
   },
   mounted() {
-    if (!process.server && window?.klaytn.selectedAddress && !this.address) {
+    if (!process.server && !this.isNotInstalled && window?.klaytn.selectedAddress && !this.address) {
       this.connect()
     }
   }

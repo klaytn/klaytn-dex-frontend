@@ -1,5 +1,26 @@
 <template>
-  <div class="wrap">
+
+  <div class="wrap" v-if="isLoading">
+    <div class="head">
+      <button class="head--btn head--btn-active">
+        Swap
+      </button>
+      <button class="head--btn">
+        Liquidity
+      </button>
+      <button class="head--btn head--btn-left">
+        <Icon name="refresh"></Icon>
+      </button>
+      <button class="head--btn">
+        <Icon name="filters"></Icon>
+      </button>
+    </div>
+    <div class="load">
+      <Loader></Loader>
+    </div>
+  </div>
+
+  <div class="wrap" v-else>
 
     <div class="head">
       <button class="head--btn head--btn-active">
@@ -57,8 +78,11 @@ export default {
     })
   },
   computed: {
-    ...mapState('swap', ['selectedTokens']),
-    isValidTokens(){
+    ...mapState('swap', ['selectedTokens', 'tokensList']),
+    isLoading() {
+      return !this.tokensList?.length
+    },
+    isValidTokens() {
       return Number(this.selectedTokens.tokenA?.balance) > 0 && Number(this.selectedTokens.tokenB?.balance) > 0
     }
   },
@@ -79,6 +103,11 @@ export default {
   margin: auto;
   max-width: 420px;
   width: 100%;
+}
+
+.load {
+  width: min-content;
+  margin:auto;
 }
 
 .head {
