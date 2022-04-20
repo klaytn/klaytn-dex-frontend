@@ -35,7 +35,14 @@
         </div>
       </div>
     </header>
-    <slot></slot>
+    <client-only>
+      <div v-if="isNotInstalled">
+        <h1>Install kaikas before use swap</h1>
+      </div>
+      <Nuxt v-else></Nuxt>
+    </client-only>
+
+
   </main>
 </template>
 
@@ -43,9 +50,11 @@
 import {mapState} from "vuex";
 
 export default {
-  middleware: 'kaikas',
   computed: {
-    ...mapState('kaikas', ['address', 'isNotInstalled']),
+    ...mapState('kaikas', ['address']),
+    isNotInstalled(){
+      return !window?.klaytn
+    },
     getFormattedAddress() {
       const addressLength = this.address.length;
       return `${this.address.slice(2, 6)}...${this.address.slice(addressLength - 6, addressLength - 2)}`
@@ -76,11 +85,14 @@ export default {
   methods: {
     async connect() {
       const address = await this.$kaikas.connectKaikas()
-      this.$store.commit('kaikas/CONNECT_KAIKAS', address)
+      if(address) {
+        this.$store.commit('kaikas/CONNECT_KAIKAS', address)
+      }
+
     },
   },
   mounted() {
-    if (!process.server && !this.isNotInstalled && window?.klaytn.selectedAddress && !this.address) {
+    if (!process.server && window?.klaytn.selectedAddress && !this.address) {
       this.connect()
     }
   }

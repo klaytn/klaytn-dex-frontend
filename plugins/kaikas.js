@@ -16,7 +16,9 @@ export default ({ app }, inject) => {
       if (process.server || typeof window?.klaytn === 'undefined' || typeof window?.caver === 'undefined') {
         return
       }
+
       const {klaytn, caver} = window;
+
       const addresses = await klaytn.enable()
 
       this.address = addresses[0]

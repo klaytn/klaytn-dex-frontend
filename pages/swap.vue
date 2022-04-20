@@ -1,5 +1,3 @@
 <template>
-  <LayoutBase>
-    <Swap></Swap>
-  </LayoutBase>
+  <Swap></Swap>
 </template>
