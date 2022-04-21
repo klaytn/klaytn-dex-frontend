@@ -55,13 +55,19 @@
     </div>
 
     <div class="token-select-modal--list">
-      <div @click="$emit('select', t)" v-for="t in renderTokens" class="token-select-modal--item" :key="t">
-        <Icon :name="t.toLowerCase()"></Icon>
+      <div
+        @click="onSelect(t)"
+        v-for="t in renderTokens"
+        class="token-select-modal--item"
+        :class="{'token-select-modal--item-disabled': Number(t.balance) <= 0}"
+        :key="t.address"
+      >
+        <img class="token-logo" :src="t.logo" alt="token logo">
         <div class="info">
-          <p class="token">{{ t }}</p>
-          <span class="token-name">{{t.toLowerCase()}}</span>
+          <p class="token">{{ t.symbol }}</p>
+          <span class="token-name">{{ t.name.toLowerCase() }}</span>
         </div>
-        <div class="token-count">6.0234587</div>
+        <div class="token-count">{{ t.balance }}</div>
       </div>
 
     </div>
@@ -78,10 +84,18 @@ export default {
       searchValue: ''
     }
   },
+  methods: {
+    onSelect(t) {
+      if (Number(t.balance) <= 0) {
+        return
+      }
+      this.$emit('select', t)
+    }
+  },
   computed: {
     ...mapState('swap', ['tokensList']),
     renderTokens() {
-      return this.tokensList.filter((token) => token.search(this.searchValue.toUpperCase()) !== -1)
+      return this.tokensList.filter((token) => token.symbol.search(this.searchValue.toUpperCase()) !== -1)
     }
   },
 }
@@ -177,6 +191,14 @@ export default {
       font-size: 12px;
       line-height: 180%;
       color: $gray4;
+    }
+
+    & .token-logo {
+      display: block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: contain;
     }
 
     .token-count {

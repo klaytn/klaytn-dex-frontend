@@ -52,6 +52,7 @@ export default {
   styleResources: {
     scss: ['./assets/scss/*.scss']
   },
+  ssr: false, // Disable Server Side rendering
   i18n: {
     locales: ['en', 'fr', 'es'],
     defaultLocale: 'en',
