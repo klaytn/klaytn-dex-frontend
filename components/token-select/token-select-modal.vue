@@ -67,7 +67,7 @@
           <p class="token">{{ t.symbol }}</p>
           <span class="token-name">{{ t.name.toLowerCase() }}</span>
         </div>
-        <div class="token-count">{{t.balance}}</div>
+        <div class="token-count">{{ t.balance }}</div>
       </div>
 
     </div>
@@ -84,9 +84,9 @@ export default {
       searchValue: ''
     }
   },
-  methods:{
-    onSelect(t){
-      if(Number(t.balance) <= 0) {
+  methods: {
+    onSelect(t) {
+      if (Number(t.balance) <= 0) {
         return
       }
       this.$emit('select', t)

@@ -4,9 +4,9 @@
     <TokenSelectModal @select="onSelect" v-if="modalOpen" @close="modalOpen = false"></TokenSelectModal>
 
     <div class="select--head" @click="modalOpen = true">
-      <img v-if="selected" :src="selected.logo" alt="Token logo">
-      <span v-if="selected">
-        {{selected.symbol}}
+      <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo">
+      <span v-if="selectedToken">
+        {{ selectedToken.symbol }}
       </span>
     </div>
 
@@ -17,19 +17,17 @@
 export default {
   name: 'TokenSelect',
   props: {
-    initialToken: {
+    selectedToken: {
       type: Object
     }
   },
-  data(){
+  data() {
     return {
-      modalOpen: false,
-      selected: this.initialToken,
+      modalOpen: false
     }
   },
   methods: {
-    onSelect(token){
-      this.selected = token
+    onSelect(token) {
       this.modalOpen = false
       this.$emit('select', token)
     }

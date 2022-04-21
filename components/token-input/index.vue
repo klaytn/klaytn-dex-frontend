@@ -4,18 +4,18 @@
     <div class="token-value">
       <input v-model="value" type="number" placeholder="0.045">
       <button @click="setMax">MAX</button>
-      <TokenSelect v-if="selected" :initialToken="selected" @select="setToken"></TokenSelect>
+      <TokenSelect v-if="selected" :selectedToken="selected" @select="setToken"></TokenSelect>
     </div>
 
     <div class="token-meta">
       <span class="price">{{ price }}</span>
       <div class="row" v-if="selected">
-        <span class="price">Balace: {{ selected.balance }}</span>
+        <span class="price">Balance: {{ selected.balance }}</span>
         <Icon name="important"></Icon>
 
         <div class="token-info">
           <p>{{ selected.name }} {{ `(${selected.symbol})` }}</p>
-          <span class="price">$3,128.47</span>
+          <span class="price">{{ price }}</span>
           <span class="percent">0.26%</span>
           <a :href="`https://coinmarketcap.com/currencies/${selected.slug}/`" class="link" target="_blank">
             <span class="link-name">Coinmarketcap</span>
@@ -133,6 +133,7 @@ export default {
     & .row {
       display: flex;
       align-items: center;
+      height: 25px;
 
       &:hover {
         cursor: pointer;
