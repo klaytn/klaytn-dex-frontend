@@ -1,8 +1,7 @@
 <template>
-  <div class="token-input">
-
+  <div class="token-input" :class="{'token-loading': tokenType === exchangeRateLoading}">
     <div class="token-value">
-      <input v-model="value" type="number" placeholder="0.045">
+      <input :value="value" @input="input" placeholder="0.045">
       <button @click="setMax">MAX</button>
       <TokenSelect v-if="selected" :selectedToken="selected" @select="setToken"></TokenSelect>
     </div>
@@ -10,7 +9,7 @@
     <div class="token-meta">
       <span class="price">{{ price }}</span>
       <div class="row" v-if="selected">
-        <span class="price">Balance: {{ selected.balance }}</span>
+        <TextField :title="selected.balance" class="price">Balance: {{ selected.balance }}</TextField>
         <Icon name="important"></Icon>
 
         <div class="token-info">
@@ -22,7 +21,7 @@
             <Icon name="link"></Icon>
           </a>
           <div class="address" @click="copyToClipboard(selected.address)">
-            <span class="address-name">{{ formattedAddress() }}</span>
+            <span class="address-name">{{ formattedAddress }}</span>
             <Icon name="copy"></Icon>
           </div>
         </div>
@@ -33,8 +32,9 @@
 
 <script>
 import {mapActions, mapMutations, mapState} from "vuex";
-import {copyToClipboard, decimalAdjust} from "~/utils/common";
+import {copyToClipboard} from "~/utils/common";
 import {roundTo} from "round-to";
+import debounce from "debounce";
 
 export default {
   name: 'TokenInput',
@@ -42,43 +42,71 @@ export default {
     tokenType: String,
     required: true
   },
-  data() {
-    return {
-      value: null
-    }
-  },
   computed: {
-    ...mapState('swap', ['selectedTokens']),
+    ...mapState('swap', ['selectedTokens', 'exchangeRateLoading']),
     selected() {
       return this.selectedTokens[this.tokenType]
     },
     price() {
       return this.selected?.price?.price ? `$${roundTo(this.selected?.price?.price, 5)}` : 'Price loading'
-    }
+    },
+    value() {
+      return this.selected?.value || null
+    },
+    formattedAddress() {
+      return this.$kaikas.getFormattedAddress(this.selected.address)
+    },
   },
   methods: {
     ...mapMutations({
       setSelectedToken: 'swap/SET_SELECTED_TOKEN'
     }),
-    ...mapActions({setCurrencyRate: 'swap/setCurrencyRate'}),
+    ...mapActions({
+      setCurrencyRate: 'swap/setCurrencyRate',
+      getAmountOut: 'swap/getAmountOut',
+      getAmountIn: 'swap/getAmountIn'
+    }),
     setMax() {
       this.value = this.selected.balance
     },
     copyToClipboard,
-    formattedAddress() {
-      return this.$kaikas.getFormattedAddress(this.selected.address)
-    },
     setToken(token) {
       this.setCurrencyRate({id: token.id, type: this.tokenType})
       this.setSelectedToken({token, type: this.tokenType})
-    }
+    },
+    input: debounce(function (e) {
+      const regex = /^\d*\.?\d*$/;
+
+      if (!this.selected || !e.target.value || !regex.test(e.target.value)) {
+        return
+      }
+
+      this.setSelectedToken({
+        token: {
+          ...this.selected,
+          value: e.target.value
+        },
+        type: this.tokenType
+      })
+
+      if (this.tokenType === 'tokenA') {
+        this.getAmountOut(e.target.value)
+      }
+
+      if (this.tokenType === 'tokenB') {
+        this.getAmountIn(e.target.value)
+      }
+    }, 500)
   }
 }
 </script>
 
 <style scoped lang="scss">
-.token {
 
+.token {
+  &-loading {
+    opacity: 0.4;
+  }
   &-input {
     background: $gray3;
     padding: 16px 16px;
@@ -128,6 +156,7 @@ export default {
       line-height: 15px;
       color: $gray4;
       margin-right: 6px;
+      max-width: 200px;
     }
 
     & .row {
@@ -186,6 +215,7 @@ export default {
       font-weight: 500;
       font-size: 12px;
       line-height: 15px;
+      max-width: 100px;
     }
 
     & .percent {

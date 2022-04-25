@@ -37,7 +37,10 @@
     </header>
     <client-only>
       <div v-if="isNotInstalled">
-        <h1>Install kaikas before use swap</h1>
+        <h1>Install Kaikas before use swap</h1>
+      </div>
+      <div v-else-if="!address">
+        <h1>Please connect Kaikas</h1>
       </div>
       <Nuxt v-else></Nuxt>
     </client-only>
@@ -103,6 +106,10 @@ export default {
 <style scoped lang="scss">
 .layout {
   padding: 40px 82px;
+
+  & h1 {
+    font-size: 30px;
+  }
 
   & header {
     display: flex;

@@ -8,7 +8,7 @@
       <button class="head--btn">
         Liquidity
       </button>
-      <button class="head--btn head--btn-left">
+      <button @click="onRefresh" class="head--btn head--btn-left">
         <Icon name="refresh"></Icon>
       </button>
       <button class="head--btn">
@@ -48,21 +48,25 @@
     </div>
 
     <div class="slippage">
-      <Collapse label="Slippage tolerance">
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Delectus dolorum ea excepturi facilis nam nihil,
-        provident voluptas voluptates. Accusamus magni natus obcaecati omnis reprehenderit! Doloremque quos, voluptatem!
-        Odit repudiandae, unde!
-      </Collapse>
+      <Slippage></Slippage>
     </div>
 
     <Button :disabled="!isValidTokens">Swap</Button>
 
-    <div class="slippage">
-      <Collapse label="Transaction Details">
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Delectus dolorum ea excepturi facilis nam nihil,
-        provident voluptas voluptates. Accusamus magni natus obcaecati omnis reprehenderit! Doloremque quos, voluptatem!
-        Odit repudiandae, unde!
-      </Collapse>
+<!--    <div class="slippage">-->
+<!--      <Collapse label="Transaction Details">-->
+<!--        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Delectus dolorum ea excepturi facilis nam nihil,-->
+<!--        provident voluptas voluptates. Accusamus magni natus obcaecati omnis reprehenderit! Doloremque quos, voluptatem!-->
+<!--        Odit repudiandae, unde!-->
+<!--      </Collapse>-->
+<!--    </div>-->
+
+    <div v-if="exchangeRateLoading">
+      Exchange rate loading
+    </div>
+
+    <div v-if="pairNotExist">
+      Pair doesn't exist
     </div>
   </div>
 </template>
@@ -74,11 +78,15 @@ export default {
   name: 'Swap',
   methods: {
     ...mapActions({
-      getTokens: 'swap/getTokens'
-    })
+      getTokens: 'swap/getTokens',
+      refreshStore: 'swap/refreshStore',
+    }),
+    onRefresh() {
+      this.refreshStore()
+    }
   },
   computed: {
-    ...mapState('swap', ['selectedTokens', 'tokensList']),
+    ...mapState('swap', ['selectedTokens', 'tokensList', 'exchangeRateLoading', 'pairNotExist']),
     isLoading() {
       return !this.tokensList?.length
     },
@@ -107,7 +115,7 @@ export default {
 
 .load {
   width: min-content;
-  margin:auto;
+  margin: auto;
 }
 
 .head {

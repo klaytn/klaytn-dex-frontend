@@ -67,7 +67,7 @@
           <p class="token">{{ t.symbol }}</p>
           <span class="token-name">{{ t.name.toLowerCase() }}</span>
         </div>
-        <div class="token-count">{{ t.balance }}</div>
+        <TextField :title="`${t.balance} ${t.symbol}`" class="token-count">{{ t.balance }} {{ t.symbol }}</TextField>
       </div>
 
     </div>
@@ -208,6 +208,7 @@ export default {
       line-height: 17px;
       color: $dark;
       margin-left: auto;
+      max-width: 150px;
     }
   }
 }
