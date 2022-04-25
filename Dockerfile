@@ -21,7 +21,7 @@ RUN npm install && \
     npm cache clean -f
 
 # nginx
-FROM nginx:1.21.6
+FROM nginx:1.20-alpine
 
 ARG NGINX_CONF=nginx/klaytn-prod.conf
 ENV NGINX_CONF=$NGINX_CONF
