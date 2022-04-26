@@ -8,6 +8,7 @@ export const state = () => ({
   pairNotExist: false,
   slippagePercent: 0.5,
   computedToken: null,
+  exchangeRateIntervalID: null,
   selectedTokens: {
     tokenA: null,
     tokenB: null,
@@ -153,7 +154,9 @@ export const actions = {
 
     commit("SET_EXCHANGE_LOADING", null);
   },
-  async swapTokens({ commit, state }) {},
+  async swapTokens({ commit, state }) {
+    console.log(state.computedToken)
+  },
   // async getExchangeRate() { // TODO it needs when creating lq
   //   const {selectedTokens: {tokenA, tokenB}} = state
   //   try {
@@ -266,6 +269,9 @@ export const mutations = {
     state.slippagePercent = value;
   },
   SET_COMPUTED_TOKEN(state, token) {
-    state.slippagePercent = token;
+    state.computedToken = token;
+  },
+  SET_EXCHANGE_RATE_INTERVAL_ID(state, intervalID) {
+    state.exchangeRateIntervalID = intervalID;
   },
 };

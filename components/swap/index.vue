@@ -41,7 +41,7 @@
       <Slippage />
     </div>
 
-    <Button :disabled="!isValidTokens">Swap</Button>
+    <Button @click="swapTokens" :disabled="!isValidTokens">Swap</Button>
 
     <!--    <div class="slippage">-->
     <!--      <Collapse label="Transaction Details">-->
@@ -50,6 +50,8 @@
     <!--        Odit repudiandae, unde!-->
     <!--      </Collapse>-->
     <!--    </div>-->
+
+    <br>
 
     <div v-if="exchangeRateLoading">Exchange rate loading</div>
 
@@ -74,6 +76,7 @@ export default {
     },
     isValidTokens() {
       return (
+        !this.pairNotExist &&
         Number(this.selectedTokens.tokenA?.balance) > 0 &&
         Number(this.selectedTokens.tokenB?.balance) > 0
       );
@@ -85,6 +88,7 @@ export default {
   methods: {
     ...mapActions({
       getTokens: "swap/getTokens",
+      swapTokens: "swap/swapTokens",
     }),
     ...mapMutations({
       refreshStore: "swap/REFRESH_STORE",
