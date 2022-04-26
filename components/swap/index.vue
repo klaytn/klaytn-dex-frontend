@@ -41,7 +41,7 @@
       <Slippage />
     </div>
 
-    <Button @click="swapTokens" :disabled="!isValidTokens">Swap</Button>
+    <Button :disabled="!isValidTokens" @click="swapTokens">Swap</Button>
 
     <!--    <div class="slippage">-->
     <!--      <Collapse label="Transaction Details">-->
@@ -51,7 +51,7 @@
     <!--      </Collapse>-->
     <!--    </div>-->
 
-    <br>
+    <br />
 
     <div v-if="exchangeRateLoading">Exchange rate loading</div>
 
@@ -60,7 +60,7 @@
 </template>
 
 <script>
-import { mapActions, mapMutations, mapState } from "vuex";
+import { mapActions, mapMutations, mapState } from "vuex"
 
 export default {
   name: "KlaySwap",
@@ -72,18 +72,18 @@ export default {
       "pairNotExist",
     ]),
     isLoading() {
-      return !this.tokensList?.length;
+      return !this.tokensList?.length
     },
     isValidTokens() {
       return (
         !this.pairNotExist &&
         Number(this.selectedTokens.tokenA?.balance) > 0 &&
         Number(this.selectedTokens.tokenB?.balance) > 0
-      );
+      )
     },
   },
   beforeMount() {
-    this.getTokens();
+    this.getTokens()
   },
   methods: {
     ...mapActions({
@@ -94,10 +94,10 @@ export default {
       refreshStore: "swap/REFRESH_STORE",
     }),
     onRefresh() {
-      this.refreshStore();
+      this.refreshStore()
     },
   },
-};
+}
 </script>
 
 <style lang="scss" scoped src="./index.scss" />

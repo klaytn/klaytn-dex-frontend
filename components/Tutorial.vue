@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapActions, mapState } from "vuex"
 
 export default {
   name: "NuxtTutorial",
@@ -48,7 +48,7 @@ export default {
       connect: "kaikas/connect",
     }),
   },
-};
+}
 </script>
 
 <style lang="scss">

@@ -7,7 +7,7 @@
 <script>
 export default {
   name: "TextField",
-};
+}
 </script>
 
 <style>

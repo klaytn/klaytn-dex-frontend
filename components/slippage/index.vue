@@ -29,19 +29,19 @@
   </div>
 </template>
 <script>
-import { mapMutations, mapState } from "vuex";
+import { mapMutations, mapState } from "vuex"
 
 export default {
   name: "KlaySlippage",
   data() {
     return {
       selectedPercent: 0.5,
-    };
+    }
   },
   computed: {
     ...mapState("swap", ["slippagePercent"]),
     renderPercent() {
-      return `${this.slippagePercent}%`;
+      return `${this.slippagePercent}%`
     },
   },
   methods: {
@@ -50,15 +50,15 @@ export default {
     }),
     input(value) {
       if (value > 0 && value <= this.selectedPercent) {
-        this.setSlippage(value);
+        this.setSlippage(value)
       }
     },
     select(value) {
-      this.selectedPercent = value;
-      this.setSlippage(value);
+      this.selectedPercent = value
+      this.setSlippage(value)
     },
   },
-};
+}
 </script>
 
 <style lang="scss" scoped>

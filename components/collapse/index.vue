@@ -13,9 +13,9 @@ export default {
   data() {
     return {
       isOpen: false,
-    };
+    }
   },
-};
+}
 </script>
 
 <style scoped lang="scss">
