@@ -31,7 +31,7 @@ export default {
       default: "300",
     },
   },
-}
+};
 </script>
 
 <style scoped lang="scss">

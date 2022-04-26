@@ -1,6 +1,6 @@
-import routerABI from "../utils/smartcontracts/router.json"
-import factoryABI from "../utils/smartcontracts/factory.json"
-import wethABI from "../utils/smartcontracts/weth.json"
+import routerABI from "../utils/smartcontracts/router.json";
+import factoryABI from "../utils/smartcontracts/factory.json";
+import wethABI from "../utils/smartcontracts/weth.json";
 
 export default (_, inject) => {
   inject("kaikas", {
@@ -18,41 +18,44 @@ export default (_, inject) => {
         typeof window?.klaytn === "undefined" ||
         typeof window?.caver === "undefined"
       ) {
-        return
+        return;
       }
 
-      const { klaytn, caver } = window
+      const { klaytn, caver } = window;
 
-      const addresses = await klaytn.enable()
+      const addresses = await klaytn.enable();
 
-      this.address = addresses[0]
+      this.address = addresses[0];
       this.routerContract = new caver.klay.Contract(
         routerABI.abi,
         this.routerAddress
-      )
+      );
       this.factoryContract = new caver.klay.Contract(
         factoryABI.abi,
         this.factoryAddress
-      )
-      this.wethContract = new caver.klay.Contract(wethABI.abi, this.wethAddress)
-      return addresses[0]
+      );
+      this.wethContract = new caver.klay.Contract(
+        wethABI.abi,
+        this.wethAddress
+      );
+      return addresses[0];
     },
 
     createContract(address, abi) {
-      const { caver } = window
-      return new caver.klay.Contract(abi, address)
+      const { caver } = window;
+      return new caver.klay.Contract(abi, address);
     },
 
     getFormattedAddress(address) {
-      const addressLength = address.length
+      const addressLength = address.length;
       return `${address.slice(2, 6)}...${address.slice(
         addressLength - 6,
         addressLength - 2
-      )}`
+      )}`;
     },
 
     isEmptyAddress(address) {
-      return Number(address?.slice(2)) === 0
+      return Number(address?.slice(2)) === 0;
     },
-  })
-}
+  });
+};

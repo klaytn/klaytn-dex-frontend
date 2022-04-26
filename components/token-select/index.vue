@@ -27,15 +27,15 @@ export default {
   data() {
     return {
       modalOpen: false,
-    }
+    };
   },
   methods: {
     onSelect(token) {
-      this.modalOpen = false
-      this.$emit("select", token)
+      this.modalOpen = false;
+      this.$emit("select", token);
     },
   },
-}
+};
 </script>
 
 <style scoped lang="scss">

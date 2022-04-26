@@ -65,21 +65,21 @@
 </template>
 
 <script>
-import { mapState } from "vuex"
+import { mapState } from "vuex";
 
 export default {
   name: "KlayView",
   computed: {
     ...mapState("kaikas", ["address"]),
     isNotInstalled() {
-      return !window?.klaytn
+      return !window?.klaytn;
     },
     getFormattedAddress() {
-      const addressLength = this.address.length
+      const addressLength = this.address.length;
       return `${this.address.slice(2, 6)}...${this.address.slice(
         addressLength - 6,
         addressLength - 2
-      )}`
+      )}`;
     },
     links() {
       return [
@@ -103,7 +103,7 @@ export default {
           label: "Charts",
           link: "/charts",
         },
-      ]
+      ];
     },
   },
   mounted() {
@@ -113,18 +113,18 @@ export default {
       window?.klaytn.selectedAddress &&
       !this.address
     ) {
-      this.connect()
+      this.connect();
     }
   },
   methods: {
     async connect() {
-      const address = await this.$kaikas.connectKaikas()
+      const address = await this.$kaikas.connectKaikas();
       if (address) {
-        this.$store.commit("kaikas/CONNECT_KAIKAS", address)
+        this.$store.commit("kaikas/CONNECT_KAIKAS", address);
       }
     },
   },
-}
+};
 </script>
 
 <style scoped lang="scss">

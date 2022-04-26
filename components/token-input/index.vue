@@ -48,10 +48,10 @@
 </template>
 
 <script>
-import { mapActions, mapMutations, mapState } from "vuex"
-import { copyToClipboard } from "~/utils/common"
-import { roundTo } from "round-to"
-import debounce from "debounce"
+import { mapActions, mapMutations, mapState } from "vuex";
+import { copyToClipboard } from "~/utils/common";
+import { roundTo } from "round-to";
+import debounce from "debounce";
 
 export default {
   name: "TokenInput",
@@ -64,18 +64,18 @@ export default {
   computed: {
     ...mapState("swap", ["selectedTokens", "exchangeRateLoading"]),
     selected() {
-      return this.selectedTokens[this.tokenType]
+      return this.selectedTokens[this.tokenType];
     },
     price() {
       return this.selected?.price?.price
         ? `$${roundTo(this.selected?.price?.price, 5)}`
-        : "Price loading"
+        : "Price loading";
     },
     value() {
-      return this.selected?.value || null
+      return this.selected?.value || null;
     },
     formattedAddress() {
-      return this.$kaikas.getFormattedAddress(this.selected.address)
+      return this.$kaikas.getFormattedAddress(this.selected.address);
     },
   },
   methods: {
@@ -89,14 +89,14 @@ export default {
     }),
     copyToClipboard,
     setToken(token) {
-      this.setCurrencyRate({ id: token.id, type: this.tokenType })
-      this.setSelectedToken({ token, type: this.tokenType })
+      this.setCurrencyRate({ id: token.id, type: this.tokenType });
+      this.setSelectedToken({ token, type: this.tokenType });
     },
     input: debounce(function (value) {
-      const regex = /^\d*\.?\d*$/
+      const regex = /^\d*\.?\d*$/;
 
       if (!this.selected || !value || !regex.test(value)) {
-        return
+        return;
       }
 
       this.setSelectedToken({
@@ -105,18 +105,18 @@ export default {
           value: value,
         },
         type: this.tokenType,
-      })
+      });
 
       if (this.tokenType === "tokenA") {
-        this.getAmountOut(value)
+        this.getAmountOut(value);
       }
 
       if (this.tokenType === "tokenB") {
-        this.getAmountIn(value)
+        this.getAmountIn(value);
       }
     }, 500),
   },
-}
+};
 </script>
 
 <style scoped lang="scss">

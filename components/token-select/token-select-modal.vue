@@ -97,32 +97,32 @@
 </template>
 
 <script>
-import { mapState } from "vuex"
+import { mapState } from "vuex";
 
 export default {
   name: "TokenSelectModal",
   data() {
     return {
       searchValue: "",
-    }
+    };
   },
   computed: {
     ...mapState("swap", ["tokensList"]),
     renderTokens() {
       return this.tokensList.filter(
         (token) => token.symbol.search(this.searchValue.toUpperCase()) !== -1
-      )
+      );
     },
   },
   methods: {
     onSelect(t) {
       if (Number(t.balance) <= 0) {
-        return
+        return;
       }
-      this.$emit("select", t)
+      this.$emit("select", t);
     },
   },
-}
+};
 </script>
 
 <style scoped lang="scss">

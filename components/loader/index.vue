@@ -5,7 +5,7 @@
 <script>
 export default {
   name: "KlayLoader",
-}
+};
 </script>
 
 <style scoped lang="scss">
