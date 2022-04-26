@@ -2,6 +2,12 @@
   <div class="loader"></div>
 </template>
 
+<script>
+export default {
+  name: "KlayLoader",
+}
+</script>
+
 <style scoped lang="scss">
 .loader {
   border: 6px solid $white;

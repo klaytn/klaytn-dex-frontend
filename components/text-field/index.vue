@@ -4,6 +4,12 @@
   </p>
 </template>
 
+<script>
+export default {
+  name: "TextField",
+}
+</script>
+
 <style>
 .text-field {
   overflow: hidden;

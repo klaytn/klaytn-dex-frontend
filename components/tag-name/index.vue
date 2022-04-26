@@ -3,19 +3,19 @@
     <div class="tag-name--content">
       <slot></slot>
     </div>
-    <span>{{label}}</span>
+    <span>{{ label }}</span>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'TagName',
+  name: "TagName",
   props: {
     label: {
       type: String,
-      required: true
-    }
-  }
+      required: true,
+    },
+  },
 }
 </script>
 
@@ -42,5 +42,4 @@ export default {
     color: $dark2;
   }
 }
-
 </style>

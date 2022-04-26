@@ -9,12 +9,12 @@
 
 <script>
 export default {
-  name: "Collapse",
-  data(){
+  name: "KlayCollapse",
+  data() {
     return {
-      isOpen: false
+      isOpen: false,
     }
-  }
+  },
 }
 </script>
 

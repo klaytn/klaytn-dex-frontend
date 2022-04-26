@@ -1,7 +1,7 @@
-const express = require('express')
+const express = require("express")
 const app = express()
 
-const token = require('./token')
+const token = require("./token")
 app.use(token)
 
 if (require.main === module) {

@@ -1,8 +1,19 @@
 <template>
-  <button v-bind="$attrs" v-on="$listeners" :class="['btn', {loading}]">
+  <button v-bind="$attrs" :class="['btn', { loading }]" v-on="$listeners">
     <slot></slot>
   </button>
 </template>
+
+<script>
+export default {
+  name: "KlayButton",
+  props: {
+    loading: {
+      type: Boolean,
+    },
+  },
+}
+</script>
 
 <style lang="scss" scoped>
 .btn {
@@ -20,18 +31,18 @@
   width: 100%;
 
   &.loading {
-    background: #8FBAFB;
+    background: #8fbafb;
     cursor: default;
     &:hover {
-      background: #8FBAFB;
+      background: #8fbafb;
     }
   }
 
   &:hover {
-    background: #3684F9;
+    background: #3684f9;
   }
   &:active {
-    background: #0263F5;
+    background: #0263f5;
   }
   &:disabled {
     background: $disabled;
@@ -39,14 +50,3 @@
   }
 }
 </style>
-
-<script>
-export default {
-  name: 'Button',
-  props: {
-    loading: {
-      type: Boolean
-    }
-  }
-}
-</script>

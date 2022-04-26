@@ -1,37 +1,40 @@
 <template>
   <div class="select">
-
-    <TokenSelectModal @select="onSelect" v-if="modalOpen" @close="modalOpen = false"></TokenSelectModal>
+    <TokenSelectModal
+      v-if="modalOpen"
+      @select="onSelect"
+      @close="modalOpen = false"
+    ></TokenSelectModal>
 
     <div class="select--head" @click="modalOpen = true">
-      <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo">
+      <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo" />
       <span v-if="selectedToken">
         {{ selectedToken.symbol }}
       </span>
     </div>
-
   </div>
 </template>
 
 <script>
 export default {
-  name: 'TokenSelect',
+  name: "TokenSelect",
   props: {
     selectedToken: {
-      type: Object
-    }
+      type: Object,
+      default: null,
+    },
   },
   data() {
     return {
-      modalOpen: false
+      modalOpen: false,
     }
   },
   methods: {
     onSelect(token) {
       this.modalOpen = false
-      this.$emit('select', token)
-    }
-  }
+      this.$emit("select", token)
+    },
+  },
 }
 </script>
 

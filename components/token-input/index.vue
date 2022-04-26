@@ -1,28 +1,45 @@
 <template>
-  <div class="token-input" :class="{'token-loading': tokenType === exchangeRateLoading}">
+  <div
+    class="token-input"
+    :class="{ 'token-loading': tokenType === exchangeRateLoading }"
+  >
     <div class="token-value">
-      <input :value="value" @input="input" placeholder="0.045">
-      <button @click="setMax">MAX</button>
-      <TokenSelect v-if="selected" :selectedToken="selected" @select="setToken"></TokenSelect>
+      <input
+        :value="value"
+        placeholder="0.045"
+        @input="input($event.target.value)"
+      />
+      <button @click="input(selected.balance)">MAX</button>
+      <TokenSelect
+        v-if="selected"
+        :selected-token="selected"
+        @select="setToken"
+      />
     </div>
 
     <div class="token-meta">
       <span class="price">{{ price }}</span>
-      <div class="row" v-if="selected">
-        <TextField :title="selected.balance" class="price">Balance: {{ selected.balance }}</TextField>
+      <div v-if="selected" class="row">
+        <TextField :title="selected.balance" class="price"
+          >Balance: {{ selected.balance }}</TextField
+        >
         <Icon name="important"></Icon>
 
         <div class="token-info">
           <p>{{ selected.name }} {{ `(${selected.symbol})` }}</p>
           <span class="price">{{ price }}</span>
           <span class="percent">0.26%</span>
-          <a :href="`https://coinmarketcap.com/currencies/${selected.slug}/`" class="link" target="_blank">
+          <a
+            :href="`https://coinmarketcap.com/currencies/${selected.slug}/`"
+            class="link"
+            target="_blank"
+          >
             <span class="link-name">Coinmarketcap</span>
-            <Icon name="link"></Icon>
+            <Icon name="link" />
           </a>
           <div class="address" @click="copyToClipboard(selected.address)">
             <span class="address-name">{{ formattedAddress }}</span>
-            <Icon name="copy"></Icon>
+            <Icon name="copy" />
           </div>
         </div>
       </div>
@@ -31,24 +48,28 @@
 </template>
 
 <script>
-import {mapActions, mapMutations, mapState} from "vuex";
-import {copyToClipboard} from "~/utils/common";
-import {roundTo} from "round-to";
-import debounce from "debounce";
+import { mapActions, mapMutations, mapState } from "vuex"
+import { copyToClipboard } from "~/utils/common"
+import { roundTo } from "round-to"
+import debounce from "debounce"
 
 export default {
-  name: 'TokenInput',
+  name: "TokenInput",
   props: {
-    tokenType: String,
-    required: true
+    tokenType: {
+      type: String,
+      required: true,
+    },
   },
   computed: {
-    ...mapState('swap', ['selectedTokens', 'exchangeRateLoading']),
+    ...mapState("swap", ["selectedTokens", "exchangeRateLoading"]),
     selected() {
       return this.selectedTokens[this.tokenType]
     },
     price() {
-      return this.selected?.price?.price ? `$${roundTo(this.selected?.price?.price, 5)}` : 'Price loading'
+      return this.selected?.price?.price
+        ? `$${roundTo(this.selected?.price?.price, 5)}`
+        : "Price loading"
     },
     value() {
       return this.selected?.value || null
@@ -59,50 +80,46 @@ export default {
   },
   methods: {
     ...mapMutations({
-      setSelectedToken: 'swap/SET_SELECTED_TOKEN'
+      setSelectedToken: "swap/SET_SELECTED_TOKEN",
     }),
     ...mapActions({
-      setCurrencyRate: 'swap/setCurrencyRate',
-      getAmountOut: 'swap/getAmountOut',
-      getAmountIn: 'swap/getAmountIn'
+      setCurrencyRate: "swap/setCurrencyRate",
+      getAmountOut: "swap/getAmountOut",
+      getAmountIn: "swap/getAmountIn",
     }),
-    setMax() {
-      this.value = this.selected.balance
-    },
     copyToClipboard,
     setToken(token) {
-      this.setCurrencyRate({id: token.id, type: this.tokenType})
-      this.setSelectedToken({token, type: this.tokenType})
+      this.setCurrencyRate({ id: token.id, type: this.tokenType })
+      this.setSelectedToken({ token, type: this.tokenType })
     },
-    input: debounce(function (e) {
-      const regex = /^\d*\.?\d*$/;
+    input: debounce(function (value) {
+      const regex = /^\d*\.?\d*$/
 
-      if (!this.selected || !e.target.value || !regex.test(e.target.value)) {
+      if (!this.selected || !value || !regex.test(value)) {
         return
       }
 
       this.setSelectedToken({
         token: {
           ...this.selected,
-          value: e.target.value
+          value: value,
         },
-        type: this.tokenType
+        type: this.tokenType,
       })
 
-      if (this.tokenType === 'tokenA') {
-        this.getAmountOut(e.target.value)
+      if (this.tokenType === "tokenA") {
+        this.getAmountOut(value)
       }
 
-      if (this.tokenType === 'tokenB') {
-        this.getAmountIn(e.target.value)
+      if (this.tokenType === "tokenB") {
+        this.getAmountIn(value)
       }
-    }, 500)
-  }
+    }, 500),
+  },
 }
 </script>
 
 <style scoped lang="scss">
-
 .token {
   &-loading {
     opacity: 0.4;
@@ -173,7 +190,6 @@ export default {
       }
     }
   }
-
 
   &-info {
     display: none;
@@ -250,7 +266,7 @@ export default {
         line-height: 180%;
 
         &:hover {
-          color: $blue
+          color: $blue;
         }
       }
     }
@@ -278,11 +294,10 @@ export default {
         line-height: 180%;
 
         &:hover {
-          color: $blue
+          color: $blue;
         }
       }
     }
   }
 }
-
 </style>

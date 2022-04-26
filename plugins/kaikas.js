@@ -1,9 +1,9 @@
-import routerABI from '../utils/smartcontracts/router.json'
-import factoryABI from '../utils/smartcontracts/factory.json'
-import wethABI from '../utils/smartcontracts/weth.json'
+import routerABI from "../utils/smartcontracts/router.json"
+import factoryABI from "../utils/smartcontracts/factory.json"
+import wethABI from "../utils/smartcontracts/weth.json"
 
-export default ({ app }, inject) => {
-  inject('kaikas', {
+export default (_, inject) => {
+  inject("kaikas", {
     address: null,
     routerAddress: "0xB0B695584234F2CC16266588b2b951F3d2885705",
     factoryAddress: "0xEB487a3A623E25cAa668B6D199F1aBa9D2380456",
@@ -12,33 +12,47 @@ export default ({ app }, inject) => {
     factoryContract: null,
     wethContract: null,
 
-    async connectKaikas(){
-      if (process.server || typeof window?.klaytn === 'undefined' || typeof window?.caver === 'undefined') {
+    async connectKaikas() {
+      if (
+        process.server ||
+        typeof window?.klaytn === "undefined" ||
+        typeof window?.caver === "undefined"
+      ) {
         return
       }
 
-      const {klaytn, caver} = window;
+      const { klaytn, caver } = window
 
       const addresses = await klaytn.enable()
 
       this.address = addresses[0]
-      this.routerContract = new caver.klay.Contract(routerABI.abi, this.routerAddress)
-      this.factoryContract = new caver.klay.Contract(factoryABI.abi, this.factoryAddress)
+      this.routerContract = new caver.klay.Contract(
+        routerABI.abi,
+        this.routerAddress
+      )
+      this.factoryContract = new caver.klay.Contract(
+        factoryABI.abi,
+        this.factoryAddress
+      )
       this.wethContract = new caver.klay.Contract(wethABI.abi, this.wethAddress)
       return addresses[0]
     },
 
     createContract(address, abi) {
+      const { caver } = window
       return new caver.klay.Contract(abi, address)
     },
 
     getFormattedAddress(address) {
-      const addressLength = address.length;
-      return `${address.slice(2, 6)}...${address.slice(addressLength - 6, addressLength - 2)}`
+      const addressLength = address.length
+      return `${address.slice(2, 6)}...${address.slice(
+        addressLength - 6,
+        addressLength - 2
+      )}`
     },
 
-    isEmptyAddress(address){
-      return Number( address?.slice(2)) === 0
-    }
+    isEmptyAddress(address) {
+      return Number(address?.slice(2)) === 0
+    },
   })
 }
