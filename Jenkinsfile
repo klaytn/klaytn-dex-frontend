@@ -1,9 +1,15 @@
 @Library('jenkins-library' ) _
 
-def pipeline = new org.docker.AppPipeline(steps: this,
+def pipeline = new org.js.AppPipeline(
+    steps: this,
+    test: false,
     dockerImageName: 'klaytn/klaytn-frontend',
-    buildDockerImage: 'docker.soramitsu.co.jp/build-tools/node:14-ubuntu-extended',
-    dockerRegistryCred: 'bot-polkaswap-rw',
     dockerRegistryCred: 'bot-klaytn-rw',
+    dockerImageTags: ['PR-6':'test'],
+    workerLabel: 'docker-build-agent',
+    dockerFileName: 'Dockerfile',
+    buildDockerImage: 'build-tools/node:14-alpine',
+    packageManager: 'npm',
+    buildCmds: ['npm run build'],
     gitUpdateSubmodule: true)
 pipeline.runPipeline()
