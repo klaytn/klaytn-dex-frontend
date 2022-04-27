@@ -1,6 +1,7 @@
 import routerABI from "../utils/smartcontracts/router.json"
 import factoryABI from "../utils/smartcontracts/factory.json"
 import wethABI from "../utils/smartcontracts/weth.json"
+import web3 from "web3";
 
 export default (_, inject) => {
   inject("kaikas", {
@@ -54,5 +55,10 @@ export default (_, inject) => {
     isEmptyAddress(address) {
       return Number(address?.slice(2)) === 0
     },
+
+    convert(token, amount = "ether"){
+     return web3.utils.toWei(token, amount)
+    },
+
   })
 }

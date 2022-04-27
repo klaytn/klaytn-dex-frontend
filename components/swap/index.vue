@@ -42,14 +42,7 @@
     </div>
 
     <Button :disabled="!isValidTokens" @click="swapTokens">Swap</Button>
-
-    <!--    <div class="slippage">-->
-    <!--      <Collapse label="Transaction Details">-->
-    <!--        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Delectus dolorum ea excepturi facilis nam nihil,-->
-    <!--        provident voluptas voluptates. Accusamus magni natus obcaecati omnis reprehenderit! Doloremque quos, voluptatem!-->
-    <!--        Odit repudiandae, unde!-->
-    <!--      </Collapse>-->
-    <!--    </div>-->
+    <Button :disabled="!isValidTokens" @click="AddLQ">ADDLQ</Button>
 
     <br />
 
@@ -70,6 +63,7 @@ export default {
       "tokensList",
       "exchangeRateLoading",
       "pairNotExist",
+      "computedToken"
     ]),
     isLoading() {
       return !this.tokensList?.length
@@ -88,11 +82,17 @@ export default {
   methods: {
     ...mapActions({
       getTokens: "swap/getTokens",
-      swapTokens: "swap/swapTokens",
+      AddLQ: "swap/AddLQ",
+      swapExactTokensForTokens: "swap/swapExactTokensForTokens"
     }),
     ...mapMutations({
       refreshStore: "swap/REFRESH_STORE",
     }),
+    swapTokens(){
+      if(this.computedToken === "tokenB"){
+        this.swapExactTokensForTokens()
+      }
+    },
     onRefresh() {
       this.refreshStore()
     },

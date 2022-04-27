@@ -20,9 +20,11 @@
     <div class="token-meta">
       <span class="price">{{ price }}</span>
       <div v-if="selected" class="row">
-        <TextField :title="selected.balance" class="price"
-          >Balance: {{ selected.balance }}
+        <TextField :title="selected.balance" class="price">
+          Balance: {{renderBalance}}
+
         </TextField>
+
         <Icon name="important"></Icon>
 
         <div class="token-info">
@@ -48,10 +50,11 @@
 </template>
 
 <script>
-import { mapActions, mapMutations, mapState } from "vuex"
-import { copyToClipboard } from "~/utils/common"
-import { roundTo } from "round-to"
-import debounce from "debounce"
+import { mapActions, mapMutations, mapState } from "vuex";
+import { copyToClipboard } from "~/utils/common";
+import { roundTo } from "round-to";
+import debounce from "debounce";
+import web3 from 'web3';
 
 export default {
   name: "TokenInput",
@@ -68,23 +71,26 @@ export default {
       "exchangeRateIntervalID",
     ]),
     selected() {
-      return this.selectedTokens[this.tokenType]
+      return this.selectedTokens[this.tokenType];
+    },
+    renderBalance(){
+      return roundTo(Number(web3.utils.fromWei(this.selected.balance)), 5)
     },
     price() {
       return this.selected?.price?.price
         ? `$${roundTo(this.selected?.price?.price, 5)}`
-        : "Price loading"
+        : "Price loading";
     },
     value() {
-      return this.selected?.value || null
+      return this.selected?.value || null;
     },
     formattedAddress() {
-      return this.$kaikas.getFormattedAddress(this.selected.address)
+      return this.$kaikas.getFormattedAddress(this.selected.address);
     },
   },
   beforeDestroy() {
     if (this.exchangeRateIntervalID) {
-      clearInterval(this.exchangeRateIntervalID)
+      clearInterval(this.exchangeRateIntervalID);
     }
   },
   methods: {
@@ -100,19 +106,19 @@ export default {
     }),
     copyToClipboard,
     setToken(token) {
-      this.setCurrencyRate({ id: token.id, type: this.tokenType })
-      this.setSelectedToken({ token, type: this.tokenType })
+      this.setCurrencyRate({ id: token.id, type: this.tokenType });
+      this.setSelectedToken({ token, type: this.tokenType });
     },
     input: debounce(function (value) {
-      const regex = /^\d*\.?\d*$/
+      const regex = /^\d*\.?\d*$/;
 
       if (!this.selected || !value || !regex.test(value)) {
-        return
+        return;
       }
 
       if (this.exchangeRateIntervalID) {
-        clearInterval(this.exchangeRateIntervalID)
-        this.setExchangeRateIntervalID(null)
+        clearInterval(this.exchangeRateIntervalID);
+        this.setExchangeRateIntervalID(null);
       }
 
       this.setSelectedToken({
@@ -121,26 +127,26 @@ export default {
           value: value,
         },
         type: this.tokenType,
-      })
+      });
 
-      this.setComputedToken(this.tokenType === "tokenA" ? "tokenB" : "tokenA")
+      this.setComputedToken(this.tokenType === "tokenA" ? "tokenB" : "tokenA");
 
       if (this.tokenType === "tokenA") {
-        this.getAmountOut(value)
+        this.getAmountOut(value);
         this.setExchangeRateIntervalID(
           setInterval(() => this.getAmountOut(value), 5000)
-        )
+        );
       }
 
       if (this.tokenType === "tokenB") {
-        this.getAmountIn(value)
+        this.getAmountIn(value);
         this.setExchangeRateIntervalID(
           setInterval(() => this.getAmountIn(value), 5000)
-        )
+        );
       }
     }, 500),
   },
-}
+};
 </script>
 
 <style scoped lang="scss" src="./index.scss" />
