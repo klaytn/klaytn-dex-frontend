@@ -41,8 +41,11 @@
       <Slippage />
     </div>
 
-    <Button :disabled="!isValidTokens" @click="swapTokens">Swap</Button>
-    <Button :disabled="!isValidTokens" @click="AddLQ">ADDLQ</Button>
+    <Button :disabled="!isValidTokens" @click="swapTokens">{{
+      isSwapLoading ? "Wait" : "Swap"
+    }}</Button>
+    <br />
+    <!--    <Button :disabled="!isValidTokens" @click="AddLQ">ADDLQ</Button>-->
 
     <br />
 
@@ -53,51 +56,72 @@
 </template>
 
 <script>
-import { mapActions, mapMutations, mapState } from "vuex"
+import { mapActions, mapMutations, mapState } from "vuex";
 
 export default {
   name: "KlaySwap",
+  data() {
+    return {
+      isSwapLoading: false,
+    };
+  },
   computed: {
     ...mapState("swap", [
       "selectedTokens",
       "tokensList",
       "exchangeRateLoading",
       "pairNotExist",
-      "computedToken"
+      "computedToken",
+      "exchangeRateIntervalID",
     ]),
     isLoading() {
-      return !this.tokensList?.length
+      return !this.tokensList?.length;
     },
     isValidTokens() {
       return (
+        !this.isSwapLoading &&
         !this.pairNotExist &&
         Number(this.selectedTokens.tokenA?.balance) > 0 &&
         Number(this.selectedTokens.tokenB?.balance) > 0
-      )
+      );
     },
   },
   beforeMount() {
-    this.getTokens()
+    this.getTokens();
   },
   methods: {
     ...mapActions({
       getTokens: "swap/getTokens",
       AddLQ: "swap/AddLQ",
-      swapExactTokensForTokens: "swap/swapExactTokensForTokens"
+      swapExactTokensForTokens: "swap/swapExactTokensForTokens",
+      swapTokensForExactTokens: "swap/swapTokensForExactTokens",
     }),
     ...mapMutations({
       refreshStore: "swap/REFRESH_STORE",
+      setExchangeRateIntervalID: "swap/SET_EXCHANGE_RATE_INTERVAL_ID",
     }),
-    swapTokens(){
-      if(this.computedToken === "tokenB"){
-        this.swapExactTokensForTokens()
-      }
+    async swapTokens() {
+      try {
+        this.isSwapLoading = true;
+
+        if (this.computedToken === "tokenB") {
+          await this.swapExactTokensForTokens();
+        }
+        if (this.computedToken === "tokenA") {
+          await this.swapTokensForExactTokens();
+        }
+        if (this.exchangeRateIntervalID) {
+          clearInterval(this.exchangeRateIntervalID);
+          this.setExchangeRateIntervalID(null);
+        }
+      } catch (e) {}
+      this.isSwapLoading = false;
     },
     onRefresh() {
-      this.refreshStore()
+      this.refreshStore();
     },
   },
-}
+};
 </script>
 
 <style lang="scss" scoped src="./index.scss" />
