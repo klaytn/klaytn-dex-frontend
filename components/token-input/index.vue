@@ -21,8 +21,7 @@
       <span class="price">{{ price }}</span>
       <div v-if="selected" class="row">
         <TextField :title="selected.balance" class="price">
-          Balance: {{renderBalance}}
-
+          Balance: {{ renderBalance }}
         </TextField>
 
         <Icon name="important"></Icon>
@@ -54,7 +53,7 @@ import { mapActions, mapMutations, mapState } from "vuex";
 import { copyToClipboard } from "~/utils/common";
 import { roundTo } from "round-to";
 import debounce from "debounce";
-import web3 from 'web3';
+import web3 from "web3";
 
 export default {
   name: "TokenInput",
@@ -73,8 +72,8 @@ export default {
     selected() {
       return this.selectedTokens[this.tokenType];
     },
-    renderBalance(){
-      return roundTo(Number(web3.utils.fromWei(this.selected.balance)), 5)
+    renderBalance() {
+      return roundTo(Number(web3.utils.fromWei(this.selected.balance)), 5);
     },
     price() {
       return this.selected?.price?.price
@@ -82,7 +81,13 @@ export default {
         : "Price loading";
     },
     value() {
-      return this.selected?.value || null;
+      if (!this.selected?.value) {
+        return null;
+      }
+      const bn = new this.$kaikas.bigNumber(
+        this.$kaikas.fromWei(this.selected.value)
+      );
+      return Number(bn.toFixed(4));
     },
     formattedAddress() {
       return this.$kaikas.getFormattedAddress(this.selected.address);
@@ -109,10 +114,11 @@ export default {
       this.setCurrencyRate({ id: token.id, type: this.tokenType });
       this.setSelectedToken({ token, type: this.tokenType });
     },
-    input: debounce(function (value) {
+    input: debounce(function (v) {
       const regex = /^\d*\.?\d*$/;
 
-      if (!this.selected || !value || !regex.test(value)) {
+      if (!this.selected || !v || !regex.test(v)) {
+        debugger
         return;
       }
 
@@ -121,10 +127,12 @@ export default {
         this.setExchangeRateIntervalID(null);
       }
 
+      const value = this.$kaikas.toWei(v);
+
       this.setSelectedToken({
         token: {
           ...this.selected,
-          value: value,
+          value,
         },
         type: this.tokenType,
       });
