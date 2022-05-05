@@ -367,18 +367,9 @@ export const actions = {
 };
 
 export const mutations = {
-  REFRESH_STORE(state) {
-    state = {
-      tokensList: [],
-      exchangeRateLoading: null,
-      pairNotExist: false,
-      slippagePercent: 0.5,
-      selectedTokens: {
-        tokenA: null,
-        tokenB: null,
-      },
-    };
-    return state;
+  REFRESH_STORE(store) {
+    store = state();
+    return state();
   },
   SET_TOKENS(state, tokens) {
     state.tokensList = tokens;
