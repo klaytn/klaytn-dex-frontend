@@ -1,41 +1,68 @@
 <template>
   <div class="slippage">
     <Collapse>
-      <template v-slot:head>
+      <template #head>
         <div class="slippage--head">
-          <span class="label">
-            Slippage tolerance
-          </span>
-          <Icon name="important"></Icon>
+          <span class="label"> Slippage tolerance </span>
+          <Icon name="important" />
           <span class="percent">
-            0.5%
+            {{ renderPercent }}
           </span>
         </div>
       </template>
 
-      <template v-slot:main>
+      <template #main>
         <div class="slippage--body">
-          <button class="percent">0.1%</button>
-          <button class="percent">0.5%</button>
-          <button class="percent">1%</button>
-          <button class="percent">3%</button>
-
-          <input class="input" type="text">
+          <button class="percent" @click="select(0.1)">0.1%</button>
+          <button class="percent" @click="select(0.5)">0.5%</button>
+          <button class="percent" @click="select(1)">1%</button>
+          <button class="percent" @click="select(3)">3%</button>
+          <input
+            class="input"
+            type="text"
+            :placeholder="renderPercent"
+            @input="input($event.target.value)"
+          />
         </div>
       </template>
     </Collapse>
   </div>
 </template>
 <script>
+import { mapMutations, mapState } from "vuex"
+
 export default {
-  name: 'Slippage',
+  name: "KlaySlippage",
+  data() {
+    return {
+      selectedPercent: 0.5,
+    }
+  },
+  computed: {
+    ...mapState("swap", ["slippagePercent"]),
+    renderPercent() {
+      return `${this.slippagePercent}%`
+    },
+  },
+  methods: {
+    ...mapMutations({
+      setSlippage: "swap/SET_SLIPPAGE",
+    }),
+    input(value) {
+      if (value > 0 && value <= this.selectedPercent) {
+        this.setSlippage(value)
+      }
+    },
+    select(value) {
+      this.selectedPercent = value
+      this.setSlippage(value)
+    },
+  },
 }
 </script>
 
 <style lang="scss" scoped>
-
 .slippage {
-
   &--head {
     display: flex;
     align-items: center;
@@ -80,9 +107,19 @@ export default {
     }
 
     & .input {
-      display: none;
+      margin-left: auto;
+      background: $gray3;
+      border-radius: 8px;
+      font-style: normal;
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 180%;
+      color: $dark2;
+      box-shadow: none;
+      padding: 3px 8px;
+      max-width: 88px;
+      width: 100%;
     }
   }
 }
-
 </style>

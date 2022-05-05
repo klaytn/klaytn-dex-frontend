@@ -1,54 +1,51 @@
 <template>
   <div class="wrap">
-
     <div v-if="isNotInstalled">
       <h2>Please install kaikas to use the app</h2>
-      <br>
+      <br />
       <p>
-        You can install kaikas  <a href="https://docs.kaikas.io/" target="_blank">here</a>
+        You can install kaikas
+        <a href="https://docs.kaikas.io/" target="_blank">here</a>
       </p>
     </div>
 
     <div v-else-if="!address">
-      <h2>Connect kaikas </h2>
-      <br>
+      <h2>Connect kaikas</h2>
+      <br />
       <Button @click="connect()">Connect</Button>
     </div>
 
     <div v-else>
       <h2>Kaikas Connected!</h2>
-      <br>
+      <br />
       <h3>your address is {{ address }}</h3>
     </div>
-    <br>
-    <br>
-    <br>
-    <br>
+    <br />
+    <br />
+    <br />
+    <br />
     <Button>Button</Button>
     <Button :loading="true">Loading</Button>
     <Button disabled>Button</Button>
-    <br>
+    <br />
 
-
-    <br>
-
+    <br />
   </div>
 </template>
 
 <script>
-
-import {mapActions, mapState} from "vuex";
+import { mapActions, mapState } from "vuex"
 
 export default {
-  name: 'NuxtTutorial',
+  name: "NuxtTutorial",
   components: {},
 
   computed: {
-    ...mapState('kaikas', ['address', 'isNotInstalled'])
+    ...mapState("kaikas", ["address", "isNotInstalled"]),
   },
   methods: {
     ...mapActions({
-      connect: 'kaikas/connect',
+      connect: "kaikas/connect",
     }),
   },
 }
@@ -60,7 +57,6 @@ export default {
   margin: auto;
   text-align: center;
   padding: 10px;
-
 
   & h1 {
     text-align: center;

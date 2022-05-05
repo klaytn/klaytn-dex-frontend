@@ -1,161 +1,127 @@
 <template>
-
-  <div class="wrap" v-if="isLoading">
+  <div v-if="isLoading" class="wrap">
     <div class="head">
-      <button class="head--btn head--btn-active">
-        Swap
+      <button class="head--btn head--btn-active">Swap</button>
+      <button class="head--btn">Liquidity</button>
+      <button class="head--btn head--btn-left" @click="onRefresh">
+        <Icon name="refresh" />
       </button>
       <button class="head--btn">
-        Liquidity
-      </button>
-      <button @click="onRefresh" class="head--btn head--btn-left">
-        <Icon name="refresh"></Icon>
-      </button>
-      <button class="head--btn">
-        <Icon name="filters"></Icon>
+        <Icon name="filters" />
       </button>
     </div>
     <div class="load">
-      <Loader></Loader>
+      <Loader />
     </div>
   </div>
 
-  <div class="wrap" v-else>
-
+  <div v-else class="wrap">
     <div class="head">
-      <button class="head--btn head--btn-active">
-        Swap
-      </button>
-      <button class="head--btn">
-        Liquidity
-      </button>
+      <button class="head--btn head--btn-active">Swap</button>
+      <button class="head--btn">Liquidity</button>
       <button class="head--btn head--btn-left">
-        <Icon name="refresh"></Icon>
+        <Icon name="refresh" />
       </button>
       <button class="head--btn">
-        <Icon name="filters"></Icon>
+        <Icon name="filters" />
       </button>
     </div>
 
-    <TokenInput tokenType="tokenA"></TokenInput>
+    <TokenInput token-type="tokenA" />
 
     <button class="change-btn">
-      <Icon name="arrow-down"></Icon>
+      <Icon name="arrow-down" />
     </button>
 
     <div class="margin-block">
-      <TokenInput tokenType="tokenB"></TokenInput>
+      <TokenInput token-type="tokenB" />
     </div>
 
     <div class="slippage">
-      <Slippage></Slippage>
+      <Slippage />
     </div>
 
-    <Button :disabled="!isValidTokens">Swap</Button>
+    <Button :disabled="!isValidTokens" @click="swapTokens">{{
+      isSwapLoading ? "Wait" : "Swap"
+    }}</Button>
+    <br />
+    <!--    <Button :disabled="!isValidTokens" @click="AddLQ">ADDLQ</Button>-->
 
-<!--    <div class="slippage">-->
-<!--      <Collapse label="Transaction Details">-->
-<!--        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Delectus dolorum ea excepturi facilis nam nihil,-->
-<!--        provident voluptas voluptates. Accusamus magni natus obcaecati omnis reprehenderit! Doloremque quos, voluptatem!-->
-<!--        Odit repudiandae, unde!-->
-<!--      </Collapse>-->
-<!--    </div>-->
+    <br />
 
-    <div v-if="exchangeRateLoading">
-      Exchange rate loading
-    </div>
+    <div v-if="exchangeRateLoading">Exchange rate loading</div>
 
-    <div v-if="pairNotExist">
-      Pair doesn't exist
-    </div>
+    <div v-if="pairNotExist">Pair doesn't exist</div>
   </div>
 </template>
 
 <script>
-import {mapActions, mapState} from "vuex";
+import { mapActions, mapMutations, mapState } from "vuex";
 
 export default {
-  name: 'Swap',
-  methods: {
-    ...mapActions({
-      getTokens: 'swap/getTokens',
-      refreshStore: 'swap/refreshStore',
-    }),
-    onRefresh() {
-      this.refreshStore()
-    }
+  name: "KlaySwap",
+  data() {
+    return {
+      isSwapLoading: false,
+    };
   },
   computed: {
-    ...mapState('swap', ['selectedTokens', 'tokensList', 'exchangeRateLoading', 'pairNotExist']),
+    ...mapState("swap", [
+      "selectedTokens",
+      "tokensList",
+      "exchangeRateLoading",
+      "pairNotExist",
+      "computedToken",
+      "exchangeRateIntervalID",
+    ]),
     isLoading() {
-      return !this.tokensList?.length
+      return !this.tokensList?.length;
     },
     isValidTokens() {
-      return Number(this.selectedTokens.tokenA?.balance) > 0 && Number(this.selectedTokens.tokenB?.balance) > 0
-    }
+      return (
+        !this.isSwapLoading &&
+        !this.pairNotExist &&
+        Number(this.selectedTokens.tokenA?.balance) > 0 &&
+        Number(this.selectedTokens.tokenB?.balance) > 0
+      );
+    },
   },
   beforeMount() {
-    this.getTokens()
-  }
-}
+    this.getTokens();
+  },
+  methods: {
+    ...mapActions({
+      getTokens: "swap/getTokens",
+      AddLQ: "swap/AddLQ",
+      swapExactTokensForTokens: "swap/swapExactTokensForTokens",
+      swapTokensForExactTokens: "swap/swapTokensForExactTokens",
+    }),
+    ...mapMutations({
+      refreshStore: "swap/REFRESH_STORE",
+      setExchangeRateIntervalID: "swap/SET_EXCHANGE_RATE_INTERVAL_ID",
+    }),
+    async swapTokens() {
+      try {
+        this.isSwapLoading = true;
 
+        if (this.computedToken === "tokenB") {
+          await this.swapExactTokensForTokens();
+        }
+        if (this.computedToken === "tokenA") {
+          await this.swapTokensForExactTokens();
+        }
+        if (this.exchangeRateIntervalID) {
+          clearInterval(this.exchangeRateIntervalID);
+          this.setExchangeRateIntervalID(null);
+        }
+      } catch (e) {}
+      this.isSwapLoading = false;
+    },
+    onRefresh() {
+      this.refreshStore();
+    },
+  },
+};
 </script>
 
-<style lang="scss" scoped>
-.wrap {
-  background: linear-gradient(0deg, #FFFFFF, #FFFFFF), linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%), rgba(255, 255, 255, 0.6);
-  box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05);
-  padding: 19px 16px;
-  border-radius: 20px;
-  overflow: visible;
-  margin: auto;
-  max-width: 420px;
-  width: 100%;
-}
-
-.load {
-  width: min-content;
-  margin: auto;
-}
-
-.head {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 18px;
-
-  &--btn {
-    font-style: normal;
-    font-weight: 700;
-    font-size: 18px;
-    line-height: 150%;
-    color: $gray2;
-    margin-right: 18px;
-    cursor: pointer;
-
-    &-left {
-      margin-left: auto;
-    }
-
-    &:last-child {
-      margin-right: 0;
-    }
-
-    &-active {
-      color: $dark
-    }
-  }
-}
-
-.change-btn {
-  margin-top: -10px;
-}
-
-.margin-block {
-  margin: -10px 0;
-}
-
-.slippage {
-  margin: 20px 0;
-}
-</style>
+<style lang="scss" scoped src="./index.scss" />

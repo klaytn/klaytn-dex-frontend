@@ -1,7 +1,12 @@
 <template>
   <div class="list">
-
-    <NuxtLink v-for="it in items" :key="it.link" active-class="active" class="item" :to="it.link">
+    <NuxtLink
+      v-for="it in items"
+      :key="it.link"
+      active-class="active"
+      class="item"
+      :to="it.link"
+    >
       {{ it.label }}
     </NuxtLink>
   </div>
@@ -9,13 +14,13 @@
 
 <script>
 export default {
-  name: 'Menu',
+  name: "HeaderMenu",
   props: {
     items: {
       type: Array,
-      required: true
-    }
-  }
+      required: true,
+    },
+  },
 }
 </script>
 
