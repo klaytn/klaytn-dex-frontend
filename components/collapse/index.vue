@@ -1,34 +1,20 @@
 <template>
   <div class="collapse">
     <div class="collapse--head" @click="isOpen = !isOpen">
-    <span class="label">
-      {{label}}
-    </span>
-
-      <Icon name="important"></Icon>
-
-      <span class="percent">0.5%</span>
-
-      <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-       <Icon name="important"></Icon>
-      </svg>
+      <slot name="head"></slot>
     </div>
-    <slot v-if="isOpen"></slot>
+    <slot v-if="isOpen" name="main"></slot>
   </div>
 </template>
 
 <script>
 export default {
-  name: "Collapse",
-  props: {
-    label: String,
-    required: true
-  },
-  data(){
+  name: "KlayCollapse",
+  data() {
     return {
-      isOpen: false
+      isOpen: false,
     }
-  }
+  },
 }
 </script>
 
@@ -40,31 +26,5 @@ export default {
   padding: 8px 16px;
   background: $white;
   text-align: left;
-
-  &--head {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-
-    & .label {
-      font-style: normal;
-      font-weight: 700;
-      font-size: 14px;
-      line-height: 180%;
-      color: $dark;
-      margin-right: 5px;
-      margin-bottom: 0;
-    }
-
-    & .percent {
-      font-style: normal;
-      font-weight: 700;
-      font-size: 14px;
-      line-height: 180%;
-      color: $dark;
-      margin-left: auto;
-      margin-right: 8px;
-    }
-  }
 }
 </style>

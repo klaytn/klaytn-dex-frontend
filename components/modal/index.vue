@@ -1,13 +1,16 @@
 <template>
   <div class="modal">
     <div class="modal--close-layer" @click="$emit('close')"></div>
-    <div class="modal--body" :style="{
-     width:`${width || 300}px`
-    }">
+    <div
+      class="modal--body"
+      :style="{
+        width: `${width}px`,
+      }"
+    >
       <div class="head">
-        <h3>{{label || ''}}</h3>
+        <h3>{{ label || "" }}</h3>
         <button class="close" @click="$emit('close')">
-          <Icon name="close"></Icon>
+          <Icon name="close" />
         </button>
       </div>
       <slot></slot>
@@ -17,18 +20,17 @@
 
 <script>
 export default {
-  name: 'Modal',
+  name: "KlayModal",
   props: {
     label: {
-      type: String
+      type: String,
+      default: "",
     },
     width: {
-      type: String
+      type: String,
+      default: "300",
     },
-    padding: {
-      type: String
-    }
-  }
+  },
 }
 </script>
 
