@@ -15,18 +15,7 @@
     </div>
   </div>
 
-  <div v-else class="wrap">
-    <div class="head">
-      <button class="head--btn head--btn-active">Swap</button>
-      <button class="head--btn">Liquidity</button>
-      <button class="head--btn head--btn-left">
-        <Icon name="refresh" />
-      </button>
-      <button class="head--btn">
-        <Icon name="filters" />
-      </button>
-    </div>
-
+  <Wrap v-else>
     <TokenInput token-type="tokenA" />
 
     <button class="change-btn">
@@ -42,8 +31,8 @@
     </div>
 
     <Button :disabled="!isValidTokens" @click="swapTokens">{{
-      isSwapLoading ? "Wait" : "Swap"
-    }}</Button>
+        isSwapLoading ? "Wait" : "Swap"
+      }}</Button>
     <br />
     <!--    <Button :disabled="!isValidTokens" @click="AddLQ">ADDLQ</Button>-->
 
@@ -52,7 +41,7 @@
     <div v-if="exchangeRateLoading">Exchange rate loading</div>
 
     <div v-if="pairNotExist">Pair doesn't exist</div>
-  </div>
+  </Wrap>
 </template>
 
 <script>
@@ -87,7 +76,9 @@ export default {
     },
   },
   beforeMount() {
-    this.getTokens();
+    if(!this.tokensList?.length) {
+      this.getTokens();
+    }
   },
   methods: {
     ...mapActions({
