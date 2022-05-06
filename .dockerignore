@@ -1,6 +1,6 @@
 .git
 .dist
-Dockerfile
+Dockerfile*
 .dockerignore
 .gitignore
 docker-compose.yml
