@@ -93,7 +93,7 @@ export default {
         },
         {
           label: "Deposit",
-          link: "/deposit",
+          link: "/liquidity",
         },
         {
           label: "Voting",

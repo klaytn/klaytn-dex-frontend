@@ -183,7 +183,7 @@ export const actions = {
         console.log({ approve });
       }
 
-      const deadLine = Math.floor(Date.now() / 1000 + 3000);
+      const deadLine = Math.floor(Date.now() / 1000 + 3000)
 
       const swapGas = await this.$kaikas.routerContract.methods
         .swapExactTokensForTokens(
@@ -194,6 +194,7 @@ export const actions = {
           deadLine
         )
         .estimateGas();
+
 
       await this.$kaikas.routerContract.methods
         .swapExactTokensForTokens(
@@ -242,7 +243,8 @@ export const actions = {
           });
       }
 
-      const deadLine = Math.floor(Date.now() / 1000 + 3000);
+      const deadLine = Math.floor(Date.now() / 1000 + 3000)
+
 
       // const swapGas = await this.$kaikas.routerContract.methods
       //   .swapTokensForExactTokens(
@@ -253,6 +255,7 @@ export const actions = {
       //     2851056821
       //   )
       //   .estimateGas();
+
 
       await this.$kaikas.routerContract.methods
         .swapTokensForExactTokens(
@@ -289,7 +292,7 @@ export const actions = {
     } catch (e) {
       console.log(e);
     }
-    return;
+    return
   },
   async AddLQ({ state }) {
     // TODO it needs when creating lq
