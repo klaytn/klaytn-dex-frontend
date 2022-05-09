@@ -1,7 +1,9 @@
 <template>
   <Wrap>
     <p class="liquidity--title">Add liquidity to receive LP tokens</p>
-    <Button class="liquidity--btn"> Add Liquidity</Button>
+    <RouterLink to="/liquidity/add">
+      <Button class="liquidity--btn"> Add Liquidity</Button>
+    </RouterLink>
 
     <p class="liquidity--title mt">Your Liquidity</p>
 
