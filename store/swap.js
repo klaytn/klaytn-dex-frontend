@@ -56,6 +56,8 @@ export const actions = {
       selectedTokens: { tokenA, tokenB },
     } = tokens;
 
+    commit("SET_EMPTY_PAIR", null);
+
     try {
       const pairAddress = await this.$kaikas.factoryContract.methods
         .getPair(tokenA.address, tokenB.address)
@@ -63,13 +65,20 @@ export const actions = {
           from: this.$kaikas.address,
         });
 
+      if (this.$kaikas.isEmptyAddress(pairAddress)) {
+        commit("SET_EMPTY_PAIR", [tokenA.address, tokenB.address]);
+        return;
+      }
+
       const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
+
       const reserves = await pairContract.methods.getReserves().call({
         from: this.$kaikas.address,
       });
 
+
       const getAmountIn = await this.$kaikas.routerContract.methods
-        .getAmountIn(value.toString(), reserves[0], reserves[1])
+        .getAmountIn(value, reserves[0], reserves[1])
         .call({
           from: this.$kaikas.address,
         });
@@ -119,7 +128,8 @@ export const actions = {
           gasPrice: 750000000000,
         });
 
-      dispatch("tokens/getTokens");
+      dispatch("tokens/getTokens", null, {root: true});
+
 
       console.log("SWAP SUCCESS");
     } catch (e) {
@@ -135,16 +145,15 @@ export const actions = {
       await this.$kaikas.approveAmount(tokenB.address, kep7.abi, tokenB.value);
 
       const deadLine = Math.floor(Date.now() / 1000 + 3000);
-
-      // const swapGas = await this.$kaikas.routerContract.methods
-      //   .swapTokensForExactTokens(
-      //     tokenA.value,
-      //     tokenB.value,
-      //     [tokenA.address, tokenB.address],
-      //     this.$kaikas.address,
-      //     2851056821
-      //   )
-      //   .estimateGas();
+      const swapGas = await this.$kaikas.routerContract.methods
+        .swapTokensForExactTokens(
+          tokenB.value,
+          tokenA.value,
+          [tokenB.address, tokenA.address],
+          this.$kaikas.address,
+          deadLine
+        )
+        .estimateGas();
 
       await this.$kaikas.routerContract.methods
         .swapTokensForExactTokens(
@@ -156,7 +165,7 @@ export const actions = {
         )
         .send({
           from: this.$kaikas.address,
-          gas: 8500000,
+          gas: swapGas,
           gasPrice: 750000000000,
         });
 
@@ -177,7 +186,7 @@ export const actions = {
       // console.log(updatedList);
       //
       // commit("SET_TOKENS", updatedList);
-      dispatch("tokens/getTokens");
+      dispatch("tokens/getTokens", null, {root: true});
     } catch (e) {
       console.log(e);
     }

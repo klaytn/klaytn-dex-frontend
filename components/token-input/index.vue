@@ -5,7 +5,7 @@
   >
     <div class="token-value">
       <input
-         v-if="selected"
+        v-if="selected"
         :value="value"
         placeholder="0.045"
         @input="input($event.target.value)"
@@ -13,10 +13,7 @@
       <button v-if="selected" @click="input(selected.balance)">MAX</button>
 
       <div class="token-select-wrap">
-        <TokenSelect
-          :selected-token="selected"
-          @select="setToken"
-        />
+        <TokenSelect :selected-token="selected" @select="setToken" />
       </div>
     </div>
 
@@ -97,15 +94,15 @@ export default {
     if (this.exchangeRateIntervalID) {
       clearInterval(this.exchangeRateIntervalID);
     }
-    this.setExchangeLoading(null)
+    this.setExchangeLoading(null);
   },
   methods: {
     ...mapMutations({
       setSelectedToken: "tokens/SET_SELECTED_TOKEN",
       setComputedToken: "swap/SET_COMPUTED_TOKEN",
       setExchangeRateIntervalID: "swap/SET_EXCHANGE_RATE_INTERVAL_ID",
-      setExchangeLoading: "swap/SET_EXCHANGE_LOADING"
-  }),
+      setExchangeLoading: "swap/SET_EXCHANGE_LOADING",
+    }),
     ...mapActions({
       setCurrencyRate: "tokens/setCurrencyRate",
       getAmountOut: "swap/getAmountOut",
@@ -117,14 +114,11 @@ export default {
       this.setSelectedToken({ token, type: this.tokenType });
     },
     input: debounce(async function (v) {
-
       const regex = /^\d*\.?\d*$/;
 
       if (!this.selected || !v || !regex.test(v)) {
         return;
       }
-
-      this.setExchangeLoading(this.tokenType === "tokenA" ? "tokenB" : "tokenA")
 
       if (this.exchangeRateIntervalID) {
         clearInterval(this.exchangeRateIntervalID);
@@ -144,6 +138,8 @@ export default {
       this.setComputedToken(this.tokenType === "tokenA" ? "tokenB" : "tokenA");
 
       if (this.tokenType === "tokenA") {
+        this.setExchangeLoading("tokenB");
+
         await this.getAmountOut(value);
         this.setExchangeRateIntervalID(
           setInterval(() => this.getAmountOut(value), 5000)
@@ -151,13 +147,15 @@ export default {
       }
 
       if (this.tokenType === "tokenB") {
+        this.setExchangeLoading("tokenA");
+
         await this.getAmountIn(value);
         this.setExchangeRateIntervalID(
           setInterval(() => this.getAmountIn(value), 5000)
         );
       }
 
-      this.setExchangeLoading(null)
+      this.setExchangeLoading(null);
     }, 500),
   },
 };
