@@ -1,8 +1,6 @@
 <template>
   <!-- eslint-disable vue/no-v-html -->
-  <div>
-    <div class="svg-icon" v-html="require(`@/assets/svg/${name}.svg?raw`)" />
-  </div>
+  <div class="svg-icon" v-html="require(`@/assets/svg/${name}.svg?raw`)" />
   <!--eslint-enable-->
 </template>
 

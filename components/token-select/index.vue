@@ -1,16 +1,22 @@
 <template>
-  <div class="select">
+  <div class="select--wrap">
     <TokenSelectModal
       v-if="modalOpen"
       @select="onSelect"
       @close="modalOpen = false"
-    ></TokenSelectModal>
+    />
+    <button class="select-btn" @click="modalOpen = true" v-if="!selectedToken">
+      <span>Select token</span>
+      <Icon name="collapse-arrow" />
+    </button>
 
-    <div class="select--head" @click="modalOpen = true">
-      <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo" />
-      <span v-if="selectedToken">
+    <div class="select" v-if="selectedToken">
+      <div class="select--head" @click="modalOpen = true">
+        <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo" />
+        <span v-if="selectedToken">
         {{ selectedToken.symbol }}
       </span>
+      </div>
     </div>
   </div>
 </template>
@@ -50,6 +56,20 @@ export default {
 
   &::after {
     display: none !important;
+  }
+
+  &-btn {
+    background: $blue;
+    color: $white;
+    width: 130px;
+    text-align: center;
+    border-radius: 8px;
+    padding: 12px 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   &--head {

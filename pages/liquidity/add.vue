@@ -9,9 +9,9 @@
       </RouterLink>
     </template>
     <template>
-      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus alias esse est et mollitia praesentium quae,
-      ratione reprehenderit vero voluptates. Ab accusantium cupiditate maiores obcaecati saepe. Doloremque ratione sed
-      voluptatem?
+      <div class="add-liq">
+        <LiquidityAdd></LiquidityAdd>
+      </div>
     </template>
   </Wrap>
 </template>

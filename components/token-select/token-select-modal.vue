@@ -107,7 +107,7 @@ export default {
     }
   },
   computed: {
-    ...mapState("swap", ["tokensList"]),
+    ...mapState("tokens", ["tokensList"]),
     renderTokens() {
       return this.tokensList.filter(
         (token) => token.symbol.search(this.searchValue.toUpperCase()) !== -1
