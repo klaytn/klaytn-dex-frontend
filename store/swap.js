@@ -29,27 +29,33 @@ export const actions = {
         return;
       }
 
-      const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
-      const reserves = await pairContract.methods.getReserves().call({
-        from: this.$kaikas.address,
-      });
+      // const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
+      // const reserves = await pairContract.methods.getReserves().call({
+      //   from: this.$kaikas.address,
+      // });
+      //
+      // const getAmountOut = await this.$kaikas.routerContract.methods
+      //   .getAmountOut(value, reserves[1], reserves[0])
+      //   .call({
+      //     from: this.$kaikas.address,
+      //   });
 
-      const getAmountOut = await this.$kaikas.routerContract.methods
-        .getAmountOut(value, reserves[0], reserves[1])
-        .call({
-          from: this.$kaikas.address,
-        });
+      const getAmountsOut = await this.$kaikas.routerContract.methods
+        .getAmountsOut(tokenA.value, [tokenA.address, tokenB.address])
+        .call();
+
+      console.log({getAmountsOut})
 
       commit(
         "tokens/SET_TOKEN_VALUE",
-        { type: "tokenB", value: getAmountOut },
+        { type: "tokenB", value: getAmountsOut[1] },
         { root: true }
       );
     } catch (e) {
       console.log(e);
     }
 
-    return
+    return;
   },
   async getAmountIn({ commit, rootState: { tokens } }, value) {
     const {
@@ -61,38 +67,36 @@ export const actions = {
     try {
       const pairAddress = await this.$kaikas.factoryContract.methods
         .getPair(tokenA.address, tokenB.address)
-        .call({
-          from: this.$kaikas.address,
-        });
+        .call();
 
       if (this.$kaikas.isEmptyAddress(pairAddress)) {
         commit("SET_EMPTY_PAIR", [tokenA.address, tokenB.address]);
         return;
       }
 
-      const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
+      // const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
 
-      const reserves = await pairContract.methods.getReserves().call({
-        from: this.$kaikas.address,
-      });
+      // const reserves = await pairContract.methods.getReserves()
+      //   .call();
+      //
+      // const getAmountIn = await this.$kaikas.routerContract.methods
+      //   .getAmountIn(value, reserves[1], reserves[0])
+      //   .call();
 
-
-      const getAmountIn = await this.$kaikas.routerContract.methods
-        .getAmountIn(value, reserves[0], reserves[1])
-        .call({
-          from: this.$kaikas.address,
-        });
+      const getAmountsIn = await this.$kaikas.routerContract.methods
+        .getAmountsIn(tokenB.value, [tokenA.address, tokenB.address])
+        .call();
 
       commit(
         "tokens/SET_TOKEN_VALUE",
-        { type: "tokenA", value: getAmountIn },
+        { type: "tokenA", value: getAmountsIn[0] },
         { root: true }
       );
     } catch (e) {
       console.log(e);
     }
 
-    return
+    return;
   },
   async swapExactTokensForTokens({ rootState: { tokens }, dispatch }) {
     try {
@@ -102,7 +106,7 @@ export const actions = {
 
       await this.$kaikas.approveAmount(tokenA.address, kep7.abi, tokenA.value);
 
-      const deadLine = Math.floor(Date.now() / 1000 + 3000);
+      const deadLine = Math.floor(Date.now() / 1000 + 300);
 
       const swapGas = await this.$kaikas.routerContract.methods
         .swapExactTokensForTokens(
@@ -124,12 +128,11 @@ export const actions = {
         )
         .send({
           from: this.$kaikas.address,
-          gas: swapGas,
+          gas: swapGas, // swapGas,
           gasPrice: 750000000000,
         });
 
-      dispatch("tokens/getTokens", null, {root: true});
-
+      dispatch("tokens/getTokens", null, { root: true });
 
       console.log("SWAP SUCCESS");
     } catch (e) {
@@ -144,12 +147,13 @@ export const actions = {
 
       await this.$kaikas.approveAmount(tokenB.address, kep7.abi, tokenB.value);
 
-      const deadLine = Math.floor(Date.now() / 1000 + 3000);
+      const deadLine = Math.floor(Date.now() / 1000 + 300);
+
       const swapGas = await this.$kaikas.routerContract.methods
         .swapTokensForExactTokens(
           tokenB.value,
           tokenA.value,
-          [tokenB.address, tokenA.address],
+          [tokenA.address, tokenB.address],
           this.$kaikas.address,
           deadLine
         )
@@ -159,7 +163,7 @@ export const actions = {
         .swapTokensForExactTokens(
           tokenB.value,
           tokenA.value,
-          [tokenB.address, tokenA.address],
+          [tokenA.address, tokenB.address],
           this.$kaikas.address,
           deadLine
         )
@@ -186,7 +190,7 @@ export const actions = {
       // console.log(updatedList);
       //
       // commit("SET_TOKENS", updatedList);
-      dispatch("tokens/getTokens", null, {root: true});
+      dispatch("tokens/getTokens", null, { root: true });
     } catch (e) {
       console.log(e);
     }

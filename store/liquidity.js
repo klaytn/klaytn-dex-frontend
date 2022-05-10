@@ -27,7 +27,7 @@ export const actions = {
         tokenAValue,
         tokenBValue,
         tokenAValue,
-        tokenAValue,
+        tokenBValue,
         this.$kaikas.address,
         deadLine
       );
@@ -38,7 +38,7 @@ export const actions = {
           tokenAValue,
           tokenBValue,
           tokenAValue,
-          tokenAValue,
+          tokenBValue,
           this.$kaikas.address,
           deadLine
         )
@@ -63,8 +63,8 @@ export const actions = {
 
       console.log({ lq });
     } catch (e) {
-      throw "Error";
       console.log(e);
+      throw "Error";
     }
   },
 };
