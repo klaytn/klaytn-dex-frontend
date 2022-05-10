@@ -7,157 +7,60 @@
 
     <p class="liquidity--title mt">Your Liquidity</p>
 
-    <div class="liquidity--list">
-      <div class="liquidity--item">
+    <div class="ma" v-if="!renderPairs">
+      <Loader/>
+    </div>
+    <div v-else-if="!renderPairs.length">
+      Empty
+    </div>
+    <div class="liquidity--list" v-else>
+      <div class="liquidity--item" v-for="p in renderPairs">
         <Collapse>
           <template v-slot:head>
             <div class="pair--head">
-              <img
-                class="pair--icon-f"
-                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png"
-                alt=""
-              />
-              <img
-                class="pair--icon-s"
-                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png"
-                alt=""
-              />
-              <span class="pair--names"> BNB-KLAY </span>
-              <span class="pair--rate">
-              0.23 <span class="pair--rate-gray">($5.87) </span></span
-              >
+              <!--              <img-->
+              <!--                class="pair&#45;&#45;icon-f"-->
+              <!--                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png"-->
+              <!--                alt=""-->
+              <!--              />-->
+              <!--              <img-->
+              <!--                class="pair&#45;&#45;icon-s"-->
+              <!--                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png"-->
+              <!--                alt=""-->
+              <!--              />-->
+              <span class="pair--names"> {{ p.name }} </span>
+              <span class="pair--rate" v-if="p.balance">
+                {{ getFormatted(p.balance) }}
+<!--                <span class="pair&#45;&#45;rate-gray">($5.87) </span>-->
+              </span>
             </div>
           </template>
           <template v-slot:main>
             <div class="pair--main">
-
               <div class="pair--info">
-                <div class="pair--row">
-                  <span>Pooled ETH</span>
-                  <span>0.0232</span>
+                <!--                <div class="pair&#45;&#45;row">-->
+                <!--                  <span>Pooled {{ p.symbol }}</span>-->
+                <!--                  <span>0.0232</span>-->
+                <!--                </div>-->
+                <div class="pair--row" v-if="p.pairBalance">
+                  <span>Pooled Klay</span>
+                  <span>{{ getFormatted(p.pairBalance) }}</span>
                 </div>
-                <div class="pair--row">
-                  <span>Pooled DAI</span>
-                  <span>34.5649</span>
-                </div>
-                <div class="pair--row">
+                <div class="pair--row" >
                   <span>Your pool tokens:</span>
-                  <span>0.2192</span>
+                  <span>{{ getFormatted(p.userBalance) }}</span>
                 </div>
                 <div class="pair--row">
                   <span>Your pool share:</span>
-                  <span>0.69%</span>
+                  <span>{{getFormattedPercent(p.pairBalance, p.userBalance)}}</span>
                 </div>
               </div>
 
               <div class="pair--links">
-                <a href="#">Add</a>
+                <RouterLink to="/liquidity/add">Add</RouterLink>
                 <a href="#">Remove</a>
                 <a href="#" class="deposit">Deposit</a>
               </div>
-
-            </div>
-          </template>
-        </Collapse>
-      </div>
-      <div class="liquidity--item">
-        <Collapse>
-          <template v-slot:head>
-            <div class="pair--head">
-              <img
-                class="pair--icon-f"
-                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png"
-                alt=""
-              />
-              <img
-                class="pair--icon-s"
-                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png"
-                alt=""
-              />
-              <span class="pair--names"> BNB-KLAY </span>
-              <span class="pair--rate">
-              0.23 <span class="pair--rate-gray">($5.87) </span></span
-              >
-            </div>
-          </template>
-          <template v-slot:main>
-            <div class="pair--main">
-
-              <div class="pair--info">
-                <div class="pair--row">
-                  <span>Pooled ETH</span>
-                  <span>0.0232</span>
-                </div>
-                <div class="pair--row">
-                  <span>Pooled DAI</span>
-                  <span>34.5649</span>
-                </div>
-                <div class="pair--row">
-                  <span>Your pool tokens:</span>
-                  <span>0.2192</span>
-                </div>
-                <div class="pair--row">
-                  <span>Your pool share:</span>
-                  <span>0.69%</span>
-                </div>
-              </div>
-
-              <div class="pair--links">
-                <a href="#">Add</a>
-                <a href="#">Remove</a>
-                <a href="#" class="deposit">Deposit</a>
-              </div>
-
-            </div>
-          </template>
-        </Collapse>
-      </div>
-      <div class="liquidity--item">
-        <Collapse>
-          <template v-slot:head>
-            <div class="pair--head">
-              <img
-                class="pair--icon-f"
-                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png"
-                alt=""
-              />
-              <img
-                class="pair--icon-s"
-                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png"
-                alt=""
-              />
-              <span class="pair--names"> BNB-KLAY </span>
-              <span class="pair--rate">0.23 <span class="pair--rate-gray">($5.87) </span></span>
-            </div>
-          </template>
-          <template v-slot:main>
-            <div class="pair--main">
-
-              <div class="pair--info">
-                <div class="pair--row">
-                  <span>Pooled ETH</span>
-                  <span>0.0232</span>
-                </div>
-                <div class="pair--row">
-                  <span>Pooled DAI</span>
-                  <span>34.5649</span>
-                </div>
-                <div class="pair--row">
-                  <span>Your pool tokens:</span>
-                  <span>0.2192</span>
-                </div>
-                <div class="pair--row">
-                  <span>Your pool share:</span>
-                  <span>0.69%</span>
-                </div>
-              </div>
-
-              <div class="pair--links">
-                <a href="#">Add</a>
-                <a href="#">Remove</a>
-                <a href="#" class="deposit">Deposit</a>
-              </div>
-
             </div>
           </template>
         </Collapse>
@@ -166,7 +69,50 @@
   </Wrap>
 </template>
 
+<script>
+import { mapActions, mapState } from "vuex";
+import { roundTo } from "round-to";
+import web3 from "web3";
+
+export default {
+  computed: {
+    ...mapState("liquidity", ["pairs"]),
+    renderPairs() {
+      if (!this.pairs.length) {
+        return null;
+      }
+
+      return this.pairs.filter((p) => !!Number(p.userBalance));
+    },
+  },
+  beforeMount() {
+    this.getPairs();
+  },
+  methods: {
+    ...mapActions({
+      getPairs: "liquidity/getPairs",
+    }),
+    getFormatted(v) {
+      return roundTo(Number(web3.utils.fromWei(v)), 5);
+    },
+    getFormattedPercent(v1, v2) {
+      const bigNA = this.$kaikas.bigNumber(v1)
+      const bigNB = this.$kaikas.bigNumber(v2)
+      const percent = bigNA.dividedToIntegerBy(100);
+
+      return `${bigNB.dividedBy(percent).toFixed(2)}%`;
+    }
+  },
+};
+</script>
+
 <style scoped lang="scss">
+
+.ma {
+  width: min-content;
+  margin: 20px auto;
+}
+
 .liquidity {
   text-align: left;
 
@@ -235,7 +181,6 @@
     }
   }
 
-
   &--info {
     margin-top: 11px;
   }
@@ -258,7 +203,7 @@
     margin-top: 8px;
 
     & a {
-      background: #FFFFFF;
+      background: #ffffff;
       box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
       border-radius: 8px;
       font-style: normal;

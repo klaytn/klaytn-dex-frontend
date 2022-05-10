@@ -29,6 +29,11 @@ export const actions = {
         return;
       }
 
+      const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
+
+      const pairBalance = await pairContract.methods.totalSupply().call()
+      const userBalance = await pairContract.methods.balanceOf(this.$kaikas.address).call()
+
       // const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
       // const reserves = await pairContract.methods.getReserves().call({
       //   from: this.$kaikas.address,
@@ -48,7 +53,7 @@ export const actions = {
 
       commit(
         "tokens/SET_TOKEN_VALUE",
-        { type: "tokenB", value: getAmountsOut[1] },
+        { type: "tokenB", value: getAmountsOut[1], pairBalance, userBalance },
         { root: true }
       );
     } catch (e) {
@@ -74,7 +79,10 @@ export const actions = {
         return;
       }
 
-      // const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
+      const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
+
+      const pairBalance = await pairContract.methods.totalSupply().call()
+      const userBalance = await pairContract.methods.balanceOf(this.$kaikas.address).call()
 
       // const reserves = await pairContract.methods.getReserves()
       //   .call();
@@ -89,7 +97,7 @@ export const actions = {
 
       commit(
         "tokens/SET_TOKEN_VALUE",
-        { type: "tokenA", value: getAmountsIn[0] },
+        { type: "tokenA", value: getAmountsIn[0], pairBalance, userBalance },
         { root: true }
       );
     } catch (e) {
@@ -202,15 +210,6 @@ export const mutations = {
   REFRESH_STORE(store) {
     store = state();
     return state();
-  },
-  SET_CURRENCY_RATE(state, { type, rate }) {
-    state.selectedTokens = {
-      ...state.selectedTokens,
-      [type]: {
-        ...state.selectedTokens[type],
-        price: rate,
-      },
-    };
   },
   SET_EXCHANGE_LOADING(state, type) {
     state.exchangeRateLoading = type;
