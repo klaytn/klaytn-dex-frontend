@@ -82,7 +82,7 @@ export default (_, inject) => {
           from: this.address,
         });
 
-      if (allowance > amount) {
+      if (allowance >= amount) {
         return amount;
       }
 
