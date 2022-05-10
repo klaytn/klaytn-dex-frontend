@@ -49,7 +49,7 @@ export default {
       setSlippage: "swap/SET_SLIPPAGE",
     }),
     input(value) {
-      if (value > 0 && value <= this.selectedPercent) {
+      if (value > 0 && value <= 10) {
         this.setSlippage(value)
       }
     },
@@ -85,7 +85,7 @@ export default {
       line-height: 180%;
       color: $dark;
       margin-left: auto;
-      margin-right: 8px;
+      margin-left: 8px;
     }
   }
 

@@ -1,7 +1,8 @@
 <template>
   <div class="liquidity">
     <div class="liquidity--input">
-      <LiquidityTokenInput tokenType="tokenA" />
+      <!--      <LiquidityTokenInput tokenType="tokenA" />-->
+      <TokenInput tokenType="tokenA" />
     </div>
 
     <div class="liquidity--icon">
@@ -9,7 +10,12 @@
     </div>
 
     <div class="liquidity--input">
-      <LiquidityTokenInput tokenType="tokenB" />
+      <!--      <LiquidityTokenInput tokenType="tokenB" />-->
+      <TokenInput tokenType="tokenB" />
+    </div>
+
+    <div class="liquidity--slippage">
+      <Slippage />
     </div>
 
     <Button :disabled="!isValid" class="liquidity--btn" @click="isOpen = true">
@@ -47,7 +53,7 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapMutations, mapState } from "vuex";
 
 export default {
   name: "AddLiquidity",
@@ -56,6 +62,9 @@ export default {
       isOpen: false,
     };
   },
+  beforeDestroy() {
+    this.clearSelectedTokens();
+  },
   computed: {
     ...mapState("tokens", ["selectedTokens"]),
     isValid() {
@@ -63,7 +72,12 @@ export default {
         this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
       );
     },
-  }
+  },
+  methods: {
+    ...mapMutations({
+      clearSelectedTokens: "tokens/CLEAR_SELECTED_TOKENS",
+    }),
+  },
 };
 </script>
 

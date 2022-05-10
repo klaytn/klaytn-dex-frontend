@@ -41,7 +41,7 @@ export const actions = {
       //   });
 
       const getAmountsOut = await this.$kaikas.routerContract.methods
-        .getAmountsOut(tokenA.value, [tokenA.address, tokenB.address])
+        .getAmountsOut(value, [tokenA.address, tokenB.address])
         .call();
 
       console.log({getAmountsOut})
@@ -84,7 +84,7 @@ export const actions = {
       //   .call();
 
       const getAmountsIn = await this.$kaikas.routerContract.methods
-        .getAmountsIn(tokenB.value, [tokenA.address, tokenB.address])
+        .getAmountsIn(value, [tokenA.address, tokenB.address])
         .call();
 
       commit(

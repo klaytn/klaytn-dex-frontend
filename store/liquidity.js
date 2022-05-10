@@ -5,40 +5,36 @@ export const state = () => ({
 });
 
 export const actions = {
-  async addLiquidity({ state, rootState: { tokens } }) {
-    // TODO it needs when creating lq
+  async addLiquidity({ rootState: { tokens, swap } }) {
 
     const {
       selectedTokens: { tokenA, tokenB },
     } = tokens;
 
+    const {slippagePercent} = swap
+
     try {
       const tokenAValue = tokenA.value;
       const tokenBValue = tokenB.value;
 
-      const deadLine = Math.floor(Date.now() / 1000 + 3000);
+      const deadLine = Math.floor(Date.now() / 1000 + 300);
+
+      const amountAMin = `${Math.floor(tokenAValue - tokenAValue / 100 * slippagePercent )}`;
+      const amountBMin = `${Math.floor(tokenBValue - tokenBValue / 100 * slippagePercent)}`;
+      debugger
 
       await this.$kaikas.approveAmount(tokenA.address, kep7.abi, tokenAValue);
       await this.$kaikas.approveAmount(tokenB.address, kep7.abi, tokenBValue);
 
-      console.log(
-        tokenA.address,
-        tokenB.address,
-        tokenAValue,
-        tokenBValue,
-        tokenAValue,
-        tokenBValue,
-        this.$kaikas.address,
-        deadLine
-      );
+
       const lqGas = await this.$kaikas.routerContract.methods
         .addLiquidity(
           tokenA.address,
           tokenB.address,
           tokenAValue,
           tokenBValue,
-          tokenAValue,
-          tokenBValue,
+          amountAMin,
+          amountBMin,
           this.$kaikas.address,
           deadLine
         )
@@ -50,8 +46,8 @@ export const actions = {
           tokenB.address,
           tokenAValue,
           tokenBValue,
-          tokenAValue,
-          tokenAValue,
+          amountAMin,
+          amountBMin,
           this.$kaikas.address,
           deadLine
         )

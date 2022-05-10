@@ -31,6 +31,7 @@ export default {
 
   &--content {
     margin-right: 5px;
+    min-width: 24px;
   }
 
   & span {
