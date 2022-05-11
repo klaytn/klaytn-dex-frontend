@@ -130,7 +130,7 @@ export default {
         .multipliedBy(yourPoolShare)
         .dividedToIntegerBy(100);
 
-      return this.$kaikas.fromWei(token0Pooled.toFixed(0))
+      return `~${this.$kaikas.fromWei(token0Pooled.toFixed(0))}`
     },
   },
 };

@@ -141,18 +141,18 @@ export default {
         this.setExchangeLoading("tokenB");
 
         await this.getAmountOut(value);
-        this.setExchangeRateIntervalID(
-          setInterval(() => this.getAmountOut(value), 5000)
-        );
+        // this.setExchangeRateIntervalID(
+        //   setInterval(() => this.getAmountOut(value), 5000)
+        // );
       }
 
       if (this.tokenType === "tokenB") {
         this.setExchangeLoading("tokenA");
 
         await this.getAmountIn(value);
-        this.setExchangeRateIntervalID(
-          setInterval(() => this.getAmountIn(value), 5000)
-        );
+        // this.setExchangeRateIntervalID(
+        //   setInterval(() => this.getAmountIn(value), 5000)
+        // );
       }
 
       this.setExchangeLoading(null);
