@@ -6,8 +6,15 @@
     </RouterLink>
 
     <p class="liquidity--title mt">Your Liquidity</p>
-    <div class="liquidity--list">
-      <div class="liquidity--item" v-for="p in pairs">
+
+    <div class="ma" v-if="!renderPairs">
+      <Loader/>
+    </div>
+    <div v-else-if="!renderPairs.length">
+      Empty
+    </div>
+    <div class="liquidity--list" v-else>
+      <div class="liquidity--item" v-for="p in renderPairs">
         <Collapse>
           <template v-slot:head>
             <div class="pair--head">
@@ -24,17 +31,17 @@
               <span class="pair--names"> {{ p.symbol }} </span>
               <span class="pair--rate">
                 {{ getBalance(p.balance) }}
-                <span class="pair--rate-gray">($5.87) </span></span
-              >
+<!--                <span class="pair&#45;&#45;rate-gray">($5.87) </span>-->
+              </span>
             </div>
           </template>
           <template v-slot:main>
             <div class="pair--main">
               <div class="pair--info">
-<!--                <div class="pair&#45;&#45;row">-->
-<!--                  <span>Pooled {{ p.symbol }}</span>-->
-<!--                  <span>0.0232</span>-->
-<!--                </div>-->
+                <!--                <div class="pair&#45;&#45;row">-->
+                <!--                  <span>Pooled {{ p.symbol }}</span>-->
+                <!--                  <span>0.0232</span>-->
+                <!--                </div>-->
                 <div class="pair--row">
                   <span>Pooled DAI</span>
                   <span>34.5649</span>
@@ -64,12 +71,19 @@
 
 <script>
 import { mapActions, mapState } from "vuex";
-import {roundTo} from "round-to";
+import { roundTo } from "round-to";
 import web3 from "web3";
 
 export default {
   computed: {
     ...mapState("liquidity", ["pairs"]),
+    renderPairs() {
+      if (!this.pairs.length) {
+        return null;
+      }
+
+      return this.pairs.filter((p) => !!Number(p.balance));
+    },
   },
   beforeMount() {
     this.getPairs();
@@ -78,14 +92,20 @@ export default {
     ...mapActions({
       getPairs: "liquidity/getPairs",
     }),
-    getBalance(v){
+    getBalance(v) {
       return roundTo(Number(web3.utils.fromWei(v)), 5);
-    }
+    },
   },
 };
 </script>
 
 <style scoped lang="scss">
+
+.ma {
+  width: min-content;
+  margin: 20px auto;
+}
+
 .liquidity {
   text-align: left;
 
