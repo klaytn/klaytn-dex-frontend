@@ -49,8 +49,6 @@ export const actions = {
         .getAmountsOut(value, [tokenA.address, tokenB.address])
         .call();
 
-      console.log({getAmountsOut})
-
       commit(
         "tokens/SET_TOKEN_VALUE",
         { type: "tokenB", value: getAmountsOut[1], pairBalance, userBalance },

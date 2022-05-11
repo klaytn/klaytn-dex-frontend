@@ -37,11 +37,27 @@
             <div class="pair--main">
               <div class="pair--info">
                 <div class="pair--row" v-if="p.pairBalance">
-                  <span>Pooled {{ p.symbol }}</span>
-                  <span>{{ getFormatted(p.pairBalance) }}</span>
+                  <span>Pooled {{ p.symbolA }}</span>
+                  <span>{{
+                      getFormattedTokens(
+                        p.userBalance,
+                        p.pairBalance,
+                        p.reserves[0]
+                      )
+                    }}</span>
                 </div>
                 <div class="pair--row" v-if="p.pairBalance">
-                  <span>Pooled Klay</span>
+                  <span>Pooled {{ p.symbolB }}</span>
+                  <span>{{
+                    getFormattedTokens(
+                      p.userBalance,
+                      p.pairBalance,
+                      p.reserves[1]
+                    )
+                  }}</span>
+                </div>
+                <div class="pair--row" v-if="p.pairBalance">
+                  <span>Pooled {{ p.name }}</span>
                   <span>{{ getFormatted(p.pairBalance) }}</span>
                 </div>
                 <div class="pair--row">
@@ -101,6 +117,20 @@ export default {
       const percent = bigNA.dividedToIntegerBy(100);
 
       return `${bigNB.dividedBy(percent).toFixed(2)}%`;
+    },
+
+    getFormattedTokens(pairBalance, userBalance, reserve) {
+      const bigNA = this.$kaikas.bigNumber(pairBalance);
+      const bigNB = this.$kaikas.bigNumber(userBalance);
+
+      const yourPoolShare = bigNB.dividedToIntegerBy(bigNA).multipliedBy(100);
+
+      const token0Pooled = this.$kaikas
+        .bigNumber(reserve)
+        .multipliedBy(yourPoolShare)
+        .dividedToIntegerBy(100);
+
+      return this.$kaikas.fromWei(token0Pooled.toFixed(0))
     },
   },
 };

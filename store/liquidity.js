@@ -3,37 +3,72 @@ import pair from "@/utils/smartcontracts/pair.json";
 
 export const state = () => ({
   liquidityStatus: "init",
-  pairs: []
+  pairs: [],
 });
 
 export const actions = {
-  async getPairs({commit}) {
+  async getPairs({ commit }) {
     const pairs = [];
     const pairsCount = await this.$kaikas.factoryContract.methods
       .allPairsLength()
       .call();
 
     for (let i = 0; i < pairsCount; i++) {
-
+      let res = {}
       const address = await this.$kaikas.factoryContract.methods
         .allPairs(i)
         .call();
 
       const contract = this.$kaikas.createContract(address, pair.abi);
-      const name = await contract.methods.name().call();
-      const symbol = await contract.methods.symbol().call();
-      const pairBalance = await contract.methods.totalSupply().call()
-      const userBalance = await contract.methods.balanceOf(this.$kaikas.address).call()
 
-      pairs.push({
+      const addressA = await contract.methods.token0().call();
+      const addressB = await contract.methods.token1().call();
+
+      const contractA = this.$kaikas.createContract(addressA, kep7.abi);
+      const contractB = this.$kaikas.createContract(addressB, kep7.abi);
+
+      let name = await contract.methods.name().call();
+      let symbol = await contract.methods.symbol().call();
+
+      if (
+        !this.$kaikas.isEmptyAddress(addressA) &&
+        !this.$kaikas.isEmptyAddress(addressB)
+      ) {
+        const nameA = await contractA.methods.name().call();
+        const symbolA = await contractA.methods.symbol().call();
+        const nameB = await contractB.methods.name().call();
+        const symbolB = await contractB.methods.symbol().call();
+
+        name = `${symbolA} - ${symbolB}`;
+
+        res.symbolA = symbolA
+        res.symbolB = symbolB
+      }
+
+      const pairBalance = await contract.methods.totalSupply().call();
+      const userBalance = await contract.methods
+        .balanceOf(this.$kaikas.address)
+        .call();
+
+      const reserves = await contract.methods.getReserves().call({
+        from: this.$kaikas.address,
+      });
+
+      console.log({pairBalance, userBalance, address})
+
+      res = {
+        ...res,
         userBalance,
         pairBalance,
         symbol,
         name,
-      });
+        reserves,
+      }
+
+      pairs.push(res)
     }
     console.log(pairs);
-    commit('SET_PAIRS', pairs)
+    commit("SET_PAIRS", pairs);
   },
   async addLiquidity({ rootState: { tokens, swap } }) {
     const {
@@ -54,7 +89,6 @@ export const actions = {
       const amountBMin = `${Math.floor(
         tokenBValue - (tokenBValue / 100) * slippagePercent
       )}`;
-      debugger;
 
       await this.$kaikas.approveAmount(tokenA.address, kep7.abi, tokenAValue);
       await this.$kaikas.approveAmount(tokenB.address, kep7.abi, tokenBValue);
@@ -71,6 +105,7 @@ export const actions = {
           deadLine
         )
         .estimateGas();
+      console.log({lqGas})
 
       const lq = await this.$kaikas.routerContract.methods
         .addLiquidity(
@@ -103,4 +138,4 @@ export const mutations = {
 
     return state;
   },
-}
+};

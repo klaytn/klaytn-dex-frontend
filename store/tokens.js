@@ -82,9 +82,14 @@ export const mutations = {
     };
   },
   SET_TOKEN_VALUE(state, { type, value, pairBalance, userBalance }) {
-    state.selectedTokens[type].value = value;
-    state.selectedTokens.pairBalance = pairBalance;
-    state.selectedTokens.userBalance = userBalance;
-
+    state.selectedTokens = {
+      ...state.selectedTokens,
+      pairBalance,
+      userBalance,
+      [type]: {
+        ...state.selectedTokens[type],
+        value
+      }
+    }
   },
 };
