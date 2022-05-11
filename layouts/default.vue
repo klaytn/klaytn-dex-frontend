@@ -72,6 +72,7 @@ export default {
   computed: {
     ...mapState("kaikas", ["address"]),
     ...mapState("tokens", ["tokensList"]),
+    ...mapState("liquidity", ["pairs"]),
     isNotInstalled() {
       return !window?.klaytn;
     },
@@ -121,6 +122,10 @@ export default {
     if (!this.tokensList.length) {
       this.loadTokensList();
     }
+
+    if (!this.pairs.length) {
+      this.loadPairs();
+    }
   },
   methods: {
     async connect() {
@@ -131,6 +136,7 @@ export default {
     },
     ...mapActions({
       loadTokensList: "tokens/getTokens",
+      loadPairs: "liquidity/getPairs",
     }),
   },
 };

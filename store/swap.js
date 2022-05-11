@@ -24,15 +24,24 @@ export const actions = {
           from: this.$kaikas.address,
         });
 
+      const pairAddress2 = await this.$kaikas.factoryContract.methods
+        .getPair(tokenB.address, tokenA.address)
+        .call({
+          from: this.$kaikas.address,
+        });
+      debugger;
       if (this.$kaikas.isEmptyAddress(pairAddress)) {
+        debugger;
         commit("SET_EMPTY_PAIR", [tokenA.address, tokenB.address]);
         return;
       }
 
       const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
 
-      const pairBalance = await pairContract.methods.totalSupply().call()
-      const userBalance = await pairContract.methods.balanceOf(this.$kaikas.address).call()
+      const pairBalance = await pairContract.methods.totalSupply().call();
+      const userBalance = await pairContract.methods
+        .balanceOf(this.$kaikas.address)
+        .call();
 
       // const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
       // const reserves = await pairContract.methods.getReserves().call({
@@ -48,6 +57,8 @@ export const actions = {
       const getAmountsOut = await this.$kaikas.routerContract.methods
         .getAmountsOut(value, [tokenA.address, tokenB.address])
         .call();
+
+      debugger;
 
       commit(
         "tokens/SET_TOKEN_VALUE",
@@ -78,9 +89,10 @@ export const actions = {
       }
 
       const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
-
-      const pairBalance = await pairContract.methods.totalSupply().call()
-      const userBalance = await pairContract.methods.balanceOf(this.$kaikas.address).call()
+      const pairBalance = await pairContract.methods.totalSupply().call();
+      const userBalance = await pairContract.methods
+        .balanceOf(this.$kaikas.address)
+        .call();
 
       // const reserves = await pairContract.methods.getReserves()
       //   .call();
@@ -89,8 +101,13 @@ export const actions = {
       //   .getAmountIn(value, reserves[1], reserves[0])
       //   .call();
 
+      const address0 = await pairContract.methods.token0().call();
+      const address1 = await pairContract.methods.token1().call();
+
+      console.log(value,[tokenA.address, tokenB.address], [address0, address1]);
+
       const getAmountsIn = await this.$kaikas.routerContract.methods
-        .getAmountsIn(value, [tokenA.address, tokenB.address])
+        .getAmountsIn(value, [address0, address1])
         .call();
 
       commit(

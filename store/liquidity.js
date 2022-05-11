@@ -1,5 +1,5 @@
 import kep7 from "@/utils/smartcontracts/kep-7.json";
-import pair from "@/utils/smartcontracts/pair.json";
+import pairAbi from "@/utils/smartcontracts/pair.json";
 
 export const state = () => ({
   liquidityStatus: "init",
@@ -8,65 +8,65 @@ export const state = () => ({
 
 export const actions = {
   async getPairs({ commit }) {
-    const pairs = [];
     const pairsCount = await this.$kaikas.factoryContract.methods
       .allPairsLength()
       .call();
 
-    for (let i = 0; i < pairsCount; i++) {
-      let res = {}
-      const address = await this.$kaikas.factoryContract.methods
-        .allPairs(i)
-        .call();
+    const pairs = await Promise.all(
+      new Array(Number(pairsCount)).fill(null).map(async (it, i) => {
+        let pair = {};
 
-      const contract = this.$kaikas.createContract(address, pair.abi);
+        const address = await this.$kaikas.factoryContract.methods
+          .allPairs(i)
+          .call();
 
-      const addressA = await contract.methods.token0().call();
-      const addressB = await contract.methods.token1().call();
+        const contract = this.$kaikas.createContract(address, pairAbi.abi);
 
-      const contractA = this.$kaikas.createContract(addressA, kep7.abi);
-      const contractB = this.$kaikas.createContract(addressB, kep7.abi);
+        const addressA = await contract.methods.token0().call();
+        const addressB = await contract.methods.token1().call();
 
-      let name = await contract.methods.name().call();
-      let symbol = await contract.methods.symbol().call();
+        const contractA = this.$kaikas.createContract(addressA, kep7.abi);
+        const contractB = this.$kaikas.createContract(addressB, kep7.abi);
 
-      if (
-        !this.$kaikas.isEmptyAddress(addressA) &&
-        !this.$kaikas.isEmptyAddress(addressB)
-      ) {
-        const nameA = await contractA.methods.name().call();
-        const symbolA = await contractA.methods.symbol().call();
-        const nameB = await contractB.methods.name().call();
-        const symbolB = await contractB.methods.symbol().call();
+        let name = await contract.methods.name().call();
+        let symbol = await contract.methods.symbol().call();
 
-        name = `${symbolA} - ${symbolB}`;
+        if (
+          !this.$kaikas.isEmptyAddress(addressA) &&
+          !this.$kaikas.isEmptyAddress(addressB)
+        ) {
+          const symbolA = await contractA.methods.symbol().call();
+          const symbolB = await contractB.methods.symbol().call();
 
-        res.symbolA = symbolA
-        res.symbolB = symbolB
-      }
+          name = `${symbolA} - ${symbolB}`;
 
-      const pairBalance = await contract.methods.totalSupply().call();
-      const userBalance = await contract.methods
-        .balanceOf(this.$kaikas.address)
-        .call();
+          pair.symbolA = symbolA;
+          pair.symbolB = symbolB;
+        }
 
-      const reserves = await contract.methods.getReserves().call({
-        from: this.$kaikas.address,
-      });
+        const pairBalance = await contract.methods.totalSupply().call();
+        const userBalance = await contract.methods
+          .balanceOf(this.$kaikas.address)
+          .call();
 
-      console.log({pairBalance, userBalance, address})
+        const reserves = await contract.methods.getReserves().call({
+          from: this.$kaikas.address,
+        });
 
-      res = {
-        ...res,
-        userBalance,
-        pairBalance,
-        symbol,
-        name,
-        reserves,
-      }
 
-      pairs.push(res)
-    }
+        console.log(name, 'reserves ', reserves)
+
+        return {
+          ...pair,
+          userBalance,
+          pairBalance,
+          symbol,
+          name,
+          reserves,
+        };
+      })
+    );
+
     console.log(pairs);
     commit("SET_PAIRS", pairs);
   },
@@ -84,14 +84,21 @@ export const actions = {
       const deadLine = Math.floor(Date.now() / 1000 + 300);
 
       const amountAMin = `${Math.floor(
-        tokenAValue - (tokenAValue / 100) * slippagePercent
+        tokenAValue / 10 // / (tokenAValue * slippagePercent / 100)
       )}`;
       const amountBMin = `${Math.floor(
-        tokenBValue - (tokenBValue / 100) * slippagePercent
+        tokenBValue / 10 // / (tokenBValue * slippagePercent / 100)
       )}`;
+      console.log({
+        tokenAValue,
+        tokenBValue,
+        amountAMin,
+        amountBMin
+      })
 
       await this.$kaikas.approveAmount(tokenA.address, kep7.abi, tokenAValue);
       await this.$kaikas.approveAmount(tokenB.address, kep7.abi, tokenBValue);
+
 
       const lqGas = await this.$kaikas.routerContract.methods
         .addLiquidity(
@@ -105,7 +112,7 @@ export const actions = {
           deadLine
         )
         .estimateGas();
-      console.log({lqGas})
+      console.log({ lqGas });
 
       const lq = await this.$kaikas.routerContract.methods
         .addLiquidity(

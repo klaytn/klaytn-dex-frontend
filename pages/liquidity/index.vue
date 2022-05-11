@@ -27,8 +27,8 @@
               <!--                alt=""-->
               <!--              />-->
               <span class="pair--names"> {{ p.name }} </span>
-              <span class="pair--rate" v-if="p.balance">
-                {{ getFormatted(p.balance) }}
+              <span class="pair--rate" v-if="p.userBalance">
+                {{ getFormatted(p.userBalance) }}
                 <!--                <span class="pair&#45;&#45;rate-gray">($5.87) </span>-->
               </span>
             </div>
@@ -98,7 +98,7 @@ export default {
         return null;
       }
 
-      return this.pairs.filter((p) => !!Number(p.userBalance));
+      return this.pairs // .filter((p) => !!Number(p.userBalance));
     },
   },
   beforeMount() {
@@ -130,7 +130,7 @@ export default {
         .multipliedBy(yourPoolShare)
         .dividedToIntegerBy(100);
 
-      return `~${this.$kaikas.fromWei(token0Pooled.toFixed(0))}`
+      return `~${this.getFormatted(token0Pooled.toFixed(0))}`
     },
   },
 };
