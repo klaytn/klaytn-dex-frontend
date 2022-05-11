@@ -8,11 +8,9 @@
     <p class="liquidity--title mt">Your Liquidity</p>
 
     <div class="ma" v-if="!renderPairs">
-      <Loader/>
+      <Loader />
     </div>
-    <div v-else-if="!renderPairs.length">
-      Empty
-    </div>
+    <div v-else-if="!renderPairs.length">Empty</div>
     <div class="liquidity--list" v-else>
       <div class="liquidity--item" v-for="p in renderPairs">
         <Collapse>
@@ -31,28 +29,30 @@
               <span class="pair--names"> {{ p.name }} </span>
               <span class="pair--rate" v-if="p.balance">
                 {{ getFormatted(p.balance) }}
-<!--                <span class="pair&#45;&#45;rate-gray">($5.87) </span>-->
+                <!--                <span class="pair&#45;&#45;rate-gray">($5.87) </span>-->
               </span>
             </div>
           </template>
           <template v-slot:main>
             <div class="pair--main">
               <div class="pair--info">
-                <!--                <div class="pair&#45;&#45;row">-->
-                <!--                  <span>Pooled {{ p.symbol }}</span>-->
-                <!--                  <span>0.0232</span>-->
-                <!--                </div>-->
+                <div class="pair--row" v-if="p.pairBalance">
+                  <span>Pooled {{ p.symbol }}</span>
+                  <span>{{ getFormatted(p.pairBalance) }}</span>
+                </div>
                 <div class="pair--row" v-if="p.pairBalance">
                   <span>Pooled Klay</span>
                   <span>{{ getFormatted(p.pairBalance) }}</span>
                 </div>
-                <div class="pair--row" >
+                <div class="pair--row">
                   <span>Your pool tokens:</span>
                   <span>{{ getFormatted(p.userBalance) }}</span>
                 </div>
                 <div class="pair--row">
                   <span>Your pool share:</span>
-                  <span>{{getFormattedPercent(p.pairBalance, p.userBalance)}}</span>
+                  <span>{{
+                    getFormattedPercent(p.pairBalance, p.userBalance)
+                  }}</span>
                 </div>
               </div>
 
@@ -96,18 +96,17 @@ export default {
       return roundTo(Number(web3.utils.fromWei(v)), 5);
     },
     getFormattedPercent(v1, v2) {
-      const bigNA = this.$kaikas.bigNumber(v1)
-      const bigNB = this.$kaikas.bigNumber(v2)
+      const bigNA = this.$kaikas.bigNumber(v1);
+      const bigNB = this.$kaikas.bigNumber(v2);
       const percent = bigNA.dividedToIntegerBy(100);
 
       return `${bigNB.dividedBy(percent).toFixed(2)}%`;
-    }
+    },
   },
 };
 </script>
 
 <style scoped lang="scss">
-
 .ma {
   width: min-content;
   margin: 20px auto;

@@ -34,6 +34,8 @@
       {{ isSwapLoading ? "Wait" : "Swap" }}
     </Button>
 
+    <SwapDetails />
+
     <div v-if="exchangeRateLoading">Exchange rate loading</div>
 
     <div v-if="pairNotExist">Pair doesn't exist</div>
