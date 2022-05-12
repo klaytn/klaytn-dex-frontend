@@ -128,7 +128,7 @@ export const actions = {
         .send({
           from: this.$kaikas.address,
           gas: lqGas,
-          gasPrice: 750000000000,
+          gasPrice: 250000000000,
         });
 
       console.log({ lq });
