@@ -51,7 +51,7 @@
       <div v-else-if="status === 'submitted'" class="m-content">
         <div class="submitted">
           <p>Transaction Submitted</p>
-          <a href="#"> View on BscScan </a>
+<!--          <a href="#"> View on BscScan </a>-->
         </div>
         <Button @click="$emit('close')"> Close</Button>
       </div>

@@ -78,23 +78,24 @@ export const actions = {
     const { slippagePercent } = swap;
 
     try {
-      const tokenAValue = tokenA.value;
-      const tokenBValue = tokenB.value;
+      const tokenAValue = this.$kaikas.bigNumber(tokenA.value);
+      const tokenBValue = this.$kaikas.bigNumber(tokenB.value);
 
       const deadLine = Math.floor(Date.now() / 1000 + 300);
 
-      const amountAMin = `${Math.floor(
-        tokenAValue / 10 // / (tokenAValue * slippagePercent / 100)
-      )}`;
-      const amountBMin = `${Math.floor(
-        tokenBValue / 10 // / (tokenBValue * slippagePercent / 100)
-      )}`;
-      console.log({
-        tokenAValue,
-        tokenBValue,
-        amountAMin,
-        amountBMin
-      })
+      const amountAMin = tokenAValue.dividedToIntegerBy(10)
+      //   `${Math.floor(
+      //   tokenAValue / 10 // / (tokenAValue * slippagePercent / 100)
+      // )}`;
+      const amountBMin = tokenBValue.dividedToIntegerBy(10)
+      console.log(
+        tokenA.address,
+        tokenB.address,
+        tokenAValue.toFixed(0),
+        tokenBValue.toFixed(0),
+        amountAMin.toFixed(0),
+        amountBMin.toFixed(0),
+      )
 
       await this.$kaikas.approveAmount(tokenA.address, kep7.abi, tokenAValue);
       await this.$kaikas.approveAmount(tokenB.address, kep7.abi, tokenBValue);
@@ -104,10 +105,10 @@ export const actions = {
         .addLiquidity(
           tokenA.address,
           tokenB.address,
-          tokenAValue,
-          tokenBValue,
-          amountAMin,
-          amountBMin,
+          tokenAValue.toFixed(0),
+          tokenBValue.toFixed(0),
+          amountAMin.toFixed(0),
+          amountBMin.toFixed(0),
           this.$kaikas.address,
           deadLine
         )
@@ -118,10 +119,10 @@ export const actions = {
         .addLiquidity(
           tokenA.address,
           tokenB.address,
-          tokenAValue,
-          tokenBValue,
-          amountAMin,
-          amountBMin,
+          tokenAValue.toFixed(0),
+          tokenBValue.toFixed(0),
+          amountAMin.toFixed(0),
+          amountBMin.toFixed(0),
           this.$kaikas.address,
           deadLine
         )
