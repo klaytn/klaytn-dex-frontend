@@ -81,7 +81,6 @@ export default {
   },
   computed: {
     ...mapState("tokens", ["selectedTokens"]),
-    ...mapState("tokens", ["selectedTokens"]),
     isValid() {
       return (
         this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
