@@ -29,9 +29,8 @@ export const actions = {
         .call({
           from: this.$kaikas.address,
         });
-      debugger;
+
       if (this.$kaikas.isEmptyAddress(pairAddress)) {
-        debugger;
         commit("SET_EMPTY_PAIR", [tokenA.address, tokenB.address]);
         return;
       }
@@ -151,8 +150,8 @@ export const actions = {
         )
         .send({
           from: this.$kaikas.address,
-          gas: swapGas, // swapGas,
-          gasPrice: 750000000000,
+          gas: swapGas,
+          gasPrice: 250000000000,
         });
 
       dispatch("tokens/getTokens", null, { root: true });
@@ -193,7 +192,7 @@ export const actions = {
         .send({
           from: this.$kaikas.address,
           gas: swapGas,
-          gasPrice: 750000000000,
+          gasPrice: 250000000000,
         });
 
       // const updatedList = await Promise.all(

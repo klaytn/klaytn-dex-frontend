@@ -94,7 +94,7 @@ export default (_, inject) => {
         .send({
           from: this.address,
           gas,
-          gasPrice: 750000000000,
+          gasPrice: 250000000000,
         });
 
       return approvedAmount;
