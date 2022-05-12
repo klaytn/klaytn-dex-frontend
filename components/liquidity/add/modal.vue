@@ -5,12 +5,12 @@
         v-if="status === 'initial' || status === 'in_progress'"
         class="m-content"
       >
-        <p class="m-title">You will receive LP ETH-KLAY Tokens</p>
-        <div class="m-head">
-          <img :src="selectedTokens.tokenA.logo" alt="" />
-          <img :src="selectedTokens.tokenB.logo" alt="" />
-          <p>3.6747823</p>
-        </div>
+<!--        <p class="m-title">You will receive LP ETH-KLAY Tokens</p>-->
+<!--        <div class="m-head">-->
+<!--          <img :src="selectedTokens.tokenA.logo" alt="" />-->
+<!--          <img :src="selectedTokens.tokenB.logo" alt="" />-->
+<!--          <p>3.6747823</p>-->
+<!--        </div>-->
 
         <div class="liquidity--details" v-if="isValid">
           <h3>Prices and pool share</h3>
