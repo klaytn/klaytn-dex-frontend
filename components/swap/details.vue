@@ -1,5 +1,5 @@
 <template>
-  <div class="details--wrap">
+  <div class="details--wrap" v-if="isValid">
     <Collapse>
       <template #head>
         <h3 class="details--title">Transaction Details</h3>
