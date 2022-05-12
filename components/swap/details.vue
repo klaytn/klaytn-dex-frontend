@@ -33,15 +33,15 @@
           <!--      <span>Share of pool</span>-->
           <!--      <span>{{getFormattedPercent(selectedTokens.pairBalance, selectedTokens.userBalance)}}</span>-->
           <!--    </div>-->
-          <div class="details--row">
-            <span>You'll earn</span>
-            <span>0.17%</span>
-          </div>
+<!--          <div class="details&#45;&#45;row">-->
+<!--            <span>You'll earn</span>-->
+<!--            <span>0.17%</span>-->
+<!--          </div>-->
 
-          <div class="details--row">
-            <span>Transaction Fee</span>
-            <span>0.074 KLAY ($0.013)</span>
-          </div>
+<!--          <div class="details&#45;&#45;row">-->
+<!--            <span>Transaction Fee</span>-->
+<!--            <span>0.074 KLAY ($0.013)</span>-->
+<!--          </div>-->
         </div>
       </template>
     </Collapse>
