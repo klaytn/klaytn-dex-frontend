@@ -87,7 +87,9 @@ export const actions = {
       //   `${Math.floor(
       //   tokenAValue / 10 // / (tokenAValue * slippagePercent / 100)
       // )}`;
+
       const amountBMin = tokenBValue.dividedToIntegerBy(10)
+
       console.log(
         tokenA.address,
         tokenB.address,

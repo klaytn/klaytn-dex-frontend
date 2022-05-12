@@ -67,8 +67,8 @@ export default {
       return (
         !this.isSwapLoading &&
         !this.pairNotExist &&
-        Number(this.selectedTokens.tokenA?.balance) > 0 &&
-        Number(this.selectedTokens.tokenB?.balance) > 0
+        Number(this.selectedTokens.tokenA?.balance) >= 0 &&
+        Number(this.selectedTokens.tokenB?.balance) >= 0
       );
     },
   },
