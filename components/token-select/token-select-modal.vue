@@ -67,9 +67,9 @@ export default {
   },
   methods: {
     onSelect(t) {
-      if (Number(t.balance) <= 0) {
-        return;
-      }
+      // if (Number(t.balance) <= 0) {
+      //   return;
+      // }
       this.$emit("select", t);
     },
   },
