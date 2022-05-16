@@ -16,6 +16,7 @@ export const actions = {
     } = tokens;
 
     commit("SET_EMPTY_PAIR", null);
+    console.log(this.$kaikas.address)
 
     try {
       const pairAddress = await this.$kaikas.factoryContract.methods

@@ -74,7 +74,7 @@
 
               <div class="pair--links">
                 <RouterLink to="/liquidity/add">Add</RouterLink>
-                <a href="#">Remove</a>
+                <RouterLink to="/liquidity/remove">Remove</RouterLink>
                 <a href="#" class="deposit">Deposit</a>
               </div>
             </div>

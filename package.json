@@ -25,14 +25,15 @@
     "round-to": "^6.0.0",
     "vue": "^2.6.14",
     "vue-server-renderer": "^2.6.14",
+    "vue-slider-component": "^3.2.15",
     "vue-template-compiler": "^2.6.14",
     "vuex": "^3.6.2",
     "web3": "^1.7.3",
     "webpack": "^4.46.0"
   },
   "devDependencies": {
-    "@nuxtjs/style-resources": "^1.2.1",
     "@babel/eslint-parser": "^7.5.4",
+    "@nuxtjs/style-resources": "^1.2.1",
     "eslint": "^8.14.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-loader": "^4.0.2",
