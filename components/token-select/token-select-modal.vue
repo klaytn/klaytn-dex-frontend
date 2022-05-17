@@ -32,7 +32,6 @@
         v-for="t in renderTokens"
         :key="t.address"
         class="token-select-modal--item"
-        :class="{ 'token-select-modal--item-disabled': Number(t.balance) <= 0 }"
         @click="onSelect(t)"
       >
         <img class="token-logo" :src="t.logo" alt="token logo" />
@@ -68,9 +67,9 @@ export default {
   },
   methods: {
     onSelect(t) {
-      if (Number(t.balance) <= 0) {
-        return;
-      }
+      // if (Number(t.balance) <= 0) {
+      //   return;
+      // }
       this.$emit("select", t);
     },
   },

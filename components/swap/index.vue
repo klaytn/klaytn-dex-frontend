@@ -34,6 +34,8 @@
       {{ isSwapLoading ? "Wait" : "Swap" }}
     </Button>
 
+    <SwapDetails />
+
     <div v-if="exchangeRateLoading">Exchange rate loading</div>
 
     <div v-if="pairNotExist">Pair doesn't exist</div>
@@ -65,8 +67,8 @@ export default {
       return (
         !this.isSwapLoading &&
         !this.pairNotExist &&
-        Number(this.selectedTokens.tokenA?.balance) > 0 &&
-        Number(this.selectedTokens.tokenB?.balance) > 0
+        Number(this.selectedTokens.tokenA?.balance) >= 0 &&
+        Number(this.selectedTokens.tokenB?.balance) >= 0
       );
     },
   },

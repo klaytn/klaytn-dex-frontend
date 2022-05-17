@@ -16,6 +16,7 @@ export const actions = {
     } = tokens;
 
     commit("SET_EMPTY_PAIR", null);
+    console.log(this.$kaikas.address)
 
     try {
       const pairAddress = await this.$kaikas.factoryContract.methods
@@ -24,10 +25,23 @@ export const actions = {
           from: this.$kaikas.address,
         });
 
+      const pairAddress2 = await this.$kaikas.factoryContract.methods
+        .getPair(tokenB.address, tokenA.address)
+        .call({
+          from: this.$kaikas.address,
+        });
+
       if (this.$kaikas.isEmptyAddress(pairAddress)) {
         commit("SET_EMPTY_PAIR", [tokenA.address, tokenB.address]);
         return;
       }
+
+      const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
+
+      const pairBalance = await pairContract.methods.totalSupply().call();
+      const userBalance = await pairContract.methods
+        .balanceOf(this.$kaikas.address)
+        .call();
 
       // const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
       // const reserves = await pairContract.methods.getReserves().call({
@@ -44,11 +58,11 @@ export const actions = {
         .getAmountsOut(value, [tokenA.address, tokenB.address])
         .call();
 
-      console.log({getAmountsOut})
+      debugger;
 
       commit(
         "tokens/SET_TOKEN_VALUE",
-        { type: "tokenB", value: getAmountsOut[1] },
+        { type: "tokenB", value: getAmountsOut[1], pairBalance, userBalance },
         { root: true }
       );
     } catch (e) {
@@ -74,7 +88,11 @@ export const actions = {
         return;
       }
 
-      // const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
+      const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
+      const pairBalance = await pairContract.methods.totalSupply().call();
+      const userBalance = await pairContract.methods
+        .balanceOf(this.$kaikas.address)
+        .call();
 
       // const reserves = await pairContract.methods.getReserves()
       //   .call();
@@ -83,13 +101,18 @@ export const actions = {
       //   .getAmountIn(value, reserves[1], reserves[0])
       //   .call();
 
+      const address0 = await pairContract.methods.token0().call();
+      const address1 = await pairContract.methods.token1().call();
+
+      console.log(value,[tokenA.address, tokenB.address], [address0, address1]);
+
       const getAmountsIn = await this.$kaikas.routerContract.methods
-        .getAmountsIn(value, [tokenA.address, tokenB.address])
+        .getAmountsIn(value, [address0, address1])
         .call();
 
       commit(
         "tokens/SET_TOKEN_VALUE",
-        { type: "tokenA", value: getAmountsIn[0] },
+        { type: "tokenA", value: getAmountsIn[0], pairBalance, userBalance },
         { root: true }
       );
     } catch (e) {
@@ -128,8 +151,8 @@ export const actions = {
         )
         .send({
           from: this.$kaikas.address,
-          gas: swapGas, // swapGas,
-          gasPrice: 750000000000,
+          gas: swapGas,
+          gasPrice: 250000000000,
         });
 
       dispatch("tokens/getTokens", null, { root: true });
@@ -170,7 +193,7 @@ export const actions = {
         .send({
           from: this.$kaikas.address,
           gas: swapGas,
-          gasPrice: 750000000000,
+          gasPrice: 250000000000,
         });
 
       // const updatedList = await Promise.all(
@@ -202,15 +225,6 @@ export const mutations = {
   REFRESH_STORE(store) {
     store = state();
     return state();
-  },
-  SET_CURRENCY_RATE(state, { type, rate }) {
-    state.selectedTokens = {
-      ...state.selectedTokens,
-      [type]: {
-        ...state.selectedTokens[type],
-        price: rate,
-      },
-    };
   },
   SET_EXCHANGE_LOADING(state, type) {
     state.exchangeRateLoading = type;

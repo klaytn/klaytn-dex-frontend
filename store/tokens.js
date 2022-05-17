@@ -4,6 +4,7 @@ import coinMarketCapService from "~/services/coinMarketCap";
 export const state = () => ({
   tokensList: [],
   selectedTokens: {
+    pairBalance: null,
     tokenA: null,
     tokenB: null,
   },
@@ -53,8 +54,7 @@ export const actions = {
 
     commit("SET_CURRENCY_RATE", { type, rate: USD });
   },
-}
-
+};
 
 export const mutations = {
   REFRESH_STORE(store) {
@@ -66,38 +66,30 @@ export const mutations = {
   },
   CLEAR_SELECTED_TOKENS(state) {
     state.selectedTokens = {
+      pairBalance: null,
       tokenA: null,
       tokenB: null,
     };
-    return state
+    return state;
   },
   SET_SELECTED_TOKEN(state, { type, token }) {
-    state.selectedTokens = {
-      ...state.selectedTokens,
-      [type]: token,
-    };
-
-    console.log({
-      ...state.selectedTokens,
-      [type]: token,
-    })
+    state.selectedTokens[type] = token;
   },
   SET_CURRENCY_RATE(state, { type, rate }) {
-    state.selectedTokens = {
-      ...state.selectedTokens,
-      [type]: {
-        ...state.selectedTokens[type],
-        price: rate,
-      },
+    state.selectedTokens[type] = {
+      ...state.selectedTokens[type],
+      price: rate,
     };
   },
-  SET_TOKEN_VALUE(state, { type, value }) {
+  SET_TOKEN_VALUE(state, { type, value, pairBalance, userBalance }) {
     state.selectedTokens = {
       ...state.selectedTokens,
+      pairBalance,
+      userBalance,
       [type]: {
         ...state.selectedTokens[type],
-        value,
-      },
-    };
-  }
+        value
+      }
+    }
+  },
 };

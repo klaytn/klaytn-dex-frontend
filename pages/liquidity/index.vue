@@ -28,37 +28,55 @@
               <!--                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png"-->
               <!--                alt=""-->
               <!--              />-->
-              <span class="pair--names"> {{ p.symbol }} </span>
-              <span class="pair--rate">
-                {{ getBalance(p.balance) }}
-<!--                <span class="pair&#45;&#45;rate-gray">($5.87) </span>-->
+              <span class="pair--names"> {{ p.name }} </span>
+              <span class="pair--rate" v-if="p.userBalance">
+                {{ getFormatted(p.userBalance) }}
+                <!--                <span class="pair&#45;&#45;rate-gray">($5.87) </span>-->
               </span>
             </div>
           </template>
           <template v-slot:main>
             <div class="pair--main">
               <div class="pair--info">
-                <!--                <div class="pair&#45;&#45;row">-->
-                <!--                  <span>Pooled {{ p.symbol }}</span>-->
-                <!--                  <span>0.0232</span>-->
-                <!--                </div>-->
-                <div class="pair--row">
-                  <span>Pooled DAI</span>
-                  <span>34.5649</span>
+                <div class="pair--row" v-if="p.pairBalance">
+                  <span>Pooled {{ p.symbolA }}</span>
+                  <span>{{
+                      getFormattedTokens(
+                        p.userBalance,
+                        p.pairBalance,
+                        p.reserves[0]
+                      )
+                    }}</span>
+                </div>
+                <div class="pair--row" v-if="p.pairBalance">
+                  <span>Pooled {{ p.symbolB }}</span>
+                  <span>{{
+                    getFormattedTokens(
+                      p.userBalance,
+                      p.pairBalance,
+                      p.reserves[1]
+                    )
+                  }}</span>
+                </div>
+                <div class="pair--row" v-if="p.pairBalance">
+                  <span>Pooled {{ p.name }}</span>
+                  <span>{{ getFormatted(p.pairBalance) }}</span>
                 </div>
                 <div class="pair--row">
                   <span>Your pool tokens:</span>
-                  <span>0.2192</span>
+                  <span>{{ getFormatted(p.userBalance) }}</span>
                 </div>
                 <div class="pair--row">
                   <span>Your pool share:</span>
-                  <span>0.69%</span>
+                  <span>{{
+                    getFormattedPercent(p.pairBalance, p.userBalance)
+                  }}</span>
                 </div>
               </div>
 
               <div class="pair--links">
                 <RouterLink to="/liquidity/add">Add</RouterLink>
-                <a href="#">Remove</a>
+                <RouterLink to="/liquidity/remove">Remove</RouterLink>
                 <a href="#" class="deposit">Deposit</a>
               </div>
             </div>
@@ -82,7 +100,7 @@ export default {
         return null;
       }
 
-      return this.pairs.filter((p) => !!Number(p.balance));
+      return this.pairs // .filter((p) => !!Number(p.userBalance));
     },
   },
   beforeMount() {
@@ -92,15 +110,35 @@ export default {
     ...mapActions({
       getPairs: "liquidity/getPairs",
     }),
-    getBalance(v) {
+    getFormatted(v) {
       return roundTo(Number(web3.utils.fromWei(v)), 5);
+    },
+    getFormattedPercent(v1, v2) {
+      const bigNA = this.$kaikas.bigNumber(v1);
+      const bigNB = this.$kaikas.bigNumber(v2);
+      const percent = bigNA.dividedToIntegerBy(100);
+
+      return `${bigNB.dividedBy(percent).toFixed(2)}%`;
+    },
+
+    getFormattedTokens(pairBalance, userBalance, reserve) {
+      const bigNA = this.$kaikas.bigNumber(pairBalance);
+      const bigNB = this.$kaikas.bigNumber(userBalance);
+
+      const yourPoolShare = bigNB.dividedToIntegerBy(bigNA).multipliedBy(100);
+
+      const token0Pooled = this.$kaikas
+        .bigNumber(reserve)
+        .multipliedBy(yourPoolShare)
+        .dividedToIntegerBy(100);
+
+      return `~${this.getFormatted(token0Pooled.toFixed(0))}`
     },
   },
 };
 </script>
 
 <style scoped lang="scss">
-
 .ma {
   width: min-content;
   margin: 20px auto;

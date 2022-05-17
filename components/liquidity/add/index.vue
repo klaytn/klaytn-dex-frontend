@@ -28,26 +28,36 @@
       <h3>Prices and pool share</h3>
 
       <div class="liquidity--details--row">
-        <span>ETH per KLAY</span>
-        <span>2192.98 </span>
+        <span>
+          {{ selectedTokens.tokenA.symbol }} per
+          {{ selectedTokens.tokenB.symbol }}
+        </span>
+        <span>
+          {{ getFormattedRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
+        </span>
       </div>
       <div class="liquidity--details--row">
-        <span>KLAY per ETH</span>
-        <span>0.0003423</span>
+        <span
+          >{{ selectedTokens.tokenB.symbol }} per
+          {{ selectedTokens.tokenA.symbol }}</span
+        >
+        <span>
+          {{ getFormattedRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
+        </span>
       </div>
-      <div class="liquidity--details--row">
+      <div v-if="selectedTokens.pairBalance" class="liquidity--details--row">
         <span>Share of pool</span>
-        <span>0.0069%</span>
+        <span>{{getFormattedPercent(selectedTokens.pairBalance, selectedTokens.userBalance)}}</span>
       </div>
-      <div class="liquidity--details--row">
-        <span>You'll earn</span>
-        <span>0.17%</span>
-      </div>
+<!--      <div class="liquidity&#45;&#45;details&#45;&#45;row">-->
+<!--        <span>You'll earn</span>-->
+<!--        <span>0.17%</span>-->
+<!--      </div>-->
 
-      <div class="liquidity--details--row">
-        <span>Transaction Fee</span>
-        <span>0.074 KLAY ($0.013)</span>
-      </div>
+<!--      <div class="liquidity&#45;&#45;details&#45;&#45;row">-->
+<!--        <span>Transaction Fee</span>-->
+<!--        <span>0.074 KLAY ($0.013)</span>-->
+<!--      </div>-->
     </div>
   </div>
 </template>
@@ -78,6 +88,19 @@ export default {
     ...mapMutations({
       clearSelectedTokens: "tokens/CLEAR_SELECTED_TOKENS",
     }),
+    getFormattedRate(v1, v2) {
+      const bigNA = this.$kaikas.bigNumber(v1)
+      const bigNB = this.$kaikas.bigNumber(v2)
+
+      return bigNA.dividedBy(bigNB).toFixed(5);
+    },
+    getFormattedPercent(v1, v2) {
+      const bigNA = this.$kaikas.bigNumber(v1)
+      const bigNB = this.$kaikas.bigNumber(v2)
+      const percent = bigNA.dividedToIntegerBy(100);
+
+      return `${bigNB.dividedBy(percent).toFixed(2)}%`;
+    }
   },
 };
 </script>
