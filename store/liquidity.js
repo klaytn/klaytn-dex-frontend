@@ -71,11 +71,12 @@ export const actions = {
     commit("SET_PAIRS", pairs);
   },
   async addLiquidity({ rootState: { tokens, swap } }) {
+
     const {
       selectedTokens: { tokenA, tokenB },
     } = tokens;
 
-    const { slippagePercent } = swap;
+    const {slippagePercent} = swap
 
     try {
       const tokenAValue = this.$kaikas.bigNumber(tokenA.value);

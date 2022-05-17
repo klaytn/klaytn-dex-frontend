@@ -8,9 +8,11 @@
     <p class="liquidity--title mt">Your Liquidity</p>
 
     <div class="ma" v-if="!renderPairs">
-      <Loader />
+      <Loader/>
     </div>
-    <div v-else-if="!renderPairs.length">Empty</div>
+    <div v-else-if="!renderPairs.length">
+      Empty
+    </div>
     <div class="liquidity--list" v-else>
       <div class="liquidity--item" v-for="p in renderPairs">
         <Collapse>
