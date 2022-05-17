@@ -1,8 +1,10 @@
 <template>
   <div class="wrap">
     <div class="head">
-      <RouterLink to="swap" class="head--btn" active-class="head--btn-active">Swap</RouterLink>
-      <RouterLink to="liquidity" class="head--btn" active-class="head--btn-active">Liquidity</RouterLink>
+      <slot name="head">
+        <RouterLink to="swap" class="head--btn" active-class="head--btn-active">Swap</RouterLink>
+        <RouterLink to="liquidity" class="head--btn" active-class="head--btn-active">Liquidity</RouterLink>
+      </slot>
       <button class="head--btn head--btn-left">
         <Icon name="refresh" />
       </button>

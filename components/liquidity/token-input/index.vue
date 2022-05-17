@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="token-input"
-    :class="{ 'token-loading': tokenType === exchangeRateLoading }"
-  >
+  <div class="token-input">
     <div class="token-value">
       <input
         v-if="selected"
@@ -11,9 +8,11 @@
         @input="input($event.target.value)"
       />
       <button v-if="selected" @click="input(selected.balance)">MAX</button>
-
       <div class="token-select-wrap">
-        <TokenSelect :selected-token="selected" @select="setToken" />
+        <TokenSelect
+          :selected-token="selected"
+          @select="setToken"
+        />
       </div>
     </div>
 
@@ -52,7 +51,6 @@
 import { mapActions, mapMutations, mapState } from "vuex";
 import { copyToClipboard } from "~/utils/common";
 import { roundTo } from "round-to";
-import debounce from "debounce";
 import web3 from "web3";
 
 export default {
@@ -64,7 +62,6 @@ export default {
     },
   },
   computed: {
-    ...mapState("swap", ["exchangeRateIntervalID", "exchangeRateLoading"]),
     ...mapState("tokens", ["selectedTokens"]),
     selected() {
       return this.selectedTokens[this.tokenType];
@@ -81,50 +78,30 @@ export default {
       if (!this.selected?.value) {
         return null;
       }
-      const bn = new this.$kaikas.bigNumber(
-        this.$kaikas.fromWei(this.selected.value)
-      );
+      const fromWei = this.$kaikas.fromWei(this.selected.value);
+      const bn = new this.$kaikas.bigNumber(fromWei);
+
       return Number(bn.toFixed(4));
     },
     formattedAddress() {
       return this.$kaikas.getFormattedAddress(this.selected.address);
     },
   },
-  beforeDestroy() {
-    if (this.exchangeRateIntervalID) {
-      clearInterval(this.exchangeRateIntervalID);
-    }
-    this.setExchangeLoading(null);
-  },
   methods: {
     ...mapMutations({
       setSelectedToken: "tokens/SET_SELECTED_TOKEN",
-      setComputedToken: "swap/SET_COMPUTED_TOKEN",
-      setExchangeRateIntervalID: "swap/SET_EXCHANGE_RATE_INTERVAL_ID",
-      setExchangeLoading: "swap/SET_EXCHANGE_LOADING",
     }),
     ...mapActions({
       setCurrencyRate: "tokens/setCurrencyRate",
-      getAmountOut: "swap/getAmountOut",
-      getAmountIn: "swap/getAmountIn",
     }),
     copyToClipboard,
     setToken(token) {
-      this.setCurrencyRate({ id: token.id, type: this.tokenType });
       this.setSelectedToken({ token, type: this.tokenType });
     },
-    input: debounce(async function (v) {
-      const regex = /^\d*\.?\d*$/;
-
-      if (!this.selected || !v || !regex.test(v)) {
-        return;
+    input(v) {
+      if(!v) {
+        return
       }
-
-      if (this.exchangeRateIntervalID) {
-        clearInterval(this.exchangeRateIntervalID);
-        this.setExchangeRateIntervalID(null);
-      }
-
       const value = this.$kaikas.toWei(v);
 
       this.setSelectedToken({
@@ -134,29 +111,7 @@ export default {
         },
         type: this.tokenType,
       });
-
-      this.setComputedToken(this.tokenType === "tokenA" ? "tokenB" : "tokenA");
-
-      if (this.tokenType === "tokenA") {
-        this.setExchangeLoading("tokenB");
-
-        await this.getAmountOut(value);
-        this.setExchangeRateIntervalID(
-          setInterval(() => this.getAmountOut(value), 5000)
-        );
-      }
-
-      if (this.tokenType === "tokenB") {
-        this.setExchangeLoading("tokenA");
-
-        await this.getAmountIn(value);
-        this.setExchangeRateIntervalID(
-          setInterval(() => this.getAmountIn(value), 5000)
-        );
-      }
-
-      this.setExchangeLoading(null);
-    }, 500),
+    },
   },
 };
 </script>

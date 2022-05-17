@@ -30,13 +30,9 @@
       <Slippage />
     </div>
 
-    <Button :disabled="!isValidTokens" @click="swapTokens">{{
-        isSwapLoading ? "Wait" : "Swap"
-      }}</Button>
-    <br />
-    <!--    <Button :disabled="!isValidTokens" @click="AddLQ">ADDLQ</Button>-->
-
-    <br />
+    <Button :disabled="!isValidTokens" @click="swapTokens">
+      {{ isSwapLoading ? "Wait" : "Swap" }}
+    </Button>
 
     <div v-if="exchangeRateLoading">Exchange rate loading</div>
 
@@ -56,13 +52,12 @@ export default {
   },
   computed: {
     ...mapState("swap", [
-      "selectedTokens",
-      "tokensList",
-      "exchangeRateLoading",
       "pairNotExist",
       "computedToken",
       "exchangeRateIntervalID",
+      "exchangeRateLoading",
     ]),
+    ...mapState("tokens", ["selectedTokens", "tokensList"]),
     isLoading() {
       return !this.tokensList?.length;
     },
@@ -75,20 +70,18 @@ export default {
       );
     },
   },
-  beforeMount() {
-    if(!this.tokensList?.length) {
-      this.getTokens();
-    }
+  beforeDestroy() {
+    this.refreshStore();
+    this.clearSelectedTokens();
   },
   methods: {
     ...mapActions({
-      getTokens: "swap/getTokens",
-      AddLQ: "swap/AddLQ",
       swapExactTokensForTokens: "swap/swapExactTokensForTokens",
       swapTokensForExactTokens: "swap/swapTokensForExactTokens",
     }),
     ...mapMutations({
       refreshStore: "swap/REFRESH_STORE",
+      clearSelectedTokens: "tokens/CLEAR_SELECTED_TOKENS",
       setExchangeRateIntervalID: "swap/SET_EXCHANGE_RATE_INTERVAL_ID",
     }),
     async swapTokens() {

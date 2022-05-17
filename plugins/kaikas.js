@@ -1,8 +1,9 @@
-import routerABI from "../utils/smartcontracts/router.json"
-import factoryABI from "../utils/smartcontracts/factory.json"
-import wethABI from "../utils/smartcontracts/weth.json"
+import routerABI from "../utils/smartcontracts/router.json";
+import factoryABI from "../utils/smartcontracts/factory.json";
+import wethABI from "../utils/smartcontracts/weth.json";
 import web3 from "web3";
 import BigNumber from "bignumber.js";
+import kep7 from "@/utils/smartcontracts/kep-7.json";
 
 export default (_, inject) => {
   inject("kaikas", {
@@ -71,5 +72,33 @@ export default (_, inject) => {
     bigNumber(amount) {
       return new BigNumber(amount);
     },
+
+    async approveAmount(address, abi, amount) {
+      const contract = this.createContract(address, abi);
+
+      const allowance = await contract.methods
+        .allowance(this.address, this.routerAddress)
+        .call({
+          from: this.address,
+        });
+
+      if (allowance >= amount) {
+        return amount;
+      }
+
+      const gas = await contract.methods
+        .approve(this.routerAddress, amount)
+        .estimateGas();
+
+      const approvedAmount = await contract.methods
+        .approve(this.routerAddress, amount)
+        .send({
+          from: this.address,
+          gas,
+          gasPrice: 750000000000,
+        });
+
+      return approvedAmount;
+    },
   });
-}
+};

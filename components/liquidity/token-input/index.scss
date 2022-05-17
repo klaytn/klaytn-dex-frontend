@@ -1,12 +1,11 @@
 .token {
-  &-loading {
-    opacity: 0.4;
-  }
-
   &-select-wrap {
     margin-left: auto;
   }
 
+  &-loading {
+    opacity: 0.4;
+  }
   &-input {
     background: $gray3;
     padding: 16px 16px;
