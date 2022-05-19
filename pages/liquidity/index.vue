@@ -8,16 +8,21 @@
     <p class="liquidity--title mt">Your Liquidity</p>
 
     <div class="ma" v-if="!renderPairs">
-      <Loader/>
+      <Loader />
     </div>
-    <div v-else-if="!renderPairs.length">
-      Empty
-    </div>
+    <div v-else-if="!renderPairs.length">Empty</div>
     <div class="liquidity--list" v-else>
       <div class="liquidity--item" v-for="p in renderPairs">
         <Collapse>
           <template v-slot:head>
             <div class="pair--head">
+              <div class="pair--icon-f">
+                <Icon :char="p.symbolA[0]" name="empty-token" />
+              </div>
+              <div class="pair--icon-s">
+                <Icon :char="p.symbolB[0]" name="empty-token" />
+              </div>
+
               <!--              <img-->
               <!--                class="pair&#45;&#45;icon-f"-->
               <!--                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png"-->
@@ -41,12 +46,12 @@
                 <div class="pair--row" v-if="p.pairBalance">
                   <span>Pooled {{ p.symbolA }}</span>
                   <span>{{
-                      getFormattedTokens(
-                        p.userBalance,
-                        p.pairBalance,
-                        p.reserves[0]
-                      )
-                    }}</span>
+                    getFormattedTokens(
+                      p.userBalance,
+                      p.pairBalance,
+                      p.reserves[0]
+                    )
+                  }}</span>
                 </div>
                 <div class="pair--row" v-if="p.pairBalance">
                   <span>Pooled {{ p.symbolB }}</span>
@@ -100,7 +105,7 @@ export default {
         return null;
       }
 
-      return this.pairs // .filter((p) => !!Number(p.userBalance));
+      return this.pairs.filter((p) => !!Number(p.userBalance));
     },
   },
   beforeMount() {
@@ -132,7 +137,7 @@ export default {
         .multipliedBy(yourPoolShare)
         .dividedToIntegerBy(100);
 
-      return `~${this.getFormatted(token0Pooled.toFixed(0))}`
+      return `~${this.getFormatted(token0Pooled.toFixed(0))}`;
     },
   },
 };

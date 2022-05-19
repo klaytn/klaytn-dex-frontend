@@ -1,6 +1,3 @@
-import kep7 from "~/utils/smartcontracts/kep-7.json";
-import pair from "~/utils/smartcontracts/pair.json";
-
 export const state = () => ({
   exchangeRateLoading: null,
   pairNotExist: false,
@@ -11,54 +8,21 @@ export const state = () => ({
 
 export const actions = {
   async getAmountOut({ commit, rootState: { tokens } }, value) {
-    const {
-      selectedTokens: { tokenA, tokenB },
-    } = tokens;
-
-    commit("SET_EMPTY_PAIR", null);
-    console.log(this.$kaikas.address)
-
     try {
-      const pairAddress = await this.$kaikas.factoryContract.methods
-        .getPair(tokenA.address, tokenB.address)
-        .call({
-          from: this.$kaikas.address,
-        });
+      const {
+        selectedTokens: { tokenA, tokenB },
+      } = tokens;
+      commit("SET_EMPTY_PAIR", null);
 
-      const pairAddress2 = await this.$kaikas.factoryContract.methods
-        .getPair(tokenB.address, tokenA.address)
-        .call({
-          from: this.$kaikas.address,
-        });
-
-      if (this.$kaikas.isEmptyAddress(pairAddress)) {
-        commit("SET_EMPTY_PAIR", [tokenA.address, tokenB.address]);
-        return;
-      }
-
-      const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
-
-      const pairBalance = await pairContract.methods.totalSupply().call();
-      const userBalance = await pairContract.methods
-        .balanceOf(this.$kaikas.address)
-        .call();
-
-      // const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
-      // const reserves = await pairContract.methods.getReserves().call({
-      //   from: this.$kaikas.address,
-      // });
-      //
-      // const getAmountOut = await this.$kaikas.routerContract.methods
-      //   .getAmountOut(value, reserves[1], reserves[0])
-      //   .call({
-      //     from: this.$kaikas.address,
-      //   });
-
-      const getAmountsOut = await this.$kaikas.routerContract.methods
-        .getAmountsOut(value, [tokenA.address, tokenB.address])
-        .call();
-
-      debugger;
+      const getAmountsOut = await this.$kaikas.getAmountOut(
+        tokenA.address,
+        tokenB.address,
+        value
+      );
+      const { pairBalance, userBalance } = await this.$kaikas.getPairBalance(
+        tokenA.address,
+        tokenB.address
+      );
 
       commit(
         "tokens/SET_TOKEN_VALUE",
@@ -67,58 +31,36 @@ export const actions = {
       );
     } catch (e) {
       console.log(e);
+      this.$notify({ type: 'error', text: 'Swap error' })
     }
-
     return;
   },
   async getAmountIn({ commit, rootState: { tokens } }, value) {
-    const {
-      selectedTokens: { tokenA, tokenB },
-    } = tokens;
-
-    commit("SET_EMPTY_PAIR", null);
-
     try {
-      const pairAddress = await this.$kaikas.factoryContract.methods
-        .getPair(tokenA.address, tokenB.address)
-        .call();
+      const {
+        selectedTokens: { tokenA, tokenB },
+      } = tokens;
+      commit("SET_EMPTY_PAIR", null);
 
-      if (this.$kaikas.isEmptyAddress(pairAddress)) {
-        commit("SET_EMPTY_PAIR", [tokenA.address, tokenB.address]);
-        return;
-      }
-
-      const pairContract = this.$kaikas.createContract(pairAddress, pair.abi);
-      const pairBalance = await pairContract.methods.totalSupply().call();
-      const userBalance = await pairContract.methods
-        .balanceOf(this.$kaikas.address)
-        .call();
-
-      // const reserves = await pairContract.methods.getReserves()
-      //   .call();
-      //
-      // const getAmountIn = await this.$kaikas.routerContract.methods
-      //   .getAmountIn(value, reserves[1], reserves[0])
-      //   .call();
-
-      const address0 = await pairContract.methods.token0().call();
-      const address1 = await pairContract.methods.token1().call();
-
-      console.log(value,[tokenA.address, tokenB.address], [address0, address1]);
-
-      const getAmountsIn = await this.$kaikas.routerContract.methods
-        .getAmountsIn(value, [address0, address1])
-        .call();
+      const getAmountsOut = await this.$kaikas.getAmountIn(
+        tokenA.address,
+        tokenB.address,
+        value
+      );
+      const { pairBalance, userBalance } = await this.$kaikas.getPairBalance(
+        tokenA.address,
+        tokenB.address
+      );
 
       commit(
         "tokens/SET_TOKEN_VALUE",
-        { type: "tokenA", value: getAmountsIn[0], pairBalance, userBalance },
+        { type: "tokenA", value: getAmountsOut[0], pairBalance, userBalance },
         { root: true }
       );
     } catch (e) {
       console.log(e);
+      this.$notify({ type: 'error', text: 'Get amount in error' })
     }
-
     return;
   },
   async swapExactTokensForTokens({ rootState: { tokens }, dispatch }) {
@@ -127,40 +69,26 @@ export const actions = {
         selectedTokens: { tokenA, tokenB },
       } = tokens;
 
-      await this.$kaikas.approveAmount(tokenA.address, kep7.abi, tokenA.value);
+      const { send } = await this.$kaikas.swapExactTokensForTokens({
+        addressA: tokenA.address,
+        addressB: tokenB.address,
+        valueA: tokenA.value,
+        valueB: tokenB.value,
+      });
 
-      const deadLine = Math.floor(Date.now() / 1000 + 300);
+      // swapGas * 250000000000
 
-      const swapGas = await this.$kaikas.routerContract.methods
-        .swapExactTokensForTokens(
-          tokenA.value,
-          tokenB.value,
-          [tokenA.address, tokenB.address],
-          this.$kaikas.address,
-          deadLine
-        )
-        .estimateGas();
+      // console.log(swapGas * 0.00000025)
 
-      await this.$kaikas.routerContract.methods
-        .swapExactTokensForTokens(
-          tokenA.value,
-          tokenB.value,
-          [tokenA.address, tokenB.address],
-          this.$kaikas.address,
-          deadLine
-        )
-        .send({
-          from: this.$kaikas.address,
-          gas: swapGas,
-          gasPrice: 250000000000,
-        });
-
+      await send();
+      this.$notify({ type: 'success', text: 'Swap success' })
       dispatch("tokens/getTokens", null, { root: true });
-
-      console.log("SWAP SUCCESS");
     } catch (e) {
+
       console.log(e);
+      this.$notify({ type: 'error', text: 'Swap error' })
     }
+    return
   },
   async swapTokensForExactTokens({ rootState: { tokens }, dispatch }) {
     try {
@@ -168,53 +96,20 @@ export const actions = {
         selectedTokens: { tokenA, tokenB },
       } = tokens;
 
-      await this.$kaikas.approveAmount(tokenB.address, kep7.abi, tokenB.value);
+      const { send } = await this.$kaikas.swapExactTokensForTokens({
+        addressA: tokenA.address,
+        addressB: tokenB.address,
+        valueA: tokenA.value,
+        valueB: tokenB.value,
+      });
 
-      const deadLine = Math.floor(Date.now() / 1000 + 300);
+      await send();
 
-      const swapGas = await this.$kaikas.routerContract.methods
-        .swapTokensForExactTokens(
-          tokenB.value,
-          tokenA.value,
-          [tokenA.address, tokenB.address],
-          this.$kaikas.address,
-          deadLine
-        )
-        .estimateGas();
+      this.$notify({ type: "success", text: "Swap success" });
 
-      await this.$kaikas.routerContract.methods
-        .swapTokensForExactTokens(
-          tokenB.value,
-          tokenA.value,
-          [tokenA.address, tokenB.address],
-          this.$kaikas.address,
-          deadLine
-        )
-        .send({
-          from: this.$kaikas.address,
-          gas: swapGas,
-          gasPrice: 250000000000,
-        });
-
-      // const updatedList = await Promise.all(
-      //   tokensList.map(async ({ address, ...props }) => {
-      //     const contract = this.$kaikas.createContract(address, kep7.abi);
-      //     const balance = await contract.methods
-      //       .balanceOf(this.$kaikas.address)
-      //       .call();
-      //
-      //     return {
-      //       ...props,
-      //       balance,
-      //     };
-      //   })
-      // );
-      //
-      // console.log(updatedList);
-      //
-      // commit("SET_TOKENS", updatedList);
       dispatch("tokens/getTokens", null, { root: true });
     } catch (e) {
+      this.$notify({ type: 'error', text: 'Swap error' })
       console.log(e);
     }
     return;

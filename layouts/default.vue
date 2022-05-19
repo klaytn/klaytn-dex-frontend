@@ -1,5 +1,6 @@
 <template>
   <main class="layout">
+    <notifications />
     <header>
       <div class="col">
         <a href="#">
@@ -109,27 +110,18 @@ export default {
     },
   },
   mounted() {
-    const shouldConnect =
-      !process.server &&
-      !this.isNotInstalled &&
-      window?.klaytn.selectedAddress &&
-      !this.address;
-
-    if (shouldConnect) {
-      this.connect();
-    }
-
-    if (!this.tokensList.length) {
-      this.loadTokensList();
-    }
-
-    if (!this.pairs.length) {
-      this.loadPairs();
-    }
+    this.connect()
   },
   methods: {
     async connect() {
       const address = await this.$kaikas.connectKaikas();
+      if (!this.tokensList.length) {
+        this.loadTokensList();
+      }
+
+      if (!this.pairs.length) {
+        this.loadPairs();
+      }
       if (address) {
         this.$store.commit("kaikas/CONNECT_KAIKAS", address);
       }
