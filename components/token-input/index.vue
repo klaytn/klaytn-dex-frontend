@@ -7,7 +7,7 @@
       <input
         v-if="selected"
         :value="value"
-        placeholder="0.045"
+        placeholder="0"
         type="number"
         @input="input($event.target.value)"
       />

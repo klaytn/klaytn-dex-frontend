@@ -4,7 +4,7 @@
       <input
         v-if="selected"
         :value="value"
-        placeholder="0.045"
+        placeholder="0"
         @input="input($event.target.value)"
       />
       <button v-if="selected" @click="input(selected.balance)">MAX</button>
