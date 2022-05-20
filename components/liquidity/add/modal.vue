@@ -68,8 +68,6 @@
           <!--          </div>-->
         </div>
 
-        <p class="error" v-if="error">Error</p>
-
         <Button
           :disabled="status === 'in_progress'"
           class="liquidity--btn"
@@ -112,24 +110,42 @@ export default {
     ...mapActions({
       addLiquidityAmountIn: "liquidity/addLiquidityAmountIn",
       addLiquidityAmountOut: "liquidity/addLiquidityAmountOut",
+      addLiquidityETH: "liquidity/addLiquidityETH",
     }),
     async handleAddLiquidity() {
       try {
         this.error = false;
         this.status = "in_progress";
+        const isKlayToken =
+          this.selectedTokens.tokenA.address ===
+            "0xae3a8a1D877a446b22249D8676AFeB16F056B44e" ||
+          this.selectedTokens.tokenB.address ===
+            "0xae3a8a1D877a446b22249D8676AFeB16F056B44e";
 
+        if (isKlayToken) {
+          await this.addLiquidityETH();
+          this.status = "submitted";
+          return;
+        }
         if (this.computedToken === "tokenA") {
           await this.addLiquidityAmountIn();
+          this.status = "submitted";
+          return;
         }
 
         if (this.computedToken === "tokenB") {
           await this.addLiquidityAmountOut();
+          this.status = "submitted";
+          return;
         }
 
         this.status = "submitted";
+        this.$notify({ type: "success", text: "Transaction Submitted" });
       } catch (e) {
-        this.error = true;
         this.status = "initial";
+        this.$notify({ type: "error", text: "Transaction Reverted" });
+
+        console.log(e);
       }
     },
     getFormattedRate(v1, v2) {

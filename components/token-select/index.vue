@@ -13,7 +13,7 @@
     <div class="select" v-if="selectedToken">
       <div class="select--head" @click="modalOpen = true">
 <!--        <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo" />-->
-        <Icon name="empty-token" />
+        <Icon :char="selectedToken.symbol[0]" name="empty-token" />
         <span v-if="selectedToken">
         {{ selectedToken.symbol }}
       </span>
@@ -47,7 +47,7 @@ export default {
 
 <style scoped lang="scss">
 .select {
-  width: 88px;
+  width: 100px;
   height: 40px;
   background: $white;
   border-radius: 8px;
@@ -91,12 +91,17 @@ export default {
     }
 
     & span {
+      text-overflow: ellipsis;
+      overflow-x: hidden;
+      max-width: calc(100% - 30px);
+      width: min-content;
+      margin-right: auto;
       font-style: normal;
       font-weight: 600;
       font-size: 14px;
       line-height: 17px;
       color: $dark2;
-      margin-left: 5px;
+      margin-left: 8px;
     }
   }
 

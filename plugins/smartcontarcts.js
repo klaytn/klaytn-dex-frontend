@@ -295,6 +295,129 @@ export default class Smartcontarcts {
     };
   }
 
+  async addLiquidityKlayForExistsPair({
+    pairAddress,
+    tokenAValue,
+    addressA,
+    amountAMin,
+    deadLine,
+  }) {
+    const pairContract = this.createContract(pairAddress, pairAbi.abi);
 
+    const reserves = await pairContract.methods.getReserves().call({
+      from: this.address,
+    });
 
+    const quote = await this.routerContract.methods
+      .quote(tokenAValue.toString(), reserves[0], reserves[1])
+      .call({
+        from: this.address,
+      });
+
+    const quoteValue = this.bigNumber(quote);
+
+    const params = {
+      addressA,
+      tokenAValue: tokenAValue.toString(),
+      amountAMin: amountAMin.toString(),
+      amountBMin: quoteValue
+        .minus(quoteValue.dividedToIntegerBy(100))
+        .toString(),
+      address: this.address,
+      deadLine,
+    };
+    await this.approveAmount(
+      "0xae3a8a1D877a446b22249D8676AFeB16F056B44e",
+      kep7.abi,
+      quoteValue.toString()
+    );
+
+    const lqETHGas = await this.routerContract.methods
+      .addLiquidityETH(
+        params.addressA,
+        params.tokenAValue,
+        params.amountAMin,
+        params.amountBMin,
+        params.address,
+        params.deadLine
+      )
+      .estimateGas({
+        from: this.address,
+        gasPrice: 250000000000,
+        value: quoteValue.toString(),
+      });
+
+    const send = async () =>
+      await this.routerContract.methods
+        .addLiquidityETH(
+          params.addressA,
+          params.tokenAValue,
+          params.amountAMin,
+          params.amountBMin,
+          params.address,
+          params.deadLine
+        )
+        .send({
+          from: this.address,
+          gasPrice: 250000000000,
+          gas: lqETHGas,
+          value: quoteValue.toString(),
+        });
+    console.log({ lqETHGas });
+
+    return { gas: lqETHGas, send };
+  }
+
+  async addLiquidityKlay({
+    addressA,
+    tokenAValue,
+    tokenBValue,
+    amountAMin,
+    amountBMin,
+    deadLine,
+  }) {
+    const params = {
+      addressA,
+      tokenAValue: tokenAValue.toString(),
+      amountAMin: amountAMin.toString(),
+      amountBMin: amountBMin.toString(), // KLAY
+      deadLine,
+      address: this.address,
+    };
+
+    const lqETHGas = await this.routerContract.methods
+      .addLiquidityETH(
+        params.addressA,
+        params.tokenAValue,
+        params.amountAMin,
+        params.amountBMin,
+        params.address,
+        params.deadLine
+      )
+      .estimateGas({
+        from: this.address,
+        gasPrice: 250000000000,
+        value: tokenBValue.toString(),
+      });
+
+    const send = async () =>
+      await this.routerContract.methods
+        .addLiquidityETH(
+          params.addressA,
+          params.tokenAValue,
+          params.amountAMin,
+          params.amountBMin,
+          params.address,
+          params.deadLine
+        )
+        .send({
+          from: this.address,
+          gasPrice: 250000000000,
+          value: tokenBValue.toString(),
+          gas: lqETHGas,
+        });
+
+    console.log({ lqETHGas });
+    return { gas: lqETHGas, send };
+  }
 }

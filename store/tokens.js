@@ -25,7 +25,6 @@ const mockedTokens = [
 
 export const actions = {
   async getTokens({ commit }) {
-    console.log(this.$kaikas.address);
     const balance = await caver.klay.getBalance(this.$kaikas.address);
 
     const klay = {
