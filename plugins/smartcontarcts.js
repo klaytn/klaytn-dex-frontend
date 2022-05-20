@@ -184,7 +184,12 @@ export default class Smartcontarcts {
       deadLine: deadLine,
     };
 
-    await this.approveAmount(tokenAddressB, kep7.abi, quoteValue.toFixed(0));
+    await this.approveAmount(tokenAddressB, kep7.abi, quoteValue.toString());
+    await this.approveAmount(
+      tokenAddressA,
+      kep7.abi,
+      tokenAValue.toString()
+    );
 
     const lqGas = await this.routerContract.methods
       .addLiquidity(
@@ -255,7 +260,12 @@ export default class Smartcontarcts {
       deadLine: deadLine,
     };
 
-    await this.approveAmount(tokenAddressA, kep7.abi, quoteValue.toFixed(0));
+    await this.approveAmount(tokenAddressA, kep7.abi, quoteValue.toString());
+    await this.approveAmount(
+      tokenAddressB,
+      kep7.abi,
+      tokenBValue.toString()
+    );
 
     const lqGas = await this.routerContract.methods
       .addLiquidity(
@@ -332,6 +342,12 @@ export default class Smartcontarcts {
       quoteValue.toString()
     );
 
+    await this.approveAmount(
+      addressA,
+      kep7.abi,
+      tokenAValue.toString()
+    );
+
     const lqETHGas = await this.routerContract.methods
       .addLiquidityETH(
         params.addressA,
@@ -384,6 +400,18 @@ export default class Smartcontarcts {
       deadLine,
       address: this.address,
     };
+
+    await this.approveAmount(
+      "0xae3a8a1D877a446b22249D8676AFeB16F056B44e",
+      kep7.abi,
+      quoteValue.toString()
+    );
+
+    await this.approveAmount(
+      addressA,
+      kep7.abi,
+      tokenAValue.toString()
+    );
 
     const lqETHGas = await this.routerContract.methods
       .addLiquidityETH(
