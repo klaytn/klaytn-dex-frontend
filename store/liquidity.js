@@ -162,9 +162,9 @@ export const actions = {
       const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100));
 
       await this.$kaikas.approveAmount(
-        tokenA.address,
+        tokenB.address,
         kep7.abi,
-        tokenAValue.toFixed(0)
+        tokenBValue.toFixed(0)
       );
 
       const pairAddress = await this.$kaikas.factoryContract.methods
@@ -267,6 +267,12 @@ export const actions = {
       });
       return await send();
     }
+
+    await this.$kaikas.approveAmount(
+      sortedPair[1].address,
+      kep7.abi,
+      tokenBValue.toString()
+    );
 
     const {send} = await this.$kaikas.addLiquidityKlay({
       addressA: sortedPair[0].address,
