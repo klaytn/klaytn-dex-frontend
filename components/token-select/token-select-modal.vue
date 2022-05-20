@@ -14,6 +14,7 @@
       </div>
     </div>
 
+
     <div class="token-select-modal--recent row">
       <div
         class="token-select-modal--tag"
@@ -21,56 +22,131 @@
         @click="onSelect(t)"
       >
         <TagName :label="t.symbol" :key="t.symbol">
-          <!--          <Icon name="eth"></Icon>-->
-          <img class="token-logo" :src="t.logo" alt="token logo" />
+          <Icon :char="t.symbol[0]" name="empty-token" />
+          <!--          <img class="token-logo" :src="t.logo" alt="token logo" />-->
         </TagName>
       </div>
     </div>
 
     <div class="token-select-modal--list">
       <div
+        v-if="importToken"
+        class="token-select-modal--item"
+        @click="onAddToken"
+      >
+        <Icon :char="importToken.symbolA[0]" name="empty-token" />
+        <div class="info">
+          <p class="token">{{ importToken.symbol }}</p>
+          <span class="token-name">{{ importToken.name }}</span>
+        </div>
+        <button class="token-select-modal--import">Import</button>
+      </div>
+
+      <div
         v-for="t in renderTokens"
         :key="t.address"
         class="token-select-modal--item"
+        :class="{ 'token-select-modal--item-disabled': Number(t.balance) <= 0 }"
         @click="onSelect(t)"
       >
-        <img class="token-logo" :src="t.logo" alt="token logo" />
+        <Icon :char="t.symbol[0]" name="empty-token" />
         <div class="info">
           <p class="token">{{ t.symbol }}</p>
           <span class="token-name">{{ t.name.toLowerCase() }}</span>
         </div>
-        <TextField :title="`${t.balance} ${t.symbol}`" class="token-count"
-          >{{ t.balance }} {{ t.symbol }}</TextField
-        >
+        <TextField :title="`${t.balance} ${t.symbol}`" class="token-count">
+          {{ getRenderBalance(t.balance) }} {{ t.symbol }}
+        </TextField>
       </div>
     </div>
   </Modal>
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapMutations, mapState } from "vuex";
+import kep7 from "~/utils/smartcontracts/kep-7.json";
 
 export default {
   name: "TokenSelectModal",
   data() {
     return {
       searchValue: "",
+      importToken: null,
     };
   },
   computed: {
     ...mapState("tokens", ["tokensList"]),
     renderTokens() {
       return this.tokensList.filter(
-        (token) => token.symbol.search(this.searchValue.toUpperCase()) !== -1
+        (token) =>
+          token.symbol.search(this.searchValue.toUpperCase()) !== -1 ||
+          token.address === this.searchValue
       );
     },
   },
   methods: {
+    ...mapMutations({
+      updateTokens: "tokens/SET_TOKENS",
+    }),
+    getRenderBalance(balance){
+      const value = this.$kaikas.bigNumber(this.$kaikas.fromWei(balance))
+      return value.toFixed(4)
+    },
     onSelect(t) {
-      // if (Number(t.balance) <= 0) {
-      //   return;
-      // }
+      if (Number(t.balance) <= 0) {
+        return;
+      }
+
       this.$emit("select", t);
+    },
+    onAddToken() {
+      if (this.importToken) {
+        this.updateTokens([this.importToken, ...this.tokensList]);
+        this.searchValue = "";
+        this.importToken = null;
+        this.$notify({ type: 'success', text: 'Token added' })
+      }
+    },
+  },
+  watch: {
+    async searchValue(_new) {
+      const code =
+        this.$kaikas.isAddress(_new) &&
+        (await this.$kaikas.caver.klay.getCode(_new));
+      const isExists = this.tokensList.find(({ address }) => address === _new);
+
+      if (!this.$kaikas.isAddress(_new) || code === "0x" || isExists) {
+        this.importToken = null;
+        return;
+      }
+
+      try {
+        const contract = this.$kaikas.createContract(_new, kep7.abi);
+
+        const symbol = await contract.methods.symbol().call({
+          from: this.$kaikas.address,
+        });
+
+        const name = await contract.methods.name().call({
+          from: this.$kaikas.address,
+        });
+
+        const balance = await contract.methods
+          .balanceOf(this.$kaikas.address)
+          .call();
+
+        this.importToken = {
+          id: _new,
+          name,
+          symbol,
+          logo: "-",
+          balance,
+          slug: "-",
+          address: _new,
+        };
+      } catch (e) {
+        console.log(e);
+      }
     },
   },
 };
@@ -185,6 +261,18 @@ export default {
       margin-left: auto;
       max-width: 150px;
     }
+  }
+
+  &--import {
+    background: $blue;
+    border-radius: 10px;
+    color: $white;
+    margin-left: auto;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 18px;
+    padding: 7px 24px;
+    cursor: pointer;
   }
 }
 </style>

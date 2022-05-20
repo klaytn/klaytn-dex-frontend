@@ -8,6 +8,7 @@
         v-if="selected"
         :value="value"
         placeholder="0.045"
+        type="number"
         @input="input($event.target.value)"
       />
       <button v-if="selected" @click="input(selected.balance)">MAX</button>
@@ -73,9 +74,10 @@ export default {
       return roundTo(Number(web3.utils.fromWei(this.selected.balance)), 5);
     },
     price() {
-      return this.selected?.price?.price
-        ? `$${roundTo(this.selected?.price?.price, 5)}`
-        : "Price loading";
+      return "-";
+      // return this.selected?.price?.price
+      //   ? `$${roundTo(this.selected?.price?.price, 5)}`
+      //   : "Price loading";
     },
     value() {
       if (!this.selected?.value) {
@@ -114,9 +116,7 @@ export default {
       this.setSelectedToken({ token, type: this.tokenType });
     },
     input: debounce(async function (v) {
-      const regex = /^\d*\.?\d*$/;
-
-      if (!this.selected || !v || !regex.test(v)) {
+      if (!this.selected || !v) {
         return;
       }
 

@@ -4,9 +4,9 @@ import wethABI from "../utils/smartcontracts/weth.json";
 import web3 from "web3";
 import BigNumber from "bignumber.js";
 
-import Router, {fn} from "./router";
+import Smartcontarcts from "./smartcontarcts";
 
-class Kaikas {
+class Kaikas extends Smartcontarcts {
   address = null;
   routerAddress = "0xB0B695584234F2CC16266588b2b951F3d2885705";
   factoryAddress = "0xEB487a3A623E25cAa668B6D199F1aBa9D2380456";
@@ -14,16 +14,10 @@ class Kaikas {
   routerContract = null;
   factoryContract = null;
   wethContract = null;
-  fn = null
+  caver = null;
 
-  constructor() {
-    this.router = new Router(
-      "0xB0B695584234F2CC16266588b2b951F3d2885705",
-      routerABI.abi,
-      this
-    );
-    this.fn = fn
-  }
+  liquidityApi = null;
+  swapApi = null;
 
   async connectKaikas() {
     if (
@@ -37,6 +31,7 @@ class Kaikas {
     const { klaytn, caver } = window;
 
     const addresses = await klaytn.enable();
+    this.caver = caver;
 
     this.address = addresses[0];
     this.routerContract = new caver.klay.Contract(
@@ -47,7 +42,9 @@ class Kaikas {
       factoryABI.abi,
       this.factoryAddress
     );
+
     this.wethContract = new caver.klay.Contract(wethABI.abi, this.wethAddress);
+    this.caver = caver;
     return addresses[0];
   }
 
@@ -71,6 +68,9 @@ class Kaikas {
   toWei(token, amount = "ether") {
     return web3.utils.toWei(token, amount);
   }
+  isAddress(value) {
+    return web3.utils.isAddress(value);
+  }
 
   fromWei(amount) {
     return web3.utils.fromWei(amount);
@@ -78,34 +78,6 @@ class Kaikas {
 
   bigNumber(amount) {
     return new BigNumber(amount);
-  }
-
-  async approveAmount(address, abi, amount) {
-    const contract = this.createContract(address, abi);
-
-    const allowance = await contract.methods
-      .allowance(this.address, this.routerAddress)
-      .call({
-        from: this.address,
-      });
-
-    if (allowance >= amount) {
-      return amount;
-    }
-
-    const gas = await contract.methods
-      .approve(this.routerAddress, amount)
-      .estimateGas();
-
-    const approvedAmount = await contract.methods
-      .approve(this.routerAddress, amount)
-      .send({
-        from: this.address,
-        gas,
-        gasPrice: 250000000000,
-      });
-
-    return approvedAmount;
   }
 }
 

@@ -2,27 +2,27 @@
   <div class="liquidity">
     <div class="liquidity--input">
       <!--      <LiquidityTokenInput tokenType="tokenA" />-->
-      <TokenInput tokenType="tokenA" />
+      <TokenInput tokenType="tokenA"/>
     </div>
 
     <div class="liquidity--icon">
-      <Icon name="plus" />
+      <Icon name="plus"/>
     </div>
 
     <div class="liquidity--input">
       <!--      <LiquidityTokenInput tokenType="tokenB" />-->
-      <TokenInput tokenType="tokenB" />
+      <TokenInput tokenType="tokenB"/>
     </div>
 
     <div class="liquidity--slippage">
-      <Slippage />
+      <Slippage/>
     </div>
 
     <Button :disabled="!isValid" class="liquidity--btn" @click="isOpen = true">
       Supply
     </Button>
 
-    <LiquidityAddModal v-if="isOpen" @close="isOpen = false" />
+    <LiquidityAddModal v-if="isOpen" @close="isOpen = false"/>
 
     <div class="liquidity--details" v-if="isValid">
       <h3>Prices and pool share</h3>
@@ -37,33 +37,33 @@
         </span>
       </div>
       <div class="liquidity--details--row">
-        <span
-          >{{ selectedTokens.tokenB.symbol }} per
-          {{ selectedTokens.tokenA.symbol }}</span
-        >
+        <span>
+          {{ selectedTokens.tokenB.symbol }} per
+          {{ selectedTokens.tokenA.symbol }}
+        </span>
         <span>
           {{ getFormattedRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
         </span>
       </div>
       <div v-if="selectedTokens.pairBalance" class="liquidity--details--row">
         <span>Share of pool</span>
-        <span>{{getFormattedPercent(selectedTokens.pairBalance, selectedTokens.userBalance)}}</span>
+        <span>{{ getFormattedPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}</span>
       </div>
-<!--      <div class="liquidity&#45;&#45;details&#45;&#45;row">-->
-<!--        <span>You'll earn</span>-->
-<!--        <span>0.17%</span>-->
-<!--      </div>-->
+      <!--      <div class="liquidity&#45;&#45;details&#45;&#45;row">-->
+      <!--        <span>You'll earn</span>-->
+      <!--        <span>0.17%</span>-->
+      <!--      </div>-->
 
-<!--      <div class="liquidity&#45;&#45;details&#45;&#45;row">-->
-<!--        <span>Transaction Fee</span>-->
-<!--        <span>0.074 KLAY ($0.013)</span>-->
-<!--      </div>-->
+      <!--      <div class="liquidity&#45;&#45;details&#45;&#45;row">-->
+      <!--        <span>Transaction Fee</span>-->
+      <!--        <span>0.074 KLAY ($0.013)</span>-->
+      <!--      </div>-->
     </div>
   </div>
 </template>
 
 <script>
-import { mapMutations, mapState } from "vuex";
+import {mapMutations, mapState} from "vuex";
 
 export default {
   name: "AddLiquidity",

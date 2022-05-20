@@ -12,7 +12,8 @@
 
     <div class="select" v-if="selectedToken">
       <div class="select--head" @click="modalOpen = true">
-        <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo" />
+<!--        <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo" />-->
+        <Icon name="empty-token" />
         <span v-if="selectedToken">
         {{ selectedToken.symbol }}
       </span>
