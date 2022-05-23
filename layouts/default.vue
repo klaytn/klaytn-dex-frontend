@@ -114,7 +114,7 @@ export default {
   },
   methods: {
     async connect() {
-      const address = await this.$kaikas.connectKaikas();
+      const address = await this.$kaikas.config.connectKaikas();
       if (!this.tokensList.length) {
         this.loadTokensList();
       }

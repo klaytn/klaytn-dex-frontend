@@ -8,18 +8,20 @@ export const state = () => ({
 
 export const actions = {
   async getAmountOut({ commit, rootState: { tokens } }, value) {
+
     try {
       const {
         selectedTokens: { tokenA, tokenB },
       } = tokens;
       commit("SET_EMPTY_PAIR", null);
 
-      const getAmountsOut = await this.$kaikas.getAmountOut(
+      const getAmountsOut = await this.$kaikas.tokens.getAmountOut(
         tokenA.address,
         tokenB.address,
         value
       );
-      const { pairBalance, userBalance } = await this.$kaikas.getPairBalance(
+
+      const { pairBalance, userBalance } = await this.$kaikas.tokens.getPairBalance(
         tokenA.address,
         tokenB.address
       );
@@ -42,12 +44,12 @@ export const actions = {
       } = tokens;
       commit("SET_EMPTY_PAIR", null);
 
-      const getAmountsOut = await this.$kaikas.getAmountIn(
+      const getAmountsOut = await this.$kaikas.tokens.getAmountIn(
         tokenA.address,
         tokenB.address,
         value
       );
-      const { pairBalance, userBalance } = await this.$kaikas.getPairBalance(
+      const { pairBalance, userBalance } = await this.$kaikas.tokens.getPairBalance(
         tokenA.address,
         tokenB.address
       );
@@ -63,13 +65,14 @@ export const actions = {
     }
     return;
   },
+
   async swapExactTokensForTokens({ rootState: { tokens }, dispatch }) {
     try {
       const {
         selectedTokens: { tokenA, tokenB },
       } = tokens;
 
-      const { send } = await this.$kaikas.swapExactTokensForTokens({
+      const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
         addressA: tokenA.address,
         addressB: tokenB.address,
         valueA: tokenA.value,
@@ -77,8 +80,6 @@ export const actions = {
       });
 
       // swapGas * 250000000000
-
-      // console.log(swapGas * 0.00000025)
 
       await send();
       this.$notify({ type: 'success', text: 'Swap success' })
@@ -96,7 +97,7 @@ export const actions = {
         selectedTokens: { tokenA, tokenB },
       } = tokens;
 
-      const { send } = await this.$kaikas.swapExactTokensForTokens({
+      const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
         addressA: tokenA.address,
         addressB: tokenB.address,
         valueA: tokenA.value,

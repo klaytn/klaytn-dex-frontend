@@ -8,7 +8,7 @@
 
       <div class="input-amount--col">
         <div class="input-amount--row">
-          <button class="input-amount--max">max</button>
+          <button type="button" class="input-amount--max">max</button>
           <!--          <img src="" alt="">-->
           <!--          <img src="" alt="">-->
           <span class="input-amount--tokens">ETH-DAI</span>

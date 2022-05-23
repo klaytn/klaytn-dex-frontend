@@ -7,11 +7,11 @@
       <input
         v-if="selected"
         :value="value"
-        placeholder="0.045"
+        placeholder="0"
         type="number"
         @input="input($event.target.value)"
       />
-      <button v-if="selected" @click="input(selected.balance)">MAX</button>
+      <button v-if="selected" @click="input(renderBalance.toString())">MAX</button>
 
       <div class="token-select-wrap">
         <TokenSelect :selected-token="selected" @select="setToken" />
@@ -116,6 +116,7 @@ export default {
       this.setSelectedToken({ token, type: this.tokenType });
     },
     input: debounce(async function (v) {
+      console.log({v})
       if (!this.selected || !v) {
         return;
       }
