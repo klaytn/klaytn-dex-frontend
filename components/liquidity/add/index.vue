@@ -18,7 +18,7 @@
       <Slippage/>
     </div>
 
-    <Button :disabled="!isValid" class="liquidity--btn" @click="isOpen = true">
+    <Button type="button" :disabled="!isValid" class="liquidity--btn" @click="isOpen = true">
       Supply
     </Button>
 

@@ -69,6 +69,7 @@
         </div>
 
         <Button
+          type="button"
           :disabled="status === 'in_progress'"
           class="liquidity--btn"
           @click="handleAddLiquidity"
@@ -81,7 +82,7 @@
           <p>Transaction Submitted</p>
           <!--          <a href="#"> View on BscScan </a>-->
         </div>
-        <Button @click="$emit('close')"> Close</Button>
+        <Button type="button" @click="$emit('close')"> Close</Button>
       </div>
     </div>
   </Modal>

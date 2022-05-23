@@ -4,9 +4,13 @@ import wethABI from "../utils/smartcontracts/weth.json";
 import web3 from "web3";
 import BigNumber from "bignumber.js";
 
-import Smartcontarcts from "./smartcontarcts";
+import Tokens from "@/plugins/tokens";
+import utils from "@/plugins/utils";
+import config from "@/plugins/Config";
+import Swap from "@/plugins/swap";
+import { Liquidity } from "@/plugins/liquidity";
 
-class Kaikas extends Smartcontarcts {
+class Kaikas {
   address = null;
   routerAddress = "0xB0B695584234F2CC16266588b2b951F3d2885705";
   factoryAddress = "0xEB487a3A623E25cAa668B6D199F1aBa9D2380456";
@@ -16,36 +20,18 @@ class Kaikas extends Smartcontarcts {
   wethContract = null;
   caver = null;
 
-  liquidityApi = null;
-  swapApi = null;
+  liquidity = null;
+  swap = null;
+  tokens = null;
+  utils = null;
 
-  async connectKaikas() {
-    if (
-      process.server ||
-      typeof window?.klaytn === "undefined" ||
-      typeof window?.caver === "undefined"
-    ) {
-      return;
-    }
+  constructor() {
+    this.config = config;
+    this.utils = utils;
 
-    const { klaytn, caver } = window;
-
-    const addresses = await klaytn.enable();
-    this.caver = caver;
-
-    this.address = addresses[0];
-    this.routerContract = new caver.klay.Contract(
-      routerABI.abi,
-      this.routerAddress
-    );
-    this.factoryContract = new caver.klay.Contract(
-      factoryABI.abi,
-      this.factoryAddress
-    );
-
-    this.wethContract = new caver.klay.Contract(wethABI.abi, this.wethAddress);
-    this.caver = caver;
-    return addresses[0];
+    this.tokens = new Tokens();
+    this.swap = new Swap();
+    this.liquidity = new Liquidity();
   }
 
   createContract(address, abi) {

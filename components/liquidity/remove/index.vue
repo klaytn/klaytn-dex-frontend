@@ -20,7 +20,7 @@
     <LiquidityRemoveAmount v-if="active === 'amount'" />
     <LiquidityRemoveDetailed v-if="active === 'detailed'" />
 
-    <Button class="mt">Remove</Button>
+    <Button type="button" class="mt">Remove</Button>
 
     <div class="mt">
       <Collapse>

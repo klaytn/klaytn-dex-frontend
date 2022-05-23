@@ -25,7 +25,7 @@ const mockedTokens = [
 
 export const actions = {
   async getTokens({ commit }) {
-    const balance = await caver.klay.getBalance(this.$kaikas.address);
+    const balance = await caver.klay.getBalance(this.$kaikas.config.address);
 
     const klay = {
       id: "0xae3a8a1D877a446b22249D8676AFeB16F056B44e",
@@ -42,7 +42,7 @@ export const actions = {
       const name = await contract.methods.name().call();
       const symbol = await contract.methods.symbol().call();
       const balance = await contract.methods
-        .balanceOf(this.$kaikas.address)
+        .balanceOf(this.$kaikas.config.address)
         .call();
 
       return {

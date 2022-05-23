@@ -8,7 +8,7 @@ export const state = () => ({
 
 export const actions = {
   async getPairs({ commit }) {
-    const pairsCount = await this.$kaikas.factoryContract.methods
+    const pairsCount = await this.$kaikas.config.factoryContract.methods
       .allPairsLength()
       .call();
 
@@ -46,14 +46,10 @@ export const actions = {
 
         const pairBalance = await contract.methods.totalSupply().call();
         const userBalance = await contract.methods
-          .balanceOf(this.$kaikas.address)
+          .balanceOf(this.$kaikas.config.address)
           .call();
 
-        const reserves = await contract.methods.getReserves().call({
-          from: this.$kaikas.address,
-        });
-
-        console.log(name, "reserves ", reserves);
+        const reserves = await contract.methods.getReserves().call();
 
         return {
           ...pair,
@@ -66,7 +62,6 @@ export const actions = {
       })
     );
 
-    console.log(pairs);
     commit("SET_PAIRS", pairs);
   },
   async addLiquidityAmountOut({ rootState: { tokens } }) {
@@ -89,7 +84,7 @@ export const actions = {
 
       if (!this.$kaikas.isEmptyAddress(pairAddress)) {
         const { gas, send } =
-          await this.$kaikas.addLiquidityAmountOutForExistPair({
+          await this.$kaikas.liquidity.addLiquidityAmountOutForExistPair({
             pairAddress,
             tokenAValue,
             tokenAddressA: tokenA.address,
@@ -105,12 +100,12 @@ export const actions = {
         return;
       }
 
-      await this.$kaikas.approveAmount(
+      await this.$kaikas.config.approveAmount(
         tokenA.address,
         kep7.abi,
         tokenAValue.toString()
       );
-      await this.$kaikas.approveAmount(
+      await this.$kaikas.config.approveAmount(
         tokenB.address,
         kep7.abi,
         tokenBValue.toString()
@@ -124,7 +119,7 @@ export const actions = {
           tokenBValue.toFixed(0),
           amountAMin.toFixed(0),
           amountBMin.toFixed(0),
-          this.$kaikas.address,
+          this.$kaikas.config.address,
           deadLine
         )
         .estimateGas();
@@ -137,11 +132,10 @@ export const actions = {
           tokenBValue.toFixed(0),
           amountAMin.toFixed(0),
           amountBMin.toFixed(0),
-          this.$kaikas.address,
+          this.$kaikas.config.address,
           deadLine
         )
         .send({
-          from: this.$kaikas.address,
           gas: lqGas,
           gasPrice: 250000000000,
         });
@@ -166,15 +160,15 @@ export const actions = {
       const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100));
       const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100));
 
-      const pairAddress = await this.$kaikas.factoryContract.methods
+      const pairAddress = await this.$kaikas.config.factoryContract.methods
         .getPair(tokenA.address, tokenB.address)
         .call({
           from: this.address,
         });
 
-      if (!this.$kaikas.isEmptyAddress(pairAddress)) {
+      if (!this.$kaikas.utils.isEmptyAddress(pairAddress)) {
         const { gas, send } =
-          await this.$kaikas.addLiquidityAmountInForExistPair({
+          await this.$kaikas.liquidity.addLiquidityAmountInForExistPair({
             pairAddress,
             tokenBValue,
             tokenAddressA: tokenA.address,
@@ -186,22 +180,21 @@ export const actions = {
         await send();
         this.$notify({ type: "success", text: "Liquidity success" });
 
-        console.log("addLiquidityAmountInForExistPair ", gas);
         return;
       }
 
-      await this.$kaikas.approveAmount(
+      await this.$kaikas.config.approveAmount(
         tokenA.address,
         kep7.abi,
         tokenAValue.toString()
       );
-      await this.$kaikas.approveAmount(
+      await this.$kaikas.config.approveAmount(
         tokenB.address,
         kep7.abi,
         tokenBValue.toString()
       );
 
-      const lqGas = await this.$kaikas.routerContract.methods
+      const lqGas = await this.$kaikas.config.routerContract.methods
         .addLiquidity(
           tokenA.address,
           tokenB.address,
@@ -209,12 +202,12 @@ export const actions = {
           tokenBValue.toFixed(0),
           amountAMin.toFixed(0),
           amountBMin.toFixed(0),
-          this.$kaikas.address,
+          this.$kaikas.config.address,
           deadLine
         )
         .estimateGas();
 
-      const lq = await this.$kaikas.routerContract.methods
+      const lq = await this.$kaikas.config.routerContract.methods
         .addLiquidity(
           tokenA.address,
           tokenB.address,
@@ -222,11 +215,10 @@ export const actions = {
           tokenBValue.toFixed(0),
           amountAMin.toFixed(0),
           amountBMin.toFixed(0),
-          this.$kaikas.address,
+          this.$kaikas.config.address,
           deadLine
         )
         .send({
-          from: this.$kaikas.address,
           gas: lqGas,
           gasPrice: 250000000000,
         });
@@ -243,29 +235,29 @@ export const actions = {
     const {
       selectedTokens: { tokenA, tokenB },
     } = tokens;
-    const sortedPair = this.$kaikas.sortKlayPair(tokenA, tokenB);
-    const tokenAValue = this.$kaikas.bigNumber(sortedPair[0].value);
-    const tokenBValue = this.$kaikas.bigNumber(sortedPair[1].value); // KLAY
+    const sortedPair = this.$kaikas.utils.sortKlayPair(tokenA, tokenB);
+    const tokenAValue = this.$kaikas.utils.bigNumber(sortedPair[0].value);
+    const tokenBValue = this.$kaikas.utils.bigNumber(sortedPair[1].value); // KLAY
 
     const deadLine = Math.floor(Date.now() / 1000 + 300);
 
     const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100));
     const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100));
 
-    await this.$kaikas.approveAmount(
+    await this.$kaikas.config.approveAmount(
       sortedPair[0].address,
       kep7.abi,
       tokenAValue.toString()
     );
 
-    const pairAddress = await this.$kaikas.factoryContract.methods
+    const pairAddress = await this.$kaikas.config.factoryContract.methods
       .getPair(sortedPair[0].address, sortedPair[1].address)
       .call({
         from: this.address,
       });
 
-    if (!this.$kaikas.isEmptyAddress(pairAddress)) {
-      const { send } = await this.$kaikas.addLiquidityKlayForExistsPair({
+    if (!this.$kaikas.utils.isEmptyAddress(pairAddress)) {
+      const { send } = await this.$kaikas.liquidity.addLiquidityKlayForExistsPair({
         pairAddress,
         tokenAValue,
         amountAMin,
@@ -275,19 +267,19 @@ export const actions = {
       return await send();
     }
 
-    await this.$kaikas.approveAmount(
+    await this.$kaikas.config.approveAmount(
       sortedPair[0].address,
       kep7.abi,
       tokenAValue.toString()
     );
 
-    await this.$kaikas.approveAmount(
+    await this.$kaikas.config.approveAmount(
       sortedPair[1].address,
       kep7.abi,
       tokenBValue.toString()
     );
 
-    const { send } = await this.$kaikas.addLiquidityKlay({
+    const { send } = await this.$kaikas.liquidity.addLiquidityKlay({
       addressA: sortedPair[0].address,
       tokenAValue,
       tokenBValue,

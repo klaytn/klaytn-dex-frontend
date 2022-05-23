@@ -39,7 +39,7 @@
           <p class="token">{{ importToken.symbol }}</p>
           <span class="token-name">{{ importToken.name }}</span>
         </div>
-        <button class="token-select-modal--import">Import</button>
+        <button type="button" class="token-select-modal--import">Import</button>
       </div>
 
       <div
@@ -123,16 +123,12 @@ export default {
       try {
         const contract = this.$kaikas.createContract(_new, kep7.abi);
 
-        const symbol = await contract.methods.symbol().call({
-          from: this.$kaikas.address,
-        });
+        const symbol = await contract.methods.symbol().call();
 
-        const name = await contract.methods.name().call({
-          from: this.$kaikas.address,
-        });
+        const name = await contract.methods.name().call();
 
         const balance = await contract.methods
-          .balanceOf(this.$kaikas.address)
+          .balanceOf(this.$kaikas.config.address)
           .call();
 
         this.importToken = {

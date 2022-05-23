@@ -12,7 +12,7 @@
     <div v-else-if="!address">
       <h2>Connect kaikas</h2>
       <br />
-      <Button @click="connect()">Connect</Button>
+      <Button type="button" @click="connect()">Connect</Button>
     </div>
 
     <div v-else>
@@ -24,9 +24,9 @@
     <br />
     <br />
     <br />
-    <Button>Button</Button>
-    <Button :loading="true">Loading</Button>
-    <Button disabled>Button</Button>
+    <Button type="button">Button</Button>
+    <Button type="button" :loading="true">Loading</Button>
+    <Button type="button" disabled>Button</Button>
     <br />
 
     <br />

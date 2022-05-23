@@ -7,19 +7,19 @@
         <Slide @onmove="onmove" />
       </div>
       <div class="rl-amount--tags">
-        <button class="rl-amount--tag">
+        <button type="button" class="rl-amount--tag">
           10%
         </button>
-        <button class="rl-amount--tag">
+        <button type="button" class="rl-amount--tag">
           25%
         </button>
-        <button class="rl-amount--tag">
+        <button type="button" class="rl-amount--tag">
           50%
         </button>
-        <button class="rl-amount--tag">
+        <button type="button" class="rl-amount--tag">
           75%
         </button>
-        <button class="rl-amount--tag">
+        <button type="button" class="rl-amount--tag">
           max
         </button>
       </div>
