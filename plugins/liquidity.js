@@ -155,6 +155,7 @@ export class Liquidity {
     amountAMin,
     deadLine,
   }) {
+    debugger
     const pairContract = config.createContract(pairAddress, pairAbi.abi);
 
     const reserves = await pairContract.methods.getReserves().call({
@@ -174,7 +175,7 @@ export class Liquidity {
       tokenAValue: tokenAValue.toString(),
       amountAMin: amountAMin.toString(),
       amountBMin: quoteValue
-        .minus(quoteValue.dividedToIntegerBy(100))
+        .minus(quoteValue.dividedToIntegerBy(100).toString())
         .toString(),
       address: config.address,
       deadLine,
@@ -186,7 +187,7 @@ export class Liquidity {
     );
 
     await config.approveAmount(addressA, kep7.abi, tokenAValue.toString());
-
+debugger
     const lqETHGas = await config.routerContract.methods
       .addLiquidityETH(
         params.addressA,
@@ -243,7 +244,7 @@ export class Liquidity {
     await config.approveAmount(
       "0xae3a8a1D877a446b22249D8676AFeB16F056B44e",
       kep7.abi,
-      quoteValue.toString()
+      amountBMin.toString()
     );
 
     await config.approveAmount(addressA, kep7.abi, tokenAValue.toString());

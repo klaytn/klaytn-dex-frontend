@@ -16,24 +16,24 @@ export const actions = {
       new Array(Number(pairsCount)).fill(null).map(async (it, i) => {
         let pair = {};
 
-        const address = await this.$kaikas.factoryContract.methods
+        const address = await this.$kaikas.config.factoryContract.methods
           .allPairs(i)
           .call();
 
-        const contract = this.$kaikas.createContract(address, pairAbi.abi);
+        const contract = this.$kaikas.config.createContract(address, pairAbi.abi);
 
         const addressA = await contract.methods.token0().call();
         const addressB = await contract.methods.token1().call();
 
-        const contractA = this.$kaikas.createContract(addressA, kep7.abi);
-        const contractB = this.$kaikas.createContract(addressB, kep7.abi);
+        const contractA = this.$kaikas.config.createContract(addressA, kep7.abi);
+        const contractB = this.$kaikas.config.createContract(addressB, kep7.abi);
 
         let name = await contract.methods.name().call();
         let symbol = await contract.methods.symbol().call();
 
         if (
-          !this.$kaikas.isEmptyAddress(addressA) &&
-          !this.$kaikas.isEmptyAddress(addressB)
+          !this.$kaikas.utils.isEmptyAddress(addressA) &&
+          !this.$kaikas.utils.isEmptyAddress(addressB)
         ) {
           const symbolA = await contractA.methods.symbol().call();
           const symbolB = await contractB.methods.symbol().call();
@@ -76,7 +76,7 @@ export const actions = {
       const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100));
       const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100));
 
-      const pairAddress = await this.$kaikas.factoryContract.methods
+      const pairAddress = await this.$kaikas.config.factoryContract.methods
         .getPair(tokenA.address, tokenB.address)
         .call({
           from: this.address,
@@ -111,7 +111,7 @@ export const actions = {
         tokenBValue.toString()
       );
 
-      const lqGas = await this.$kaikas.routerContract.methods
+      const lqGas = await this.$kaikas.config.routerContract.methods
         .addLiquidity(
           tokenA.address,
           tokenB.address,
@@ -235,6 +235,7 @@ export const actions = {
     const {
       selectedTokens: { tokenA, tokenB },
     } = tokens;
+
     const sortedPair = this.$kaikas.utils.sortKlayPair(tokenA, tokenB);
     const tokenAValue = this.$kaikas.utils.bigNumber(sortedPair[0].value);
     const tokenBValue = this.$kaikas.utils.bigNumber(sortedPair[1].value); // KLAY
