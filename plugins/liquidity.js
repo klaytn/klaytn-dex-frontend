@@ -244,7 +244,7 @@ debugger
     await config.approveAmount(
       "0xae3a8a1D877a446b22249D8676AFeB16F056B44e",
       kep7.abi,
-      amountBMin.toString()
+      tokenBValue.toString()
     );
 
     await config.approveAmount(addressA, kep7.abi, tokenAValue.toString());
