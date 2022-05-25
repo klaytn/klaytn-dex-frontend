@@ -14,6 +14,10 @@ class Utils {
     return Number(address?.slice(2)) === 0;
   }
 
+  isNativeToken(address) {
+    return address === "0xae3a8a1D877a446b22249D8676AFeB16F056B44e";
+  }
+
   toWei(token, amount = "ether") {
     return web3.utils.toWei(token, amount);
   }

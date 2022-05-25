@@ -251,6 +251,12 @@ export const actions = {
       tokenAValue.toString()
     );
 
+    await this.$kaikas.config.approveAmount(
+      sortedPair[1].address,
+      kep7.abi,
+      tokenBValue.toString()
+    );
+
     const pairAddress = await this.$kaikas.config.factoryContract.methods
       .getPair(sortedPair[0].address, sortedPair[1].address)
       .call({
@@ -259,26 +265,14 @@ export const actions = {
 
     if (!this.$kaikas.utils.isEmptyAddress(pairAddress)) {
       const { send } = await this.$kaikas.liquidity.addLiquidityKlayForExistsPair({
-        pairAddress,
         tokenAValue,
+        tokenBValue,
         amountAMin,
         addressA: sortedPair[0].address,
         deadLine,
       });
       return await send();
     }
-
-    await this.$kaikas.config.approveAmount(
-      sortedPair[0].address,
-      kep7.abi,
-      tokenAValue.toString()
-    );
-
-    await this.$kaikas.config.approveAmount(
-      sortedPair[1].address,
-      kep7.abi,
-      tokenBValue.toString()
-    );
 
     const { send } = await this.$kaikas.liquidity.addLiquidityKlay({
       addressA: sortedPair[0].address,

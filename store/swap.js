@@ -8,32 +8,33 @@ export const state = () => ({
 
 export const actions = {
   async getAmountOut({ commit, rootState: { tokens } }, value) {
-
     try {
       const {
         selectedTokens: { tokenA, tokenB },
       } = tokens;
       commit("SET_EMPTY_PAIR", null);
 
-      const getAmountsOut = await this.$kaikas.tokens.getAmountOut(
+      const exchangeRate = await this.$kaikas.tokens.getExchangeRate(
         tokenA.address,
         tokenB.address,
-        value
+        value,
+        this.$kaikas.utils.isNativeToken(tokenB.address)
       );
 
-      const { pairBalance, userBalance } = await this.$kaikas.tokens.getPairBalance(
-        tokenA.address,
-        tokenB.address
-      );
+      const { pairBalance, userBalance } =
+        await this.$kaikas.tokens.getPairBalance(
+          tokenA.address,
+          tokenB.address
+        );
 
       commit(
         "tokens/SET_TOKEN_VALUE",
-        { type: "tokenB", value: getAmountsOut[1], pairBalance, userBalance },
+        { type: "tokenB", value: exchangeRate, pairBalance, userBalance },
         { root: true }
       );
     } catch (e) {
       console.log(e);
-      this.$notify({ type: 'error', text: 'Swap error' })
+      this.$notify({ type: "error", text: "Swap error" });
     }
     return;
   },
@@ -44,24 +45,29 @@ export const actions = {
       } = tokens;
       commit("SET_EMPTY_PAIR", null);
 
-      const getAmountsOut = await this.$kaikas.tokens.getAmountIn(
+      const { pairBalance, userBalance } =
+        await this.$kaikas.tokens.getPairBalance(
+          tokenA.address,
+          tokenB.address
+        );
+
+      const exchangeRate = await this.$kaikas.tokens.getExchangeRate(
         tokenA.address,
         tokenB.address,
-        value
+        value,
+        !this.$kaikas.utils.isNativeToken(tokenB.address)
       );
-      const { pairBalance, userBalance } = await this.$kaikas.tokens.getPairBalance(
-        tokenA.address,
-        tokenB.address
-      );
+
+      console.log('exchangeRate: ', exchangeRate)
 
       commit(
         "tokens/SET_TOKEN_VALUE",
-        { type: "tokenA", value: getAmountsOut[0], pairBalance, userBalance },
+        { type: "tokenA", value: exchangeRate, pairBalance, userBalance },
         { root: true }
       );
     } catch (e) {
       console.log(e);
-      this.$notify({ type: 'error', text: 'Get amount in error' })
+      this.$notify({ type: "error", text: "Get amount in error" });
     }
     return;
   },
@@ -82,14 +88,13 @@ export const actions = {
       // swapGas * 250000000000
 
       await send();
-      this.$notify({ type: 'success', text: 'Swap success' })
+      this.$notify({ type: "success", text: "Swap success" });
       dispatch("tokens/getTokens", null, { root: true });
     } catch (e) {
-
       console.log(e);
-      this.$notify({ type: 'error', text: 'Swap error' })
+      this.$notify({ type: "error", text: "Swap error" });
     }
-    return
+    return;
   },
   async swapTokensForExactTokens({ rootState: { tokens }, dispatch }) {
     try {
@@ -110,7 +115,7 @@ export const actions = {
 
       dispatch("tokens/getTokens", null, { root: true });
     } catch (e) {
-      this.$notify({ type: 'error', text: 'Swap error' })
+      this.$notify({ type: "error", text: "Swap error" });
       console.log(e);
     }
     return;
