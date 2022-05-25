@@ -1,42 +1,26 @@
 import config from "~/plugins/Config";
-import pairAbi from "@/utils/smartcontracts/pair.json";
-import kep7 from "@/utils/smartcontracts/kep-7.json";
-import utils from "@/plugins/utils";
 
 export class Liquidity {
   async addLiquidityAmountOutForExistPair({
-    pairAddress,
+    tokenBValue,
     tokenAValue,
     tokenAddressA,
     tokenAddressB,
     amountAMin,
     deadLine,
   }) {
-    const pairContract = config.createContract(pairAddress, pairAbi.abi);
-
-    const reserves = await pairContract.methods.getReserves().call();
-
-    const quote = await config.routerContract.methods
-      .quote(tokenAValue.toFixed(0), reserves[0], reserves[1])
-      .call();
-
-    const quoteValue = utils.bigNumber(quote);
-
     const params = {
       tokenAAddress: tokenAddressA,
       tokenBAddress: tokenAddressB,
       tokenAValue: tokenAValue.toFixed(0),
-      tokenBValue: quoteValue.toFixed(0),
+      tokenBValue: tokenBValue.toFixed(0),
       amountAMin: amountAMin.toFixed(0),
-      amountBMin: quoteValue
-        .minus(quoteValue.dividedToIntegerBy(100))
+      amountBMin: tokenBValue
+        .minus(tokenBValue.dividedToIntegerBy(100))
         .toFixed(0),
       userAddress: config.address,
       deadLine: deadLine,
     };
-
-    await config.approveAmount(tokenAddressB, kep7.abi, quoteValue.toString());
-    await config.approveAmount(tokenAddressA, kep7.abi, tokenAValue.toString());
 
     const lqGas = await config.routerContract.methods
       .addLiquidity(
@@ -77,38 +61,25 @@ export class Liquidity {
   }
 
   async addLiquidityAmountInForExistPair({
-    pairAddress,
     tokenBValue,
+    tokenAValue,
     tokenAddressA,
     tokenAddressB,
     amountBMin,
     deadLine,
   }) {
-    const pairContract = config.createContract(pairAddress, pairAbi.abi);
-
-    const reserves = await pairContract.methods.getReserves().call();
-
-    const quote = await config.routerContract.methods
-      .quote(tokenBValue.toFixed(0), reserves[1], reserves[0])
-      .call();
-
-    const quoteValue = utils.bigNumber(quote);
-
     const params = {
       tokenAAddress: tokenAddressA,
       tokenBAddress: tokenAddressB,
-      tokenAValue: quoteValue.toFixed(0),
-      tokenBValue: tokenBValue.toFixed(0),
-      amountAMin: quoteValue
-        .minus(quoteValue.dividedToIntegerBy(100))
-        .toFixed(0),
-      amountBMin: amountBMin.toFixed(0),
+      tokenAValue: tokenAValue.toString(),
+      tokenBValue: tokenBValue.toString(),
+      amountAMin: tokenAValue
+        .minus(tokenAValue.dividedToIntegerBy(100))
+        .toString(0),
+      amountBMin: amountBMin.toString(),
       userAddress: config.address,
       deadLine: deadLine,
     };
-
-    await config.approveAmount(tokenAddressA, kep7.abi, quoteValue.toString());
-    await config.approveAmount(tokenAddressB, kep7.abi, tokenBValue.toString());
 
     const lqGas = await config.routerContract.methods
       .addLiquidity(
@@ -155,7 +126,6 @@ export class Liquidity {
     amountAMin,
     deadLine,
   }) {
-
     const params = {
       addressA,
       tokenAValue: tokenAValue.toString(),
@@ -166,14 +136,6 @@ export class Liquidity {
       address: config.address,
       deadLine,
     };
-
-    // await config.approveAmount(
-    //   "0xae3a8a1D877a446b22249D8676AFeB16F056B44e",
-    //   kep7.abi,
-    //   tokenBValue.toString()
-    // );
-    //
-    // await config.approveAmount(addressA, kep7.abi, tokenAValue.toString());
 
     const lqETHGas = await config.routerContract.methods
       .addLiquidityETH(
