@@ -16,15 +16,7 @@
   </div>
 
   <Wrap v-else>
-    <TokenInput token-type="tokenA" />
-
-    <button class="change-btn">
-      <Icon name="arrow-down" />
-    </button>
-
-    <div class="margin-block">
-      <TokenInput token-type="tokenB" />
-    </div>
+    <SwapExchangeRate />
 
     <div class="slippage">
       <Slippage />
@@ -55,18 +47,17 @@ export default {
   computed: {
     ...mapState("swap", [
       "pairNotExist",
-      "computedToken",
       "exchangeRateIntervalID",
       "exchangeRateLoading",
     ]),
-    ...mapState("tokens", ["selectedTokens", "tokensList"]),
+    ...mapState("tokens", ["selectedTokens", "tokensList", "computedToken"]),
     isLoading() {
       return !this.tokensList?.length;
     },
     isValidTokens() {
       return (
         !this.isSwapLoading &&
-        !this.pairNotExist &&
+        !this.selectedTokens.emptyPair &&
         Number(this.selectedTokens.tokenA?.balance) >= 0 &&
         Number(this.selectedTokens.tokenB?.balance) >= 0
       );

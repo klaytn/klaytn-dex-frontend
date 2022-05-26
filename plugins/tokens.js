@@ -51,4 +51,12 @@ export default class Tokens {
 
     return { pairBalance, userBalance };
   }
+
+  async getPairAddress(addressA, addressB) {
+    return await config.factoryContract.methods
+      .getPair(addressA, addressB)
+      .call({
+        from: config.address,
+      });
+  }
 }

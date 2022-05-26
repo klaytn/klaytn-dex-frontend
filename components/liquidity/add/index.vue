@@ -1,18 +1,20 @@
 <template>
   <div class="liquidity">
-    <div class="liquidity--input">
-      <!--      <LiquidityTokenInput tokenType="tokenA" />-->
-      <TokenInput tokenType="tokenA"/>
-    </div>
+<!--    <div class="liquidity&#45;&#45;input">-->
+<!--      &lt;!&ndash;      <LiquidityTokenInput tokenType="tokenA" />&ndash;&gt;-->
+<!--      <TokenInput tokenType="tokenA"/>-->
+<!--    </div>-->
 
-    <div class="liquidity--icon">
-      <Icon name="plus"/>
-    </div>
+<!--    <div class="liquidity&#45;&#45;icon">-->
+<!--      <Icon name="plus"/>-->
+<!--    </div>-->
 
-    <div class="liquidity--input">
-      <!--      <LiquidityTokenInput tokenType="tokenB" />-->
-      <TokenInput tokenType="tokenB"/>
-    </div>
+<!--    <div class="liquidity&#45;&#45;input">-->
+<!--      &lt;!&ndash;      <LiquidityTokenInput tokenType="tokenB" />&ndash;&gt;-->
+<!--      <TokenInput tokenType="tokenB"/>-->
+<!--    </div>-->
+
+    <LiquidityAddExchangeRate/>
 
     <div class="liquidity--slippage">
       <Slippage/>

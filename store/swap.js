@@ -5,74 +5,114 @@ export const state = () => ({
   exchangeRateLoading: null,
   pairNotExist: false,
   slippagePercent: 0.5,
-  computedToken: null,
   exchangeRateIntervalID: null,
 });
 
 export const actions = {
   async getAmountOut({ commit, rootState: { tokens } }, value) {
-    try {
-      const {
-        selectedTokens: { tokenA, tokenB },
-      } = tokens;
-      commit("SET_EMPTY_PAIR", null);
+    const {
+      selectedTokens: { tokenA, tokenB },
+    } = tokens;
+    const amountOut = await this.$kaikas.swap.getAmountOut(
+      tokenA.address,
+      tokenB.address,
+      value
+    );
 
-      const exchangeRate = await this.$kaikas.tokens.getExchangeRate(
-        tokenA.address,
-        tokenB.address,
-        value,
-        this.$kaikas.utils.isNativeToken(tokenB.address)
-      );
+    const { pairBalance, userBalance } =
+      await this.$kaikas.tokens.getPairBalance(tokenA.address, tokenB.address);
 
-      const { pairBalance, userBalance } =
-        await this.$kaikas.tokens.getPairBalance(
-          tokenA.address,
-          tokenB.address
-        );
-
-      commit(
-        "tokens/SET_TOKEN_VALUE",
-        { type: "tokenB", value: exchangeRate, pairBalance, userBalance },
-        { root: true }
-      );
-    } catch (e) {
-      console.log(e);
-      this.$notify({ type: "error", text: "Swap error" });
-    }
-    return;
+    commit(
+      "tokens/SET_TOKEN_VALUE",
+      { type: "tokenB", value: amountOut[1], pairBalance, userBalance },
+      { root: true }
+    );
   },
+
   async getAmountIn({ commit, rootState: { tokens } }, value) {
-    try {
-      const {
-        selectedTokens: { tokenA, tokenB },
-      } = tokens;
-      commit("SET_EMPTY_PAIR", null);
+    const {
+      selectedTokens: { tokenA, tokenB },
+    } = tokens;
 
-      const { pairBalance, userBalance } =
-        await this.$kaikas.tokens.getPairBalance(
-          tokenA.address,
-          tokenB.address
-        );
+    const amountIn = await this.$kaikas.swap.getAmountIn(
+      tokenA.address,
+      tokenB.address,
+      value
+    );
 
-      const exchangeRate = await this.$kaikas.tokens.getExchangeRate(
-        tokenA.address,
-        tokenB.address,
-        value,
-        !this.$kaikas.utils.isNativeToken(tokenB.address)
-      );
+    const { pairBalance, userBalance } =
+      await this.$kaikas.tokens.getPairBalance(tokenA.address, tokenB.address);
 
-      console.log('exchangeRate: ', exchangeRate)
-
-      commit(
-        "tokens/SET_TOKEN_VALUE",
-        { type: "tokenA", value: exchangeRate, pairBalance, userBalance },
-        { root: true }
-      );
-    } catch (e) {
-      console.log(e);
-    }
-    return;
+    commit(
+      "tokens/SET_TOKEN_VALUE",
+      { type: "tokenA", value: amountIn[0], pairBalance, userBalance },
+      { root: true }
+    );
   },
+
+  // async getAmountOut({ commit, rootState: { tokens } }, value) {
+  //   try {
+  //     const {
+  //       selectedTokens: { tokenA, tokenB },
+  //     } = tokens;
+  //     commit("SET_EMPTY_PAIR", null);
+  //
+  //     const exchangeRate = await this.$kaikas.tokens.getExchangeRate(
+  //       tokenA.address,
+  //       tokenB.address,
+  //       value,
+  //       this.$kaikas.utils.isNativeToken(tokenB.address)
+  //     );
+  //
+  //     const { pairBalance, userBalance } =
+  //       await this.$kaikas.tokens.getPairBalance(
+  //         tokenA.address,
+  //         tokenB.address
+  //       );
+  //
+  //     commit(
+  //       "tokens/SET_TOKEN_VALUE",
+  //       { type: "tokenB", value: exchangeRate, pairBalance, userBalance },
+  //       { root: true }
+  //     );
+  //   } catch (e) {
+  //     console.log(e);
+  //     this.$notify({ type: "error", text: "Swap error" });
+  //   }
+  //   return;
+  // },
+  // async getAmountIn({ commit, rootState: { tokens } }, value) {
+  //   try {
+  //     const {
+  //       selectedTokens: { tokenA, tokenB },
+  //     } = tokens;
+  //     commit("SET_EMPTY_PAIR", null);
+  //
+  //     const { pairBalance, userBalance } =
+  //       await this.$kaikas.tokens.getPairBalance(
+  //         tokenA.address,
+  //         tokenB.address
+  //       );
+  //
+  //     const exchangeRate = await this.$kaikas.tokens.getExchangeRate(
+  //       tokenA.address,
+  //       tokenB.address,
+  //       value,
+  //       !this.$kaikas.utils.isNativeToken(tokenB.address)
+  //     );
+  //
+  //     console.log('exchangeRate: ', exchangeRate)
+  //
+  //     commit(
+  //       "tokens/SET_TOKEN_VALUE",
+  //       { type: "tokenA", value: exchangeRate, pairBalance, userBalance },
+  //       { root: true }
+  //     );
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  //   return;
+  // },
 
   async swapExactTokensForTokens({ rootState: { tokens }, dispatch }) {
     try {
@@ -82,7 +122,6 @@ export const actions = {
       await config.approveAmount(tokenA.address, kep7.abi, tokenA.value);
 
       await config.approveAmount(tokenB.address, kep7.abi, tokenB.value);
-
 
       const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
         addressA: tokenA.address,

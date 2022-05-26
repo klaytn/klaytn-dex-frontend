@@ -1,9 +1,10 @@
 import kep7 from "~/utils/smartcontracts/kep-7.json";
-import coinMarketCapService from "~/services/coinMarketCap";
 
 export const state = () => ({
   tokensList: [],
+  computedToken: null,
   selectedTokens: {
+    emptyPair: false,
     pairBalance: null,
     tokenA: null,
     tokenB: null,
@@ -24,6 +25,23 @@ const mockedTokens = [
 ];
 
 export const actions = {
+  async checkEmptyPair({ commit, state }) {
+    const { tokenA, tokenB } = state.selectedTokens;
+    if (!tokenA || !tokenB) {
+      return;
+    }
+
+    const pairAddress = await this.$kaikas.tokens.getPairAddress(
+      tokenA.address,
+      tokenB.address
+    );
+    if (this.$kaikas.utils.isEmptyAddress(pairAddress)) {
+      commit("SET_SELECTED_TOKENS_EMPTY_PAIR", { emptyPair: true });
+      return;
+    }
+
+    commit("SET_SELECTED_TOKENS_EMPTY_PAIR", { emptyPair: false });
+  },
   async getTokens({ commit }) {
     const balance = await caver.klay.getBalance(this.$kaikas.config.address);
 
@@ -81,6 +99,9 @@ export const mutations = {
     };
     return state;
   },
+  SET_COMPUTED_TOKEN(state, token) {
+    state.computedToken = token;
+  },
   SET_SELECTED_TOKEN(state, { type, token }) {
     state.selectedTokens[type] = token;
   },
@@ -89,6 +110,9 @@ export const mutations = {
       ...state.selectedTokens[type],
       price: rate,
     };
+  },
+  SET_SELECTED_TOKENS_EMPTY_PAIR(state, { emptyPair }) {
+    state.selectedTokens.emptyPair = emptyPair;
   },
   SET_TOKEN_VALUE(state, { type, value, pairBalance, userBalance }) {
     state.selectedTokens = {
