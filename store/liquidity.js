@@ -69,23 +69,30 @@ export const actions = {
       selectedTokens: { tokenA, tokenB },
     } = tokens;
 
+
     try {
+debugger
       const tokenAValue = this.$kaikas.bigNumber(tokenA.value);
       const tokenBValue = this.$kaikas.bigNumber(tokenB.value);
+      debugger
       const deadLine = Math.floor(Date.now() / 1000 + 300);
       const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100));
       const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100));
 
+      debugger
       await this.$kaikas.config.approveAmount(
         tokenA.address,
         kep7.abi,
-        tokenAValue.toString()
+        tokenAValue.toFixed(0)
       );
+      debugger
+      console.log(tokenB, tokenBValue.toFixed(0), tokenB.address)
       await this.$kaikas.config.approveAmount(
         tokenB.address,
         kep7.abi,
-        tokenBValue.toString()
+        tokenBValue.toFixed(0)
       );
+      debugger
 
       const pairAddress = await this.$kaikas.config.factoryContract.methods
         .getPair(tokenA.address, tokenB.address)
@@ -94,6 +101,7 @@ export const actions = {
         });
 
       if (!this.$kaikas.isEmptyAddress(pairAddress)) {
+        debugger
         const { gas, send } =
           await this.$kaikas.liquidity.addLiquidityAmountOutForExistPair({
             pairAddress,
@@ -112,14 +120,15 @@ export const actions = {
         return;
       }
 
+
       const lqGas = await this.$kaikas.config.routerContract.methods
         .addLiquidity(
           tokenA.address,
           tokenB.address,
-          tokenAValue.toString(),
-          tokenBValue.toString(),
-          amountAMin.toString(),
-          amountBMin.toString(),
+          tokenAValue.toFixed(0),
+          tokenBValue.toFixed(0),
+          amountAMin.toFixed(0),
+          amountBMin.toFixed(0),
           this.$kaikas.config.address,
           deadLine
         )
@@ -129,10 +138,10 @@ export const actions = {
         .addLiquidity(
           tokenA.address,
           tokenB.address,
-          tokenAValue.toString(),
-          tokenBValue.toString(),
-          amountAMin.toString(),
-          amountBMin.toString(),
+          tokenAValue.toFixed(0),
+          tokenBValue.toFixed(0),
+          amountAMin.toFixed(0),
+          amountBMin.toFixed(0),
           this.$kaikas.config.address,
           deadLine
         )
@@ -145,7 +154,7 @@ export const actions = {
       this.$notify({ type: "success", text: "Liquidity success" });
     } catch (e) {
       console.log(e);
-      this.$notify({ type: "error", text: "Liquidity error" });
+      this.$notify({ type: "error", text: e });
       throw "Error";
     }
   },
@@ -165,12 +174,12 @@ export const actions = {
       await this.$kaikas.config.approveAmount(
         tokenA.address,
         kep7.abi,
-        tokenAValue.toString()
+        tokenAValue.toFixed(0)
       );
       await this.$kaikas.config.approveAmount(
         tokenB.address,
         kep7.abi,
-        tokenBValue.toString()
+        tokenBValue.toFixed(0)
       );
 
       const pairAddress = await this.$kaikas.config.factoryContract.methods
@@ -202,10 +211,10 @@ export const actions = {
         .addLiquidity(
           tokenA.address,
           tokenB.address,
-          tokenAValue.toString(),
-          tokenBValue.toString(),
-          amountAMin.toString(),
-          amountBMin.toString(),
+          tokenAValue.toFixed(0),
+          tokenBValue.toFixed(0),
+          amountAMin.toFixed(0),
+          amountBMin.toFixed(0),
           this.$kaikas.config.address,
           deadLine
         )
@@ -215,10 +224,10 @@ export const actions = {
         .addLiquidity(
           tokenA.address,
           tokenB.address,
-          tokenAValue.toString(),
-          tokenBValue.toString(),
-          amountAMin.toString(),
-          amountBMin.toString(),
+          tokenAValue.toFixed(0),
+          tokenBValue.toFixed(0),
+          amountAMin.toFixed(0),
+          amountBMin.toFixed(0),
           this.$kaikas.config.address,
           deadLine
         )
@@ -252,13 +261,13 @@ export const actions = {
     await this.$kaikas.config.approveAmount(
       sortedPair[0].address,
       kep7.abi,
-      tokenAValue.toString()
+      tokenAValue.toFixed(0)
     );
 
     await this.$kaikas.config.approveAmount(
       sortedPair[1].address,
       kep7.abi,
-      tokenBValue.toString()
+      tokenBValue.toFixed(0)
     );
 
     const pairAddress = await this.$kaikas.config.factoryContract.methods

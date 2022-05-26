@@ -71,12 +71,12 @@ export class Liquidity {
     const params = {
       tokenAAddress: tokenAddressA,
       tokenBAddress: tokenAddressB,
-      tokenAValue: tokenAValue.toString(),
-      tokenBValue: tokenBValue.toString(),
+      tokenAValue: tokenAValue.toFixed(0),
+      tokenBValue: tokenBValue.toFixed(0),
       amountAMin: tokenAValue
         .minus(tokenAValue.dividedToIntegerBy(100))
         .toString(0),
-      amountBMin: amountBMin.toString(),
+      amountBMin: amountBMin.toFixed(0),
       userAddress: config.address,
       deadLine: deadLine,
     };
@@ -128,11 +128,11 @@ export class Liquidity {
   }) {
     const params = {
       addressA,
-      tokenAValue: tokenAValue.toString(),
-      amountAMin: amountAMin.toString(),
+      tokenAValue: tokenAValue.toFixed(0),
+      amountAMin: amountAMin.toFixed(0),
       amountBMin: tokenBValue
-        .minus(tokenBValue.dividedToIntegerBy(100).toString())
-        .toString(),
+        .minus(tokenBValue.dividedToIntegerBy(100).toFixed(0))
+        .toFixed(0),
       address: config.address,
       deadLine,
     };
@@ -149,7 +149,7 @@ export class Liquidity {
       .estimateGas({
         from: config.address,
         gasPrice: 250000000000,
-        value: tokenBValue.toString(),
+        value: tokenBValue.toFixed(0),
       });
 
     const send = async () =>
@@ -166,7 +166,7 @@ export class Liquidity {
           from: config.address,
           gasPrice: 250000000000,
           gas: lqETHGas,
-          value: tokenBValue.toString(),
+          value: tokenBValue.toFixed(0),
         });
     console.log({ lqETHGas });
 
@@ -183,9 +183,9 @@ export class Liquidity {
   }) {
     const params = {
       addressA,
-      tokenAValue: tokenAValue.toString(),
-      amountAMin: amountAMin.toString(),
-      amountBMin: amountBMin.toString(), // KLAY
+      tokenAValue: tokenAValue.toFixed(0),
+      amountAMin: amountAMin.toFixed(0),
+      amountBMin: amountBMin.toFixed(0), // KLAY
       deadLine,
       address: config.address,
     };
@@ -201,7 +201,7 @@ export class Liquidity {
       )
       .estimateGas({
         gasPrice: 250000000000,
-        value: tokenBValue.toString(),
+        value: tokenBValue.toFixed(0),
       });
 
     const send = async () =>
@@ -216,7 +216,7 @@ export class Liquidity {
         )
         .send({
           gasPrice: 250000000000,
-          value: tokenBValue.toString(),
+          value: tokenBValue.toFixed(0),
           gas: lqETHGas,
         });
 
