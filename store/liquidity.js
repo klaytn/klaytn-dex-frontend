@@ -1,5 +1,6 @@
 import kep7 from "@/utils/smartcontracts/kep-7.json";
 import pairAbi from "@/utils/smartcontracts/pair.json";
+import config from "@/plugins/Config";
 
 export const state = () => ({
   liquidityStatus: "init",
@@ -232,6 +233,7 @@ debugger
           deadLine
         )
         .send({
+          from: config.address,
           gas: lqGas,
           gasPrice: 250000000000,
         });
@@ -273,7 +275,7 @@ debugger
     const pairAddress = await this.$kaikas.config.factoryContract.methods
       .getPair(sortedPair[0].address, sortedPair[1].address)
       .call({
-        from: this.address,
+        from: config.address,
       });
 
     if (!this.$kaikas.utils.isEmptyAddress(pairAddress)) {

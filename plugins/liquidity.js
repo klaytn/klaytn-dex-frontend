@@ -22,8 +22,6 @@ export class Liquidity {
       deadLine: deadLine,
     };
 
-    console.log(params)
-
     const lqGas = await config.routerContract.methods
       .addLiquidity(
         params.tokenAAddress,
@@ -217,6 +215,7 @@ export class Liquidity {
           params.deadLine
         )
         .send({
+          from: config.address,
           gasPrice: 250000000000,
           value: tokenBValue.toFixed(0),
           gas: lqETHGas,
