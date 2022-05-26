@@ -123,6 +123,7 @@ export default {
             "0xae3a8a1D877a446b22249D8676AFeB16F056B44e";
 
         if (isKlayToken) {
+          debugger
           await this.addLiquidityETH();
           this.status = "submitted";
           return;

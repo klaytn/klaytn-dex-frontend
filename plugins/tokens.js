@@ -3,7 +3,79 @@ import utils from "@/plugins/utils";
 import pair from "@/utils/smartcontracts/pair.json";
 
 export default class Tokens {
-  async getExchangeRate(addressA, addressB, value, reversed) {
+  async getTokenBQuote(addressA, addressB, value) {
+    const pairAddress = await config.factoryContract.methods
+      .getPair(addressA, addressB)
+      .call({
+        from: config.address,
+      });
+
+    if (utils.isEmptyAddress(pairAddress)) {
+      throw "EMPTY_ADDRESS";
+    }
+
+    const pairContract = config.createContract(pairAddress, pair.abi);
+    const token0 = await pairContract.methods.token0().call({
+      from: config.address,
+    });
+
+    const reserves = await pairContract.methods.getReserves().call({
+      from: config.address,
+    });
+
+    const sortedReserves =
+      token0 === addressA
+        ? [reserves[0], reserves[1]]
+        : [reserves[1], reserves[0]];
+
+    console.log({ sortedReserves });
+
+    return await config.routerContract.methods
+      .quote(value, ...sortedReserves)
+      .call({
+        from: config.address,
+      });
+  }
+
+  async getTokenAQuote(addressA, addressB, value) {
+    const pairAddress = await config.factoryContract.methods
+      .getPair(addressA, addressB)
+      .call({
+        from: config.address,
+      });
+
+    if (utils.isEmptyAddress(pairAddress)) {
+      throw "EMPTY_ADDRESS";
+    }
+
+    const pairContract = config.createContract(pairAddress, pair.abi);
+
+    const token0 = await pairContract.methods.token0().call({
+      from: config.address,
+    });
+
+    // token0 === addressA => not reserved
+    // token0 == addressA => reserved
+
+    const reserves = await pairContract.methods.getReserves().call({
+      from: config.address,
+    });
+
+    const sortedReserves =
+      token0 !== addressA
+        ? [reserves[0], reserves[1]]
+        : [reserves[1], reserves[0]];
+
+    console.log({ sortedReserves });
+
+    return await config.routerContract.methods
+      .quote(value, ...sortedReserves)
+      .call({
+        from: config.address,
+      });
+  }
+
+  async getKlayQuote(addressA, addressB, value, reversed) {
     const pairAddress = await config.factoryContract.methods
       .getPair(addressA, addressB)
       .call({
@@ -20,12 +92,13 @@ export default class Tokens {
       from: config.address,
     });
 
+    const sortedReserves = reversed
+      ? [reserves[0], reserves[1]]
+      : [reserves[1], reserves[0]];
+
+
     return await config.routerContract.methods
-      .quote(
-        value,
-        reversed ? reserves[1] : reserves[0],
-        reversed ? reserves[0] : reserves[1]
-      )
+      .quote(value, ...sortedReserves)
       .call({
         from: config.address,
       });

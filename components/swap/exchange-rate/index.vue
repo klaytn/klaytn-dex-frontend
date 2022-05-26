@@ -54,6 +54,8 @@ export default {
     ...mapActions({
       getAmountOut: "swap/getAmountOut",
       getAmountIn: "swap/getAmountIn",
+      getAmountOutKlay: "swap/getAmountOutKlay",
+      getAmountInKlay: "swap/getAmountInKlay",
     }),
     onInput: debounce(async function (_v, tokenType) {
       if (!_v || this.sNotValid) {
@@ -77,9 +79,32 @@ export default {
 
       this.setComputedToken(tokenType === "tokenA" ? "tokenB" : "tokenA");
 
+      // const isWKLAY =
+      //   this.$kaikas.utils.isNativeToken(this.selectedTokens.tokenA.address) ||
+      //   this.$kaikas.utils.isNativeToken(this.selectedTokens.tokenB.address);
+      //
+      // if (isWKLAY && tokenType === 'tokenA') {
+      //   await this.getAmountOutKlay(value);
+      // }
+      // if (isWKLAY && tokenType === 'tokenB') {
+      //   await this.getAmountInKlay(value);
+      // }
+
+
+
+//-------------------------------------------------
+      // addressA > addressB
+        // - swapExactEthForTokens     klay > token
+        // - swapExactTokensForETH     token > klay
+
+      // addressB > addressA
+        // - swapEthForExactTokens     klay < token
+        // - swapTokensForExactETH     token > klay
+//-------------------------------------------------
+
+
       if (tokenType === "tokenA") {
         this.exchangeLoading = "tokenB";
-
         await this.getAmountOut(value);
         // this.setExchangeRateIntervalID(
         //   setInterval(() => this.getAmountOut(value), 5000)
@@ -88,7 +113,6 @@ export default {
 
       if (tokenType === "tokenB") {
         this.exchangeLoading = "tokenA";
-
         await this.getAmountIn(value);
         // this.setExchangeRateIntervalID(
         //   setInterval(() => this.getAmountIn(value), 5000)

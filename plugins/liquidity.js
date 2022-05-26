@@ -22,6 +22,7 @@ export class Liquidity {
       deadLine: deadLine,
     };
 
+
     const lqGas = await config.routerContract.methods
       .addLiquidity(
         params.tokenAAddress,
@@ -75,7 +76,7 @@ export class Liquidity {
       tokenBValue: tokenBValue.toFixed(0),
       amountAMin: tokenAValue
         .minus(tokenAValue.dividedToIntegerBy(100))
-        .toString(0),
+        .toFixed(0),
       amountBMin: amountBMin.toFixed(0),
       userAddress: config.address,
       deadLine: deadLine,
@@ -93,17 +94,16 @@ export class Liquidity {
         params.deadLine
       )
       .estimateGas();
-    console.log({ lqGas });
 
     const send = async () =>
       await config.routerContract.methods
         .addLiquidity(
-          params.tokenAAddress,
           params.tokenBAddress,
-          params.tokenAValue,
+          params.tokenAAddress,
           params.tokenBValue,
-          params.amountAMin,
+          params.tokenAValue,
           params.amountBMin,
+          params.amountAMin,
           params.userAddress,
           params.deadLine
         )

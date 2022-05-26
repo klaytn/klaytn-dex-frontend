@@ -31,6 +31,7 @@
 <script>
 import debounce from "debounce";
 import { mapActions, mapMutations, mapState } from "vuex";
+import utils from "@/plugins/utils";
 
 export default {
   name: "SwapExchangeRate",
@@ -42,11 +43,7 @@ export default {
   computed: {
     ...mapState("tokens", ["selectedTokens"]),
     isNotValid() {
-      return (
-        !this.selectedTokens["tokenA"] ||
-        !this.selectedTokens["tokenB"] ||
-        this.selectedTokens.emptyPair
-      );
+      return !this.selectedTokens["tokenA"] || !this.selectedTokens["tokenB"];
     },
   },
   methods: {
@@ -55,7 +52,9 @@ export default {
       setComputedToken: "tokens/SET_COMPUTED_TOKEN",
     }),
     ...mapActions({
-      exchangeRate: "liquidity/exchangeRate",
+      quoteForKlay: "liquidity/quoteForKlay",
+      quoteForTokenA: "liquidity/quoteForTokenA",
+      quoteForTokenB: "liquidity/quoteForTokenB",
     }),
     onInput: debounce(async function (_v, tokenType) {
       if (!_v || this.isNotValid) {
@@ -78,30 +77,41 @@ export default {
       });
 
       this.setComputedToken(tokenType === "tokenA" ? "tokenB" : "tokenA");
+      const isWKLAY =
+        this.$kaikas.utils.isNativeToken(this.selectedTokens.tokenA.address) ||
+        this.$kaikas.utils.isNativeToken(this.selectedTokens.tokenB.address);
 
-      if (tokenType === "tokenA") {
-        this.exchangeLoading = "tokenB";
-
-        await this.exchangeRate({
-          value,
-          reversed: this.$kaikas.utils.isNativeToken(
-            this.selectedTokens.tokenB.address
-          ),
-        });
-        // this.setExchangeRateIntervalID(
-        //   setInterval(() => this.getAmountOut(value), 5000)
-        // );
-      }
-
-      if (tokenType === "tokenB") {
-        this.exchangeLoading = "tokenA";
-
-        await this.exchangeRate({
+      if (isWKLAY && tokenType === "tokenA") {
+        await this.quoteForKlay({
           value,
           reversed: this.$kaikas.utils.isNativeToken(
             this.selectedTokens.tokenA.address
           ),
         });
+      }
+
+      if (isWKLAY && tokenType === "tokenB") {
+        await this.quoteForKlay({
+          value,
+          reversed: this.$kaikas.utils.isNativeToken(
+            this.selectedTokens.tokenB.address
+          ),
+        });
+      }
+
+      if (!isWKLAY && tokenType === "tokenA") {
+        this.exchangeLoading = "tokenB";
+
+        await this.quoteForTokenB(value);
+        // this.setExchangeRateIntervalID(
+        //   setInterval(() => this.getAmountOut(value), 5000)
+        // );
+      }
+
+      if (!isWKLAY && tokenType === "tokenB") {
+        this.exchangeLoading = "tokenA";
+
+        await this.quoteForTokenA(value);
         // this.setExchangeRateIntervalID(
         //   setInterval(() => this.getAmountIn(value), 5000)
         // );

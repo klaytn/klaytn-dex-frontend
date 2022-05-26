@@ -71,6 +71,7 @@ export default {
     ...mapActions({
       swapExactTokensForTokens: "swap/swapExactTokensForTokens",
       swapTokensForExactTokens: "swap/swapTokensForExactTokens",
+      swapForKlayTokens: "swap/swapForKlayTokens",
     }),
     ...mapMutations({
       refreshStore: "swap/REFRESH_STORE",
@@ -80,11 +81,18 @@ export default {
     async swapTokens() {
       try {
         this.isSwapLoading = true;
+        const isWKLAY =
+          this.$kaikas.utils.isNativeToken(this.selectedTokens.tokenA.address) ||
+          this.$kaikas.utils.isNativeToken(this.selectedTokens.tokenB.address);
 
-        if (this.computedToken === "tokenB") {
+        if(isWKLAY) {
+          await this.swapForKlayTokens();
+        }
+
+        if (this.computedToken === "tokenB" && !isWKLAY) {
           await this.swapExactTokensForTokens();
         }
-        if (this.computedToken === "tokenA") {
+        if (this.computedToken === "tokenA" && !isWKLAY) {
           await this.swapTokensForExactTokens();
         }
         if (this.exchangeRateIntervalID) {

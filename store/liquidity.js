@@ -8,14 +8,74 @@ export const state = () => ({
 });
 
 export const actions = {
-  async exchangeRate({ commit, rootState: { tokens } }, { value, reversed }) {
+  async quoteForTokenB({ commit, rootState: { tokens } }, value) {
     try {
       const {
         selectedTokens: { tokenA, tokenB },
         computedToken,
       } = tokens;
 
-      const exchangeRate = await this.$kaikas.tokens.getExchangeRate(
+      const exchangeRate = await this.$kaikas.tokens.getTokenBQuote(
+        tokenA.address,
+        tokenB.address,
+        value
+      );
+
+      const { pairBalance, userBalance } =
+        await this.$kaikas.tokens.getPairBalance(
+          tokenA.address,
+          tokenB.address
+        );
+
+      commit(
+        "tokens/SET_TOKEN_VALUE",
+        { type: computedToken, value: exchangeRate, pairBalance, userBalance },
+        { root: true }
+      );
+    } catch (e) {
+      console.log(e);
+      this.$notify({ type: "error", text: e });
+    }
+    return;
+  },
+  async quoteForTokenA({ commit, rootState: { tokens } }, value) {
+    try {
+      const {
+        selectedTokens: { tokenA, tokenB },
+        computedToken,
+      } = tokens;
+
+      const exchangeRate = await this.$kaikas.tokens.getTokenAQuote(
+        tokenA.address,
+        tokenB.address,
+        value
+      );
+
+      const { pairBalance, userBalance } =
+        await this.$kaikas.tokens.getPairBalance(
+          tokenA.address,
+          tokenB.address
+        );
+
+      commit(
+        "tokens/SET_TOKEN_VALUE",
+        { type: computedToken, value: exchangeRate, pairBalance, userBalance },
+        { root: true }
+      );
+    } catch (e) {
+      console.log(e);
+      this.$notify({ type: "error", text: e });
+    }
+    return;
+  },
+  async quoteForKlay({ commit, rootState: { tokens } }, { value, reversed }) {
+    try {
+      const {
+        selectedTokens: { tokenA, tokenB },
+        computedToken,
+      } = tokens;
+
+      const exchangeRate = await this.$kaikas.tokens.getKlayQuote(
         tokenA.address,
         tokenB.address,
         value,
@@ -105,6 +165,7 @@ export const actions = {
 
     commit("SET_PAIRS", pairs);
   },
+
   async addLiquidityAmountOut({ rootState: { tokens } }) {
     const {
       selectedTokens: { tokenA, tokenB },
@@ -112,26 +173,21 @@ export const actions = {
     try {
       const tokenAValue = this.$kaikas.bigNumber(tokenA.value);
       const tokenBValue = this.$kaikas.bigNumber(tokenB.value);
-      debugger;
       const deadLine = Math.floor(Date.now() / 1000 + 300);
       const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100));
       const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100));
 
-      debugger;
       await this.$kaikas.config.approveAmount(
         tokenA.address,
         kep7.abi,
         tokenAValue.toFixed(0)
       );
-      debugger;
-      console.log(tokenB, tokenBValue.toFixed(0), tokenB.address);
+
       await this.$kaikas.config.approveAmount(
         tokenB.address,
         kep7.abi,
         tokenBValue.toFixed(0)
       );
-      debugger;
-
       const pairAddress = await this.$kaikas.config.factoryContract.methods
         .getPair(tokenA.address, tokenB.address)
         .call({
@@ -139,7 +195,6 @@ export const actions = {
         });
 
       if (!this.$kaikas.isEmptyAddress(pairAddress)) {
-        debugger;
         const { gas, send } =
           await this.$kaikas.liquidity.addLiquidityAmountOutForExistPair({
             pairAddress,
