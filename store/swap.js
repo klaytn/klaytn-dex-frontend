@@ -1,3 +1,6 @@
+import config from "@/plugins/Config";
+import kep7 from "@/utils/smartcontracts/kep-7.json";
+
 export const state = () => ({
   exchangeRateLoading: null,
   pairNotExist: false,
@@ -67,7 +70,6 @@ export const actions = {
       );
     } catch (e) {
       console.log(e);
-      this.$notify({ type: "error", text: "Get amount in error" });
     }
     return;
   },
@@ -77,6 +79,10 @@ export const actions = {
       const {
         selectedTokens: { tokenA, tokenB },
       } = tokens;
+      await config.approveAmount(tokenA.address, kep7.abi, tokenA.value);
+
+      await config.approveAmount(tokenB.address, kep7.abi, tokenB.value);
+
 
       const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
         addressA: tokenA.address,
@@ -101,6 +107,9 @@ export const actions = {
       const {
         selectedTokens: { tokenA, tokenB },
       } = tokens;
+
+      await config.approveAmount(tokenA.address, kep7.abi, tokenA.value);
+      await config.approveAmount(tokenB.address, kep7.abi, tokenB.value);
 
       const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
         addressA: tokenA.address,

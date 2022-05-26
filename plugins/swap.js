@@ -4,9 +4,14 @@ import kep7 from "@/utils/smartcontracts/kep-7.json";
 export default class Swap {
   async swapExactTokensForTokens({ addressA, addressB, valueA, valueB }) {
     try {
-      await config.approveAmount(addressA, kep7.abi, valueA);
-
       const deadLine = Math.floor(Date.now() / 1000 + 300);
+
+      console.log(valueA,
+        valueB,
+        [addressA, addressB],
+        config.address,
+        deadLine)
+
       const swapGas = await config.routerContract.methods
         .swapExactTokensForTokens(
           valueA,
@@ -42,6 +47,7 @@ export default class Swap {
   }
   async swapTokensForExactTokens({ addressA, addressB, valueA, valueB }) {
     const deadLine = Math.floor(Date.now() / 1000 + 300);
+    debugger
     const swapGas = await config.routerContract.methods
       .swapTokensForExactTokens(
         valueB,
