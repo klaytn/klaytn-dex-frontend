@@ -76,6 +76,10 @@ export default {
         type: tokenType,
       });
 
+      if (this.selectedTokens.emptyPair) {
+        return;
+      }
+
       this.setComputedToken(tokenType === "tokenA" ? "tokenB" : "tokenA");
 
       if (tokenType === "tokenA") {
