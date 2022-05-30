@@ -50,18 +50,20 @@ export const actions = {
   },
   async swapExactTokensForTokens({ rootState: { tokens }, dispatch }) {
     try {
-      const {
-        selectedTokens: { tokenA, tokenB },
-      } = tokens;
-      await config.approveAmount(tokenA.address, kip7.abi, tokenA.value);
+      const { selectedTokens, computedToken } = tokens;
+      const inputToken = computedToken === "tokenA" ? "tokenB" : "tokenA"
 
-      await config.approveAmount(tokenB.address, kip7.abi, tokenB.value);
+      await config.approveAmount(
+        selectedTokens[inputToken].address,
+        kip7.abi,
+        selectedTokens[inputToken].value
+      );
 
       const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
-        addressA: tokenA.address,
-        addressB: tokenB.address,
-        valueA: tokenA.value,
-        valueB: tokenB.value,
+        addressA: selectedTokens.tokenA.address,
+        addressB: selectedTokens.tokenB.address,
+        valueA: selectedTokens.tokenA.value,
+        valueB: selectedTokens.tokenB.value,
       });
 
       await send();
@@ -74,18 +76,19 @@ export const actions = {
   },
   async swapTokensForExactTokens({ rootState: { tokens }, dispatch }) {
     try {
-      const {
-        selectedTokens: { tokenA, tokenB },
-      } = tokens;
-
-      await config.approveAmount(tokenA.address, kip7.abi, tokenA.value);
-      await config.approveAmount(tokenB.address, kip7.abi, tokenB.value);
+      const { selectedTokens, computedToken } = tokens;
+      const inputToken = computedToken === "tokenA" ? "tokenB" : "tokenA"
+      await config.approveAmount(
+        selectedTokens[inputToken].address,
+        kip7.abi,
+        selectedTokens[inputToken].tokenA.value
+      );
 
       const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
-        addressA: tokenA.address,
-        addressB: tokenB.address,
-        valueA: tokenA.value,
-        valueB: tokenB.value,
+        addressA: selectedTokens.tokenA.address,
+        addressB: selectedTokens.tokenB.address,
+        valueA: selectedTokens.tokenA.value,
+        valueB: selectedTokens.tokenB.value,
       });
 
       await send();
@@ -101,18 +104,6 @@ export const actions = {
   async swapForKlayTokens({ rootState: { tokens } }) {
     const { selectedTokens, computedToken } = tokens;
 
-    await config.approveAmount(
-      selectedTokens.tokenA.address,
-      kip7.abi,
-      selectedTokens.tokenA.value
-    );
-
-    await config.approveAmount(
-      selectedTokens.tokenB.address,
-      kip7.abi,
-      selectedTokens.tokenB.value
-    );
-
     const isComputedNativeToken = this.$kaikas.utils.isNativeToken(
       selectedTokens[computedToken].address
     );
@@ -121,6 +112,12 @@ export const actions = {
       selectedTokens[computedToken === "tokenA" ? "tokenB" : "tokenA"];
 
     const computed = selectedTokens[computedToken];
+
+    await config.approveAmount(
+      inputToken.address,
+      kip7.abi,
+      selectedTokens.tokenB.value
+    );
 
     const exactTokensForEth =
       computedToken === "tokenB" && isComputedNativeToken;
