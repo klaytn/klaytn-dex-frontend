@@ -81,8 +81,9 @@ export const actions = {
       await config.approveAmount(
         selectedTokens[inputToken].address,
         kip7.abi,
-        selectedTokens[inputToken].tokenA.value
+        selectedTokens[inputToken].value
       );
+
 
       const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
         addressA: selectedTokens.tokenA.address,
@@ -116,7 +117,7 @@ export const actions = {
     await config.approveAmount(
       inputToken.address,
       kip7.abi,
-      selectedTokens.tokenB.value
+      inputToken.value
     );
 
     const exactTokensForEth =
