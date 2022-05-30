@@ -64,7 +64,7 @@
 
 <script>
 import { mapMutations, mapState } from "vuex";
-import kep7 from "~/utils/smartcontracts/kep-7.json";
+import kip7 from "~/utils/smartcontracts/kip-7.json";
 
 export default {
   name: "TokenSelectModal",
@@ -121,7 +121,7 @@ export default {
       }
 
       try {
-        const contract = this.$kaikas.createContract(_new, kep7.abi);
+        const contract = this.$kaikas.createContract(_new, kip7.abi);
 
         const symbol = await contract.methods.symbol().call();
 

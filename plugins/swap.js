@@ -35,10 +35,19 @@ export default class Swap {
   }
 
   async swapExactTokensForTokens({ addressA, addressB, valueA, valueB }) {
-    try {
-      const deadLine = Math.floor(Date.now() / 1000 + 300);
+    const deadLine = Math.floor(Date.now() / 1000 + 300);
+    const swapGas = await config.routerContract.methods
+      .swapExactTokensForTokens(
+        valueA,
+        valueB,
+        [addressA, addressB],
+        config.address,
+        deadLine
+      )
+      .estimateGas();
 
-      const swapGas = await config.routerContract.methods
+    const send = async () =>
+      await config.routerContract.methods
         .swapExactTokensForTokens(
           valueA,
           valueB,
@@ -46,30 +55,16 @@ export default class Swap {
           config.address,
           deadLine
         )
-        .estimateGas();
+        .send({
+          from: config.address,
+          gas: swapGas,
+          gasPrice: 250000000000,
+        });
 
-      const send = async () =>
-        await config.routerContract.methods
-          .swapExactTokensForTokens(
-            valueA,
-            valueB,
-            [addressA, addressB],
-            config.address,
-            deadLine
-          )
-          .send({
-            from: config.address,
-            gas: swapGas,
-            gasPrice: 250000000000,
-          });
-
-      return {
-        swapGas,
-        send,
-      };
-    } catch (e) {
-      console.log(e);
-    }
+    return {
+      swapGas,
+      send,
+    };
   }
 
   async swapTokensForExactTokens({ addressA, addressB, valueA, valueB }) {
@@ -133,8 +128,6 @@ export default class Swap {
           gas: swapGas,
           gasPrice: 250000000000,
         });
-    console.log({ swapExactTokensForETH: swapGas });
-
     return { gas: swapGas, send };
   }
 
@@ -170,52 +163,58 @@ export default class Swap {
           gas: swapGas,
           gasPrice: 250000000000,
         });
-    console.log({ swapGas });
-
     return { gas: swapGas, send };
   }
 
   async swapEthForExactTokens({ amountOut, from, to, amountIn }) {
     const deadLine = Math.floor(Date.now() / 1000 + 300);
     const swapGas = await config.routerContract.methods
-      .swapEthForExactTokens(amountIn, [from, to], config.address, deadLine)
+      .swapETHForExactTokens(amountOut, [to, from], config.address, deadLine)
       .estimateGas({
-        value: amountOut,
+        value: amountIn,
         from: config.address,
         gasPrice: 250000000000,
       });
 
-    debugger;
+    await config.routerContract.methods
+      .swapETHForExactTokens(amountOut, [to, from], config.address, deadLine)
+      .send({
+        value: amountIn,
+        gas: swapGas,
+        from: config.address,
+        gasPrice: 250000000000,
+      });
   }
 
   async swapTokensForExactETH({ amountOut, amountInMax, from, to }) {
     const deadLine = Math.floor(Date.now() / 1000 + 300);
-    const amountInMaxBN = utils.bigNumber(amountInMax);
-    console.log({
-      amountOut,
-      amountInMax: amountInMaxBN
-        .minus(amountInMaxBN.dividedToIntegerBy(100))
-        .toFixed(0),
-      from,
-      to,
-    });
-    try {
-      debugger;
-      const swapGas = await config.routerContract.methods
+    const swapGas = await config.routerContract.methods
+      .swapTokensForExactETH(
+        amountOut,
+        amountInMax,
+        [from, to],
+        config.address,
+        deadLine
+      )
+      .estimateGas({
+        from: config.address,
+        gasPrice: 250000000000,
+      });
+    const send = async () =>
+      await config.routerContract.methods
         .swapTokensForExactETH(
           amountOut,
-          amountInMaxBN.minus(amountInMaxBN.dividedToIntegerBy(100)).toFixed(0),
-          [to, from],
+          amountInMax,
+          [from, to],
           config.address,
           deadLine
         )
-        .estimateGas({
+        .send({
           from: config.address,
+          gas: swapGas,
           gasPrice: 250000000000,
         });
-      debugger;
-    } catch (e) {
-      console.log(e);
-    }
+
+    return { send, swapGas };
   }
 }

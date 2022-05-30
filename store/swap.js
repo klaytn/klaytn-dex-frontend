@@ -1,6 +1,5 @@
 import config from "@/plugins/Config";
-import kep7 from "@/utils/smartcontracts/kep-7.json";
-import pair from "@/utils/smartcontracts/pair.json";
+import kip7 from "@/utils/smartcontracts/kip-7.json";
 
 export const state = () => ({
   exchangeRateLoading: null,
@@ -10,122 +9,6 @@ export const state = () => ({
 });
 
 export const actions = {
-  async getAmountOutKlay({ commit, rootState: { tokens } }, value) {
-    const { selectedTokens, computedToken } = tokens;
-
-    let amount = null;
-
-    const pairAddress = await this.$kaikas.config.factoryContract.methods
-      .getPair(selectedTokens.tokenA.address, selectedTokens.tokenB.address)
-      .call({
-        from: this.address,
-      });
-
-    const pairContract = this.$kaikas.config.createContract(
-      pairAddress,
-      pair.abi
-    );
-    const token0 = await pairContract.methods.token0().call();
-
-    const shouldReverse = token0 !== selectedTokens.tokenA.address;
-
-    console.log({ shouldReverse });
-
-    if (shouldReverse) {
-      const [r0, r1] = await this.$kaikas.swap.getAmountOut(
-        selectedTokens.tokenA.address,
-        selectedTokens.tokenB.address,
-        value
-      );
-      amount = r1;
-    }
-
-    if (!shouldReverse) {
-      const [r0, r1] = await this.$kaikas.swap.getAmountIn(
-        selectedTokens.tokenB.address,
-        selectedTokens.tokenA.address,
-        value
-      );
-
-      amount = r0;
-    }
-
-    // const [r0, r1] = await this.$kaikas.swap.getAmountOut(
-    //   selectedTokens.tokenA.address,
-    //   selectedTokens.tokenB.address,
-    //   value
-    // );
-    // amount = r1;
-
-    const { pairBalance, userBalance } =
-      await this.$kaikas.tokens.getPairBalance(
-        selectedTokens.tokenA.address,
-        selectedTokens.tokenB.address
-      );
-
-    commit(
-      "tokens/SET_TOKEN_VALUE",
-      { type: "tokenB", value: amount, pairBalance, userBalance },
-      { root: true }
-    );
-  },
-  async getAmountInKlay({ commit, rootState: { tokens } }, value) {
-    const { selectedTokens } = tokens;
-
-    let amount = null;
-
-    const pairAddress = await this.$kaikas.config.factoryContract.methods
-      .getPair(selectedTokens.tokenA.address, selectedTokens.tokenB.address)
-      .call({
-        from: this.address,
-      });
-
-    const pairContract = this.$kaikas.config.createContract(
-      pairAddress,
-      pair.abi
-    );
-    const token0 = await pairContract.methods.token0().call();
-    const shouldReverse = token0 !== selectedTokens.tokenA.address;
-
-    if (shouldReverse) {
-      const [r0, r1] = await this.$kaikas.swap.getAmountOut(
-        selectedTokens.tokenB.address,
-        selectedTokens.tokenA.address,
-        value
-      );
-
-      amount = r1;
-    }
-
-    if (!shouldReverse) {
-      const [r0, r1] = await this.$kaikas.swap.getAmountIn(
-        selectedTokens.tokenA.address,
-        selectedTokens.tokenB.address,
-        value
-      );
-
-      amount = r0;
-    }
-
-    // const [r0] = await this.$kaikas.swap.getAmountIn(
-    //   selectedTokens.tokenA.address,
-    //   selectedTokens.tokenB.address,
-    //   value
-    // );
-    // amount = r0;
-
-    const { pairBalance, userBalance } =
-      await this.$kaikas.tokens.getPairBalance(
-        selectedTokens.tokenA.address,
-        selectedTokens.tokenB.address
-      );
-
-    commit(
-      "tokens/SET_TOKEN_VALUE",
-      { type: "tokenA", value: amount, pairBalance, userBalance },
-      { root: true }
-    );
-  },
   async getAmountOut({ commit, rootState: { tokens } }, value) {
     const {
       selectedTokens: { tokenA, tokenB },
@@ -170,9 +53,9 @@ export const actions = {
       const {
         selectedTokens: { tokenA, tokenB },
       } = tokens;
-      await config.approveAmount(tokenA.address, kep7.abi, tokenA.value);
+      await config.approveAmount(tokenA.address, kip7.abi, tokenA.value);
 
-      await config.approveAmount(tokenB.address, kep7.abi, tokenB.value);
+      await config.approveAmount(tokenB.address, kip7.abi, tokenB.value);
 
       const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
         addressA: tokenA.address,
@@ -181,14 +64,11 @@ export const actions = {
         valueB: tokenB.value,
       });
 
-      // swapGas * 250000000000
-
       await send();
       this.$notify({ type: "success", text: "Swap success" });
       dispatch("tokens/getTokens", null, { root: true });
     } catch (e) {
-      console.log(e);
-      this.$notify({ type: "error", text: "Swap error" });
+      this.$notify({ type: "error", text: e });
     }
     return;
   },
@@ -198,8 +78,8 @@ export const actions = {
         selectedTokens: { tokenA, tokenB },
       } = tokens;
 
-      await config.approveAmount(tokenA.address, kep7.abi, tokenA.value);
-      await config.approveAmount(tokenB.address, kep7.abi, tokenB.value);
+      await config.approveAmount(tokenA.address, kip7.abi, tokenA.value);
+      await config.approveAmount(tokenB.address, kip7.abi, tokenB.value);
 
       const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
         addressA: tokenA.address,
@@ -214,23 +94,22 @@ export const actions = {
 
       dispatch("tokens/getTokens", null, { root: true });
     } catch (e) {
-      this.$notify({ type: "error", text: "Swap error" });
-      console.log(e);
+      this.$notify({ type: "error", text: e });
     }
     return;
   },
-  async swapForKlayTokens({ rootState: { tokens }, dispatch }) {
+  async swapForKlayTokens({ rootState: { tokens } }) {
     const { selectedTokens, computedToken } = tokens;
 
     await config.approveAmount(
       selectedTokens.tokenA.address,
-      kep7.abi,
+      kip7.abi,
       selectedTokens.tokenA.value
     );
 
     await config.approveAmount(
       selectedTokens.tokenB.address,
-      kep7.abi,
+      kip7.abi,
       selectedTokens.tokenB.value
     );
 
@@ -247,13 +126,10 @@ export const actions = {
       computedToken === "tokenB" && isComputedNativeToken;
     const exactETHForTokens =
       computedToken === "tokenB" && !isComputedNativeToken;
-
     const ETHForExactTokens =
       computedToken === "tokenA" && isComputedNativeToken;
     const tokensForExactETH =
       computedToken === "tokenA" && !isComputedNativeToken;
-
-    debugger;
 
     if (exactTokensForEth) {
       const { send } = await this.$kaikas.swap.swapExactTokensForETH({
@@ -287,18 +163,15 @@ export const actions = {
 
     if (tokensForExactETH) {
       const { send } = await this.$kaikas.swap.swapTokensForExactETH({
-        to: inputToken.address, //klay
+        to: inputToken.address,
         from: computed.address,
-        amountOut: inputToken.value, //klay
+        amountOut: inputToken.value,
         amountInMax: computed.value,
       });
       await send();
     }
 
-    //
-    // await send();
-    //
-    // this.$notify({ type: "success", text: "Swap success" });
+    this.$notify({ type: "success", text: "Swap success" });
   },
 };
 
@@ -309,9 +182,6 @@ export const mutations = {
   },
   SET_EXCHANGE_LOADING(state, type) {
     state.exchangeRateLoading = type;
-  },
-  SET_EMPTY_PAIR(state, tokens) {
-    state.pairNotExist = tokens;
   },
   SET_SLIPPAGE(state, value) {
     state.slippagePercent = value;

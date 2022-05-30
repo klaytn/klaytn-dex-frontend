@@ -1,4 +1,4 @@
-import kep7 from "~/utils/smartcontracts/kep-7.json";
+import kip7 from "~/utils/smartcontracts/kip-7.json";
 
 export const state = () => ({
   tokensList: [],
@@ -56,7 +56,7 @@ export const actions = {
     };
 
     const listTokens = mockedTokens.map(async (token) => {
-      const contract = this.$kaikas.createContract(token, kep7.abi);
+      const contract = this.$kaikas.createContract(token, kip7.abi);
       const name = await contract.methods.name().call();
       const symbol = await contract.methods.symbol().call();
       const balance = await contract.methods

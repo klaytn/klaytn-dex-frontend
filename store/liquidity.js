@@ -1,4 +1,4 @@
-import kep7 from "@/utils/smartcontracts/kep-7.json";
+import kip7 from "@/utils/smartcontracts/kip-7.json";
 import pairAbi from "@/utils/smartcontracts/pair.json";
 import config from "@/plugins/Config";
 
@@ -122,11 +122,11 @@ export const actions = {
 
         const contractA = this.$kaikas.config.createContract(
           addressA,
-          kep7.abi
+          kip7.abi
         );
         const contractB = this.$kaikas.config.createContract(
           addressB,
-          kep7.abi
+          kip7.abi
         );
 
         let name = await contract.methods.name().call();
@@ -179,13 +179,13 @@ export const actions = {
 
       await this.$kaikas.config.approveAmount(
         tokenA.address,
-        kep7.abi,
+        kip7.abi,
         tokenAValue.toFixed(0)
       );
 
       await this.$kaikas.config.approveAmount(
         tokenB.address,
-        kep7.abi,
+        kip7.abi,
         tokenBValue.toFixed(0)
       );
       const pairAddress = await this.$kaikas.config.factoryContract.methods
@@ -264,12 +264,12 @@ export const actions = {
 
       await this.$kaikas.config.approveAmount(
         tokenA.address,
-        kep7.abi,
+        kip7.abi,
         tokenAValue.toFixed(0)
       );
       await this.$kaikas.config.approveAmount(
         tokenB.address,
-        kep7.abi,
+        kip7.abi,
         tokenBValue.toFixed(0)
       );
 
@@ -351,13 +351,13 @@ export const actions = {
 
     await this.$kaikas.config.approveAmount(
       sortedPair[0].address,
-      kep7.abi,
+      kip7.abi,
       tokenAValue.toFixed(0)
     );
 
     await this.$kaikas.config.approveAmount(
       sortedPair[1].address,
-      kep7.abi,
+      kip7.abi,
       tokenBValue.toFixed(0)
     );
 

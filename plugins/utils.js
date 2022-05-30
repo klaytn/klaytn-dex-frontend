@@ -34,7 +34,7 @@ class Utils {
   }
 
   sortKlayPair(tokenA, tokenB) {
-    if (tokenA.address === "0xae3a8a1D877a446b22249D8676AFeB16F056B44e") {
+    if (this.isNativeToken(tokenA.address)) {
       return [tokenB, tokenA];
     }
     return [tokenA, tokenB];
