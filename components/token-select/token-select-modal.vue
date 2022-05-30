@@ -100,7 +100,6 @@ export default {
       this.$emit("select", t);
     },
     onAddToken() {
-      debugger
       if (this.importToken) {
         this.updateTokens([this.importToken, ...this.tokensList]);
         this.searchValue = "";
@@ -121,7 +120,6 @@ export default {
         this.importToken = null;
         return;
       }
-      debugger
       try {
         const contract = this.$kaikas.config.createContract(_new, kip7.abi);
         const symbol = await contract.methods.symbol().call();

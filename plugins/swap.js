@@ -1,34 +1,13 @@
 import config from "@/plugins/Config";
-import utils from "@/plugins/utils";
 
 export default class Swap {
   async getAmountOut(addressA, addressB, value) {
-    const pairAddress = await config.factoryContract.methods
-      .getPair(addressA, addressB)
-      .call({
-        from: this.address,
-      });
-
-    if (utils.isEmptyAddress(pairAddress)) {
-      throw "EMPTY_ADDRESS";
-    }
-
     return await config.routerContract.methods
       .getAmountsOut(value, [addressA, addressB])
       .call();
   }
 
   async getAmountIn(addressA, addressB, value) {
-    const pairAddress = await config.factoryContract.methods
-      .getPair(addressA, addressB)
-      .call({
-        from: this.address,
-      });
-
-    if (utils.isEmptyAddress(pairAddress)) {
-      throw "EMPTY_ADDRESS";
-    }
-
     return await config.routerContract.methods
       .getAmountsIn(value, [addressA, addressB])
       .call();

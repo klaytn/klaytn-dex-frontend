@@ -200,6 +200,7 @@ export class Liquidity {
         params.deadLine
       )
       .estimateGas({
+        from: config.address,
         gasPrice: 250000000000,
         value: tokenBValue.toFixed(0),
       });

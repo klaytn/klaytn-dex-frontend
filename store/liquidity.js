@@ -68,37 +68,39 @@ export const actions = {
     }
     return;
   },
-  async quoteForKlay({ commit, rootState: { tokens } }, { value, reversed }) {
-    try {
-      const {
-        selectedTokens: { tokenA, tokenB },
-        computedToken,
-      } = tokens;
 
-      const exchangeRate = await this.$kaikas.tokens.getKlayQuote(
-        tokenA.address,
-        tokenB.address,
-        value,
-        reversed
-      );
+  // async quoteForKlay({ commit, rootState: { tokens } }, { value, reversed }) {
+  //   try {
+  //     const {
+  //       selectedTokens: { tokenA, tokenB },
+  //       computedToken,
+  //     } = tokens;
+  //
+  //     const exchangeRate = await this.$kaikas.tokens.getKlayQuote(
+  //       tokenA.address,
+  //       tokenB.address,
+  //       value,
+  //       reversed
+  //     );
+  //
+  //     const { pairBalance, userBalance } =
+  //       await this.$kaikas.tokens.getPairBalance(
+  //         tokenA.address,
+  //         tokenB.address
+  //       );
+  //
+  //     commit(
+  //       "tokens/SET_TOKEN_VALUE",
+  //       { type: computedToken, value: exchangeRate, pairBalance, userBalance },
+  //       { root: true }
+  //     );
+  //   } catch (e) {
+  //     console.log(e);
+  //     this.$notify({ type: "error", text: e });
+  //   }
+  //   return;
+  // },
 
-      const { pairBalance, userBalance } =
-        await this.$kaikas.tokens.getPairBalance(
-          tokenA.address,
-          tokenB.address
-        );
-
-      commit(
-        "tokens/SET_TOKEN_VALUE",
-        { type: computedToken, value: exchangeRate, pairBalance, userBalance },
-        { root: true }
-      );
-    } catch (e) {
-      console.log(e);
-      this.$notify({ type: "error", text: e });
-    }
-    return;
-  },
   async getPairs({ commit }) {
     const pairsCount = await this.$kaikas.config.factoryContract.methods
       .allPairsLength()
@@ -207,7 +209,10 @@ export const actions = {
           });
 
         await send();
-        this.$notify({ type: "success", text: "Liquidity success" });
+        this.$notify({
+          type: "success",
+          text: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
+        });
 
         console.log("addLiquidityAmountOutForExistPair ", gas);
         return;
@@ -292,7 +297,10 @@ export const actions = {
           });
 
         await send();
-        this.$notify({ type: "success", text: "Liquidity success" });
+        this.$notify({
+          type: "success",
+          text: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
+        });
 
         return;
       }
@@ -328,7 +336,10 @@ export const actions = {
         });
 
       console.log({ lq });
-      this.$notify({ type: "success", text: "Liquidity success" });
+      this.$notify({
+        type: "success",
+        text: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
+      });
     } catch (e) {
       console.log(e);
       this.$notify({ type: "error", text: "Liquidity error" });

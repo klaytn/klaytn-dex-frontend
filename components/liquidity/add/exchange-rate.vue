@@ -77,29 +77,8 @@ export default {
       });
 
       this.setComputedToken(tokenType === "tokenA" ? "tokenB" : "tokenA");
-      const isWKLAY =
-        this.$kaikas.utils.isNativeToken(this.selectedTokens.tokenA.address) ||
-        this.$kaikas.utils.isNativeToken(this.selectedTokens.tokenB.address);
 
-      if (isWKLAY && tokenType === "tokenA") {
-        await this.quoteForKlay({
-          value,
-          reversed: this.$kaikas.utils.isNativeToken(
-            this.selectedTokens.tokenA.address
-          ),
-        });
-      }
-
-      if (isWKLAY && tokenType === "tokenB") {
-        await this.quoteForKlay({
-          value,
-          reversed: this.$kaikas.utils.isNativeToken(
-            this.selectedTokens.tokenB.address
-          ),
-        });
-      }
-
-      if (!isWKLAY && tokenType === "tokenA") {
+      if (tokenType === "tokenA") {
         this.exchangeLoading = "tokenB";
 
         await this.quoteForTokenB(value);
@@ -108,7 +87,7 @@ export default {
         // );
       }
 
-      if (!isWKLAY && tokenType === "tokenB") {
+      if (tokenType === "tokenB") {
         this.exchangeLoading = "tokenA";
 
         await this.quoteForTokenA(value);
