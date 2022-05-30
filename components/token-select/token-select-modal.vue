@@ -34,7 +34,7 @@
         class="token-select-modal--item"
         @click="onAddToken"
       >
-        <Icon :char="importToken.symbolA[0]" name="empty-token" />
+        <Icon :char="importToken.symbol[0]" name="empty-token" />
         <div class="info">
           <p class="token">{{ importToken.symbol }}</p>
           <span class="token-name">{{ importToken.name }}</span>
@@ -100,6 +100,7 @@ export default {
       this.$emit("select", t);
     },
     onAddToken() {
+      debugger
       if (this.importToken) {
         this.updateTokens([this.importToken, ...this.tokensList]);
         this.searchValue = "";
@@ -111,26 +112,24 @@ export default {
   watch: {
     async searchValue(_new) {
       const code =
-        this.$kaikas.isAddress(_new) &&
-        (await this.$kaikas.caver.klay.getCode(_new));
+        this.$kaikas.utils.isAddress(_new) &&
+        (await this.$kaikas.config.caver.klay.getCode(_new));
+
       const isExists = this.tokensList.find(({ address }) => address === _new);
 
       if (!this.$kaikas.isAddress(_new) || code === "0x" || isExists) {
         this.importToken = null;
         return;
       }
-
+      debugger
       try {
-        const contract = this.$kaikas.createContract(_new, kip7.abi);
-
+        const contract = this.$kaikas.config.createContract(_new, kip7.abi);
         const symbol = await contract.methods.symbol().call();
-
         const name = await contract.methods.name().call();
 
         const balance = await contract.methods
           .balanceOf(this.$kaikas.config.address)
           .call();
-
         this.importToken = {
           id: _new,
           name,
