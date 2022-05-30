@@ -99,12 +99,11 @@ export default class Swap {
 
   async swapExactTokensForETH({ addressA, addressB, valueA, valueB }) {
     const deadLine = Math.floor(Date.now() / 1000 + 300);
-    const bnValueA = utils.bigNumber(valueA);
 
     const swapGas = await config.routerContract.methods
       .swapExactTokensForETH(
         valueB,
-        bnValueA.minus(bnValueA.dividedToIntegerBy(100)),
+        valueA,
         [addressB, addressA],
         config.address,
         deadLine
@@ -118,7 +117,7 @@ export default class Swap {
       await config.routerContract.methods
         .swapExactTokensForETH(
           valueB,
-          bnValueA.minus(bnValueA.dividedToIntegerBy(100)),
+          valueA,
           [addressB, addressA],
           config.address,
           deadLine
@@ -133,18 +132,16 @@ export default class Swap {
 
   async swapExactETHForTokens({ addressA, addressB, valueA, valueB }) {
     const deadLine = Math.floor(Date.now() / 1000 + 300);
-    const bnValueA = utils.bigNumber(valueA);
-    const bnValueB = utils.bigNumber(valueB);
 
     const swapGas = await config.routerContract.methods
       .swapExactETHForTokens(
-        bnValueA.minus(bnValueA.dividedToIntegerBy(100)),
+        valueA,
         [addressB, addressA],
         config.address,
         deadLine
       )
       .estimateGas({
-        value: bnValueB.toFixed(0),
+        value: valueB,
         from: config.address,
         gasPrice: 250000000000,
       });
@@ -152,13 +149,13 @@ export default class Swap {
     const send = async () =>
       await config.routerContract.methods
         .swapExactETHForTokens(
-          bnValueA.minus(bnValueA.dividedToIntegerBy(100)),
+          valueA,
           [addressB, addressA],
           config.address,
           deadLine
         )
         .send({
-          value: bnValueB.toFixed(0),
+          value: valueB,
           from: config.address,
           gas: swapGas,
           gasPrice: 250000000000,
