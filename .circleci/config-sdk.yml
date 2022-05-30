@@ -1,0 +1,189 @@
+version: 2.1
+
+executors:
+  default:
+    docker:
+    - image: {{ project_image }}  ## example: circleci/node:14.8
+    working_directory: ~/{{ project_name }}
+
+commands:
+  notify-success:
+    steps:
+      - run:
+          name: "notify slack when job success"
+          command : |
+            curl --data '{"text": "✅ Job *'$CIRCLE_JOB'* succeeded on *'$CIRCLE_BRANCH''$CIRCLE_TAG'*. Please see '$CIRCLE_BUILD_URL' for details."}' "$SLACK_WEBHOOK_URL"
+          when: on_success
+  notify-failure:
+    steps:
+      - run:
+          name: "notify slack when job fail"
+          command : |
+            curl --data '{"text": "❌ Job *'$CIRCLE_JOB'* failed on *'$CIRCLE_BRANCH''$CIRCLE_TAG'*. Please see '$CIRCLE_BUILD_URL' for details."}' "$SLACK_WEBHOOK_URL"
+          when: on_fail
+  check_rc:
+    steps:
+      - run:
+          name: Check RC
+          command: |
+            if [[ -n $CIRCLE_TAG ]]; then
+              RC_NUMBER=${CIRCLE_TAG##*-}
+              # sed -i 's/^KLIP_SDK_VERSION_NAME.*/&-'${RC_NUMBER}'/' gradle.properties
+              # sed -n '/KLIP_SDK_VERSION_NAME/p' gradle.properties
+            else
+              echo "Not RC version"
+            fi
+jobs:
+  unit_test:
+    executor: default
+    steps:
+      - checkout
+      - run: {{ test command }}
+
+  lint_test:
+    executor: default
+    steps:
+      - checkout
+      - run: {{ test command }}
+
+  integration_test:
+    executor: default
+    steps:
+      - checkout
+      - run: {{ test command }}
+
+  build:
+    executor: default
+    steps:
+      - checkout
+      - check_rc
+      - run: {{ build command }}
+      - store_artifacts: ## If you want to store build_file
+          path: /tmp/artifacts ## Change path to build_file
+
+  tag_verify:
+    executor: default
+    steps:
+      - checkout
+      - run:
+          name: "Verify tag and file verison match"
+          command: ./.circleci/scripts/tag_verify.sh ## Change script if version is not indicated on package.json
+
+  publish:
+    executor: default
+    steps:
+      - checkout
+      ## This process only upload and flush cache on Cloudfront, if project deploy other way, need to add in this job
+      - check_rc
+      - run:
+        name: "Upload S3 bucket"
+        command: |
+          sudo apt-get install awscli
+          aws s3 sync ./ s3://$FRONTEND_BUCKET
+      - run:
+          name: "flush cache cloudfront"
+          command: |
+            aws configure set preview.cloudfront true
+            aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION --paths "/*"
+      - notify-failure
+      - notify-success
+
+  release_PR:
+    executor: default
+    steps:
+      - add_ssh_keys 
+      - checkout
+      - run:
+          name: "Push release branch"
+          command: |
+              set -x
+              echo "push to release branch: /release/${CIRCLE_TAG%-*}"
+              git checkout -b release/${CIRCLE_TAG%-*}
+              git push origin release/${CIRCLE_TAG%-*}
+      - run:
+          name: "Make PR to master branch"
+          command: ./.circleci/scripts/release_pr.sh
+
+  tagging:
+    executor: default
+    steps:
+      - add_ssh_keys
+      - checkout
+      - run:
+          name: "Tagging and delete release branch"
+          command: ./.circleci/scripts/release_tag_branch.sh
+
+stage_defaults:
+  default: &stage_default
+    filters:
+      tags:
+        only:
+          - /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+.*/
+          - /^v[0-9]+\.[0-9]+\.[0-9]+-alpha\.[0-9]+.*/
+      branches:
+        ignore: 
+          - /release\/.*/
+  qa: &stage_qa
+    context: klip_sdk_prod
+    filters:
+      tags:
+        only:
+          - /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+.*/
+          - /^v[0-9]+\.[0-9]+\.[0-9]+-alpha\.[0-9]+.*/
+      branches:
+        ignore: /.*/
+  rc: &stage_rc
+    context: klip_sdk_prod
+    filters:
+      tags:
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+.*/
+      branches:
+        ignore: /.*/
+  tests: &test_steps
+    requires:
+      - unit_test
+      - lint_test
+      - integration_test
+      - tag_verify
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - unit_test:
+          <<: *stage_default
+      - lint_test:
+          <<: *stage_default
+      - integration_test:
+          <<: *stage_default
+
+      # publish jobs - rc
+      - tag_verify:
+          <<: *stage_qa
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+.*/
+            branches:
+              ignore: /.*/
+
+      - publish:
+          <<: *stage_qa
+          <<: *test_steps
+          name: publish_rc
+
+      - release_PR:
+          <<: *stage_rc
+          requires:
+            - publish_rc
+
+      # publish jobs - prod
+      - publish:
+          context: klip_sdk_prod
+          name: publish_prod
+          filters:
+            branches:
+              only: master
+      
+      - tagging:
+          requires:
+            - publish_prod
