@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="liquidity--input">
-      <TokenInputNew
+      <TokenInput
         :isLoading="exchangeLoading === 'tokenA'"
         @input="(v) => onInput(v, 'tokenA')"
         tokenType="tokenA"
@@ -13,7 +13,7 @@
       <Icon name="plus" />
     </div>
     <div class="liquidity--input">
-      <TokenInputNew
+      <TokenInput
         :isLoading="exchangeLoading === 'tokenB'"
         @input="(v) => onInput(v, 'tokenB')"
         tokenType="tokenB"
@@ -52,7 +52,6 @@ export default {
       setComputedToken: "tokens/SET_COMPUTED_TOKEN",
     }),
     ...mapActions({
-      quoteForKlay: "liquidity/quoteForKlay",
       quoteForTokenA: "liquidity/quoteForTokenA",
       quoteForTokenB: "liquidity/quoteForTokenB",
     }),

@@ -1,23 +1,25 @@
 <template>
   <div
     class="token-input"
-    :class="{ 'token-loading': tokenType === exchangeRateLoading }"
+    :class="{ 'token-loading': isLoading }"
   >
     <div class="token-value">
       <input
+        :disabled="isDisabled"
         v-if="selected"
-        :value="value"
+        :value="!isDisabled ? value : null"
         placeholder="0"
         type="number"
         @input="input($event.target.value)"
       />
-      <button v-if="selected" @click="input(renderBalance.toString())">MAX</button>
 
+      <button v-if="selected" @click="input(renderBalance.toString())">
+        MAX
+      </button>
       <div class="token-select-wrap">
         <TokenSelect :selected-token="selected" @select="setToken" />
       </div>
     </div>
-
     <div class="token-meta" v-if="selected">
       <span class="price">{{ price }}</span>
       <div v-if="selected" class="row">
@@ -50,10 +52,9 @@
 </template>
 
 <script>
-import { mapActions, mapMutations, mapState } from "vuex";
+import {mapActions, mapMutations, mapState} from "vuex";
 import { copyToClipboard } from "~/utils/common";
 import { roundTo } from "round-to";
-import debounce from "debounce";
 import web3 from "web3";
 
 export default {
@@ -63,9 +64,14 @@ export default {
       type: String,
       required: true,
     },
+    isLoading: {
+      type: Boolean,
+    },
+    isDisabled: {
+      type: Boolean,
+    },
   },
   computed: {
-    ...mapState("swap", ["exchangeRateIntervalID", "exchangeRateLoading"]),
     ...mapState("tokens", ["selectedTokens"]),
     selected() {
       return this.selectedTokens[this.tokenType];
@@ -83,81 +89,33 @@ export default {
       if (!this.selected?.value) {
         return null;
       }
+
       const bn = new this.$kaikas.bigNumber(
         this.$kaikas.fromWei(this.selected.value)
       );
+
       return Number(bn.toFixed(4));
     },
     formattedAddress() {
       return this.$kaikas.getFormattedAddress(this.selected.address);
     },
   },
-  beforeDestroy() {
-    if (this.exchangeRateIntervalID) {
-      clearInterval(this.exchangeRateIntervalID);
-    }
-    this.setExchangeLoading(null);
-  },
   methods: {
+    ...mapActions({
+      checkEmptyPair: 'tokens/checkEmptyPair'
+    }),
     ...mapMutations({
       setSelectedToken: "tokens/SET_SELECTED_TOKEN",
       setComputedToken: "swap/SET_COMPUTED_TOKEN",
-      setExchangeRateIntervalID: "swap/SET_EXCHANGE_RATE_INTERVAL_ID",
-      setExchangeLoading: "swap/SET_EXCHANGE_LOADING",
-    }),
-    ...mapActions({
-      setCurrencyRate: "tokens/setCurrencyRate",
-      getAmountOut: "swap/getAmountOut",
-      getAmountIn: "swap/getAmountIn",
     }),
     copyToClipboard,
-    setToken(token) {
-      this.setCurrencyRate({ id: token.id, type: this.tokenType });
+    async setToken(token) {
       this.setSelectedToken({ token, type: this.tokenType });
+      await this.checkEmptyPair()
     },
-    input: debounce(async function (v) {
-      console.log({v})
-      if (!this.selected || !v) {
-        return;
-      }
-
-      if (this.exchangeRateIntervalID) {
-        clearInterval(this.exchangeRateIntervalID);
-        this.setExchangeRateIntervalID(null);
-      }
-
-      const value = this.$kaikas.toWei(v);
-
-      this.setSelectedToken({
-        token: {
-          ...this.selected,
-          value,
-        },
-        type: this.tokenType,
-      });
-
-      this.setComputedToken(this.tokenType === "tokenA" ? "tokenB" : "tokenA");
-
-      if (this.tokenType === "tokenA") {
-        this.setExchangeLoading("tokenB");
-
-        await this.getAmountOut(value);
-        // this.setExchangeRateIntervalID(
-        //   setInterval(() => this.getAmountOut(value), 5000)
-        // );
-      }
-
-      if (this.tokenType === "tokenB") {
-        this.setExchangeLoading("tokenA");
-
-        await this.getAmountIn(value);
-        // this.setExchangeRateIntervalID(
-        //   setInterval(() => this.getAmountIn(value), 5000)
-        // );
-      }
-
-      this.setExchangeLoading(null);
-    }, 500),
+    input(v) {
+      this.$emit("input", v);
+    },
   },
 };
 </script>

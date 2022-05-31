@@ -112,7 +112,10 @@ export const mutations = {
     };
   },
   SET_SELECTED_TOKENS_EMPTY_PAIR(state, { emptyPair }) {
-    state.selectedTokens.emptyPair = emptyPair;
+    state.selectedTokens = {
+      ...state.selectedTokens,
+      emptyPair
+    }
   },
   SET_TOKEN_VALUE(state, { type, value, pairBalance, userBalance }) {
     state.selectedTokens = {

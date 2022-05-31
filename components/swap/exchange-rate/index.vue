@@ -1,6 +1,6 @@
 <template>
   <div>
-    <TokenInputNew
+    <TokenInput
       :isLoading="exchangeLoading === 'tokenA'"
       @input="(v) => onInput(v, 'tokenA')"
       tokenType="tokenA"
@@ -10,7 +10,7 @@
       <Icon name="arrow-down" />
     </button>
     <div class="margin-block">
-      <TokenInputNew
+      <TokenInput
         :isLoading="exchangeLoading === 'tokenB'"
         @input="(v) => onInput(v, 'tokenB')"
         tokenType="tokenB"
@@ -56,7 +56,7 @@ export default {
       getAmountIn: "swap/getAmountIn",
     }),
     onInput: debounce(async function (_v, tokenType) {
-      if (!_v || this.sNotValid) {
+      if (!_v || this.isNotValid) {
         return;
       }
 
@@ -76,7 +76,6 @@ export default {
       });
 
       this.setComputedToken(tokenType === "tokenA" ? "tokenB" : "tokenA");
-
 
       if (tokenType === "tokenA") {
         this.exchangeLoading = "tokenB";
