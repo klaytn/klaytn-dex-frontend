@@ -51,12 +51,11 @@ export const actions = {
   async swapExactTokensForTokens({ rootState: { tokens }, dispatch }) {
     try {
       const { selectedTokens, computedToken } = tokens;
-      const inputToken = computedToken === "tokenA" ? "tokenB" : "tokenA"
 
       await config.approveAmount(
-        selectedTokens[inputToken].address,
+        selectedTokens["tokenA"].address,
         kip7.abi,
-        selectedTokens[inputToken].value
+        selectedTokens["tokenA"].value
       );
 
       const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
@@ -77,13 +76,11 @@ export const actions = {
   async swapTokensForExactTokens({ rootState: { tokens }, dispatch }) {
     try {
       const { selectedTokens, computedToken } = tokens;
-      const inputToken = computedToken === "tokenA" ? "tokenB" : "tokenA"
       await config.approveAmount(
-        selectedTokens[inputToken].address,
+        selectedTokens["tokenA"].address,
         kip7.abi,
-        selectedTokens[inputToken].value
+        selectedTokens["tokenA"].value
       );
-
 
       const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
         addressA: selectedTokens.tokenA.address,
@@ -114,10 +111,16 @@ export const actions = {
 
     const computed = selectedTokens[computedToken];
 
+    // await config.approveAmount(
+    //   inputToken.address,
+    //   kip7.abi,
+    //   inputToken.value
+    // );
+
     await config.approveAmount(
-      inputToken.address,
+      selectedTokens["tokenA"].address,
       kip7.abi,
-      inputToken.value
+      selectedTokens["tokenA"].value
     );
 
     const exactTokensForEth =
