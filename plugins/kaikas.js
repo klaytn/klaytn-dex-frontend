@@ -67,7 +67,7 @@ class Kaikas {
   }
 
   sortKlayPair(tokenA, tokenB) {
-    if (tokenA.address === "0xae3a8a1D877a446b22249D8676AFeB16F056B44e") {
+    if (utils.isNativeToken(tokenA.address)) {
       return [tokenB, tokenA];
     }
     return [tokenA, tokenB];

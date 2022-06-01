@@ -1,107 +1,92 @@
+import config from "@/plugins/Config";
+import kip7 from "@/utils/smartcontracts/kip-7.json";
+
 export const state = () => ({
   exchangeRateLoading: null,
   pairNotExist: false,
   slippagePercent: 0.5,
-  computedToken: null,
   exchangeRateIntervalID: null,
 });
 
 export const actions = {
   async getAmountOut({ commit, rootState: { tokens } }, value) {
+    const {
+      selectedTokens: { tokenA, tokenB },
+    } = tokens;
+    const amountOut = await this.$kaikas.swap.getAmountOut(
+      tokenA.address,
+      tokenB.address,
+      value
+    );
 
-    try {
-      const {
-        selectedTokens: { tokenA, tokenB },
-      } = tokens;
-      commit("SET_EMPTY_PAIR", null);
+    const { pairBalance, userBalance } =
+      await this.$kaikas.tokens.getPairBalance(tokenA.address, tokenB.address);
 
-      const getAmountsOut = await this.$kaikas.tokens.getAmountOut(
-        tokenA.address,
-        tokenB.address,
-        value
-      );
-
-      const { pairBalance, userBalance } = await this.$kaikas.tokens.getPairBalance(
-        tokenA.address,
-        tokenB.address
-      );
-
-      commit(
-        "tokens/SET_TOKEN_VALUE",
-        { type: "tokenB", value: getAmountsOut[1], pairBalance, userBalance },
-        { root: true }
-      );
-    } catch (e) {
-      console.log(e);
-      this.$notify({ type: 'error', text: 'Swap error' })
-    }
-    return;
+    commit(
+      "tokens/SET_TOKEN_VALUE",
+      { type: "tokenB", value: amountOut[1], pairBalance, userBalance },
+      { root: true }
+    );
   },
   async getAmountIn({ commit, rootState: { tokens } }, value) {
-    try {
-      const {
-        selectedTokens: { tokenA, tokenB },
-      } = tokens;
-      commit("SET_EMPTY_PAIR", null);
+    const {
+      selectedTokens: { tokenA, tokenB },
+    } = tokens;
 
-      const getAmountsOut = await this.$kaikas.tokens.getAmountIn(
-        tokenA.address,
-        tokenB.address,
-        value
-      );
-      const { pairBalance, userBalance } = await this.$kaikas.tokens.getPairBalance(
-        tokenA.address,
-        tokenB.address
-      );
+    const amountIn = await this.$kaikas.swap.getAmountIn(
+      tokenA.address,
+      tokenB.address,
+      value
+    );
 
-      commit(
-        "tokens/SET_TOKEN_VALUE",
-        { type: "tokenA", value: getAmountsOut[0], pairBalance, userBalance },
-        { root: true }
-      );
-    } catch (e) {
-      console.log(e);
-      this.$notify({ type: 'error', text: 'Get amount in error' })
-    }
-    return;
+    const { pairBalance, userBalance } =
+      await this.$kaikas.tokens.getPairBalance(tokenA.address, tokenB.address);
+
+    commit(
+      "tokens/SET_TOKEN_VALUE",
+      { type: "tokenA", value: amountIn[0], pairBalance, userBalance },
+      { root: true }
+    );
   },
-
   async swapExactTokensForTokens({ rootState: { tokens }, dispatch }) {
     try {
-      const {
-        selectedTokens: { tokenA, tokenB },
-      } = tokens;
+      const { selectedTokens, computedToken } = tokens;
+
+      await config.approveAmount(
+        selectedTokens["tokenA"].address,
+        kip7.abi,
+        selectedTokens["tokenA"].value
+      );
 
       const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
-        addressA: tokenA.address,
-        addressB: tokenB.address,
-        valueA: tokenA.value,
-        valueB: tokenB.value,
+        addressA: selectedTokens.tokenA.address,
+        addressB: selectedTokens.tokenB.address,
+        valueA: selectedTokens.tokenA.value,
+        valueB: selectedTokens.tokenB.value,
       });
 
-      // swapGas * 250000000000
-
       await send();
-      this.$notify({ type: 'success', text: 'Swap success' })
+      this.$notify({ type: "success", text: "Swap success" });
       dispatch("tokens/getTokens", null, { root: true });
     } catch (e) {
-
-      console.log(e);
-      this.$notify({ type: 'error', text: 'Swap error' })
+      this.$notify({ type: "error", text: e });
     }
-    return
+    return;
   },
   async swapTokensForExactTokens({ rootState: { tokens }, dispatch }) {
     try {
-      const {
-        selectedTokens: { tokenA, tokenB },
-      } = tokens;
+      const { selectedTokens, computedToken } = tokens;
+      await config.approveAmount(
+        selectedTokens["tokenA"].address,
+        kip7.abi,
+        selectedTokens["tokenA"].value
+      );
 
       const { send } = await this.$kaikas.swap.swapExactTokensForTokens({
-        addressA: tokenA.address,
-        addressB: tokenB.address,
-        valueA: tokenA.value,
-        valueB: tokenB.value,
+        addressA: selectedTokens.tokenA.address,
+        addressB: selectedTokens.tokenB.address,
+        valueA: selectedTokens.tokenA.value,
+        valueB: selectedTokens.tokenB.value,
       });
 
       await send();
@@ -110,10 +95,84 @@ export const actions = {
 
       dispatch("tokens/getTokens", null, { root: true });
     } catch (e) {
-      this.$notify({ type: 'error', text: 'Swap error' })
-      console.log(e);
+      this.$notify({ type: "error", text: e });
     }
     return;
+  },
+  async swapForKlayTokens({ rootState: { tokens } }) {
+    const { selectedTokens, computedToken } = tokens;
+
+    const isComputedNativeToken = this.$kaikas.utils.isNativeToken(
+      selectedTokens[computedToken].address
+    );
+
+    const inputToken =
+      selectedTokens[computedToken === "tokenA" ? "tokenB" : "tokenA"];
+
+    const computed = selectedTokens[computedToken];
+
+    // await config.approveAmount(
+    //   inputToken.address,
+    //   kip7.abi,
+    //   inputToken.value
+    // );
+
+    await config.approveAmount(
+      selectedTokens["tokenA"].address,
+      kip7.abi,
+      selectedTokens["tokenA"].value
+    );
+
+    const exactTokensForEth =
+      computedToken === "tokenB" && isComputedNativeToken;
+    const exactETHForTokens =
+      computedToken === "tokenB" && !isComputedNativeToken;
+    const ETHForExactTokens =
+      computedToken === "tokenA" && isComputedNativeToken;
+    const tokensForExactETH =
+      computedToken === "tokenA" && !isComputedNativeToken;
+
+    if (exactTokensForEth) {
+      const { send } = await this.$kaikas.swap.swapExactTokensForETH({
+        addressA: selectedTokens[computedToken].address,
+        addressB: inputToken.address,
+        valueA: selectedTokens[computedToken].value,
+        valueB: inputToken.value,
+      });
+      await send();
+    }
+
+    if (exactETHForTokens) {
+      const { send } = await this.$kaikas.swap.swapExactETHForTokens({
+        addressA: selectedTokens[computedToken].address,
+        valueA: selectedTokens[computedToken].value,
+        addressB: inputToken.address,
+        valueB: inputToken.value,
+      });
+      await send();
+    }
+
+    if (ETHForExactTokens) {
+      const { send } = await this.$kaikas.swap.swapEthForExactTokens({
+        to: computed.address,
+        from: inputToken.address,
+        amountOut: computed.value,
+        amountIn: inputToken.value,
+      });
+      await send();
+    }
+
+    if (tokensForExactETH) {
+      const { send } = await this.$kaikas.swap.swapTokensForExactETH({
+        to: inputToken.address,
+        from: computed.address,
+        amountOut: inputToken.value,
+        amountInMax: computed.value,
+      });
+      await send();
+    }
+
+    this.$notify({ type: "success", text: "Swap success" });
   },
 };
 
@@ -124,9 +183,6 @@ export const mutations = {
   },
   SET_EXCHANGE_LOADING(state, type) {
     state.exchangeRateLoading = type;
-  },
-  SET_EMPTY_PAIR(state, tokens) {
-    state.pairNotExist = tokens;
   },
   SET_SLIPPAGE(state, value) {
     state.slippagePercent = value;

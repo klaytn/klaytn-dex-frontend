@@ -57,6 +57,27 @@
   margin: -10px 0;
 }
 
+.warning-text {
+  margin-top: 16px;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 180%;
+  color: #2D2926;
+  margin-right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  & .svg-icon {
+    height: 20px;
+  }
+
+  & span {
+    margin-left: 5px;
+  }
+}
+
 .slippage {
   margin: 20px 0;
 }

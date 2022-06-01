@@ -99,8 +99,7 @@ export default {
     };
   },
   computed: {
-    ...mapState("tokens", ["selectedTokens"]),
-    ...mapState("swap", ["computedToken"]),
+    ...mapState("tokens", ["selectedTokens", "computedToken"]),
     isValid() {
       return (
         this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
@@ -118,10 +117,8 @@ export default {
         this.error = false;
         this.status = "in_progress";
         const isKlayToken =
-          this.selectedTokens.tokenA.address ===
-            "0xae3a8a1D877a446b22249D8676AFeB16F056B44e" ||
-          this.selectedTokens.tokenB.address ===
-            "0xae3a8a1D877a446b22249D8676AFeB16F056B44e";
+          this.$kaikas.utils.isNativeToken(this.selectedTokens.tokenA.address) ||
+          this.$kaikas.utils.isNativeToken(this.selectedTokens.tokenB.address);
 
         if (isKlayToken) {
           await this.addLiquidityETH();
@@ -139,7 +136,6 @@ export default {
           this.status = "submitted";
           return;
         }
-
         this.status = "submitted";
         this.$notify({ type: "success", text: "Transaction Submitted" });
       } catch (e) {

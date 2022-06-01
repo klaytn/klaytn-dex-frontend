@@ -1,5 +1,6 @@
-import kep7 from "@/utils/smartcontracts/kep-7.json";
+import kip7 from "@/utils/smartcontracts/kip-7.json";
 import pairAbi from "@/utils/smartcontracts/pair.json";
+import config from "@/plugins/Config";
 
 export const state = () => ({
   liquidityStatus: "init",
@@ -7,6 +8,99 @@ export const state = () => ({
 });
 
 export const actions = {
+  async quoteForTokenB({ commit, rootState: { tokens } }, value) {
+    try {
+      const {
+        selectedTokens: { tokenA, tokenB },
+        computedToken,
+      } = tokens;
+
+      const exchangeRate = await this.$kaikas.tokens.getTokenBQuote(
+        tokenA.address,
+        tokenB.address,
+        value
+      );
+
+      const { pairBalance, userBalance } =
+        await this.$kaikas.tokens.getPairBalance(
+          tokenA.address,
+          tokenB.address
+        );
+
+      commit(
+        "tokens/SET_TOKEN_VALUE",
+        { type: computedToken, value: exchangeRate, pairBalance, userBalance },
+        { root: true }
+      );
+    } catch (e) {
+      console.log(e);
+      this.$notify({ type: "error", text: e });
+    }
+    return;
+  },
+  async quoteForTokenA({ commit, rootState: { tokens } }, value) {
+    try {
+      const {
+        selectedTokens: { tokenA, tokenB },
+        computedToken,
+      } = tokens;
+
+      const exchangeRate = await this.$kaikas.tokens.getTokenAQuote(
+        tokenA.address,
+        tokenB.address,
+        value
+      );
+
+      const { pairBalance, userBalance } =
+        await this.$kaikas.tokens.getPairBalance(
+          tokenA.address,
+          tokenB.address
+        );
+
+      commit(
+        "tokens/SET_TOKEN_VALUE",
+        { type: computedToken, value: exchangeRate, pairBalance, userBalance },
+        { root: true }
+      );
+    } catch (e) {
+      console.log(e);
+      this.$notify({ type: "error", text: e });
+    }
+    return;
+  },
+
+  // async quoteForKlay({ commit, rootState: { tokens } }, { value, reversed }) {
+  //   try {
+  //     const {
+  //       selectedTokens: { tokenA, tokenB },
+  //       computedToken,
+  //     } = tokens;
+  //
+  //     const exchangeRate = await this.$kaikas.tokens.getKlayQuote(
+  //       tokenA.address,
+  //       tokenB.address,
+  //       value,
+  //       reversed
+  //     );
+  //
+  //     const { pairBalance, userBalance } =
+  //       await this.$kaikas.tokens.getPairBalance(
+  //         tokenA.address,
+  //         tokenB.address
+  //       );
+  //
+  //     commit(
+  //       "tokens/SET_TOKEN_VALUE",
+  //       { type: computedToken, value: exchangeRate, pairBalance, userBalance },
+  //       { root: true }
+  //     );
+  //   } catch (e) {
+  //     console.log(e);
+  //     this.$notify({ type: "error", text: e });
+  //   }
+  //   return;
+  // },
+
   async getPairs({ commit }) {
     const pairsCount = await this.$kaikas.config.factoryContract.methods
       .allPairsLength()
@@ -16,24 +110,33 @@ export const actions = {
       new Array(Number(pairsCount)).fill(null).map(async (it, i) => {
         let pair = {};
 
-        const address = await this.$kaikas.factoryContract.methods
+        const address = await this.$kaikas.config.factoryContract.methods
           .allPairs(i)
           .call();
 
-        const contract = this.$kaikas.createContract(address, pairAbi.abi);
+        const contract = this.$kaikas.config.createContract(
+          address,
+          pairAbi.abi
+        );
 
         const addressA = await contract.methods.token0().call();
         const addressB = await contract.methods.token1().call();
 
-        const contractA = this.$kaikas.createContract(addressA, kep7.abi);
-        const contractB = this.$kaikas.createContract(addressB, kep7.abi);
+        const contractA = this.$kaikas.config.createContract(
+          addressA,
+          kip7.abi
+        );
+        const contractB = this.$kaikas.config.createContract(
+          addressB,
+          kip7.abi
+        );
 
         let name = await contract.methods.name().call();
         let symbol = await contract.methods.symbol().call();
 
         if (
-          !this.$kaikas.isEmptyAddress(addressA) &&
-          !this.$kaikas.isEmptyAddress(addressB)
+          !this.$kaikas.utils.isEmptyAddress(addressA) &&
+          !this.$kaikas.utils.isEmptyAddress(addressB)
         ) {
           const symbolA = await contractA.methods.symbol().call();
           const symbolB = await contractB.methods.symbol().call();
@@ -64,11 +167,11 @@ export const actions = {
 
     commit("SET_PAIRS", pairs);
   },
+
   async addLiquidityAmountOut({ rootState: { tokens } }) {
     const {
       selectedTokens: { tokenA, tokenB },
     } = tokens;
-
     try {
       const tokenAValue = this.$kaikas.bigNumber(tokenA.value);
       const tokenBValue = this.$kaikas.bigNumber(tokenB.value);
@@ -76,7 +179,18 @@ export const actions = {
       const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100));
       const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100));
 
-      const pairAddress = await this.$kaikas.factoryContract.methods
+      await this.$kaikas.config.approveAmount(
+        tokenA.address,
+        kip7.abi,
+        tokenAValue.toFixed(0)
+      );
+
+      await this.$kaikas.config.approveAmount(
+        tokenB.address,
+        kip7.abi,
+        tokenBValue.toFixed(0)
+      );
+      const pairAddress = await this.$kaikas.config.factoryContract.methods
         .getPair(tokenA.address, tokenB.address)
         .call({
           from: this.address,
@@ -87,6 +201,7 @@ export const actions = {
           await this.$kaikas.liquidity.addLiquidityAmountOutForExistPair({
             pairAddress,
             tokenAValue,
+            tokenBValue,
             tokenAddressA: tokenA.address,
             tokenAddressB: tokenB.address,
             amountAMin,
@@ -94,24 +209,16 @@ export const actions = {
           });
 
         await send();
-        this.$notify({ type: "success", text: "Liquidity success" });
+        this.$notify({
+          type: "success",
+          text: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
+        });
 
         console.log("addLiquidityAmountOutForExistPair ", gas);
         return;
       }
 
-      await this.$kaikas.config.approveAmount(
-        tokenA.address,
-        kep7.abi,
-        tokenAValue.toString()
-      );
-      await this.$kaikas.config.approveAmount(
-        tokenB.address,
-        kep7.abi,
-        tokenBValue.toString()
-      );
-
-      const lqGas = await this.$kaikas.routerContract.methods
+      const lqGas = await this.$kaikas.config.routerContract.methods
         .addLiquidity(
           tokenA.address,
           tokenB.address,
@@ -144,7 +251,7 @@ export const actions = {
       this.$notify({ type: "success", text: "Liquidity success" });
     } catch (e) {
       console.log(e);
-      this.$notify({ type: "error", text: "Liquidity error" });
+      this.$notify({ type: "error", text: e });
       throw "Error";
     }
   },
@@ -160,6 +267,17 @@ export const actions = {
       const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100));
       const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100));
 
+      await this.$kaikas.config.approveAmount(
+        tokenA.address,
+        kip7.abi,
+        tokenAValue.toFixed(0)
+      );
+      await this.$kaikas.config.approveAmount(
+        tokenB.address,
+        kip7.abi,
+        tokenBValue.toFixed(0)
+      );
+
       const pairAddress = await this.$kaikas.config.factoryContract.methods
         .getPair(tokenA.address, tokenB.address)
         .call({
@@ -170,6 +288,7 @@ export const actions = {
         const { gas, send } =
           await this.$kaikas.liquidity.addLiquidityAmountInForExistPair({
             pairAddress,
+            tokenAValue,
             tokenBValue,
             tokenAddressA: tokenA.address,
             tokenAddressB: tokenB.address,
@@ -178,21 +297,13 @@ export const actions = {
           });
 
         await send();
-        this.$notify({ type: "success", text: "Liquidity success" });
+        this.$notify({
+          type: "success",
+          text: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
+        });
 
         return;
       }
-
-      await this.$kaikas.config.approveAmount(
-        tokenA.address,
-        kep7.abi,
-        tokenAValue.toString()
-      );
-      await this.$kaikas.config.approveAmount(
-        tokenB.address,
-        kep7.abi,
-        tokenBValue.toString()
-      );
 
       const lqGas = await this.$kaikas.config.routerContract.methods
         .addLiquidity(
@@ -219,12 +330,16 @@ export const actions = {
           deadLine
         )
         .send({
+          from: config.address,
           gas: lqGas,
           gasPrice: 250000000000,
         });
 
       console.log({ lq });
-      this.$notify({ type: "success", text: "Liquidity success" });
+      this.$notify({
+        type: "success",
+        text: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
+      });
     } catch (e) {
       console.log(e);
       this.$notify({ type: "error", text: "Liquidity error" });
@@ -235,6 +350,7 @@ export const actions = {
     const {
       selectedTokens: { tokenA, tokenB },
     } = tokens;
+
     const sortedPair = this.$kaikas.utils.sortKlayPair(tokenA, tokenB);
     const tokenAValue = this.$kaikas.utils.bigNumber(sortedPair[0].value);
     const tokenBValue = this.$kaikas.utils.bigNumber(sortedPair[1].value); // KLAY
@@ -246,38 +362,33 @@ export const actions = {
 
     await this.$kaikas.config.approveAmount(
       sortedPair[0].address,
-      kep7.abi,
-      tokenAValue.toString()
+      kip7.abi,
+      tokenAValue.toFixed(0)
+    );
+
+    await this.$kaikas.config.approveAmount(
+      sortedPair[1].address,
+      kip7.abi,
+      tokenBValue.toFixed(0)
     );
 
     const pairAddress = await this.$kaikas.config.factoryContract.methods
       .getPair(sortedPair[0].address, sortedPair[1].address)
       .call({
-        from: this.address,
+        from: config.address,
       });
 
     if (!this.$kaikas.utils.isEmptyAddress(pairAddress)) {
-      const { send } = await this.$kaikas.liquidity.addLiquidityKlayForExistsPair({
-        pairAddress,
-        tokenAValue,
-        amountAMin,
-        addressA: sortedPair[0].address,
-        deadLine,
-      });
+      const { send } =
+        await this.$kaikas.liquidity.addLiquidityKlayForExistsPair({
+          tokenAValue,
+          tokenBValue,
+          amountAMin,
+          addressA: sortedPair[0].address,
+          deadLine,
+        });
       return await send();
     }
-
-    await this.$kaikas.config.approveAmount(
-      sortedPair[0].address,
-      kep7.abi,
-      tokenAValue.toString()
-    );
-
-    await this.$kaikas.config.approveAmount(
-      sortedPair[1].address,
-      kep7.abi,
-      tokenBValue.toString()
-    );
 
     const { send } = await this.$kaikas.liquidity.addLiquidityKlay({
       addressA: sortedPair[0].address,

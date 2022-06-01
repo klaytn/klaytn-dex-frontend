@@ -115,15 +115,15 @@ export default {
   methods: {
     async connect() {
       const address = await this.$kaikas.config.connectKaikas();
+      if (address) {
+        this.$store.commit("kaikas/CONNECT_KAIKAS", address);
+      }
       if (!this.tokensList.length) {
-        this.loadTokensList();
+        await this.loadTokensList();
       }
 
       if (!this.pairs.length) {
-        this.loadPairs();
-      }
-      if (address) {
-        this.$store.commit("kaikas/CONNECT_KAIKAS", address);
+        await this.loadPairs();
       }
     },
     ...mapActions({

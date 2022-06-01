@@ -34,7 +34,7 @@
         class="token-select-modal--item"
         @click="onAddToken"
       >
-        <Icon :char="importToken.symbolA[0]" name="empty-token" />
+        <Icon :char="importToken.symbol[0]" name="empty-token" />
         <div class="info">
           <p class="token">{{ importToken.symbol }}</p>
           <span class="token-name">{{ importToken.name }}</span>
@@ -64,7 +64,7 @@
 
 <script>
 import { mapMutations, mapState } from "vuex";
-import kep7 from "~/utils/smartcontracts/kep-7.json";
+import kip7 from "~/utils/smartcontracts/kip-7.json";
 
 export default {
   name: "TokenSelectModal",
@@ -111,26 +111,23 @@ export default {
   watch: {
     async searchValue(_new) {
       const code =
-        this.$kaikas.isAddress(_new) &&
-        (await this.$kaikas.caver.klay.getCode(_new));
+        this.$kaikas.utils.isAddress(_new) &&
+        (await this.$kaikas.config.caver.klay.getCode(_new));
+
       const isExists = this.tokensList.find(({ address }) => address === _new);
 
       if (!this.$kaikas.isAddress(_new) || code === "0x" || isExists) {
         this.importToken = null;
         return;
       }
-
       try {
-        const contract = this.$kaikas.createContract(_new, kep7.abi);
-
+        const contract = this.$kaikas.config.createContract(_new, kip7.abi);
         const symbol = await contract.methods.symbol().call();
-
         const name = await contract.methods.name().call();
 
         const balance = await contract.methods
           .balanceOf(this.$kaikas.config.address)
           .call();
-
         this.importToken = {
           id: _new,
           name,
