@@ -14,7 +14,9 @@
 
       <div class="input-amount--col">
         <div class="input-amount--row">
-          <button type="button" class="input-amount--max">max</button>
+          <button type="button" class="input-amount--max" @click="setMax">
+            max
+          </button>
           <!--          <img src="" alt="">-->
           <!--          <img src="" alt="">-->
           <span class="input-amount--tokens">
@@ -108,6 +110,11 @@ import { mapActions, mapMutations, mapState } from "vuex";
 import debounce from "debounce";
 
 export default {
+  data() {
+    return {
+      lpTokenValue: null,
+    };
+  },
   computed: {
     ...mapState("tokens", ["selectedTokens"]),
     ...mapState("liquidity", ["removeLiquidityPair"]),
@@ -117,9 +124,13 @@ export default {
       setLpValue: "liquidity/SET_RM_LIQ_VALUE",
     }),
     ...mapActions({
-      removeLiquidity: "liquidity/removeLiquidity",
       calcRemoveLiquidityAmounts: "liquidity/calcRemoveLiquidityAmounts",
     }),
+    setMax() {
+      const v = this.getFormattedValue(this.selectedTokens.userBalance);
+      this.onInput(v.toString());
+      this.lpTokenValue = v;
+    },
     onInput: debounce(async function (_v) {
       this.setLpValue(_v);
       this.calcRemoveLiquidityAmounts(_v);

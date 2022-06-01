@@ -8,6 +8,7 @@ export const state = () => ({
     emptyPair: false,
     pairAddress: null,
     pairBalance: null,
+    userBalance: null,
     tokenA: null,
     tokenB: null,
   },
@@ -80,12 +81,13 @@ export const actions = {
     pair.tokenA = token0;
     pair.tokenB = token1;
 
-    const { pairBalance } = await this.$kaikas.tokens.getPairBalance(
+    const { pairBalance, userBalance} = await this.$kaikas.tokens.getPairBalance(
       token0Address,
       token1Address
     );
 
     pair.pairBalance = pairBalance;
+    pair.userBalance = userBalance;
     pair.emptyPair = false;
     pair.pairAddress = pairAddress;
 

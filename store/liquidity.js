@@ -423,10 +423,6 @@ export const actions = {
 
     const oneBN = this.$kaikas.utils.bigNumber("1");
 
-    const pairBalance = await pairContract.methods
-      .balanceOf(pairAddress)
-      .call();
-
     const totalSupply = this.$kaikas.utils.bigNumber(
       await pairContract.methods.totalSupply().call()
     );
@@ -460,7 +456,7 @@ export const actions = {
       .dividedBy(totalSupply)
       .minus(oneBN);
 
-    console.log("____ ", {
+    console.log({
       amount0: amount0.toFixed(0),
       amount1: amount1.toFixed(0),
     });
@@ -491,7 +487,6 @@ export const actions = {
     );
 
     const oneBN = this.$kaikas.utils.bigNumber("1");
-
     const pairBalance = await pairContract.methods
       .balanceOf(pairAddress)
       .call();
@@ -499,8 +494,9 @@ export const actions = {
     const totalSupply = this.$kaikas.utils.bigNumber(
       await pairContract.methods.totalSupply().call()
     );
+
     const lpToken = this.$kaikas.utils.bigNumber(
-      this.$kaikas.utils.toWei(removeLiquidityPair.lpTokenValue)
+      this.$kaikas.utils.toWei(removeLiquidityPair.lpTokenValue).toString()
     );
 
     await this.$kaikas.config.approveAmount(
@@ -753,7 +749,6 @@ export const mutations = {
     return state;
   },
   SET_RM_LIQ_VALUE(state, lpTokenValue) {
-    console.log({ lpTokenValue });
     state.removeLiquidityPair = {
       ...state.removeLiquidityPair,
       lpTokenValue,
