@@ -12,7 +12,7 @@
     </div>
     <div v-else-if="!renderPairs.length">Empty</div>
     <div class="liquidity--list" v-else>
-      <div class="liquidity--item" v-for="p in renderPairs">
+      <div class="liquidity--item" v-for="p in renderPairs" :key="p.address">
         <Collapse>
           <template v-slot:head>
             <div class="pair--head">
@@ -81,7 +81,7 @@
 
               <div class="pair--links">
                 <RouterLink to="/liquidity/add">Add</RouterLink>
-                <RouterLink to="/liquidity/remove">Remove</RouterLink>
+                <RouterLink :to="`/liquidity/remove/${p.address}`">Remove</RouterLink>
                 <a href="#" class="deposit">Deposit</a>
               </div>
             </div>

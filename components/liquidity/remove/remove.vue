@@ -20,7 +20,7 @@
     <LiquidityRemoveAmount v-if="active === 'amount'" />
     <LiquidityRemoveDetailed v-if="active === 'detailed'" />
 
-    <Button type="button" class="mt">Remove</Button>
+    <Button @click="removeLiquidity" type="button" class="mt">Remove</Button>
 
     <div class="mt">
       <Collapse>
@@ -51,12 +51,19 @@
 </template>
 
 <script>
+import {mapActions} from "vuex";
+
 export default {
   data() {
     return {
       active: "amount",
     };
   },
+  methods:{
+    ...mapActions({
+      removeLiquidity: 'liquidity/removeLiquidity'
+    })
+  }
 };
 </script>
 

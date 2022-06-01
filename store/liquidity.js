@@ -5,6 +5,13 @@ import config from "@/plugins/Config";
 export const state = () => ({
   liquidityStatus: "init",
   pairs: [],
+  removeLiquidityPair: {
+    lpTokenValue: null,
+    tokenA: null,
+    tokenB: null,
+    amount1: null,
+    amount0: null,
+  },
 });
 
 export const actions = {
@@ -113,6 +120,8 @@ export const actions = {
         const address = await this.$kaikas.config.factoryContract.methods
           .allPairs(i)
           .call();
+
+        pair.address = address;
 
         const contract = this.$kaikas.config.createContract(
           address,
@@ -401,11 +410,354 @@ export const actions = {
 
     return await send();
   },
+  async calcRemoveLiquidityAmounts(
+    { commit, rootState: { tokens } },
+    lpTokenValue
+  ) {
+    const { selectedTokens } = tokens;
+    const pairAddress = selectedTokens.pairAddress;
+    const pairContract = this.$kaikas.config.createContract(
+      pairAddress,
+      pairAbi.abi
+    );
+
+    const oneBN = this.$kaikas.utils.bigNumber("1");
+
+    const pairBalance = await pairContract.methods
+      .balanceOf(pairAddress)
+      .call();
+
+    const totalSupply = this.$kaikas.utils.bigNumber(
+      await pairContract.methods.totalSupply().call()
+    );
+    const lpToken = this.$kaikas.utils.bigNumber(
+      this.$kaikas.utils.toWei(lpTokenValue)
+    );
+
+    const contract0 = this.$kaikas.config.createContract(
+      selectedTokens.tokenA.address,
+      kip7.abi
+    );
+    const contract1 = this.$kaikas.config.createContract(
+      selectedTokens.tokenB.address,
+      kip7.abi
+    );
+
+    const balance0 = await contract0.methods.balanceOf(pairAddress).call({
+      from: this.$kaikas.config.address,
+    });
+
+    const balance1 = await contract1.methods.balanceOf(pairAddress).call({
+      from: this.$kaikas.config.address,
+    });
+
+    const amount0 = lpToken
+      .multipliedBy(balance0)
+      .dividedBy(totalSupply)
+      .minus(oneBN);
+    const amount1 = lpToken
+      .multipliedBy(balance1)
+      .dividedBy(totalSupply)
+      .minus(oneBN);
+
+    console.log("____ ", {
+      amount0: amount0.toFixed(0),
+      amount1: amount1.toFixed(0),
+    });
+
+    commit("SET_AMOUNTS", {
+      amount0: amount0.toFixed(0),
+      amount1: amount1.toFixed(0),
+    });
+  },
+  async removeLiquidity({ rootState: { tokens, liquidity } }) {
+    const { selectedTokens } = tokens;
+    const { removeLiquidityPair } = liquidity;
+
+    // amount0 = (liquidity * balance0) / _totalSupply; // using balances ensures pro-rata distribution
+    // amount1 = (liquidity * balance1) / _totalSupply; // using balances ensures pro-rata distribution
+    //
+    // amountAMin = amount0
+    //
+    // amountBMin = amount1
+    //
+    // balance0 = IKIP7(_token0).balanceOf(pairAddress);
+    // balance1 = IKIP7(_token1).balanceOf(pairAddress);
+
+    const pairAddress = selectedTokens.pairAddress;
+    const pairContract = this.$kaikas.config.createContract(
+      pairAddress,
+      pairAbi.abi
+    );
+
+    const oneBN = this.$kaikas.utils.bigNumber("1");
+
+    const pairBalance = await pairContract.methods
+      .balanceOf(pairAddress)
+      .call();
+
+    const totalSupply = this.$kaikas.utils.bigNumber(
+      await pairContract.methods.totalSupply().call()
+    );
+    const lpToken = this.$kaikas.utils.bigNumber(
+      this.$kaikas.utils.toWei(removeLiquidityPair.lpTokenValue)
+    );
+
+    await this.$kaikas.config.approveAmount(
+      pairAddress,
+      pairAbi.abi,
+      lpToken.toFixed(0)
+    );
+
+    const contract0 = this.$kaikas.config.createContract(
+      selectedTokens.tokenA.address,
+      kip7.abi
+    );
+    const contract1 = this.$kaikas.config.createContract(
+      selectedTokens.tokenB.address,
+      kip7.abi
+    );
+
+    const balance0 = await contract0.methods.balanceOf(pairAddress).call({
+      from: this.$kaikas.config.address,
+    });
+
+    const balance1 = await contract1.methods.balanceOf(pairAddress).call({
+      from: this.$kaikas.config.address,
+    });
+
+    const amount0 = lpToken
+      .multipliedBy(balance0)
+      .dividedBy(totalSupply)
+      .minus(oneBN);
+    const amount1 = lpToken
+      .multipliedBy(balance1)
+      .dividedBy(totalSupply)
+      .minus(oneBN);
+
+    const deadLine = Math.floor(Date.now() / 1000 + 300);
+
+    const params = {
+      addressA: selectedTokens.tokenA.address,
+      addressB: selectedTokens.tokenB.address,
+      lpToken: lpToken.toFixed(0),
+      amount0: amount0.minus(oneBN).toFixed(0),
+      amount1: amount1.minus(oneBN).toFixed(0),
+      address: this.$kaikas.config.address,
+      deadLine,
+    };
+
+    console.log({
+      ...params,
+      totalSupply: totalSupply.toFixed(0),
+      balance0: balance0,
+      balance1: balance1,
+      pairBalance,
+      amount0N: amount0.toFixed(0),
+      amount1N: amount1.toFixed(0),
+    });
+
+    try {
+      // - address tokenA,
+      // - address tokenB,
+      // - uint256 liquidity,
+      // - uint256 amountAMin,
+      // - uint256 amountBMin,
+      // - address to,
+      // - uint256 deadline
+
+      const removeLiqGas = await this.$kaikas.config.routerContract.methods
+        .removeLiquidity(
+          params.addressA,
+          params.addressB,
+          params.lpToken,
+          params.amount0,
+          params.amount1,
+          params.address,
+          params.deadLine
+        )
+        .estimateGas({
+          from: this.$kaikas.config.address,
+          gasPrice: 250000000000,
+        });
+
+      const res = await this.$kaikas.config.routerContract.methods
+        .removeLiquidity(
+          params.addressA,
+          params.addressB,
+          params.lpToken,
+          params.amount0,
+          params.amount1,
+          params.address,
+          params.deadLine
+        )
+        .send({
+          from: this.$kaikas.config.address,
+          gasPrice: 250000000000,
+          gas: removeLiqGas,
+        });
+
+      console.log({ removeLiqGas, res });
+    } catch (e) {
+      console.log(e);
+    }
+  },
+  async removeLiquidityETH({ rootState: { tokens } }) {
+    const { selectedTokens } = tokens;
+
+    //   address token, not klay
+    //   uint256 liquidity,
+    //   uint256 amountTokenMin, // amountTokenMin = (liquidity * balance1) / _totalSupply;
+    //   uint256 amountETHMin,   // amountTokenMin = (liquidity * wklayBalance) / _totalSupply;
+    //   address to,
+    //   uint256 deadline
+
+    const pairAddress = selectedTokens.pairAddress;
+    const pairContract = this.$kaikas.config.createContract(
+      pairAddress,
+      pairAbi.abi
+    );
+
+    const oneBN = this.$kaikas.utils.bigNumber("1");
+
+    const pairBalance = await pairContract.methods
+      .balanceOf(pairAddress)
+      .call();
+
+    const totalSupply = this.$kaikas.utils.bigNumber(
+      await pairContract.methods.totalSupply().call()
+    );
+
+    const lpToken = this.$kaikas.utils.bigNumber(
+      this.$kaikas.utils.toWei("10")
+    );
+
+    await this.$kaikas.config.approveAmount(
+      pairAddress,
+      pairAbi.abi,
+      lpToken.toFixed(0)
+    );
+
+    const contract0 = this.$kaikas.config.createContract(
+      selectedTokens.tokenA.address,
+      kip7.abi
+    );
+    const contract1 = this.$kaikas.config.createContract(
+      selectedTokens.tokenB.address,
+      kip7.abi
+    );
+
+    const balance0 = this.$kaikas.utils.bigNumber(
+      await contract0.methods.balanceOf(pairAddress).call({
+        from: this.$kaikas.config.address,
+      })
+    );
+
+    const balance1 = this.$kaikas.utils.bigNumber(
+      await contract1.methods.balanceOf(pairAddress).call({
+        from: this.$kaikas.config.address,
+      })
+    );
+
+    const amount0 = lpToken
+      .multipliedBy(balance0)
+      .dividedBy(totalSupply)
+      .minus(oneBN);
+    const amount1 = lpToken
+      .multipliedBy(balance1)
+      .dividedBy(totalSupply)
+      .minus(oneBN);
+
+    const deadLine = Math.floor(Date.now() / 1000 + 300);
+
+    const params = {
+      addressA: selectedTokens.tokenA.address,
+      addressB: selectedTokens.tokenB.address,
+      lpToken: lpToken.toFixed(0),
+      amount0: amount0.minus(oneBN).toFixed(0),
+      amount1: amount1.minus(oneBN).toFixed(0),
+      address: this.$kaikas.config.address,
+      deadLine,
+    };
+
+    console.log({
+      ...params,
+      totalSupply: totalSupply.toFixed(0),
+      balance0: balance0.toFixed(0),
+      balance1: balance1.toFixed(0),
+      pairBalance,
+      amount0N: amount0.toFixed(0),
+      amount1N: amount1.toFixed(0),
+    });
+
+    try {
+      // - address tokenA,
+      // - address tokenB,
+      // - uint256 liquidity,
+      // - uint256 amountAMin,
+      // - uint256 amountBMin,
+      // - address to,
+      // - uint256 deadline
+
+      const removeLiqGas = await this.$kaikas.config.routerContract.methods
+        .removeLiquidity(
+          params.addressA,
+          params.addressB,
+          params.lpToken,
+          params.amount0,
+          params.amount1,
+          params.address,
+          params.deadLine
+        )
+        .estimateGas({
+          from: this.$kaikas.config.address,
+          gasPrice: 250000000000,
+        });
+
+      const res = await this.$kaikas.config.routerContract.methods
+        .removeLiquidity(
+          params.addressA,
+          params.addressB,
+          params.lpToken,
+          params.amount0,
+          params.amount1,
+          params.address,
+          params.deadLine
+        )
+        .send({
+          from: this.$kaikas.config.address,
+          gasPrice: 250000000000,
+          gas: removeLiqGas,
+        });
+
+      console.log({ removeLiqGas, res });
+    } catch (e) {
+      console.log(e);
+    }
+  },
 };
 
 export const mutations = {
   SET_PAIRS(state, pairs) {
     state.pairs = pairs;
+
+    return state;
+  },
+  SET_AMOUNTS(state, { amount0, amount1 }) {
+    state.removeLiquidityPair = {
+      ...state.removeLiquidityPair,
+      amount0,
+      amount1,
+    };
+
+    return state;
+  },
+  SET_RM_LIQ_VALUE(state, lpTokenValue) {
+    console.log({ lpTokenValue });
+    state.removeLiquidityPair = {
+      ...state.removeLiquidityPair,
+      lpTokenValue,
+    };
 
     return state;
   },
