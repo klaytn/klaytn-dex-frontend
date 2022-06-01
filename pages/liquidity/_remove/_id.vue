@@ -13,7 +13,9 @@
     <template>
       <div class="add-liq">
         <LiquidityRemove v-if="isValid" />
-        <Loader v-else />
+        <div class="loader-wrapper" v-else>
+          <Loader />
+        </div>
       </div>
     </template>
   </Wrap>
@@ -41,6 +43,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.loader-wrapper {
+  margin: 20px auto;
+  width: min-content;
+}
 .back {
   font-weight: 700;
   font-size: 18px;

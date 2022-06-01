@@ -112,7 +112,7 @@ import debounce from "debounce";
 export default {
   data() {
     return {
-      lpTokenValue: null,
+      lpTokenValue:  null,
     };
   },
   computed: {
@@ -150,6 +150,9 @@ export default {
       return Number(bn.toFixed(4));
     },
   },
+  beforeMount() {
+    this.lpTokenValue = this.removeLiquidityPair.lpTokenValue
+  }
 };
 </script>
 

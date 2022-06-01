@@ -543,24 +543,7 @@ export const actions = {
       deadLine,
     };
 
-    console.log({
-      ...params,
-      totalSupply: totalSupply.toFixed(0),
-      balance0: balance0,
-      balance1: balance1,
-      pairBalance,
-      amount0N: amount0.toFixed(0),
-      amount1N: amount1.toFixed(0),
-    });
-
     try {
-      // - address tokenA,
-      // - address tokenB,
-      // - uint256 liquidity,
-      // - uint256 amountAMin,
-      // - uint256 amountBMin,
-      // - address to,
-      // - uint256 deadline
 
       const removeLiqGas = await this.$kaikas.config.routerContract.methods
         .removeLiquidity(
@@ -592,7 +575,10 @@ export const actions = {
           gasPrice: 250000000000,
           gas: removeLiqGas,
         });
-
+      this.$notify({
+        type: "success",
+        text: `Remove liquidity success ${selectedTokens.tokenA.name} + ${selectedTokens.tokenB.name}`,
+      });
       console.log({ removeLiqGas, res });
     } catch (e) {
       console.log(e);
