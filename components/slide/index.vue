@@ -1,6 +1,6 @@
 <template>
   <div>
-    <vue-slider v-model="value"></vue-slider>
+    <vue-slider lazy v-model="value"></vue-slider>
   </div>
 </template>
 
@@ -12,14 +12,22 @@ export default {
   components: {
     VueSlider
   },
+  props:{
+    propsValue: {
+      type: Number
+    }
+  },
   data: function () {
     return {
-      value: 0,
+      value: this.propsValue,
     }
   },
   watch: {
     value(_new, _old){
       this.$emit('onmove', _new)
+    },
+    propsValue(){
+      this.value = this.propsValue
     }
   }
 }

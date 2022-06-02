@@ -1,11 +1,14 @@
 import kip7 from "~/utils/smartcontracts/kip-7.json";
+import pairAbi from "~/utils/smartcontracts/pair.json";
 
 export const state = () => ({
   tokensList: [],
   computedToken: null,
   selectedTokens: {
     emptyPair: false,
+    pairAddress: null,
     pairBalance: null,
+    userBalance: null,
     tokenA: null,
     tokenB: null,
   },
@@ -41,6 +44,54 @@ export const actions = {
     }
 
     commit("SET_SELECTED_TOKENS_EMPTY_PAIR", { emptyPair: false });
+  },
+  async setSelectedTokensByPair({ commit, state }, pairAddress) {
+    const pairContract = this.$kaikas.config.createContract(
+      pairAddress,
+      pairAbi.abi
+    );
+    const pair = {};
+    const token0Address = await pairContract.methods.token0().call({
+      from: this.$kaikas.config.address,
+    });
+    const token1Address = await pairContract.methods.token1().call({
+      from: this.$kaikas.config.address,
+    });
+
+    const token0 = {};
+    const token1 = {};
+
+    const contractToken0 = this.$kaikas.createContract(token0Address, kip7.abi);
+    const contractToken1 = this.$kaikas.createContract(token1Address, kip7.abi);
+
+    token0.address = token0Address;
+    token0.name = await contractToken0.methods.name().call();
+    token0.symbol = await contractToken0.methods.symbol().call();
+    token0.balance = await contractToken0.methods
+      .balanceOf(this.$kaikas.config.address)
+      .call();
+
+    token1.address = token1Address;
+    token1.name = await contractToken1.methods.name().call();
+    token1.symbol = await contractToken1.methods.symbol().call();
+    token1.balance = await contractToken1.methods
+      .balanceOf(this.$kaikas.config.address)
+      .call();
+
+    pair.tokenA = token0;
+    pair.tokenB = token1;
+
+    const { pairBalance, userBalance} = await this.$kaikas.tokens.getPairBalance(
+      token0Address,
+      token1Address
+    );
+
+    pair.pairBalance = pairBalance;
+    pair.userBalance = userBalance;
+    pair.emptyPair = false;
+    pair.pairAddress = pairAddress;
+
+    commit("SET_PAIR", pair);
   },
   async getTokens({ commit }) {
     const balance = await caver.klay.getBalance(this.$kaikas.config.address);
@@ -111,11 +162,15 @@ export const mutations = {
       price: rate,
     };
   },
+  SET_PAIR(state, selectedToken) {
+    state.selectedTokens = { ...selectedToken };
+    return state;
+  },
   SET_SELECTED_TOKENS_EMPTY_PAIR(state, { emptyPair }) {
     state.selectedTokens = {
       ...state.selectedTokens,
-      emptyPair
-    }
+      emptyPair,
+    };
   },
   SET_TOKEN_VALUE(state, { type, value, pairBalance, userBalance }) {
     state.selectedTokens = {

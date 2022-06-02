@@ -3,18 +3,50 @@
     <template v-slot:head>
       <RouterLink to="/liquidity" class="back">
         <Icon name="back-arrow" />
-        <span> Remove ETH-DAI liquidity </span>
+        <span v-if="isValid">
+          Remove
+          {{ selectedTokens.tokenA.symbol }}-{{ selectedTokens.tokenB.symbol }}
+          liquidity
+        </span>
       </RouterLink>
     </template>
     <template>
       <div class="add-liq">
-        <LiquidityRemove></LiquidityRemove>
+        <LiquidityRemove v-if="isValid" />
+        <div class="loader-wrapper" v-else>
+          <Loader />
+        </div>
       </div>
     </template>
   </Wrap>
 </template>
 
+<script>
+import { mapActions, mapState } from "vuex";
+
+export default {
+  computed: {
+    ...mapState("tokens", ["selectedTokens"]),
+    isValid() {
+      return this.selectedTokens?.tokenA && this.selectedTokens?.tokenB;
+    },
+  },
+  methods: {
+    ...mapActions({
+      setSelectedTokensByPair: "tokens/setSelectedTokensByPair",
+    }),
+  },
+  beforeMount() {
+    this.setSelectedTokensByPair(this.$route.params.id);
+  },
+};
+</script>
+
 <style lang="scss" scoped>
+.loader-wrapper {
+  margin: 20px auto;
+  width: min-content;
+}
 .back {
   font-weight: 700;
   font-size: 18px;
