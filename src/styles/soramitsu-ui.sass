@@ -1,4 +1,11 @@
-@import '@soramitsu-ui/ui/dist/style.css'
+@use '@soramitsu-ui/ui/styles'
+@use '@soramitsu-ui/theme/fonts/Sora'
+@use '@soramitsu-ui/theme/sass' as theme
+
+@include theme.typography-preset-default
+
+:root
+  @include theme.tokens-preset-light
 
 .s-modal
   &__modal
