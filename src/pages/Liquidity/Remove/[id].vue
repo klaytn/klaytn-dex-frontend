@@ -1,8 +1,28 @@
+<script>
+import { mapActions, mapState } from 'pinia'
+
+export default {
+  name: 'LiquidityRemove',
+  computed: {
+    ...mapState(useTokensStore, ['selectedTokens']),
+    isValid() {
+      return this.selectedTokens?.tokenA && this.selectedTokens?.tokenB
+    },
+  },
+  beforeMount() {
+    this.setSelectedTokensByPair(this.$route.params.id)
+  },
+  methods: {
+    ...mapActions(useTokensStore, ['setSelectedTokensByPair']),
+  },
+}
+</script>
+
 <template>
-  <Wrap>
-    <template v-slot:head>
+  <KlayWrap>
+    <template #head>
       <RouterLink to="/liquidity" class="back">
-        <Icon name="back-arrow" />
+        <KlayIcon name="back-arrow" />
         <span v-if="isValid">
           Remove
           {{ selectedTokens.tokenA.symbol }}-{{ selectedTokens.tokenB.symbol }}
@@ -10,37 +30,14 @@
         </span>
       </RouterLink>
     </template>
-    <template>
-      <div class="add-liq">
-        <LiquidityRemove v-if="isValid" />
-        <div class="loader-wrapper" v-else>
-          <Loader />
-        </div>
+    <div class="add-liq">
+      <LiquidityModuleRemove v-if="isValid" />
+      <div v-else class="loader-wrapper">
+        <KlayLoader />
       </div>
-    </template>
-  </Wrap>
+    </div>
+  </KlayWrap>
 </template>
-
-<script>
-import { mapActions, mapState } from "vuex";
-
-export default {
-  computed: {
-    ...mapState("tokens", ["selectedTokens"]),
-    isValid() {
-      return this.selectedTokens?.tokenA && this.selectedTokens?.tokenB;
-    },
-  },
-  methods: {
-    ...mapActions({
-      setSelectedTokensByPair: "tokens/setSelectedTokensByPair",
-    }),
-  },
-  beforeMount() {
-    this.setSelectedTokensByPair(this.$route.params.id);
-  },
-};
-</script>
 
 <style lang="scss" scoped>
 .loader-wrapper {

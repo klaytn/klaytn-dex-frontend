@@ -1,25 +1,23 @@
+<script setup lang="ts" name="KlayIcon">
+const { name, char } = defineProps<{
+  name: string
+  char?: string
+}>()
+
+const CurrentIcon = defineAsyncComponent(() => import(`../assets/svg/${name}.svg?component`))
+</script>
+
 <template>
-  <div class="char" v-if="char">
+  <div v-if="char" class="char">
     {{ char }}
   </div>
   <!-- eslint-disable vue/no-v-html -->
-  <div
+  <CurrentIcon
     v-else
     class="svg-icon"
-    v-html="require(`@/assets/svg/${name}.svg?raw`)"
   />
-  <!--eslint-enable-->
+  <!-- eslint-enable -->
 </template>
-
-<script>
-export default {
-  name: "KlayIcon",
-  props: {
-    name: { type: String, default: "image" },
-    char: { type: String },
-  },
-};
-</script>
 
 <style lang="scss" scoped>
 .char {

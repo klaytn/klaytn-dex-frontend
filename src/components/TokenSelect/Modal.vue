@@ -1,5 +1,89 @@
+<script>
+import { mapActions, mapState } from 'pinia'
+import kip7 from '@/utils/smartcontracts/kip-7.json'
+
+export default {
+  name: 'TokenSelectModal',
+  emits: ['close', 'select'],
+  data() {
+    return {
+      searchValue: '',
+      importToken: null,
+    }
+  },
+  computed: {
+    ...mapState(useTokensStore, ['tokensList']),
+    renderTokens() {
+      return this.tokensList.filter(
+        token =>
+          token.symbol.search(this.searchValue.toUpperCase()) !== -1
+          || token.address === this.searchValue,
+      )
+    },
+  },
+  watch: {
+    async searchValue(_new) {
+      const code
+        = $kaikas.utils.isAddress(_new)
+        && (await $kaikas.config.caver.klay.getCode(_new))
+
+      const isExists = this.tokensList.find(({ address }) => address === _new)
+
+      if (!$kaikas.isAddress(_new) || code === '0x' || isExists) {
+        this.importToken = null
+        return
+      }
+      try {
+        const contract = $kaikas.config.createContract(_new, kip7.abi)
+        const symbol = await contract.methods.symbol().call()
+        const name = await contract.methods.name().call()
+
+        const balance = await contract.methods
+          .balanceOf($kaikas.config.address)
+          .call()
+        this.importToken = {
+          id: _new,
+          name,
+          symbol,
+          logo: '-',
+          balance,
+          slug: '-',
+          address: _new,
+        }
+      }
+      catch (e) {
+        console.log(e)
+      }
+    },
+  },
+  methods: {
+    ...mapActions(useTokensStore, {
+      updateTokens: 'setTokens',
+    }),
+    getRenderBalance(balance) {
+      const value = $kaikas.bigNumber($kaikas.fromWei(balance))
+      return value.toFixed(4)
+    },
+    onSelect(t) {
+      if (Number(t.balance) <= 0)
+        return
+
+      this.$emit('select', t)
+    },
+    onAddToken() {
+      if (this.importToken) {
+        this.updateTokens([this.importToken, ...this.tokensList])
+        this.searchValue = ''
+        this.importToken = null
+        this.$notify({ type: 'success', text: 'Token added' })
+      }
+    },
+  },
+}
+</script>
+
 <template>
-  <Modal
+  <KlayModal
     padding="20px 0"
     width="344"
     label="Select a token"
@@ -9,21 +93,21 @@
       <div class="token-select-modal">
         <div class="token-select-modal--input">
           <p>Search name or paste adress</p>
-          <input v-model="searchValue" type="text" placeholder="KLAY" />
+          <input v-model="searchValue" type="text" placeholder="KLAY">
         </div>
       </div>
     </div>
 
-
     <div class="token-select-modal--recent row">
       <div
-        class="token-select-modal--tag"
         v-for="t in renderTokens.slice(0, 6)"
+        :key="t.address"
+        class="token-select-modal--tag"
         @click="onSelect(t)"
       >
-        <TagName :label="t.symbol" :key="t.symbol">
-          <Icon :char="t.symbol[0]" name="empty-token" />
-          <!--          <img class="token-logo" :src="t.logo" alt="token logo" />-->
+        <TagName :key="t.symbol" :label="t.symbol">
+          <KlayIcon :char="t.symbol[0]" name="empty-token" />
+          <!--          <img class="token-logo" :src="t.logo" alt="token logo" /> -->
         </TagName>
       </div>
     </div>
@@ -34,12 +118,16 @@
         class="token-select-modal--item"
         @click="onAddToken"
       >
-        <Icon :char="importToken.symbol[0]" name="empty-token" />
+        <KlayIcon :char="importToken.symbol[0]" name="empty-token" />
         <div class="info">
-          <p class="token">{{ importToken.symbol }}</p>
+          <p class="token">
+            {{ importToken.symbol }}
+          </p>
           <span class="token-name">{{ importToken.name }}</span>
         </div>
-        <button type="button" class="token-select-modal--import">Import</button>
+        <button type="button" class="token-select-modal--import">
+          Import
+        </button>
       </div>
 
       <div
@@ -49,101 +137,20 @@
         :class="{ 'token-select-modal--item-disabled': Number(t.balance) <= 0 }"
         @click="onSelect(t)"
       >
-        <Icon :char="t.symbol[0]" name="empty-token" />
+        <KlayIcon :char="t.symbol[0]" name="empty-token" />
         <div class="info">
-          <p class="token">{{ t.symbol }}</p>
+          <p class="token">
+            {{ t.symbol }}
+          </p>
           <span class="token-name">{{ t.name.toLowerCase() }}</span>
         </div>
-        <TextField :title="`${t.balance} ${t.symbol}`" class="token-count">
+        <KlayTextField :title="`${t.balance} ${t.symbol}`" class="token-count">
           {{ getRenderBalance(t.balance) }} {{ t.symbol }}
-        </TextField>
+        </KlayTextField>
       </div>
     </div>
-  </Modal>
+  </KlayModal>
 </template>
-
-<script>
-import { mapMutations, mapState } from "vuex";
-import kip7 from "~/utils/smartcontracts/kip-7.json";
-
-export default {
-  name: "TokenSelectModal",
-  data() {
-    return {
-      searchValue: "",
-      importToken: null,
-    };
-  },
-  computed: {
-    ...mapState("tokens", ["tokensList"]),
-    renderTokens() {
-      return this.tokensList.filter(
-        (token) =>
-          token.symbol.search(this.searchValue.toUpperCase()) !== -1 ||
-          token.address === this.searchValue
-      );
-    },
-  },
-  methods: {
-    ...mapMutations({
-      updateTokens: "tokens/SET_TOKENS",
-    }),
-    getRenderBalance(balance){
-      const value = this.$kaikas.bigNumber(this.$kaikas.fromWei(balance))
-      return value.toFixed(4)
-    },
-    onSelect(t) {
-      if (Number(t.balance) <= 0) {
-        return;
-      }
-
-      this.$emit("select", t);
-    },
-    onAddToken() {
-      if (this.importToken) {
-        this.updateTokens([this.importToken, ...this.tokensList]);
-        this.searchValue = "";
-        this.importToken = null;
-        this.$notify({ type: 'success', text: 'Token added' })
-      }
-    },
-  },
-  watch: {
-    async searchValue(_new) {
-      const code =
-        this.$kaikas.utils.isAddress(_new) &&
-        (await this.$kaikas.config.caver.klay.getCode(_new));
-
-      const isExists = this.tokensList.find(({ address }) => address === _new);
-
-      if (!this.$kaikas.isAddress(_new) || code === "0x" || isExists) {
-        this.importToken = null;
-        return;
-      }
-      try {
-        const contract = this.$kaikas.config.createContract(_new, kip7.abi);
-        const symbol = await contract.methods.symbol().call();
-        const name = await contract.methods.name().call();
-
-        const balance = await contract.methods
-          .balanceOf(this.$kaikas.config.address)
-          .call();
-        this.importToken = {
-          id: _new,
-          name,
-          symbol,
-          logo: "-",
-          balance,
-          slug: "-",
-          address: _new,
-        };
-      } catch (e) {
-        console.log(e);
-      }
-    },
-  },
-};
-</script>
 
 <style scoped lang="scss">
 .row {

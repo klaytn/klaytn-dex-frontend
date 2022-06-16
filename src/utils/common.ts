@@ -1,6 +1,6 @@
 export const copyToClipboard = function myFunction(value) {
   /* Create the text field */
-  const copyText = document.createElement("input")
+  const copyText = document.createElement('input')
   copyText.focus()
   copyText.value = value
   /* Select the text field */

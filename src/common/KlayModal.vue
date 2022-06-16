@@ -1,8 +1,25 @@
+<script>
+export default {
+  name: 'KlayModal',
+  props: {
+    label: {
+      type: String,
+      default: '',
+    },
+    width: {
+      type: String,
+      default: '300',
+    },
+  },
+  emits: ['close'],
+}
+</script>
+
 <template>
-  <div class="modal">
-    <div class="modal--close-layer" @click="$emit('close')"></div>
+  <div class="klay-modal">
+    <div class="klay-modal--close-layer" @click="$emit('close')" />
     <div
-      class="modal--body"
+      class="klay-modal--body"
       :style="{
         width: `${width}px`,
       }"
@@ -10,37 +27,22 @@
       <div class="head">
         <h3>{{ label || "" }}</h3>
         <button type="button" class="close" @click="$emit('close')">
-          <Icon name="close" />
+          <KlayIcon name="close" />
         </button>
       </div>
-      <slot></slot>
+      <slot />
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: "KlayModal",
-  props: {
-    label: {
-      type: String,
-      default: "",
-    },
-    width: {
-      type: String,
-      default: "300",
-    },
-  },
-}
-</script>
-
 <style scoped lang="scss">
-.modal {
+.klay-modal {
   position: fixed;
   top: 0;
   right: 0;
   left: 0;
   bottom: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;

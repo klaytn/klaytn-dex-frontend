@@ -1,7 +1,10 @@
-import Vue from 'vue'
-import Notifications from 'vue-notification'
-Vue.use(Notifications)
+import { type Status, useNotifications } from '@soramitsu-ui/ui'
 
-export default (context, inject) => {
-  inject('notify', Vue.notify)
+export const $notify = function ({ type, text }: { type: Status; text: string }) {
+  console.log(text)
+  // const { show } = useNotifications()
+  // show({
+  //   status: type,
+  //   descriptionSlot: () => [text],
+  // })
 }

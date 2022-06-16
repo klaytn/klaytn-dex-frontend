@@ -1,18 +1,89 @@
+<script>
+import { mapActions, mapState } from 'pinia'
+
+export default {
+  name: 'LiquidityModuleAddModal',
+  emits: ['close'],
+  data() {
+    return {
+      status: 'initial',
+      error: false,
+    }
+  },
+  computed: {
+    ...mapState(useTokensStore, ['selectedTokens', 'computedToken']),
+    isValid() {
+      return (
+        this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
+      )
+    },
+  },
+  methods: {
+    ...mapActions(useLiquidityStore, ['addLiquidityAmountIn', 'addLiquidityAmountOut', 'addLiquidityETH']),
+    async handleAddLiquidity() {
+      try {
+        this.error = false
+        this.status = 'in_progress'
+        const isKlayToken
+          = $kaikas.utils.isNativeToken(this.selectedTokens.tokenA.address)
+          || $kaikas.utils.isNativeToken(this.selectedTokens.tokenB.address)
+
+        if (isKlayToken) {
+          await this.addLiquidityETH()
+          this.status = 'submitted'
+          return
+        }
+        if (this.computedToken === 'tokenA') {
+          await this.addLiquidityAmountIn()
+          this.status = 'submitted'
+          return
+        }
+
+        if (this.computedToken === 'tokenB') {
+          await this.addLiquidityAmountOut()
+          this.status = 'submitted'
+          return
+        }
+        this.status = 'submitted'
+        $notify({ type: 'success', text: 'Transaction Submitted' })
+      }
+      catch (e) {
+        this.status = 'initial'
+        $notify({ type: 'error', text: 'Transaction Reverted' })
+      }
+    },
+    getFormattedRate(v1, v2) {
+      const bigNA = $kaikas.bigNumber(v1)
+      const bigNB = $kaikas.bigNumber(v2)
+
+      return bigNA.dividedBy(bigNB).toFixed(5)
+    },
+    getFormattedPercent(v1, v2) {
+      const bigNA = $kaikas.bigNumber(v1)
+      const bigNB = $kaikas.bigNumber(v2)
+      const percent = bigNA.dividedToIntegerBy(100)
+
+      return `${bigNB.dividedBy(percent).toFixed(2)}%`
+    },
+  },
+}
+</script>
+
 <template>
-  <Modal @close="$emit('close')" width="344" label="Confirm Supply">
+  <KlayModal width="344" label="Confirm Supply" @close="$emit('close')">
     <div>
       <div
         v-if="status === 'initial' || status === 'in_progress'"
         class="m-content"
       >
-        <!--        <p class="m-title">You will receive LP ETH-KLAY Tokens</p>-->
-        <!--        <div class="m-head">-->
-        <!--          <img :src="selectedTokens.tokenA.logo" alt="" />-->
-        <!--          <img :src="selectedTokens.tokenB.logo" alt="" />-->
-        <!--          <p>3.6747823</p>-->
-        <!--        </div>-->
+        <!--        <p class="m-title">You will receive LP ETH-KLAY Tokens</p> -->
+        <!--        <div class="m-head"> -->
+        <!--          <img :src="selectedTokens.tokenA.logo" alt="" /> -->
+        <!--          <img :src="selectedTokens.tokenB.logo" alt="" /> -->
+        <!--          <p>3.6747823</p> -->
+        <!--        </div> -->
 
-        <div class="liquidity--details" v-if="isValid">
+        <div v-if="isValid" class="liquidity--details">
           <h3>Prices and pool share</h3>
 
           <div class="liquidity--details--row">
@@ -24,7 +95,7 @@
               {{
                 getFormattedRate(
                   selectedTokens.tokenA.value,
-                  selectedTokens.tokenB.value
+                  selectedTokens.tokenB.value,
                 )
               }}
             </span>
@@ -38,7 +109,7 @@
               {{
                 getFormattedRate(
                   selectedTokens.tokenB.value,
-                  selectedTokens.tokenA.value
+                  selectedTokens.tokenA.value,
                 )
               }}
             </span>
@@ -52,114 +123,42 @@
               {{
                 getFormattedPercent(
                   selectedTokens.pairBalance,
-                  selectedTokens.userBalance
+                  selectedTokens.userBalance,
                 )
               }}
             </span>
           </div>
-          <!--          <div class="liquidity&#45;&#45;details&#45;&#45;row">-->
-          <!--            <span>You'll earn</span>-->
-          <!--            <span>0.17%</span>-->
-          <!--          </div>-->
+          <!--          <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
+          <!--            <span>You'll earn</span> -->
+          <!--            <span>0.17%</span> -->
+          <!--          </div> -->
 
-          <!--          <div class="liquidity&#45;&#45;details&#45;&#45;row">-->
-          <!--            <span>Transaction Fee</span>-->
-          <!--            <span>0.074 KLAY ($0.013)</span>-->
-          <!--          </div>-->
+          <!--          <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
+          <!--            <span>Transaction Fee</span> -->
+          <!--            <span>0.074 KLAY ($0.013)</span> -->
+          <!--          </div> -->
         </div>
 
-        <Button
+        <KlayButton
           type="button"
           :disabled="status === 'in_progress'"
           class="liquidity--btn"
           @click="handleAddLiquidity"
         >
           {{ status === "in_progress" ? "Wait" : "Supply" }}
-        </Button>
+        </KlayButton>
       </div>
       <div v-else-if="status === 'submitted'" class="m-content">
         <div class="submitted">
           <p>Transaction Submitted</p>
-          <!--          <a href="#"> View on BscScan </a>-->
+          <!--          <a href="#"> View on BscScan </a> -->
         </div>
-        <Button type="button" @click="$emit('close')"> Close</Button>
+        <KlayButton type="button" @click="$emit('close')">
+          Close
+        </KlayButton>
       </div>
     </div>
-  </Modal>
+  </KlayModal>
 </template>
-
-<script>
-import { mapActions, mapState } from "vuex";
-
-export default {
-  data() {
-    return {
-      status: "initial",
-      error: false,
-    };
-  },
-  computed: {
-    ...mapState("tokens", ["selectedTokens", "computedToken"]),
-    isValid() {
-      return (
-        this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
-      );
-    },
-  },
-  methods: {
-    ...mapActions({
-      addLiquidityAmountIn: "liquidity/addLiquidityAmountIn",
-      addLiquidityAmountOut: "liquidity/addLiquidityAmountOut",
-      addLiquidityETH: "liquidity/addLiquidityETH",
-    }),
-    async handleAddLiquidity() {
-      try {
-        this.error = false;
-        this.status = "in_progress";
-        const isKlayToken =
-          this.$kaikas.utils.isNativeToken(this.selectedTokens.tokenA.address) ||
-          this.$kaikas.utils.isNativeToken(this.selectedTokens.tokenB.address);
-
-        if (isKlayToken) {
-          await this.addLiquidityETH();
-          this.status = "submitted";
-          return;
-        }
-        if (this.computedToken === "tokenA") {
-          await this.addLiquidityAmountIn();
-          this.status = "submitted";
-          return;
-        }
-
-        if (this.computedToken === "tokenB") {
-          await this.addLiquidityAmountOut();
-          this.status = "submitted";
-          return;
-        }
-        this.status = "submitted";
-        this.$notify({ type: "success", text: "Transaction Submitted" });
-      } catch (e) {
-        this.status = "initial";
-        this.$notify({ type: "error", text: "Transaction Reverted" });
-
-        console.log(e);
-      }
-    },
-    getFormattedRate(v1, v2) {
-      const bigNA = this.$kaikas.bigNumber(v1);
-      const bigNB = this.$kaikas.bigNumber(v2);
-
-      return bigNA.dividedBy(bigNB).toFixed(5);
-    },
-    getFormattedPercent(v1, v2) {
-      const bigNA = this.$kaikas.bigNumber(v1);
-      const bigNB = this.$kaikas.bigNumber(v2);
-      const percent = bigNA.dividedToIntegerBy(100);
-
-      return `${bigNB.dividedBy(percent).toFixed(2)}%`;
-    },
-  },
-};
-</script>
 
 <style lang="scss" scoped src="./index.scss"></style>

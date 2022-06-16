@@ -1,12 +1,6 @@
-<template>
-  <button v-bind="$attrs" :class="['btn', { loading }]" v-on="$listeners">
-    <slot></slot>
-  </button>
-</template>
-
 <script>
 export default {
-  name: "KlayButton",
+  name: 'KlayButton',
   props: {
     loading: {
       type: Boolean,
@@ -14,6 +8,12 @@ export default {
   },
 }
 </script>
+
+<template>
+  <button v-bind="$attrs" class="btn" :class="[{ loading }]">
+    <slot />
+  </button>
+</template>
 
 <style lang="scss" scoped>
 .btn {

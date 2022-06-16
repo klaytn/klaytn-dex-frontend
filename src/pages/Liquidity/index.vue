@@ -1,69 +1,126 @@
+<script>
+import { mapActions, mapState } from 'pinia'
+import { roundTo } from 'round-to'
+import web3 from 'web3'
+
+export default {
+  name: 'Liquidity',
+  computed: {
+    ...mapState(useLiquidityStore, ['pairs']),
+    renderPairs() {
+      if (!this.pairs.length)
+        return null
+
+      return this.pairs.filter(p => !!Number(p.userBalance))
+    },
+  },
+  beforeMount() {
+    this.getPairs()
+  },
+  methods: {
+    ...mapActions(useLiquidityStore, ['getPairs']),
+    getFormatted(v) {
+      return roundTo(Number(web3.utils.fromWei(v)), 5)
+    },
+    getFormattedPercent(v1, v2) {
+      const bigNA = $kaikas.bigNumber(v1)
+      const bigNB = $kaikas.bigNumber(v2)
+      const percent = bigNA.dividedToIntegerBy(100)
+
+      return `${bigNB.dividedBy(percent).toFixed(2)}%`
+    },
+
+    getFormattedTokens(pairBalance, userBalance, reserve) {
+      const bigNA = $kaikas.bigNumber(pairBalance)
+      const bigNB = $kaikas.bigNumber(userBalance)
+
+      const yourPoolShare = bigNB.dividedToIntegerBy(bigNA).multipliedBy(100)
+
+      const token0Pooled = $kaikas
+        .bigNumber(reserve)
+        .multipliedBy(yourPoolShare)
+        .dividedToIntegerBy(100)
+
+      return `~${this.getFormatted(token0Pooled.toFixed(0))}`
+    },
+  },
+}
+</script>
+
 <template>
-  <Wrap>
-    <p class="liquidity--title">Add liquidity to receive LP tokens</p>
+  <KlayWrap>
+    <p class="liquidity--title">
+      Add liquidity to receive LP tokens
+    </p>
     <RouterLink to="/liquidity/add">
-      <Button class="liquidity--btn"> Add Liquidity</Button>
+      <KlayButton class="liquidity--btn">
+        Add Liquidity
+      </KlayButton>
     </RouterLink>
 
-    <p class="liquidity--title mt">Your Liquidity</p>
+    <p class="liquidity--title mt">
+      Your Liquidity
+    </p>
 
-    <div class="ma" v-if="!renderPairs">
-      <Loader />
+    <div v-if="!renderPairs" class="ma">
+      <KlayLoader />
     </div>
-    <div v-else-if="!renderPairs.length">Empty</div>
-    <div class="liquidity--list" v-else>
-      <div class="liquidity--item" v-for="p in renderPairs" :key="p.address">
-        <Collapse>
-          <template v-slot:head>
+    <div v-else-if="!renderPairs.length">
+      Empty
+    </div>
+    <div v-else class="liquidity--list">
+      <div v-for="p in renderPairs" :key="p.address" class="liquidity--item">
+        <KlayCollapse>
+          <template #head>
             <div class="pair--head">
               <div class="pair--icon-f">
-                <Icon :char="p.symbolA[0]" name="empty-token" />
+                <KlayIcon :char="p.symbolA[0]" name="empty-token" />
               </div>
               <div class="pair--icon-s">
-                <Icon :char="p.symbolB[0]" name="empty-token" />
+                <KlayIcon :char="p.symbolB[0]" name="empty-token" />
               </div>
 
-              <!--              <img-->
-              <!--                class="pair&#45;&#45;icon-f"-->
-              <!--                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png"-->
-              <!--                alt=""-->
-              <!--              />-->
-              <!--              <img-->
-              <!--                class="pair&#45;&#45;icon-s"-->
-              <!--                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png"-->
-              <!--                alt=""-->
-              <!--              />-->
+              <!--              <img -->
+              <!--                class="pair&#45;&#45;icon-f" -->
+              <!--                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png" -->
+              <!--                alt="" -->
+              <!--              /> -->
+              <!--              <img -->
+              <!--                class="pair&#45;&#45;icon-s" -->
+              <!--                src="https://images.saymedia-content.com/.image/c_limit%2Ccs_srgb%2Cq_auto:eco%2Cw_700/MTgyNTk1NDg5MDc2Njg0MTI4/maker-protokoll-dai-stablecoin-and-mkr-token-explained.png" -->
+              <!--                alt="" -->
+              <!--              /> -->
               <span class="pair--names"> {{ p.name }} </span>
-              <span class="pair--rate" v-if="p.userBalance">
+              <span v-if="p.userBalance" class="pair--rate">
                 {{ getFormatted(p.userBalance) }}
-                <!--                <span class="pair&#45;&#45;rate-gray">($5.87) </span>-->
+                <!--                <span class="pair&#45;&#45;rate-gray">($5.87) </span> -->
               </span>
             </div>
           </template>
-          <template v-slot:main>
+          <template #main>
             <div class="pair--main">
               <div class="pair--info">
-                <div class="pair--row" v-if="p.pairBalance">
+                <div v-if="p.pairBalance" class="pair--row">
                   <span>Pooled {{ p.symbolA }}</span>
                   <span>{{
                     getFormattedTokens(
                       p.userBalance,
                       p.pairBalance,
-                      p.reserves[0]
+                      p.reserves[0],
                     )
                   }}</span>
                 </div>
-                <div class="pair--row" v-if="p.pairBalance">
+                <div v-if="p.pairBalance" class="pair--row">
                   <span>Pooled {{ p.symbolB }}</span>
                   <span>{{
                     getFormattedTokens(
                       p.userBalance,
                       p.pairBalance,
-                      p.reserves[1]
+                      p.reserves[1],
                     )
                   }}</span>
                 </div>
-                <div class="pair--row" v-if="p.pairBalance">
+                <div v-if="p.pairBalance" class="pair--row">
                   <span>Pooled {{ p.name }}</span>
                   <span>{{ getFormatted(p.pairBalance) }}</span>
                 </div>
@@ -80,68 +137,21 @@
               </div>
 
               <div class="pair--links">
-                <RouterLink to="/liquidity/add">Add</RouterLink>
-                <RouterLink :to="`/liquidity/remove/${p.address}`">Remove</RouterLink>
+                <RouterLink to="/liquidity/add">
+                  Add
+                </RouterLink>
+                <RouterLink :to="`/liquidity/remove/${p.address}`">
+                  Remove
+                </RouterLink>
                 <a href="#" class="deposit">Deposit</a>
               </div>
             </div>
           </template>
-        </Collapse>
+        </KlayCollapse>
       </div>
     </div>
-  </Wrap>
+  </KlayWrap>
 </template>
-
-<script>
-import { mapActions, mapState } from "vuex";
-import { roundTo } from "round-to";
-import web3 from "web3";
-
-export default {
-  computed: {
-    ...mapState("liquidity", ["pairs"]),
-    renderPairs() {
-      if (!this.pairs.length) {
-        return null;
-      }
-
-      return this.pairs.filter((p) => !!Number(p.userBalance));
-    },
-  },
-  beforeMount() {
-    this.getPairs();
-  },
-  methods: {
-    ...mapActions({
-      getPairs: "liquidity/getPairs",
-    }),
-    getFormatted(v) {
-      return roundTo(Number(web3.utils.fromWei(v)), 5);
-    },
-    getFormattedPercent(v1, v2) {
-      const bigNA = this.$kaikas.bigNumber(v1);
-      const bigNB = this.$kaikas.bigNumber(v2);
-      const percent = bigNA.dividedToIntegerBy(100);
-
-      return `${bigNB.dividedBy(percent).toFixed(2)}%`;
-    },
-
-    getFormattedTokens(pairBalance, userBalance, reserve) {
-      const bigNA = this.$kaikas.bigNumber(pairBalance);
-      const bigNB = this.$kaikas.bigNumber(userBalance);
-
-      const yourPoolShare = bigNB.dividedToIntegerBy(bigNA).multipliedBy(100);
-
-      const token0Pooled = this.$kaikas
-        .bigNumber(reserve)
-        .multipliedBy(yourPoolShare)
-        .dividedToIntegerBy(100);
-
-      return `~${this.getFormatted(token0Pooled.toFixed(0))}`;
-    },
-  },
-};
-</script>
 
 <style scoped lang="scss">
 .ma {

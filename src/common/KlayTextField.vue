@@ -1,14 +1,14 @@
-<template>
-  <p class="text-field" v-bind="$attrs" v-on="$listeners">
-    <slot></slot>
-  </p>
-</template>
-
 <script>
 export default {
-  name: "TextField",
+  name: 'KlayTextField',
 }
 </script>
+
+<template>
+  <p class="text-field" v-bind="$attrs">
+    <slot />
+  </p>
+</template>
 
 <style>
 .text-field {

@@ -1,20 +1,6 @@
-<template>
-  <div class="list">
-    <NuxtLink
-      v-for="it in items"
-      :key="it.link"
-      active-class="active"
-      class="item"
-      :to="it.link"
-    >
-      {{ it.label }}
-    </NuxtLink>
-  </div>
-</template>
-
 <script>
 export default {
-  name: "HeaderMenu",
+  name: 'HeaderMenu',
   props: {
     items: {
       type: Array,
@@ -23,6 +9,20 @@ export default {
   },
 }
 </script>
+
+<template>
+  <div class="list">
+    <router-link
+      v-for="it in items"
+      :key="it.link"
+      active-class="active"
+      class="item"
+      :to="it.link"
+    >
+      {{ it.label }}
+    </router-link>
+  </div>
+</template>
 
 <style scoped lang="scss">
 .list {

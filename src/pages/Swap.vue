@@ -1,9 +1,9 @@
-<template>
-  <Swap></Swap>
-</template>
-
 <script>
 export default {
-  name: "KlayPageSwap",
+  name: 'Swap',
 }
 </script>
+
+<template>
+  <SwapModule />
+</template>

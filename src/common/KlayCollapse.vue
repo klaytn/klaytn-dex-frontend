@@ -1,18 +1,6 @@
-<template>
-  <div class="collapse">
-    <div class="collapse--head" @click="isOpen = !isOpen">
-      <slot name="head"></slot>
-      <div class="icon-wrap" :style="{transform: `rotate(${isOpen ? 180 : 0}deg)`}">
-        <Icon name="collapse-arrow" />
-      </div>
-    </div>
-    <slot v-if="isOpen" name="main"></slot>
-  </div>
-</template>
-
 <script>
 export default {
-  name: "KlayCollapse",
+  name: 'KlayCollapse',
   data() {
     return {
       isOpen: false,
@@ -20,6 +8,18 @@ export default {
   },
 }
 </script>
+
+<template>
+  <div class="collapse">
+    <div class="collapse--head" @click="isOpen = !isOpen">
+      <slot name="head" />
+      <div class="icon-wrap" :style="{ transform: `rotate(${isOpen ? 180 : 0}deg)` }">
+        <KlayIcon name="collapse-arrow" />
+      </div>
+    </div>
+    <slot v-if="isOpen" name="main" />
+  </div>
+</template>
 
 <style scoped lang="scss">
 .collapse {

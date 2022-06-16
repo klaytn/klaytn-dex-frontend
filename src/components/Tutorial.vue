@@ -1,8 +1,23 @@
+<script>
+import { mapActions, mapState } from 'pinia'
+
+export default {
+  name: 'NuxtTutorial',
+  components: {},
+  computed: {
+    ...mapState(useKaikasStore, ['address', 'isNotInstalled']),
+  },
+  methods: {
+    ...mapActions(useKaikasStore, ['connect']),
+  },
+}
+</script>
+
 <template>
   <div class="wrap">
     <div v-if="isNotInstalled">
       <h2>Please install kaikas to use the app</h2>
-      <br />
+      <br>
       <p>
         You can install kaikas
         <a href="https://docs.kaikas.io/" target="_blank">here</a>
@@ -11,45 +26,35 @@
 
     <div v-else-if="!address">
       <h2>Connect kaikas</h2>
-      <br />
-      <Button type="button" @click="connect()">Connect</Button>
+      <br>
+      <KlayButton type="button" @click="connect()">
+        Connect
+      </KlayButton>
     </div>
 
     <div v-else>
       <h2>Kaikas Connected!</h2>
-      <br />
+      <br>
       <h3>your address is {{ address }}</h3>
     </div>
-    <br />
-    <br />
-    <br />
-    <br />
-    <Button type="button">Button</Button>
-    <Button type="button" :loading="true">Loading</Button>
-    <Button type="button" disabled>Button</Button>
-    <br />
+    <br>
+    <br>
+    <br>
+    <br>
+    <KlayButton type="button">
+      Button
+    </KlayButton>
+    <KlayButton type="button" :loading="true">
+      Loading
+    </KlayButton>
+    <KlayButton type="button" disabled>
+      Button
+    </KlayButton>
+    <br>
 
-    <br />
+    <br>
   </div>
 </template>
-
-<script>
-import { mapActions, mapState } from "vuex"
-
-export default {
-  name: "NuxtTutorial",
-  components: {},
-
-  computed: {
-    ...mapState("kaikas", ["address", "isNotInstalled"]),
-  },
-  methods: {
-    ...mapActions({
-      connect: "kaikas/connect",
-    }),
-  },
-}
-</script>
 
 <style lang="scss">
 .wrap {

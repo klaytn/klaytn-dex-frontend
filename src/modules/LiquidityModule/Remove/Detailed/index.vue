@@ -1,3 +1,50 @@
+<script>
+import debounce from 'debounce'
+import { mapActions, mapState } from 'pinia'
+
+export default {
+  name: 'LiquidityModuleRemoveDetailed',
+  data() {
+    return {
+      lpTokenValue: null,
+    }
+  },
+  computed: {
+    ...mapState(useTokensStore, ['selectedTokens']),
+    ...mapState(useLiquidityStore, ['removeLiquidityPair']),
+  },
+  beforeMount() {
+    this.lpTokenValue = this.removeLiquidityPair.lpTokenValue
+  },
+  methods: {
+    ...mapActions(useLiquidityStore, ['setRmLiqValue', 'calcRemoveLiquidityAmounts']),
+    setMax() {
+      const v = this.getFormattedValue(this.selectedTokens.userBalance)
+      this.onInput(v.toString())
+      this.lpTokenValue = v
+    },
+    onInput: debounce(async function (_v) {
+      this.setRmLiqValue(_v)
+      this.calcRemoveLiquidityAmounts(_v)
+    }, 500),
+    getFormattedRate(v1, v2) {
+      const bigNA = $kaikas.bigNumber(v1)
+      const bigNB = $kaikas.bigNumber(v2)
+
+      return bigNA.dividedBy(bigNB).toFixed(5)
+    },
+    getFormattedValue(_v) {
+      if (!_v)
+        return '-'
+
+      const bn = $kaikas.bigNumber($kaikas.fromWei(_v))
+
+      return Number(bn.toFixed(4))
+    },
+  },
+}
+</script>
+
 <template>
   <div class="detailed">
     <div class="detailed--input input-amount mt">
@@ -8,8 +55,10 @@
           type="number"
           class="input-amount--value"
           @input="onInput($event.target.value)"
-        />
-        <div class="input-amount--price">$284.22</div>
+        >
+        <div class="input-amount--price">
+          $284.22
+        </div>
       </div>
 
       <div class="input-amount--col">
@@ -17,20 +66,22 @@
           <button type="button" class="input-amount--max" @click="setMax">
             max
           </button>
-          <!--          <img src="" alt="">-->
-          <!--          <img src="" alt="">-->
+          <!--          <img src="" alt=""> -->
+          <!--          <img src="" alt=""> -->
           <span class="input-amount--tokens">
             {{ selectedTokens.tokenA.symbol }}-{{
               selectedTokens.tokenB.symbol
             }}
           </span>
         </div>
-        <div class="input-amount--price">-</div>
+        <div class="input-amount--price">
+          -
+        </div>
       </div>
     </div>
 
     <div class="detailed--icon">
-      <Icon name="arrow-down" />
+      <KlayIcon name="arrow-down" />
     </div>
 
     <div class="detailed--input input-amount">
@@ -38,7 +89,9 @@
         <div type="text" class="input-amount--value">
           {{ getFormattedValue(removeLiquidityPair.amount0) }}
         </div>
-        <div class="input-amount--price">$284.22</div>
+        <div class="input-amount--price">
+          $284.22
+        </div>
       </div>
 
       <div class="input-amount--col">
@@ -51,7 +104,7 @@
     </div>
 
     <div class="detailed--icon">
-      <Icon name="plus" />
+      <KlayIcon name="plus" />
     </div>
 
     <div class="detailed--input input-amount">
@@ -59,7 +112,9 @@
         <div type="text" class="input-amount--value">
           {{ getFormattedValue(removeLiquidityPair.amount1) }}
         </div>
-        <div class="input-amount--price">$284.22</div>
+        <div class="input-amount--price">
+          $284.22
+        </div>
       </div>
       <div class="input-amount--col">
         <div class="input-amount--row">
@@ -80,7 +135,7 @@
           {{
             getFormattedRate(
               selectedTokens.tokenA.value,
-              selectedTokens.tokenB.value
+              selectedTokens.tokenB.value,
             )
           }}
           {{ selectedTokens.tokenA.symbol }}
@@ -95,7 +150,7 @@
           {{
             getFormattedRate(
               selectedTokens.tokenB.value,
-              selectedTokens.tokenA.value
+              selectedTokens.tokenA.value,
             )
           }}
           {{ selectedTokens.tokenB.symbol }}
@@ -104,56 +159,5 @@
     </div>
   </div>
 </template>
-
-<script>
-import { mapActions, mapMutations, mapState } from "vuex";
-import debounce from "debounce";
-
-export default {
-  data() {
-    return {
-      lpTokenValue:  null,
-    };
-  },
-  computed: {
-    ...mapState("tokens", ["selectedTokens"]),
-    ...mapState("liquidity", ["removeLiquidityPair"]),
-  },
-  methods: {
-    ...mapMutations({
-      setLpValue: "liquidity/SET_RM_LIQ_VALUE",
-    }),
-    ...mapActions({
-      calcRemoveLiquidityAmounts: "liquidity/calcRemoveLiquidityAmounts",
-    }),
-    setMax() {
-      const v = this.getFormattedValue(this.selectedTokens.userBalance);
-      this.onInput(v.toString());
-      this.lpTokenValue = v;
-    },
-    onInput: debounce(async function (_v) {
-      this.setLpValue(_v);
-      this.calcRemoveLiquidityAmounts(_v);
-    }, 500),
-    getFormattedRate(v1, v2) {
-      const bigNA = this.$kaikas.bigNumber(v1);
-      const bigNB = this.$kaikas.bigNumber(v2);
-
-      return bigNA.dividedBy(bigNB).toFixed(5);
-    },
-    getFormattedValue(_v) {
-      if (!_v) {
-        return "-";
-      }
-      const bn = new this.$kaikas.bigNumber(this.$kaikas.fromWei(_v));
-
-      return Number(bn.toFixed(4));
-    },
-  },
-  beforeMount() {
-    this.lpTokenValue = this.removeLiquidityPair.lpTokenValue
-  }
-};
-</script>
 
 <style lang="scss" src="./index.scss" scoped />

@@ -1,57 +1,24 @@
-<template>
-  <div class="slippage">
-    <Collapse>
-      <template #head>
-        <div class="slippage--head">
-          <span class="label"> Slippage tolerance </span>
-          <Icon name="important" />
-          <span class="percent">
-            {{ renderPercent }}
-          </span>
-        </div>
-      </template>
-
-      <template #main>
-        <div class="slippage--body">
-          <button class="percent" @click="select(0.1)">0.1%</button>
-          <button class="percent" @click="select(0.5)">0.5%</button>
-          <button class="percent" @click="select(1)">1%</button>
-          <button class="percent" @click="select(3)">3%</button>
-          <input
-            class="input"
-            type="text"
-            :placeholder="renderPercent"
-            @input="input($event.target.value)"
-          />
-        </div>
-      </template>
-    </Collapse>
-  </div>
-</template>
 <script>
-import { mapMutations, mapState } from "vuex"
+import { mapActions, mapState } from 'pinia'
 
 export default {
-  name: "KlaySlippage",
+  name: 'KlaySlippage',
   data() {
     return {
       selectedPercent: 0.5,
     }
   },
   computed: {
-    ...mapState("swap", ["slippagePercent"]),
+    ...mapState(useSwapStore, ['slippagePercent']),
     renderPercent() {
       return `${this.slippagePercent}%`
     },
   },
   methods: {
-    ...mapMutations({
-      setSlippage: "swap/SET_SLIPPAGE",
-    }),
+    ...mapActions(useSwapStore, ['setSlippage']),
     input(value) {
-      if (value > 0 && value <= 10) {
+      if (value > 0 && value <= 10)
         this.setSlippage(value)
-      }
     },
     select(value) {
       this.selectedPercent = value
@@ -60,6 +27,45 @@ export default {
   },
 }
 </script>
+
+<template>
+  <div class="slippage">
+    <KlayCollapse>
+      <template #head>
+        <div class="slippage--head">
+          <span class="label"> Slippage tolerance </span>
+          <KlayIcon name="important" />
+          <span class="percent">
+            {{ renderPercent }}
+          </span>
+        </div>
+      </template>
+
+      <template #main>
+        <div class="slippage--body">
+          <button class="percent" @click="select(0.1)">
+            0.1%
+          </button>
+          <button class="percent" @click="select(0.5)">
+            0.5%
+          </button>
+          <button class="percent" @click="select(1)">
+            1%
+          </button>
+          <button class="percent" @click="select(3)">
+            3%
+          </button>
+          <input
+            class="input"
+            type="text"
+            :placeholder="renderPercent"
+            @input="input($event.target.value)"
+          >
+        </div>
+      </template>
+    </KlayCollapse>
+  </div>
+</template>
 
 <style lang="scss" scoped>
 .slippage {

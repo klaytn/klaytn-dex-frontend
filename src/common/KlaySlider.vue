@@ -1,34 +1,36 @@
-<template>
-  <div>
-    <vue-slider lazy v-model="value"></vue-slider>
-  </div>
-</template>
-
 <script>
-import VueSlider from 'vue-slider-component'
-import 'vue-slider-component/theme/antd.css'
+// import VueSlider from 'vue-slider-component'
+// import 'vue-slider-component/theme/antd.css'
 
 export default {
+  name: 'KlaySlider',
   components: {
-    VueSlider
+    // VueSlider,
   },
-  props:{
+  props: {
     propsValue: {
-      type: Number
-    }
+      type: Number,
+    },
   },
-  data: function () {
+  emits: ['move'],
+  data() {
     return {
       value: this.propsValue,
     }
   },
   watch: {
-    value(_new, _old){
-      this.$emit('onmove', _new)
+    value(_new, _old) {
+      this.$emit('move', _new)
     },
-    propsValue(){
+    propsValue() {
       this.value = this.propsValue
-    }
-  }
+    },
+  },
 }
 </script>
+
+<template>
+  <div>
+    <!-- <VueSlider v-model="value" lazy /> -->
+  </div>
+</template>

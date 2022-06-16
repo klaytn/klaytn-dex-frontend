@@ -1,12 +1,12 @@
-<template>
-  <div class="loader"></div>
-</template>
-
 <script>
 export default {
-  name: "KlayLoader",
+  name: 'KlayLoader',
 }
 </script>
+
+<template>
+  <div class="loader" />
+</template>
 
 <style scoped lang="scss">
 .loader {

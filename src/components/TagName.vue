@@ -1,15 +1,6 @@
-<template>
-  <div class="tag-name">
-    <div class="tag-name--content">
-      <slot></slot>
-    </div>
-    <span>{{ label }}</span>
-  </div>
-</template>
-
 <script>
 export default {
-  name: "TagName",
+  name: 'TagName',
   props: {
     label: {
       type: String,
@@ -18,6 +9,15 @@ export default {
   },
 }
 </script>
+
+<template>
+  <div class="tag-name">
+    <div class="tag-name--content">
+      <slot />
+    </div>
+    <span>{{ label }}</span>
+  </div>
+</template>
 
 <style lang="scss" scoped>
 .tag-name {

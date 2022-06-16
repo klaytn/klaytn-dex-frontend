@@ -1,6 +1,73 @@
+<script>
+import { mapActions, mapState } from 'pinia'
+
+export default {
+  name: 'DefaultLayout',
+  computed: {
+    ...mapState(useKaikasStore, ['address', 'isNotInstalled']),
+    ...mapState(useTokensStore, ['tokensList']),
+    ...mapState(useLiquidityStore, ['pairs']),
+    getFormattedAddress() {
+      const addressLength = this.address.length
+      return `${this.address.slice(2, 6)}...${this.address.slice(
+        addressLength - 6,
+        addressLength - 2,
+      )}`
+    },
+    links() {
+      return [
+        {
+          label: 'Assets',
+          link: '/assets',
+        },
+        {
+          label: 'Trade',
+          link: '/swap',
+        },
+        {
+          label: 'Deposit',
+          link: '/liquidity',
+        },
+        {
+          label: 'Voting',
+          link: '/voting',
+        },
+        {
+          label: 'Charts',
+          link: '/charts',
+        },
+      ]
+    },
+  },
+  mounted() {
+    this.connect()
+  },
+  methods: {
+    ...mapActions(useKaikasStore, ['connectKaikas']),
+    ...mapActions(useTokensStore, {
+      loadTokensList: 'getTokens',
+    }),
+    ...mapActions(useLiquidityStore, {
+      loadPairs: 'getPairs',
+    }),
+    async connect() {
+      const address = await $kaikas.config.connectKaikas()
+      if (address)
+        this.connectKaikas(address)
+
+      if (!this.tokensList.length)
+        await this.loadTokensList()
+
+      if (!this.pairs.length)
+        await this.loadPairs()
+    },
+  },
+}
+</script>
+
 <template>
   <main class="layout">
-    <notifications />
+    <!-- <notifications /> -->
     <header>
       <div class="col">
         <a href="#">
@@ -20,11 +87,13 @@
         </a>
       </div>
       <div class="col col-center">
-        <Menu :items="links"></Menu>
+        <HeaderMenu :items="links" />
       </div>
 
       <div class="col col-right">
-        <div v-if="!isNotInstalled && !address" @click="connect">Connect</div>
+        <div v-if="!isNotInstalled && !address" @click="connect">
+          Connect
+        </div>
         <div v-if="address" class="address">
           <svg
             width="18"
@@ -60,79 +129,10 @@
       <div v-else-if="!address">
         <h1>Please connect Kaikas</h1>
       </div>
-      <Nuxt v-else></Nuxt>
+      <RouterView v-else />
     </client-only>
   </main>
 </template>
-
-<script>
-import { mapState, mapActions } from "vuex";
-
-export default {
-  name: "KlayView",
-  computed: {
-    ...mapState("kaikas", ["address"]),
-    ...mapState("tokens", ["tokensList"]),
-    ...mapState("liquidity", ["pairs"]),
-    isNotInstalled() {
-      return !window?.klaytn;
-    },
-    getFormattedAddress() {
-      const addressLength = this.address.length;
-      return `${this.address.slice(2, 6)}...${this.address.slice(
-        addressLength - 6,
-        addressLength - 2
-      )}`;
-    },
-    links() {
-      return [
-        {
-          label: "Assets",
-          link: "/assets",
-        },
-        {
-          label: "Trade",
-          link: "/swap",
-        },
-        {
-          label: "Deposit",
-          link: "/liquidity",
-        },
-        {
-          label: "Voting",
-          link: "/voting",
-        },
-        {
-          label: "Charts",
-          link: "/charts",
-        },
-      ];
-    },
-  },
-  mounted() {
-    this.connect()
-  },
-  methods: {
-    async connect() {
-      const address = await this.$kaikas.config.connectKaikas();
-      if (address) {
-        this.$store.commit("kaikas/CONNECT_KAIKAS", address);
-      }
-      if (!this.tokensList.length) {
-        await this.loadTokensList();
-      }
-
-      if (!this.pairs.length) {
-        await this.loadPairs();
-      }
-    },
-    ...mapActions({
-      loadTokensList: "tokens/getTokens",
-      loadPairs: "liquidity/getPairs",
-    }),
-  },
-};
-</script>
 
 <style scoped lang="scss">
 .layout {

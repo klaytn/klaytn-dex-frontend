@@ -1,10 +1,20 @@
-export const state = () => ({
-  address: null,
-  isNotInstalled: !process.server && typeof window?.klaytn === "undefined",
+import { acceptHMRUpdate, defineStore } from 'pinia'
+
+export const useKaikasStore = defineStore('kaikas', {
+  // arrow function recommended for full type inference
+  state: () => {
+    return {
+      // all these properties will have their type inferred automatically
+      address: null,
+      isNotInstalled: typeof window?.klaytn === 'undefined',
+    }
+  },
+  actions: {
+    connectKaikas(address) {
+      this.address = address
+    },
+  },
 })
 
-export const mutations = {
-  CONNECT_KAIKAS(state, address) {
-    state.address = address
-  },
-}
+if (import.meta.hot)
+  import.meta.hot.accept(acceptHMRUpdate(useKaikasStore, import.meta.hot))

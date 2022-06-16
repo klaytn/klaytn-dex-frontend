@@ -1,19 +1,23 @@
+<script>
+export default {
+  name: 'LiquidityAdd',
+}
+</script>
+
 <template>
-  <Wrap>
-    <template v-slot:head>
+  <KlayWrap>
+    <template #head>
       <RouterLink to="/liquidity" class="back">
-        <Icon name="back-arrow"/>
+        <KlayIcon name="back-arrow" />
         <span>
           Add Liquidity
         </span>
       </RouterLink>
     </template>
-    <template>
-      <div class="add-liq">
-        <LiquidityAdd></LiquidityAdd>
-      </div>
-    </template>
-  </Wrap>
+    <div class="add-liq">
+      <LiquidityModuleAdd />
+    </div>
+  </KlayWrap>
 </template>
 
 <style lang="scss" scoped>

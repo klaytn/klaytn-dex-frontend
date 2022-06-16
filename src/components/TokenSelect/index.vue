@@ -1,36 +1,13 @@
-<template>
-  <div class="select--wrap">
-    <TokenSelectModal
-      v-if="modalOpen"
-      @select="onSelect"
-      @close="modalOpen = false"
-    />
-    <button class="select-btn" @click="modalOpen = true" v-if="!selectedToken">
-      <span>Select token</span>
-      <Icon name="collapse-arrow" />
-    </button>
-
-    <div class="select" v-if="selectedToken">
-      <div class="select--head" @click="modalOpen = true">
-<!--        <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo" />-->
-        <Icon :char="selectedToken.symbol[0]" name="empty-token" />
-        <span v-if="selectedToken">
-        {{ selectedToken.symbol }}
-      </span>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script>
 export default {
-  name: "TokenSelect",
+  name: 'TokenSelect',
   props: {
     selectedToken: {
       type: Object,
       default: null,
     },
   },
+  emits: ['select'],
   data() {
     return {
       modalOpen: false,
@@ -39,11 +16,35 @@ export default {
   methods: {
     onSelect(token) {
       this.modalOpen = false
-      this.$emit("select", token)
+      this.$emit('select', token)
     },
   },
 }
 </script>
+
+<template>
+  <div class="select--wrap">
+    <TokenSelectModal
+      v-if="modalOpen"
+      @select="onSelect"
+      @close="modalOpen = false"
+    />
+    <button v-if="!selectedToken" class="select-btn" @click="modalOpen = true">
+      <span>Select token</span>
+      <KlayIcon name="collapse-arrow" />
+    </button>
+
+    <div v-if="selectedToken" class="select">
+      <div class="select--head" @click="modalOpen = true">
+        <!--        <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo" /> -->
+        <KlayIcon :char="selectedToken.symbol[0]" name="empty-token" />
+        <span v-if="selectedToken">
+          {{ selectedToken.symbol }}
+        </span>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped lang="scss">
 .select {

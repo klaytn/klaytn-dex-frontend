@@ -1,17 +1,6 @@
-<template>
-  <LayoutBase>
-    <h1 v-if="error.statusCode === 404">
-      Page in the process of implementation
-    </h1>
-    <h1 v-else>An error occurred</h1>
-    <NuxtLink to="/swap">Home page</NuxtLink>
-  </LayoutBase>
-</template>
-
 <script>
 export default {
-  name: "KlayError",
-  layout: "error",
+  name: 'ErrorLayout',
   props: {
     error: {
       type: String,
@@ -20,6 +9,20 @@ export default {
   },
 }
 </script>
+
+<template>
+  <LayoutBase>
+    <h1 v-if="error.statusCode === 404">
+      Page in the process of implementation
+    </h1>
+    <h1 v-else>
+      An error occurred
+    </h1>
+    <router-link to="/swap">
+      Home page
+    </router-link>
+  </LayoutBase>
+</template>
 
 <style>
 h1 {

@@ -1,71 +1,43 @@
-<template>
-  <div>
-    <TokenInput
-      :isLoading="exchangeLoading === 'tokenA'"
-      @input="(v) => onInput(v, 'tokenA')"
-      tokenType="tokenA"
-      :isDisabled="isNotValid"
-    />
-    <button class="change-btn">
-      <Icon name="arrow-down" />
-    </button>
-    <div class="margin-block">
-      <TokenInput
-        :isLoading="exchangeLoading === 'tokenB'"
-        @input="(v) => onInput(v, 'tokenB')"
-        tokenType="tokenB"
-        :isDisabled="isNotValid"
-      />
-    </div>
-
-    <div class="warning-text" v-if="selectedTokens.emptyPair">
-      <Icon name="important" />
-      <span>Pair not exist</span>
-    </div>
-  </div>
-</template>
-
 <script>
-import debounce from "debounce";
-import { mapActions, mapMutations, mapState } from "vuex";
+import debounce from 'debounce'
+import { mapActions, mapState } from 'pinia'
 
 export default {
-  name: "SwapExchangeRate",
+  name: 'SwapModuleExchangeRate',
   data() {
     return {
       exchangeLoading: null,
-    };
+    }
   },
   computed: {
-    ...mapState("tokens", ["selectedTokens"]),
+    ...mapState(useTokensStore, ['selectedTokens']),
     isNotValid() {
       return (
-        !this.selectedTokens["tokenA"] ||
-        !this.selectedTokens["tokenB"] ||
-        this.selectedTokens.emptyPair
-      );
+        !this.selectedTokens.tokenA
+        || !this.selectedTokens.tokenB
+        || this.selectedTokens.emptyPair
+      )
     },
   },
   methods: {
-    ...mapMutations({
-      setSelectedToken: "tokens/SET_SELECTED_TOKEN",
-      setComputedToken: "tokens/SET_COMPUTED_TOKEN",
-    }),
-    ...mapActions({
-      getAmountOut: "swap/getAmountOut",
-      getAmountIn: "swap/getAmountIn",
-    }),
+    ...mapActions(useTokensStore, [
+      'setSelectedToken',
+      'setComputedToken',
+    ]),
+    ...mapActions(useSwapStore, [
+      'getAmountOut',
+      'getAmountIn',
+    ]),
     onInput: debounce(async function (_v, tokenType) {
-      if (!_v || this.isNotValid) {
-        return;
-      }
+      if (!_v || this.isNotValid)
+        return
 
       // if (this.exchangeRateIntervalID) {
       //   clearInterval(this.exchangeRateIntervalID);
       //   this.setExchangeRateIntervalID(null);
       // }
 
-      const value = this.$kaikas.toWei(_v);
+      const value = $kaikas.toWei(_v)
 
       this.setSelectedToken({
         token: {
@@ -73,30 +45,57 @@ export default {
           value,
         },
         type: tokenType,
-      });
+      })
 
-      this.setComputedToken(tokenType === "tokenA" ? "tokenB" : "tokenA");
+      this.setComputedToken(tokenType === 'tokenA' ? 'tokenB' : 'tokenA')
 
-      if (tokenType === "tokenA") {
-        this.exchangeLoading = "tokenB";
-        await this.getAmountOut(value);
+      if (tokenType === 'tokenA') {
+        this.exchangeLoading = 'tokenB'
+        await this.getAmountOut(value)
         // this.setExchangeRateIntervalID(
         //   setInterval(() => this.getAmountOut(value), 5000)
         // );
       }
 
-      if (tokenType === "tokenB") {
-        this.exchangeLoading = "tokenA";
-        await this.getAmountIn(value);
+      if (tokenType === 'tokenB') {
+        this.exchangeLoading = 'tokenA'
+        await this.getAmountIn(value)
         // this.setExchangeRateIntervalID(
         //   setInterval(() => this.getAmountIn(value), 5000)
         // );
       }
 
-      this.exchangeLoading = null;
+      this.exchangeLoading = null
     }, 500),
   },
-};
+}
 </script>
 
-<style lang="scss" scoped src="../index.scss" />
+<template>
+  <div>
+    <TokenInput
+      :is-loading="exchangeLoading === 'tokenA'"
+      token-type="tokenA"
+      :is-disabled="isNotValid"
+      @input="(v) => onInput(v, 'tokenA')"
+    />
+    <button class="change-btn">
+      <KlayIcon name="arrow-down" />
+    </button>
+    <div class="margin-block">
+      <TokenInput
+        :is-loading="exchangeLoading === 'tokenB'"
+        token-type="tokenB"
+        :is-disabled="isNotValid"
+        @input="(v) => onInput(v, 'tokenB')"
+      />
+    </div>
+
+    <div v-if="selectedTokens.emptyPair" class="warning-text">
+      <KlayIcon name="important" />
+      <span>Pair not exist</span>
+    </div>
+  </div>
+</template>
+
+<style lang="scss" scoped src="./index.scss" />

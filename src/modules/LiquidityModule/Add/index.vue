@@ -1,19 +1,59 @@
+<script>
+import { mapActions, mapState } from 'pinia'
+
+export default {
+  name: 'LiquidityModuleAdd',
+  data() {
+    return {
+      isOpen: false,
+    }
+  },
+  computed: {
+    ...mapState(useTokensStore, ['selectedTokens']),
+    ...mapState(useLiquidityStore, ['pairs']),
+    isValid() {
+      return (
+        this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
+      )
+    },
+  },
+  beforeUnmount() {
+    this.clearSelectedTokens()
+  },
+  methods: {
+    ...mapActions(useTokensStore, ['clearSelectedTokens']),
+    getFormattedRate(v1, v2) {
+      const bigNA = $kaikas.bigNumber(v1)
+      const bigNB = $kaikas.bigNumber(v2)
+
+      return bigNA.dividedBy(bigNB).toFixed(5)
+    },
+    getFormattedPercent(v1, v2) {
+      const bigNA = $kaikas.bigNumber(v1)
+      const bigNB = $kaikas.bigNumber(v2)
+      const percent = bigNA.dividedToIntegerBy(100)
+
+      return `${bigNB.dividedBy(percent).toFixed(2)}%`
+    },
+  },
+}
+</script>
+
 <template>
   <div class="liquidity">
-
-    <LiquidityAddExchangeRate/>
+    <LiquidityModuleAddExchangeRate />
 
     <div class="liquidity--slippage">
-      <Slippage/>
+      <KlaySlippage />
     </div>
 
-    <Button type="button" :disabled="!isValid" class="liquidity--btn" @click="isOpen = true">
+    <KlayButton type="button" :disabled="!isValid" class="liquidity--btn" @click="isOpen = true">
       Supply
-    </Button>
+    </KlayButton>
 
-    <LiquidityAddModal v-if="isOpen" @close="isOpen = false"/>
+    <LiquidityModuleAddModal v-if="isOpen" @close="isOpen = false" />
 
-    <div class="liquidity--details" v-if="isValid">
+    <div v-if="isValid" class="liquidity--details">
       <h3>Prices and pool share</h3>
 
       <div class="liquidity--details--row">
@@ -38,60 +78,17 @@
         <span>Share of pool</span>
         <span>{{ getFormattedPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}</span>
       </div>
-      <!--      <div class="liquidity&#45;&#45;details&#45;&#45;row">-->
-      <!--        <span>You'll earn</span>-->
-      <!--        <span>0.17%</span>-->
-      <!--      </div>-->
+      <!--      <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
+      <!--        <span>You'll earn</span> -->
+      <!--        <span>0.17%</span> -->
+      <!--      </div> -->
 
-      <!--      <div class="liquidity&#45;&#45;details&#45;&#45;row">-->
-      <!--        <span>Transaction Fee</span>-->
-      <!--        <span>0.074 KLAY ($0.013)</span>-->
-      <!--      </div>-->
+      <!--      <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
+      <!--        <span>Transaction Fee</span> -->
+      <!--        <span>0.074 KLAY ($0.013)</span> -->
+      <!--      </div> -->
     </div>
   </div>
 </template>
-
-<script>
-import {mapMutations, mapState} from "vuex";
-
-export default {
-  name: "AddLiquidity",
-  data() {
-    return {
-      isOpen: false,
-    };
-  },
-  beforeDestroy() {
-    this.clearSelectedTokens();
-  },
-  computed: {
-    ...mapState("tokens", ["selectedTokens"]),
-    ...mapState("liquidity", ["pairs"]),
-    isValid() {
-      return (
-        this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
-      );
-    },
-  },
-  methods: {
-    ...mapMutations({
-      clearSelectedTokens: "tokens/CLEAR_SELECTED_TOKENS",
-    }),
-    getFormattedRate(v1, v2) {
-      const bigNA = this.$kaikas.bigNumber(v1)
-      const bigNB = this.$kaikas.bigNumber(v2)
-
-      return bigNA.dividedBy(bigNB).toFixed(5);
-    },
-    getFormattedPercent(v1, v2) {
-      const bigNA = this.$kaikas.bigNumber(v1)
-      const bigNB = this.$kaikas.bigNumber(v2)
-      const percent = bigNA.dividedToIntegerBy(100);
-
-      return `${bigNB.dividedBy(percent).toFixed(2)}%`;
-    }
-  },
-};
-</script>
 
 <style lang="scss" scoped src="./index.scss"></style>
