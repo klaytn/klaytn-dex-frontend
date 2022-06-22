@@ -1,13 +1,8 @@
 <script>
 import { mapActions, mapState } from 'pinia'
 
-import Slider from 'vue3-slider'
-
 export default {
   name: 'LiquidityModuleRemoveAmount',
-  components: {
-    Slider,
-  },
   data() {
     return {
       value: 9,

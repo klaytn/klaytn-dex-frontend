@@ -9,7 +9,7 @@ export function useClasses(store: Store, props: Props) {
   }))
 
   return {
-    root: ['', rootBemModifiers],
+    root: ['', rootBemModifiers.value],
     wrapper: 'wrapper',
     line: 'line',
     thumb: 'thumb',
