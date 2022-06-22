@@ -8,6 +8,12 @@ function toSnakeCase(value: string) {
 
 export function getClassList(block: string, props: Props): string[] {
   if (
+    isRef(props)
+    || (isRef(props?.[0]))
+    || (isRef(props?.[1]))
+  )
+    throw new Error('Value of bem class directive must not contain refs')
+  if (
     typeof props !== 'string'
     && !Array.isArray(props)
     && props !== undefined
@@ -48,14 +54,12 @@ export function useBemClass() {
   return {
     mounted(el: HTMLElement, { value }: { value: Props }) {
       const classList = getClassList(block, value)
-      console.log(classList)
       classList.forEach((item) => {
         el.classList.add(item)
       })
     },
     updated(el: HTMLElement, { value }: { value: Props }) {
       const classList = getClassList(block, value)
-      console.log(classList)
       classList.forEach((item) => {
         el.classList.add(item)
       })
