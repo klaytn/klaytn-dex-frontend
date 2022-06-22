@@ -1,7 +1,4 @@
-<script>
-export default {
-  name: 'Swap',
-}
+<script setup lang="ts" name="Swap">
 </script>
 
 <template>

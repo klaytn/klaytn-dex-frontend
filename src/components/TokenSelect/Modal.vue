@@ -1,5 +1,6 @@
-<script>
+<script lang="ts">
 import { mapActions, mapState } from 'pinia'
+import { Status } from '@soramitsu-ui/ui'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
 
 export default {
@@ -75,7 +76,7 @@ export default {
         this.updateTokens([this.importToken, ...this.tokensList])
         this.searchValue = ''
         this.importToken = null
-        this.$notify({ type: 'success', text: 'Token added' })
+        $notify({ status: Status.Success, description: 'Token added' })
       }
     },
   },

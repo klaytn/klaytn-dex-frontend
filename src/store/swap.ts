@@ -1,5 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
+import { Status } from '@soramitsu-ui/ui'
 import config from '@/utils/kaikas/Config'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
 
@@ -66,11 +67,11 @@ export const useSwapStore = defineStore('swap', {
         })
 
         await send()
-        $notify({ type: 'success', text: 'Swap success' })
+        $notify({ status: Status.Success, description: 'Swap success' })
         tokensStore.getTokens()
       }
       catch (e) {
-        $notify({ type: 'error', text: e })
+        $notify({ status: Status.Error, description: `${e}` })
       }
     },
 
@@ -93,12 +94,12 @@ export const useSwapStore = defineStore('swap', {
 
         await send()
 
-        $notify({ type: 'success', text: 'Swap success' })
+        $notify({ status: Status.Success, description: 'Swap success' })
 
         tokensStore.getTokens()
       }
       catch (e) {
-        $notify({ type: 'error', text: e })
+        $notify({ status: Status.Error, description: `${e}` })
       }
     },
 
@@ -176,7 +177,7 @@ export const useSwapStore = defineStore('swap', {
         await send()
       }
 
-      $notify({ type: 'success', text: 'Swap success' })
+      $notify({ status: Status.Success, description: 'Swap success' })
     },
 
     refreshStore() {

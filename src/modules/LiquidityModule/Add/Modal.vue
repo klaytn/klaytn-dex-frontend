@@ -1,4 +1,6 @@
-<script>
+<script lang="ts">
+import { Status } from '@soramitsu-ui/ui'
+
 import { mapActions, mapState } from 'pinia'
 
 export default {
@@ -45,11 +47,11 @@ export default {
           return
         }
         this.status = 'submitted'
-        $notify({ type: 'success', text: 'Transaction Submitted' })
+        $notify({ status: Status.Success, description: 'Transaction Submitted' })
       }
       catch (e) {
         this.status = 'initial'
-        $notify({ type: 'error', text: 'Transaction Reverted' })
+        $notify({ status: Status.Error, description: 'Transaction Reverted' })
       }
     },
     getFormattedRate(v1, v2) {
