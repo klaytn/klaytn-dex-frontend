@@ -1,0 +1,61 @@
+.mt {
+  margin-top: 16px;
+}
+
+.switch {
+  max-width: 177px;
+  width: 100%;
+  background: $gray3;
+  border-radius: 10px;
+  padding: 4px;
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+
+  &--item {
+    padding: 6px 12px;
+    background: transparent;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 21px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    z-index: 2;
+    border-radius: 10px;
+    cursor: pointer;
+
+    &-active {
+      background: $blue;
+      color: $white;
+    }
+  }
+}
+
+.rl {
+  &--collapse-label {
+    font-style: normal;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 25px;
+  }
+
+  &--row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+
+    & div {
+      width: 50%;
+      font-style: normal;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    & div:last-child {
+      text-align: right;
+    }
+  }
+}
