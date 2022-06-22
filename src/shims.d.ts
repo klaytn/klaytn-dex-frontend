@@ -1,5 +1,6 @@
 declare interface Window {
   // extend the window
+  
 }
 
 // with vite-plugin-md, markdown files can be treated as Vue components
