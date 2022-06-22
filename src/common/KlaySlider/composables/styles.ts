@@ -17,28 +17,18 @@ export function useStyles(store: Store, props: Props) {
     return valueInPixels.value * thumbTranslateRatio.value
   })
 
-  const lineSize = computed(() => {
-    return valueInPixels.value * thumbTranslateRatio.value + thumbSize.value * 0.5
-  })
-
-  const lineScale = computed(() => {
-    return lineSize.value / sliderSize.value.length
+  const transform = computed(() => {
+    return orientation === Orientation.Horizontal
+      ? `translateX(${thumbTranslate.value}px)`
+      : `translateY(${thumbTranslate.value}px)`
   })
 
   const classes = computed(() => {
     return {
       root: {},
       wrapper: {},
-      line: {
-        transform: orientation === Orientation.Horizontal
-          ? `scaleX(${lineScale.value})`
-          : `scaleY(${lineScale.value})`,
-      },
-      thumb: {
-        transform: orientation === Orientation.Horizontal
-          ? `translateX(${thumbTranslate.value}px)`
-          : `translateY(${thumbTranslate.value}px)`,
-      },
+      line: { transform: transform.value },
+      thumb: { transform: transform.value },
     }
   })
 

@@ -5,13 +5,16 @@ import type { Store } from './store'
 export function useHandlers(store: Store, props: Props, emit: Emit) {
   const previousValue = ref(props.modelValue)
 
-  const calcValue = (mouseX: number, mouseY: number): number => {
+  function formatValue(value: number) {
+    return +value.toFixed(props.discrete ? 0 : 2)
+  }
+
+  function calcValue(mouseX: number, mouseY: number): number {
     const rect = store.slider.value.getBoundingClientRect()
     let value = 0
 
     if (props.orientation === Orientation.Horizontal)
       value = (mouseX - rect.x) / store.pixelsPerStep.value
-
     else
       value = (rect.y + rect.height - mouseY) / store.pixelsPerStep.value
 
@@ -37,7 +40,7 @@ export function useHandlers(store: Store, props: Props, emit: Emit) {
 
     if (store.dragging.value) {
       const value = calcValue(tap.pageX - window.scrollX, tap.pageY - window.scrollY)
-      emit(Event.UpdateModelValue, +value.toFixed(2))
+      emit(Event.UpdateModelValue, formatValue(value))
 
       // emit(Event.Dragging, store.formattedSliderValue.value, tap)
       // emit(Event.Dragging, props.modelValue, tap)
@@ -73,7 +76,7 @@ export function useHandlers(store: Store, props: Props, emit: Emit) {
       const t = event.touches[0]
 
       const value = calcValue(t.pageX - window.scrollX, t.pageY - window.scrollY)
-      emit(Event.UpdateModelValue, +value.toFixed(2))
+      emit(Event.UpdateModelValue, formatValue(value))
 
       window.addEventListener('touchend', handleRelease)
 
@@ -83,7 +86,7 @@ export function useHandlers(store: Store, props: Props, emit: Emit) {
       event = <MouseEvent>event
 
       const value = calcValue(event.pageX - window.scrollX, event.pageY - window.scrollY)
-      emit(Event.UpdateModelValue, +value.toFixed(2))
+      emit(Event.UpdateModelValue, formatValue(value))
 
       window.addEventListener('mouseup', handleRelease)
 

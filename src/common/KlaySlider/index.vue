@@ -65,10 +65,11 @@ const vBem = useBemClass()
     border-radius: 2px
     background: $gray3
   &__line
+    position: absolute
     height: 100%
     width: 100%
+    right: 100%
     background: $blue
-    transform-origin: left
   &__thumb
     position: absolute
     height: 20px
@@ -82,6 +83,8 @@ const vBem = useBemClass()
       background: white
       box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.15)
       transition: transform 300ms
+  &__line, &__thumb
+    transition: transform 80ms
   &:hover &__thumb:after
     transform: scale(1.1)
 </style>
