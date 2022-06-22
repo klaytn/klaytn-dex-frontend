@@ -1,8 +1,13 @@
 <script>
 import { mapActions, mapState } from 'pinia'
 
+import Slider from 'vue3-slider'
+
 export default {
   name: 'LiquidityModuleRemoveAmount',
+  components: {
+    Slider,
+  },
   data() {
     return {
       value: 9,
@@ -14,7 +19,7 @@ export default {
   },
   methods: {
     ...mapActions(useLiquidityStore, ['removeLiquidity', 'calcRemoveLiquidityAmounts', 'setRmLiqValue']),
-    onMove(v) {
+    onDragEnd(v) {
       this.value = v
       const bnValue = $kaikas.utils.bigNumber(
         this.selectedTokens.userBalance,
@@ -45,7 +50,7 @@ export default {
         {{ value }}%
       </div>
       <div class="rl-amount--slide">
-        <KlaySlider :props-value="value" @move="onMove" />
+        <KlaySlider v-model="value" @drag-end="onDragEnd" />
       </div>
       <div class="rl-amount--tags">
         <button type="button" class="rl-amount--tag" @click="value = 10">

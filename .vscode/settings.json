@@ -18,7 +18,8 @@
   "Klay",
   "typecheck",
   "soramitsu",
-  "vnode"
+  "vnode",
+  "composables"
 ],
   "i18n-ally.sourceLanguage": "en",
   "i18n-ally.keystyle": "nested",
