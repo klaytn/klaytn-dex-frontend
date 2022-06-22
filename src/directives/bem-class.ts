@@ -1,9 +1,15 @@
+type Element = string
+type Modifiers = Record<string, any>
+
 export function useBemClass() {
   const context = getCurrentInstance()
-  const componentName = (context?.vnode.type as any).name as String
-  const block = componentName.split(/(?=[A-Z])/).join('-').toLowerCase()
+  const componentName = (context?.vnode.type as any).name as string
+  function toSnakeCase(value: string) {
+    return value.split(/(?=[A-Z])/).join('-').toLowerCase()
+  }
+  const block = toSnakeCase(componentName)
   return {
-    mounted(el: HTMLElement, { value }: { value?: string | [string] | [string, Record<string, any>] | Record<string, any> }) {
+    mounted(el: HTMLElement, { value }: { value?: Element | [Element, Modifiers?] | Modifiers }) {
       if (typeof value !== 'string' && !Array.isArray(value) && value !== undefined && typeof value !== 'object')
         throw new Error('Value of bem class directive must be string, array or object')
       let classList = [block]
@@ -18,9 +24,9 @@ export function useBemClass() {
           Object.entries(modifiers).forEach(([key, value]) => {
             if (typeof value === 'boolean') {
               if (value)
-                classList.push(`${classList[0]}--${key}`)
+                classList.push(`${classList[0]}--${toSnakeCase(key)}`)
               else
-                classList.push(`${classList[0]}--${key}-${value}`)
+                classList.push(`${classList[0]}--${toSnakeCase(key)}-${value}`)
             }
           })
         }
