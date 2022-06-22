@@ -21,6 +21,7 @@ declare module '@vue/runtime-core' {
     LiquidityModuleRemove: typeof import('./modules/LiquidityModule/Remove/index.vue')['default']
     LiquidityModuleRemoveAmount: typeof import('./modules/LiquidityModule/Remove/Amount/index.vue')['default']
     LiquidityModuleRemoveDetailed: typeof import('./modules/LiquidityModule/Remove/Detailed/index.vue')['default']
+    NotificationsInit: typeof import('./components/NotificationsInit.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SwapModule: typeof import('./modules/SwapModule/index.vue')['default']

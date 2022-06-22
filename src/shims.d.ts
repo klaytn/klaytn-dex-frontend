@@ -1,6 +1,10 @@
-declare interface Window {
-  // extend the window
-  
+import type { ShowNotificationParams, ShowNotificationReturn } from '@soramitsu-ui/ui'
+
+declare global {
+  interface Window {
+    // extend the window
+    $notify: (params: ShowNotificationParams) => ShowNotificationReturn
+  }
 }
 
 // with vite-plugin-md, markdown files can be treated as Vue components

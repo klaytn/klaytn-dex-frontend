@@ -1,5 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
+import { Status } from '@soramitsu-ui/ui'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
 import pairAbi from '@/utils/smartcontracts/pair.json'
 import config from '@/utils/kaikas/Config'
@@ -44,7 +45,7 @@ export const useLiquidityStore = defineStore('liquidity', {
       }
       catch (e) {
         console.log(e)
-        $notify({ type: 'error', text: e })
+        $notify({ status: Status.Error, description: `${e}` })
       }
     },
     async quoteForTokenA(value) {
@@ -71,7 +72,7 @@ export const useLiquidityStore = defineStore('liquidity', {
       }
       catch (e) {
         console.log(e)
-        $notify({ type: 'error', text: e })
+        $notify({ status: Status.Error, description: `${e}` })
       }
     },
 
@@ -102,7 +103,7 @@ export const useLiquidityStore = defineStore('liquidity', {
     //     );
     //   } catch (e) {
     //     console.log(e);
-    //     this.$notify({ type: "error", text: e });
+    //     $notify({ status: Status.Error, description: e });
     //   }
     //   return;
     // },
@@ -216,8 +217,8 @@ export const useLiquidityStore = defineStore('liquidity', {
 
           await send()
           $notify({
-            type: 'success',
-            text: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
+            status: Status.Success,
+            description: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
           })
 
           console.log('addLiquidityAmountOutForExistPair ', gas)
@@ -254,11 +255,11 @@ export const useLiquidityStore = defineStore('liquidity', {
           })
 
         console.log({ lq })
-        $notify({ type: 'success', text: 'Liquidity success' })
+        $notify({ status: Status.Success, description: 'Liquidity success' })
       }
       catch (e) {
         console.log(e)
-        $notify({ type: 'error', text: e })
+        $notify({ status: Status.Error, description: `${e}` })
         throw 'Error'
       }
     },
@@ -304,8 +305,8 @@ export const useLiquidityStore = defineStore('liquidity', {
 
           await send()
           $notify({
-            type: 'success',
-            text: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
+            status: Status.Success,
+            description: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
           })
 
           return
@@ -343,13 +344,13 @@ export const useLiquidityStore = defineStore('liquidity', {
 
         console.log({ lq })
         $notify({
-          type: 'success',
-          text: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
+          status: Status.Success,
+          description: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
         })
       }
       catch (e) {
         console.log(e)
-        $notify({ type: 'error', text: 'Liquidity error' })
+        $notify({ status: Status.Error, description: 'Liquidity error' })
         throw 'Error'
       }
     },
@@ -572,8 +573,8 @@ export const useLiquidityStore = defineStore('liquidity', {
             gas: removeLiqGas,
           })
         $notify({
-          type: 'success',
-          text: `Remove liquidity success ${selectedTokens.tokenA.name} + ${selectedTokens.tokenB.name}`,
+          status: Status.Success,
+          description: `Remove liquidity success ${selectedTokens.tokenA.name} + ${selectedTokens.tokenB.name}`,
         })
         console.log({ removeLiqGas, res })
       }
