@@ -68,7 +68,7 @@ export class Config {
   }
 
   createContract<T>(address: Address, abi: AbiItem[]) {
-    if (this.status !== KaikasStatus.ShouldConnect)
+    if (this.status !== KaikasStatus.Connected)
       throw new Error('Can\'t create contract, check connect to Kaikas')
 
     this.caver = <Caver> this.caver
@@ -116,9 +116,7 @@ interface ConfigWithConnectedKaikas extends Config {
 }
 
 export function useConfigWithConnectedKaikas() {
-  // if (config.status !== KaikasStatus.Connected)
-  //   throw new Error('Kaikas is not connected')
-  if (config.address === null)
+  if (config.status !== KaikasStatus.Connected)
     throw new Error('Kaikas is not connected')
 
   return config as ConfigWithConnectedKaikas
