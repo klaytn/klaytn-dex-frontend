@@ -62,6 +62,8 @@ export class Config {
     this.address = addresses[0]
     this.caver.klay.defaultAccount = addresses[0]
 
+    this.status = KaikasStatus.Connected
+
     return addresses[0]
   }
 
@@ -114,7 +116,9 @@ interface ConfigWithConnectedKaikas extends Config {
 }
 
 export function useConfigWithConnectedKaikas() {
-  if (config.status !== KaikasStatus.Connected)
+  // if (config.status !== KaikasStatus.Connected)
+  //   throw new Error('Kaikas is not connected')
+  if (config.address === null)
     throw new Error('Kaikas is not connected')
 
   return config as ConfigWithConnectedKaikas
