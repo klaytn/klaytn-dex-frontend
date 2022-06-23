@@ -1,9 +1,9 @@
-import config from './Config'
+import config from './config'
 import utils from './utils'
 import pair from '@/utils/smartcontracts/pair.json'
 
 export default class Tokens {
-  async getTokenBQuote(addressA, addressB, value) {
+  async getTokenBQuote(addressA: string, addressB: string, value) {
     const pairAddress = await config.factoryContract.methods
       .getPair(addressA, addressB)
       .call({

@@ -19,7 +19,10 @@
   "typecheck",
   "soramitsu",
   "vnode",
-  "composables"
+  "composables",
+  "klaytn",
+  "bignumber",
+  "smartcontracts"
 ],
   "i18n-ally.sourceLanguage": "en",
   "i18n-ally.keystyle": "nested",

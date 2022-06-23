@@ -34,3 +34,8 @@ export default {
   }
 }
 </style>
+
+<route lang="yaml">
+name: LiquidityAdd
+</route>
+

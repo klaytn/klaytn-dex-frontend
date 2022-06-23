@@ -1,7 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 import { Status } from '@soramitsu-ui/ui'
-import config from '@/utils/kaikas/Config'
+import config from '@/utils/kaikas/config'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
 
 const state = function () {

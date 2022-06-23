@@ -1,11 +1,14 @@
 import web3 from 'web3'
+import type { Unit } from 'web3-utils'
+import { type AbiItem } from 'caver-js'
 import BigNumber from 'bignumber.js'
 
 import Tokens from './tokens'
 import utils from './utils'
-import config from './Config'
+import config from './config'
 import Swap from './swap'
 import Liquidity from './liquidity'
+import type { BN, Token } from '@/types'
 
 class Kaikas {
   address = null
@@ -17,26 +20,18 @@ class Kaikas {
   wethContract = null
   caver = null
 
-  liquidity = null
-  swap = null
-  tokens = null
-  utils = null
+  liquidity = new Liquidity()
+  swap = new Swap()
+  tokens = new Tokens()
+  utils = utils
+  config = config
 
-  constructor() {
-    this.config = config
-    this.utils = utils
-
-    this.tokens = new Tokens()
-    this.swap = new Swap()
-    this.liquidity = new Liquidity()
-  }
-
-  createContract(address, abi) {
+  createContract(address: string, abi: AbiItem[]) {
     const { caver } = window
     return new caver.klay.Contract(abi, address)
   }
 
-  getFormattedAddress(address) {
+  getFormattedAddress(address: string) {
     const addressLength = address.length
     return `${address.slice(2, 6)}...${address.slice(
       addressLength - 6,
@@ -44,27 +39,27 @@ class Kaikas {
     )}`
   }
 
-  isEmptyAddress(address) {
+  isEmptyAddress(address: string) {
     return Number(address?.slice(2)) === 0
   }
 
-  toWei(token, amount = 'ether') {
+  toWei(token: BN, amount: Unit = 'ether') {
     return web3.utils.toWei(token, amount)
   }
 
-  isAddress(value) {
-    return web3.utils.isAddress(value)
+  isAddress(address: string) {
+    return web3.utils.isAddress(address)
   }
 
-  fromWei(amount) {
+  fromWei(amount: string | BN) {
     return web3.utils.fromWei(amount)
   }
 
-  bigNumber(amount) {
+  bigNumber(amount: BigNumber.Value) {
     return new BigNumber(amount)
   }
 
-  sortKlayPair(tokenA, tokenB) {
+  sortKlayPair(tokenA: Token, tokenB: Token) {
     if (utils.isNativeToken(tokenA.address))
       return [tokenB, tokenA]
 

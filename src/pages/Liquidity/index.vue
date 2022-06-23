@@ -273,3 +273,7 @@ export default {
   margin-top: 17px;
 }
 </style>
+
+<route lang="yaml">
+name: Liquidity
+</route>

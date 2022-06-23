@@ -4,3 +4,7 @@
 <template>
   <SwapModule />
 </template>
+
+<route lang="yaml">
+name: Swap
+</route>

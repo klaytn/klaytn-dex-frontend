@@ -1,6 +1,6 @@
 <script>
 export default {
-  name: 'Voting',
+  name: 'Farms',
 }
 </script>
 
@@ -9,5 +9,5 @@ export default {
 </template>
 
 <route lang="yaml">
-name: Voting
+name: Farms
 </route>

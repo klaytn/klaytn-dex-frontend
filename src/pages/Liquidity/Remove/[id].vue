@@ -57,3 +57,7 @@ export default {
   }
 }
 </style>
+
+<route lang="yaml">
+name: LiquidityRemove
+</route>

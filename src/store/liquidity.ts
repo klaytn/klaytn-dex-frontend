@@ -3,7 +3,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { Status } from '@soramitsu-ui/ui'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
 import pairAbi from '@/utils/smartcontracts/pair.json'
-import config from '@/utils/kaikas/Config'
+import config from '@/utils/kaikas/config'
 
 export const useLiquidityStore = defineStore('liquidity', {
   state() {

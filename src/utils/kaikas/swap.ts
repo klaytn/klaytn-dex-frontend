@@ -1,19 +1,19 @@
-import config from './Config'
+import config from './config'
 
 export default class Swap {
-  async getAmountOut(addressA, addressB, value) {
+  async getAmountOut(addressA: string, addressB: string, value) {
     return await config.routerContract.methods
       .getAmountsOut(value, [addressA, addressB])
       .call()
   }
 
-  async getAmountIn(addressA, addressB, value) {
+  async getAmountIn(addressA: string, addressB: string, value) {
     return await config.routerContract.methods
       .getAmountsIn(value, [addressA, addressB])
       .call()
   }
 
-  async swapExactTokensForTokens({ addressA, addressB, valueA, valueB }) {
+  async swapExactTokensForTokens({ addressA, addressB, valueA, valueB }: { addressA: string; addressB: string }) {
     const deadLine = Math.floor(Date.now() / 1000 + 300)
     const swapGas = await config.routerContract.methods
       .swapExactTokensForTokens(
@@ -46,7 +46,7 @@ export default class Swap {
     }
   }
 
-  async swapTokensForExactTokens({ addressA, addressB, valueA, valueB }) {
+  async swapTokensForExactTokens({ addressA, addressB, valueA, valueB }: { addressA: string; addressB: string }) {
     const deadLine = Math.floor(Date.now() / 1000 + 300)
     const swapGas = await config.routerContract.methods
       .swapTokensForExactTokens(
@@ -76,7 +76,7 @@ export default class Swap {
     return { swapGas, send }
   }
 
-  async swapExactTokensForETH({ addressA, addressB, valueA, valueB }) {
+  async swapExactTokensForETH({ addressA, addressB, valueA, valueB }: { addressA: string; addressB: string }) {
     const deadLine = Math.floor(Date.now() / 1000 + 300)
 
     const swapGas = await config.routerContract.methods
@@ -143,6 +143,9 @@ export default class Swap {
   }
 
   async swapEthForExactTokens({ amountOut, from, to, amountIn }) {
+    if (config.routerContract === null)
+      throw new Error('config.routerContract is null')
+
     const deadLine = Math.floor(Date.now() / 1000 + 300)
     const swapGas = await config.routerContract.methods
       .swapETHForExactTokens(amountOut, [to, from], config.address, deadLine)

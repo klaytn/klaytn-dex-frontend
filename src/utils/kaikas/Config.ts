@@ -1,3 +1,7 @@
+import type Caver from 'caver-js'
+import type { AbiItem, Contract } from 'caver-js'
+
+import type BigNumber from 'bignumber.js'
 import utils from './utils'
 import routerABI from '@/utils/smartcontracts/router.json'
 import factoryABI from '@/utils/smartcontracts/factory.json'
@@ -11,16 +15,16 @@ export const kaikasStatuses = {
 }
 
 class Config {
-  address = null
+  address: string | null = null
 
   routerAddress = '0xB0B695584234F2CC16266588b2b951F3d2885705'
   factoryAddress = '0xEB487a3A623E25cAa668B6D199F1aBa9D2380456'
   wethAddress = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e'
 
-  routerContract = null
-  factoryContract = null
-  wethContract = null
-  caver = null
+  routerContract: Contract | null = null
+  factoryContract: Contract | null = null
+  wethContract: Contract | null = null
+  caver: Caver | null = null
 
   status = kaikasStatuses.initial
 
@@ -35,14 +39,14 @@ class Config {
     this.caver = caver
 
     this.routerContract = new caver.klay.Contract(
-      routerABI.abi,
+      routerABI.abi as AbiItem[],
       this.routerAddress,
     )
     this.factoryContract = new caver.klay.Contract(
-      factoryABI.abi,
+      factoryABI.abi as AbiItem[],
       this.factoryAddress,
     )
-    this.wethContract = new caver.klay.Contract(wethABI.abi, this.wethAddress)
+    this.wethContract = new caver.klay.Contract(wethABI.abi as AbiItem[], this.wethAddress)
 
     this.status = kaikasStatuses.shouldConnect
   }
@@ -51,6 +55,8 @@ class Config {
     if (this.status !== kaikasStatuses.shouldConnect)
       throw new Error('Can\'t connect to Kaikas')
 
+    this.caver = <Caver> this.caver
+    const { klaytn } = window
     const addresses = await klaytn.enable()
     this.address = addresses[0]
     this.caver.klay.defaultAccount = addresses[0]
@@ -58,14 +64,15 @@ class Config {
     return addresses[0]
   }
 
-  createContract(address, abi) {
+  createContract(address: string, abi: AbiItem[]) {
     if (this.status !== kaikasStatuses.shouldConnect)
       throw new Error('Can\'t create contract, check connect to Kaikas')
 
+    this.caver = <Caver> this.caver
     return new this.caver.klay.Contract(abi, address)
   }
 
-  async approveAmount(address, abi, amount) {
+  async approveAmount(address: string, abi: AbiItem[], amount: BigNumber.Value) {
     const contract = this.createContract(address, abi)
 
     const allowance = await contract.methods
