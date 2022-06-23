@@ -1,19 +1,33 @@
-import config from './config'
+import { useConfigWithConnectedKaikas } from './config'
+import type { Address } from '@/types'
+
+interface SwapProps {
+  addressA: Address
+  addressB: Address
+  valueA: string
+  valueB: string
+}
 
 export default class Swap {
-  async getAmountOut(addressA: string, addressB: string, value) {
+  async getAmountOut(addressA: Address, addressB: Address, value: string) {
+    const config = useConfigWithConnectedKaikas()
+
     return await config.routerContract.methods
       .getAmountsOut(value, [addressA, addressB])
       .call()
   }
 
-  async getAmountIn(addressA: string, addressB: string, value) {
+  async getAmountIn(addressA: Address, addressB: Address, value: string) {
+    const config = useConfigWithConnectedKaikas()
+
     return await config.routerContract.methods
       .getAmountsIn(value, [addressA, addressB])
       .call()
   }
 
-  async swapExactTokensForTokens({ addressA, addressB, valueA, valueB }: { addressA: string; addressB: string }) {
+  async swapExactTokensForTokens({ addressA, addressB, valueA, valueB }: SwapProps) {
+    const config = useConfigWithConnectedKaikas()
+
     const deadLine = Math.floor(Date.now() / 1000 + 300)
     const swapGas = await config.routerContract.methods
       .swapExactTokensForTokens(
@@ -46,7 +60,9 @@ export default class Swap {
     }
   }
 
-  async swapTokensForExactTokens({ addressA, addressB, valueA, valueB }: { addressA: string; addressB: string }) {
+  async swapTokensForExactTokens({ addressA, addressB, valueA, valueB }: SwapProps) {
+    const config = useConfigWithConnectedKaikas()
+
     const deadLine = Math.floor(Date.now() / 1000 + 300)
     const swapGas = await config.routerContract.methods
       .swapTokensForExactTokens(
@@ -76,7 +92,9 @@ export default class Swap {
     return { swapGas, send }
   }
 
-  async swapExactTokensForETH({ addressA, addressB, valueA, valueB }: { addressA: string; addressB: string }) {
+  async swapExactTokensForETH({ addressA, addressB, valueA, valueB }: SwapProps) {
+    const config = useConfigWithConnectedKaikas()
+
     const deadLine = Math.floor(Date.now() / 1000 + 300)
 
     const swapGas = await config.routerContract.methods
@@ -109,7 +127,9 @@ export default class Swap {
     return { gas: swapGas, send }
   }
 
-  async swapExactETHForTokens({ addressA, addressB, valueA, valueB }) {
+  async swapExactETHForTokens({ addressA, addressB, valueA, valueB }: SwapProps) {
+    const config = useConfigWithConnectedKaikas()
+
     const deadLine = Math.floor(Date.now() / 1000 + 300)
 
     const swapGas = await config.routerContract.methods
@@ -142,9 +162,16 @@ export default class Swap {
     return { gas: swapGas, send }
   }
 
-  async swapEthForExactTokens({ amountOut, from, to, amountIn }) {
-    if (config.routerContract === null)
-      throw new Error('config.routerContract is null')
+  async swapEthForExactTokens(
+    { amountOut, from, to, amountIn }:
+    {
+      amountOut: string
+      from: string
+      to: string
+      amountIn: string
+    },
+  ) {
+    const config = useConfigWithConnectedKaikas()
 
     const deadLine = Math.floor(Date.now() / 1000 + 300)
     const swapGas = await config.routerContract.methods
@@ -155,17 +182,30 @@ export default class Swap {
         gasPrice: 250000000000,
       })
 
-    await config.routerContract.methods
-      .swapETHForExactTokens(amountOut, [to, from], config.address, deadLine)
-      .send({
-        value: amountIn,
-        gas: swapGas,
-        from: config.address,
-        gasPrice: 250000000000,
-      })
+    const send = async () =>
+      await config.routerContract.methods
+        .swapETHForExactTokens(amountOut, [to, from], config.address, deadLine)
+        .send({
+          value: amountIn,
+          gas: swapGas,
+          from: config.address,
+          gasPrice: 250000000000,
+        })
+
+    return { send, swapGas }
   }
 
-  async swapTokensForExactETH({ amountOut, amountInMax, from, to }) {
+  async swapTokensForExactETH(
+    { amountOut, amountInMax, from, to }:
+    {
+      amountOut: string
+      amountInMax: string
+      from: string
+      to: string
+    },
+  ) {
+    const config = useConfigWithConnectedKaikas()
+
     const deadLine = Math.floor(Date.now() / 1000 + 300)
     const swapGas = await config.routerContract.methods
       .swapTokensForExactETH(

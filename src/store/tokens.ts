@@ -1,7 +1,12 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
+import type { AbiItem } from 'caver-js'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
 import pairAbi from '@/utils/smartcontracts/pair.json'
+import type { Address, Token } from '@/types'
+import type { DexPair } from '@/types/typechain/swap'
+import type { KIP7 } from '@/types/typechain/tokens'
+import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
 
 const mockedTokens = [
   '0xb9920BD871e39C6EF46169c32e7AC4C698688881',
@@ -16,7 +21,20 @@ const mockedTokens = [
   '0x246C989333Fa3C3247C7171F6bca68062172992C',
 ]
 
-const state = () => ({
+interface State {
+  tokensList: Token[]
+  computedToken: 'tokenB' | 'tokenA' | null
+  selectedTokens: {
+    emptyPair: boolean
+    pairAddress: Address | null
+    pairBalance: string | null
+    userBalance: string | null
+    tokenA: Token | null
+    tokenB: Token | null
+  }
+}
+
+const state = (): State => ({
   tokensList: [],
   computedToken: null,
   selectedTokens: {
@@ -54,56 +72,65 @@ export const useTokensStore = defineStore('tokens', {
         emptyPair: false,
       }
     },
-    async setSelectedTokensByPair(pairAddress) {
-      const pairContract = $kaikas.config.createContract(
+    async setSelectedTokensByPair(pairAddress: Address) {
+      const config = useConfigWithConnectedKaikas()
+
+      const pairContract = $kaikas.config.createContract<DexPair>(
         pairAddress,
-        pairAbi.abi,
+        pairAbi.abi as AbiItem[],
       )
-      const pair = {}
+
       const token0Address = await pairContract.methods.token0().call({
-        from: $kaikas.config.address,
+        from: config.address,
       })
       const token1Address = await pairContract.methods.token1().call({
-        from: $kaikas.config.address,
+        from: config.address,
       })
 
-      const token0 = {}
-      const token1 = {}
+      const contractToken0 = $kaikas.createContract<KIP7>(
+        token0Address,
+        kip7.abi as AbiItem[],
+      )
+      const contractToken1 = $kaikas.createContract<KIP7>(
+        token1Address,
+        kip7.abi as AbiItem[],
+      )
 
-      const contractToken0 = $kaikas.createContract(token0Address, kip7.abi)
-      const contractToken1 = $kaikas.createContract(token1Address, kip7.abi)
-
-      token0.address = token0Address
-      token0.name = await contractToken0.methods.name().call()
-      token0.symbol = await contractToken0.methods.symbol().call()
-      token0.balance = await contractToken0.methods
-        .balanceOf($kaikas.config.address)
-        .call()
-
-      token1.address = token1Address
-      token1.name = await contractToken1.methods.name().call()
-      token1.symbol = await contractToken1.methods.symbol().call()
-      token1.balance = await contractToken1.methods
-        .balanceOf($kaikas.config.address)
-        .call()
-
-      pair.tokenA = token0
-      pair.tokenB = token1
-
+      const token0: Token = {
+        address: token0Address,
+        name: await contractToken0.methods.name().call(),
+        symbol: await contractToken0.methods.symbol().call(),
+        balance: await contractToken0.methods
+          .balanceOf(config.address)
+          .call(),
+      }
+      const token1: Token = {
+        address: token1Address,
+        name: await contractToken1.methods.name().call(),
+        symbol: await contractToken1.methods.symbol().call(),
+        balance: await contractToken1.methods
+          .balanceOf(config.address)
+          .call(),
+      }
       const { pairBalance, userBalance } = await $kaikas.tokens.getPairBalance(
         token0Address,
         token1Address,
       )
 
-      pair.pairBalance = pairBalance
-      pair.userBalance = userBalance
-      pair.emptyPair = false
-      pair.pairAddress = pairAddress
-
-      this.selectedTokens = { ...pair }
+      this.selectedTokens = {
+        tokenA: token0,
+        tokenB: token1,
+        pairBalance,
+        userBalance,
+        emptyPair: false,
+        pairAddress,
+      }
     },
     async getTokens() {
-      const balance = await caver.klay.getBalance($kaikas.config.address)
+      const config = useConfigWithConnectedKaikas()
+      const { caver } = window
+
+      const balance = await caver.klay.getBalance(config.address)
 
       const klay = {
         id: '0xae3a8a1D877a446b22249D8676AFeB16F056B44e',
@@ -116,11 +143,14 @@ export const useTokensStore = defineStore('tokens', {
       }
 
       const listTokens = mockedTokens.map(async (token) => {
-        const contract = $kaikas.createContract(token, kip7.abi)
+        const contract = $kaikas.createContract<KIP7>(
+          token,
+          kip7.abi as AbiItem[],
+        )
         const name = await contract.methods.name().call()
         const symbol = await contract.methods.symbol().call()
         const balance = await contract.methods
-          .balanceOf($kaikas.config.address)
+          .balanceOf(config.address)
           .call()
 
         return {
@@ -143,18 +173,22 @@ export const useTokensStore = defineStore('tokens', {
       this.$state = state() // TODO: CHECK IT
     },
 
-    async setCurrencyRate({ id, type }) {
+    async setCurrencyRate({ type }: { type: 'tokenB' | 'tokenA' }) {
+      const token = this.selectedTokens[type]
+      if (token === null)
+        throw new Error('No selected tokens')
+
       this.selectedTokens[type] = {
-        ...this.selectedTokens[type],
+        ...token,
         price: '-',
       }
     },
 
-    setSelectedToken({ type, token }) {
+    setSelectedToken({ type, token }: { type: 'tokenB' | 'tokenA'; token: Token }) {
       this.selectedTokens[type] = token
     },
 
-    setComputedToken(token) {
+    setComputedToken(token: 'tokenB' | 'tokenA' | null) {
       this.computedToken = token
     },
 
@@ -170,7 +204,15 @@ export const useTokensStore = defineStore('tokens', {
       return state
     },
 
-    setTokenValue({ type, value, pairBalance, userBalance }) {
+    setTokenValue(
+      { type, value, pairBalance, userBalance }:
+      {
+        type: 'tokenB' | 'tokenA'
+        value: any
+        pairBalance: string | null
+        userBalance: string | null
+      },
+    ) {
       this.selectedTokens = {
         ...this.selectedTokens,
         pairBalance,

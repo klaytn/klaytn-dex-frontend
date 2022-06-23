@@ -2,13 +2,14 @@ import web3 from 'web3'
 import type { Unit } from 'web3-utils'
 import { type AbiItem } from 'caver-js'
 import BigNumber from 'bignumber.js'
+import type BN from 'bn.js'
 
 import Tokens from './tokens'
 import utils from './utils'
 import config from './config'
 import Swap from './swap'
 import Liquidity from './liquidity'
-import type { BN, Token } from '@/types'
+import type { Address, Token } from '@/types'
 
 class Kaikas {
   address = null
@@ -26,12 +27,12 @@ class Kaikas {
   utils = utils
   config = config
 
-  createContract(address: string, abi: AbiItem[]) {
+  createContract<T>(address: Address, abi: AbiItem[]) {
     const { caver } = window
-    return new caver.klay.Contract(abi, address)
+    return new caver.klay.Contract(abi, address) as unknown as T
   }
 
-  getFormattedAddress(address: string) {
+  getFormattedAddress(address: Address) {
     const addressLength = address.length
     return `${address.slice(2, 6)}...${address.slice(
       addressLength - 6,
@@ -39,7 +40,7 @@ class Kaikas {
     )}`
   }
 
-  isEmptyAddress(address: string) {
+  isEmptyAddress(address: Address) {
     return Number(address?.slice(2)) === 0
   }
 
@@ -47,7 +48,7 @@ class Kaikas {
     return web3.utils.toWei(token, amount)
   }
 
-  isAddress(address: string) {
+  isAddress(address: Address) {
     return web3.utils.isAddress(address)
   }
 

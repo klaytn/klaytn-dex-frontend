@@ -1,14 +1,21 @@
-import config from './config'
+import type BigNumber from 'bignumber.js'
+import { useConfigWithConnectedKaikas } from './config'
+import type { Address } from '@/types'
 
 export default class Liquidity {
-  async addLiquidityAmountOutForExistPair({
-    tokenBValue,
-    tokenAValue,
-    tokenAddressA,
-    tokenAddressB,
-    amountAMin,
-    deadLine,
-  }) {
+  async addLiquidityAmountOutForExistPair(
+    { tokenBValue, tokenAValue, tokenAddressA, tokenAddressB, amountAMin, deadLine }:
+    {
+      tokenBValue: BigNumber
+      tokenAValue: BigNumber
+      tokenAddressA: Address
+      tokenAddressB: Address
+      amountAMin: BigNumber
+      deadLine: number
+    },
+  ) {
+    const config = useConfigWithConnectedKaikas()
+
     const params = {
       tokenAAddress: tokenAddressA,
       tokenBAddress: tokenAddressB,
@@ -34,7 +41,6 @@ export default class Liquidity {
         params.deadLine,
       )
       .estimateGas()
-    console.log({ lqGas })
 
     const send = async () =>
       await config.routerContract.methods
@@ -60,14 +66,19 @@ export default class Liquidity {
     }
   }
 
-  async addLiquidityAmountInForExistPair({
-    tokenBValue,
-    tokenAValue,
-    tokenAddressA,
-    tokenAddressB,
-    amountBMin,
-    deadLine,
-  }) {
+  async addLiquidityAmountInForExistPair(
+    { tokenBValue, tokenAValue, tokenAddressA, tokenAddressB, amountBMin, deadLine }:
+    {
+      tokenBValue: BigNumber
+      tokenAValue: BigNumber
+      tokenAddressA: Address
+      tokenAddressB: Address
+      amountBMin: BigNumber
+      deadLine: number
+    },
+  ) {
+    const config = useConfigWithConnectedKaikas()
+
     const params = {
       tokenAAddress: tokenAddressA,
       tokenBAddress: tokenAddressB,
@@ -118,13 +129,18 @@ export default class Liquidity {
     }
   }
 
-  async addLiquidityKlayForExistsPair({
-    tokenAValue,
-    tokenBValue,
-    addressA,
-    amountAMin,
-    deadLine,
-  }) {
+  async addLiquidityKlayForExistsPair(
+    { tokenAValue, tokenBValue, addressA, amountAMin, deadLine }:
+    {
+      tokenBValue: BigNumber
+      tokenAValue: BigNumber
+      addressA: Address
+      amountAMin: BigNumber
+      deadLine: number
+    },
+  ) {
+    const config = useConfigWithConnectedKaikas()
+
     const params = {
       addressA,
       tokenAValue: tokenAValue.toFixed(0),
@@ -167,19 +183,23 @@ export default class Liquidity {
           gas: lqETHGas,
           value: tokenBValue.toFixed(0),
         })
-    console.log({ lqETHGas })
 
     return { gas: lqETHGas, send }
   }
 
-  async addLiquidityKlay({
-    addressA,
-    tokenAValue,
-    tokenBValue,
-    amountAMin,
-    amountBMin,
-    deadLine,
-  }) {
+  async addLiquidityKlay(
+    { addressA, tokenAValue, tokenBValue, amountAMin, amountBMin, deadLine }:
+    {
+      addressA: Address
+      tokenAValue: BigNumber
+      tokenBValue: BigNumber
+      amountAMin: BigNumber
+      amountBMin: BigNumber
+      deadLine: number
+    },
+  ) {
+    const config = useConfigWithConnectedKaikas()
+
     const params = {
       addressA,
       tokenAValue: tokenAValue.toFixed(0),
@@ -221,7 +241,6 @@ export default class Liquidity {
           gas: lqETHGas,
         })
 
-    console.log({ lqETHGas })
     return { gas: lqETHGas, send }
   }
 }

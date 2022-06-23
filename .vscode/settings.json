@@ -22,7 +22,9 @@
   "composables",
   "klaytn",
   "bignumber",
-  "smartcontracts"
+  "smartcontracts",
+  "typechain",
+  "WKLAY"
 ],
   "i18n-ally.sourceLanguage": "en",
   "i18n-ally.keystyle": "nested",

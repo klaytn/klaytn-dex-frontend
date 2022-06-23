@@ -1,8 +1,14 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import type { Address } from '@/types'
+
+interface State {
+  address: Address | null
+  isNotInstalled: boolean
+}
 
 export const useKaikasStore = defineStore('kaikas', {
   // arrow function recommended for full type inference
-  state: () => {
+  state: (): State => {
     return {
       // all these properties will have their type inferred automatically
       address: null,
@@ -10,7 +16,7 @@ export const useKaikasStore = defineStore('kaikas', {
     }
   },
   actions: {
-    connectKaikas(address) {
+    connectKaikas(address: Address) {
       this.address = address
     },
   },
