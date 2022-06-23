@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { mapActions, mapState } from 'pinia'
 
 export default {

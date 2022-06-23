@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import debounce from 'debounce'
 import { mapActions, mapState } from 'pinia'
 
