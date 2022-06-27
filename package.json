@@ -38,6 +38,8 @@
     "@types/nprogress": "^0.2.0",
     "@vitejs/plugin-vue": "^2.3.3",
     "@vue/test-utils": "^2.0.0",
+    "bn.js": "^5.2.1",
+    "caver-js": "^1.8.2",
     "critters": "^0.0.16",
     "cross-env": "^7.0.3",
     "cypress": "^9.7.0",

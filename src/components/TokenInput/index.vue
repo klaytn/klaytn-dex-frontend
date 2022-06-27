@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { mapActions, mapState } from 'pinia'
 import { roundTo } from 'round-to'
 import web3 from 'web3'

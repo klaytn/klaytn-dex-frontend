@@ -1,12 +1,20 @@
+import { type ComponentInternalInstance } from 'vue'
+
 type Element = string
 type Modifiers = Record<string, any>
-type Props = Element | [Element, Modifiers?] | Modifiers
+type Props = Element | [Element, Modifiers?] | Modifiers | undefined
 
 function toSnakeCase(value: string) {
   return value.split(/(?=[A-Z])/).join('-').toLowerCase()
 }
 
-export function getClassList(block: string, props: Props): string[] {
+export function getBemClasses(props: Props, context?: ComponentInternalInstance | null): string[] {
+  if (!context)
+    context = getCurrentInstance()
+  if (context === null)
+    throw new Error('Component context is null')
+  const componentName = (context?.vnode.type as any).name as string
+  const block = toSnakeCase(componentName)
   if (
     isRef(props)
     || (isRef(props?.[0]))
@@ -46,20 +54,21 @@ export function getClassList(block: string, props: Props): string[] {
 
 export function useBemClass() {
   const context = getCurrentInstance()
-  if (context === null)
-    throw new Error('Component context is null')
-  const componentName = (context?.vnode.type as any).name as string
-  const block = toSnakeCase(componentName)
-
   return {
     mounted(el: HTMLElement, { value }: { value: Props }) {
-      const classList = getClassList(block, value)
+      const classList = getBemClasses(value, context)
+      el.bemClassList = classList
       classList.forEach((item) => {
         el.classList.add(item)
       })
     },
     updated(el: HTMLElement, { value }: { value: Props }) {
-      const classList = getClassList(block, value)
+      if (el.bemClassList) {
+        el.bemClassList.forEach((item) => {
+          el.classList.remove(item)
+        })
+      }
+      const classList = getBemClasses(value, context)
       classList.forEach((item) => {
         el.classList.add(item)
       })

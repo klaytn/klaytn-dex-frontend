@@ -1,12 +1,20 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 import { Status } from '@soramitsu-ui/ui'
-import config from '@/utils/kaikas/Config'
+import type { AbiItem } from 'caver-js'
+import config from '@/utils/kaikas/config'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
 
-const state = function () {
+interface State {
+  exchangeRateLoading: boolean
+  pairNotExist: boolean
+  slippagePercent: number
+  exchangeRateIntervalID: ReturnType<typeof setInterval> | null
+}
+
+const state = function (): State {
   return {
-    exchangeRateLoading: null,
+    exchangeRateLoading: false,
     pairNotExist: false,
     slippagePercent: 0.5,
     exchangeRateIntervalID: null,
@@ -17,9 +25,12 @@ export const useSwapStore = defineStore('swap', {
   state,
 
   actions: {
-    async getAmountOut(value) {
+    async getAmountOut(value: string) {
       const tokensStore = useTokensStore()
       const { tokenA, tokenB } = tokensStore.selectedTokens
+      if (tokenA === null || tokenB === null)
+        throw new Error('No selected tokens')
+
       const amountOut = await $kaikas.swap.getAmountOut(
         tokenA.address,
         tokenB.address,
@@ -32,9 +43,11 @@ export const useSwapStore = defineStore('swap', {
       tokensStore.setTokenValue({ type: 'tokenB', value: amountOut[1], pairBalance, userBalance })
     },
 
-    async getAmountIn(value) {
+    async getAmountIn(value: string) {
       const tokensStore = useTokensStore()
       const { tokenA, tokenB } = tokensStore.selectedTokens
+      if (tokenA === null || tokenB === null)
+        throw new Error('No selected tokens')
 
       const amountIn = await $kaikas.swap.getAmountIn(
         tokenA.address,
@@ -52,18 +65,21 @@ export const useSwapStore = defineStore('swap', {
       const tokensStore = useTokensStore()
       try {
         const { selectedTokens } = tokensStore
+        const { tokenA, tokenB } = selectedTokens
+        if (tokenA === null || tokenB === null)
+          throw new Error('No selected tokens')
 
         await config.approveAmount(
-          selectedTokens.tokenA.address,
-          kip7.abi,
-          selectedTokens.tokenA.value,
+          tokenA.address,
+          kip7.abi as AbiItem[],
+          tokenA.value,
         )
 
         const { send } = await $kaikas.swap.swapExactTokensForTokens({
-          addressA: selectedTokens.tokenA.address,
-          addressB: selectedTokens.tokenB.address,
-          valueA: selectedTokens.tokenA.value,
-          valueB: selectedTokens.tokenB.value,
+          addressA: tokenA.address,
+          addressB: tokenB.address,
+          valueA: tokenA.value,
+          valueB: tokenB.value,
         })
 
         await send()
@@ -78,18 +94,22 @@ export const useSwapStore = defineStore('swap', {
     async swapTokensForExactTokens() {
       const tokensStore = useTokensStore()
       try {
-        const { selectedTokens, computedToken } = tokensStore
+        const { selectedTokens } = tokensStore
+        const { tokenA, tokenB } = selectedTokens
+        if (tokenA === null || tokenB === null)
+          throw new Error('No selected tokens')
+
         await config.approveAmount(
-          selectedTokens.tokenA.address,
-          kip7.abi,
-          selectedTokens.tokenA.value,
+          tokenA.address,
+          kip7.abi as AbiItem[],
+          tokenA.value,
         )
 
         const { send } = await $kaikas.swap.swapExactTokensForTokens({
-          addressA: selectedTokens.tokenA.address,
-          addressB: selectedTokens.tokenB.address,
-          valueA: selectedTokens.tokenA.value,
-          valueB: selectedTokens.tokenB.value,
+          addressA: tokenA.address,
+          addressB: tokenB.address,
+          valueA: tokenA.value,
+          valueB: tokenB.value,
         })
 
         await send()
@@ -106,15 +126,18 @@ export const useSwapStore = defineStore('swap', {
     async swapForKlayTokens() {
       const tokensStore = useTokensStore()
       const { selectedTokens, computedToken } = tokensStore
+      if (computedToken === null)
+        throw new Error('No computed token')
+      const { tokenA, tokenB } = selectedTokens
+
+      const selectedToken = selectedTokens[computedToken]
+      const inputToken = selectedTokens[computedToken === 'tokenA' ? 'tokenB' : 'tokenA']
+      if (tokenA === null || tokenB === null || selectedToken === null || inputToken === null)
+        throw new Error('No selected tokens')
 
       const isComputedNativeToken = $kaikas.utils.isNativeToken(
-        selectedTokens[computedToken].address,
+        selectedToken.address,
       )
-
-      const inputToken
-        = selectedTokens[computedToken === 'tokenA' ? 'tokenB' : 'tokenA']
-
-      const computed = selectedTokens[computedToken]
 
       // await config.approveAmount(
       //   inputToken.address,
@@ -123,9 +146,9 @@ export const useSwapStore = defineStore('swap', {
       // );
 
       await config.approveAmount(
-        selectedTokens.tokenA.address,
-        kip7.abi,
-        selectedTokens.tokenA.value,
+        tokenA.address,
+        kip7.abi as AbiItem[],
+        tokenA.value,
       )
 
       const exactTokensForEth
@@ -139,9 +162,9 @@ export const useSwapStore = defineStore('swap', {
 
       if (exactTokensForEth) {
         const { send } = await $kaikas.swap.swapExactTokensForETH({
-          addressA: selectedTokens[computedToken].address,
+          addressA: selectedToken.address,
           addressB: inputToken.address,
-          valueA: selectedTokens[computedToken].value,
+          valueA: selectedToken.value,
           valueB: inputToken.value,
         })
         await send()
@@ -149,8 +172,8 @@ export const useSwapStore = defineStore('swap', {
 
       if (exactETHForTokens) {
         const { send } = await $kaikas.swap.swapExactETHForTokens({
-          addressA: selectedTokens[computedToken].address,
-          valueA: selectedTokens[computedToken].value,
+          addressA: selectedToken.address,
+          valueA: selectedToken.value,
           addressB: inputToken.address,
           valueB: inputToken.value,
         })
@@ -159,9 +182,9 @@ export const useSwapStore = defineStore('swap', {
 
       if (ETHForExactTokens) {
         const { send } = await $kaikas.swap.swapEthForExactTokens({
-          to: computed.address,
+          to: selectedToken.address,
           from: inputToken.address,
-          amountOut: computed.value,
+          amountOut: selectedToken.value,
           amountIn: inputToken.value,
         })
         await send()
@@ -170,9 +193,9 @@ export const useSwapStore = defineStore('swap', {
       if (tokensForExactETH) {
         const { send } = await $kaikas.swap.swapTokensForExactETH({
           to: inputToken.address,
-          from: computed.address,
+          from: selectedToken.address,
           amountOut: inputToken.value,
-          amountInMax: computed.value,
+          amountInMax: selectedToken.value,
         })
         await send()
       }
@@ -184,11 +207,11 @@ export const useSwapStore = defineStore('swap', {
       this.$state = state() // TODO: CHECK IT
     },
 
-    setSlippage(value) {
+    setSlippage(value: number) {
       this.slippagePercent = value
     },
 
-    setExchangeRateIntervalID(intervalID) {
+    setExchangeRateIntervalID(intervalID: ReturnType<typeof setInterval> | null) {
       this.exchangeRateIntervalID = intervalID
     },
   },

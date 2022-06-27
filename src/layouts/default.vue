@@ -1,68 +1,68 @@
-<script>
-import { mapActions, mapState } from 'pinia'
+<script setup lang="ts" name="DefaultLayout">
+import { type HeaderMenuItem, RouteName } from '@/types'
 
-export default {
-  name: 'DefaultLayout',
-  computed: {
-    ...mapState(useKaikasStore, ['address', 'isNotInstalled']),
-    ...mapState(useTokensStore, ['tokensList']),
-    ...mapState(useLiquidityStore, ['pairs']),
-    getFormattedAddress() {
-      const addressLength = this.address.length
-      return `${this.address.slice(2, 6)}...${this.address.slice(
-        addressLength - 6,
-        addressLength - 2,
-      )}`
-    },
-    links() {
-      return [
-        {
-          label: 'Assets',
-          link: '/assets',
-        },
-        {
-          label: 'Trade',
-          link: '/swap',
-        },
-        {
-          label: 'Deposit',
-          link: '/liquidity',
-        },
-        {
-          label: 'Voting',
-          link: '/voting',
-        },
-        {
-          label: 'Charts',
-          link: '/charts',
-        },
-      ]
-    },
-  },
-  mounted() {
-    this.connect()
-  },
-  methods: {
-    ...mapActions(useKaikasStore, ['connectKaikas']),
-    ...mapActions(useTokensStore, {
-      loadTokensList: 'getTokens',
-    }),
-    ...mapActions(useLiquidityStore, {
-      loadPairs: 'getPairs',
-    }),
-    async connect() {
-      const address = await $kaikas.config.connectKaikas()
-      if (address)
-        this.connectKaikas(address)
+const { t } = useI18n()
 
-      if (!this.tokensList.length)
-        await this.loadTokensList()
-
-      if (!this.pairs.length)
-        await this.loadPairs()
+const menu = computed<HeaderMenuItem[]>(() => {
+  return [
+    {
+      label: t('defaultLayout.links.assets'),
+      routeName: RouteName.Assets,
     },
-  },
+    {
+      label: t('defaultLayout.links.trade'),
+      routeName: RouteName.Swap,
+      activeWith: [RouteName.Liquidity, RouteName.LiquidityAdd, RouteName.LiquidityRemove],
+    },
+    {
+      label: t('defaultLayout.links.earn'),
+      routeName: RouteName.Farms,
+      activeWith: [RouteName.Pools],
+    },
+    {
+      label: t('defaultLayout.links.voting'),
+      routeName: RouteName.Voting,
+    },
+    {
+      label: t('defaultLayout.links.charts'),
+      routeName: RouteName.Charts,
+    },
+  ]
+})
+
+const kaikasStore = useKaikasStore()
+const { address, isNotInstalled } = toRefs(kaikasStore)
+const { connectKaikas } = kaikasStore
+
+const tokensStore = useTokensStore()
+const { tokensList } = toRefs(tokensStore)
+const { getTokens: loadTokensList } = tokensStore
+
+const liquidityStore = useLiquidityStore()
+const { pairs } = toRefs(liquidityStore)
+const { getPairs: loadPairs } = liquidityStore
+
+const formattedAddress = computed(() => {
+  const addressLength = address.value.length
+  return `${address.value.slice(2, 6)}...${address.value.slice(
+    addressLength - 6,
+    addressLength - 2,
+  )}`
+})
+
+async function connect() {
+  const kaikasAddress = await $kaikas.config.connectKaikas()
+  if (kaikasAddress)
+    connectKaikas(kaikasAddress)
+
+  if (!tokensList.value.length)
+    await loadTokensList()
+
+  if (!pairs.value.length)
+    await loadPairs()
 }
+
+onMounted(connect)
 </script>
 
 <template>
@@ -87,7 +87,7 @@ export default {
         </a>
       </div>
       <div class="col col-center">
-        <HeaderMenu :items="links" />
+        <HeaderMenu :items="menu" />
       </div>
 
       <div class="col col-right">
@@ -117,7 +117,7 @@ export default {
             <circle cx="13.5176" cy="11.6407" r="1.5" fill="#ADB9CE" />
           </svg>
           <span>
-            {{ getFormattedAddress }}
+            {{ formattedAddress }}
           </span>
         </div>
       </div>

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { mapActions, mapState } from 'pinia'
 
 export default {
@@ -57,3 +57,7 @@ export default {
   }
 }
 </style>
+
+<route lang="yaml">
+name: LiquidityRemove
+</route>

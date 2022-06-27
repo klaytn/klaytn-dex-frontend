@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 export default {
   name: 'LiquidityAdd',
 }
@@ -34,3 +34,8 @@ export default {
   }
 }
 </style>
+
+<route lang="yaml">
+name: LiquidityAdd
+</route>
+
