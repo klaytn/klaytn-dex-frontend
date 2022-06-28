@@ -1,13 +1,7 @@
-<script lang="ts">
-export default {
-  name: 'TagName',
-  props: {
-    label: {
-      type: String,
-      required: true,
-    },
-  },
-}
+<script setup lang="ts" name="TagName">
+const { label } = defineProps<{
+  label: string
+}>()
 </script>
 
 <template>

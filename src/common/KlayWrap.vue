@@ -1,13 +1,4 @@
-<script lang="ts">
-export default {
-  name: 'KlayWrap',
-  props: {
-    active: {
-      type: String,
-    },
-  },
-}
-</script>
+<script setup lang="ts" name="KlayWrap" />
 
 <template>
   <div class="wrap">

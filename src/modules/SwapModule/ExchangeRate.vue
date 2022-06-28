@@ -1,74 +1,61 @@
-<script lang="ts">
+<script setup lang="ts" name="SwapModuleExchangeRate">
 import debounce from 'debounce'
-import { mapActions, mapState } from 'pinia'
 
-export default {
-  name: 'SwapModuleExchangeRate',
-  data() {
-    return {
-      exchangeLoading: null,
-    }
-  },
-  computed: {
-    ...mapState(useTokensStore, ['selectedTokens']),
-    isNotValid() {
-      return (
-        !this.selectedTokens.tokenA
-        || !this.selectedTokens.tokenB
-        || this.selectedTokens.emptyPair
-      )
+const tokensStore = useTokensStore()
+const { selectedTokens } = toRefs(tokensStore)
+const { setSelectedToken, setComputedToken } = tokensStore
+
+const { getAmountOut, getAmountIn } = useSwapStore()
+
+const exchangeLoading = ref<'tokenA' | 'tokenB' | null>(null)
+
+const isNotValid = computed(() => {
+  return (
+    !selectedTokens.value.tokenA
+    || !selectedTokens.value.tokenB
+    || selectedTokens.value.emptyPair
+  )
+})
+
+const onInput = debounce(async (_v, tokenType: 'tokenA' | 'tokenB') => {
+  if (!_v || isNotValid.value)
+    return
+
+  // if (this.exchangeRateIntervalID) {
+  //   clearInterval(this.exchangeRateIntervalID);
+  //   this.setExchangeRateIntervalID(null);
+  // }
+
+  const value = $kaikas.toWei(_v)
+
+  setSelectedToken({
+    token: {
+      ...selectedTokens.value[tokenType],
+      value,
     },
-  },
-  methods: {
-    ...mapActions(useTokensStore, [
-      'setSelectedToken',
-      'setComputedToken',
-    ]),
-    ...mapActions(useSwapStore, [
-      'getAmountOut',
-      'getAmountIn',
-    ]),
-    onInput: debounce(async function (_v, tokenType) {
-      if (!_v || this.isNotValid)
-        return
+    type: tokenType,
+  })
 
-      // if (this.exchangeRateIntervalID) {
-      //   clearInterval(this.exchangeRateIntervalID);
-      //   this.setExchangeRateIntervalID(null);
-      // }
+  setComputedToken(tokenType === 'tokenA' ? 'tokenB' : 'tokenA')
 
-      const value = $kaikas.toWei(_v)
+  if (tokenType === 'tokenA') {
+    exchangeLoading.value = 'tokenB'
+    await getAmountOut(value)
+    // this.setExchangeRateIntervalID(
+    //   setInterval(() => this.getAmountOut(value), 5000)
+    // );
+  }
 
-      this.setSelectedToken({
-        token: {
-          ...this.selectedTokens[tokenType],
-          value,
-        },
-        type: tokenType,
-      })
+  if (tokenType === 'tokenB') {
+    exchangeLoading.value = 'tokenA'
+    await getAmountIn(value)
+    // this.setExchangeRateIntervalID(
+    //   setInterval(() => this.getAmountIn(value), 5000)
+    // );
+  }
 
-      this.setComputedToken(tokenType === 'tokenA' ? 'tokenB' : 'tokenA')
-
-      if (tokenType === 'tokenA') {
-        this.exchangeLoading = 'tokenB'
-        await this.getAmountOut(value)
-        // this.setExchangeRateIntervalID(
-        //   setInterval(() => this.getAmountOut(value), 5000)
-        // );
-      }
-
-      if (tokenType === 'tokenB') {
-        this.exchangeLoading = 'tokenA'
-        await this.getAmountIn(value)
-        // this.setExchangeRateIntervalID(
-        //   setInterval(() => this.getAmountIn(value), 5000)
-        // );
-      }
-
-      this.exchangeLoading = null
-    }, 500),
-  },
-}
+  exchangeLoading.value = null
+}, 500)
 </script>
 
 <template>

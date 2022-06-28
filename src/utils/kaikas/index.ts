@@ -1,6 +1,5 @@
 import web3 from 'web3'
 import type { Unit } from 'web3-utils'
-import { type AbiItem } from 'caver-js'
 import BigNumber from 'bignumber.js'
 import type BN from 'bn.js'
 
@@ -26,11 +25,6 @@ class Kaikas {
   tokens = new Tokens()
   utils = utils
   config = config
-
-  createContract<T>(address: Address, abi: AbiItem[]) {
-    const { caver } = window
-    return new caver.klay.Contract(abi, address) as unknown as T
-  }
 
   getFormattedAddress(address: Address) {
     const addressLength = address.length

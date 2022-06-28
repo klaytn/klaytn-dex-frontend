@@ -87,11 +87,11 @@ export const useTokensStore = defineStore('tokens', {
         from: config.address,
       })
 
-      const contractToken0 = $kaikas.createContract<KIP7>(
+      const contractToken0 = $kaikas.config.createContract<KIP7>(
         token0Address,
         kip7.abi as AbiItem[],
       )
-      const contractToken1 = $kaikas.createContract<KIP7>(
+      const contractToken1 = $kaikas.config.createContract<KIP7>(
         token1Address,
         kip7.abi as AbiItem[],
       )
@@ -143,7 +143,7 @@ export const useTokensStore = defineStore('tokens', {
       }
 
       const listTokens = mockedTokens.map(async (token) => {
-        const contract = $kaikas.createContract<KIP7>(
+        const contract = $kaikas.config.createContract<KIP7>(
           token,
           kip7.abi as AbiItem[],
         )

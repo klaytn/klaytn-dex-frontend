@@ -1,3 +1,7 @@
+<route lang="yaml">
+name: Liquidity
+</route>
+
 <script lang="ts">
 import { mapActions, mapState } from 'pinia'
 import { roundTo } from 'round-to'
@@ -273,7 +277,3 @@ export default {
   margin-top: 17px;
 }
 </style>
-
-<route lang="yaml">
-name: Liquidity
-</route>

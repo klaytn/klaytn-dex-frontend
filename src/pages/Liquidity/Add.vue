@@ -1,8 +1,8 @@
-<script lang="ts">
-export default {
-  name: 'LiquidityAdd',
-}
-</script>
+<route lang="yaml">
+name: LiquidityAdd
+</route>
+
+<script setup lang="ts" name="LiquidityAdd" />
 
 <template>
   <KlayWrap>
@@ -34,8 +34,4 @@ export default {
   }
 }
 </style>
-
-<route lang="yaml">
-name: LiquidityAdd
-</route>
 

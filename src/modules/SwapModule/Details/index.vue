@@ -1,34 +1,33 @@
-<script lang="ts">
-import { mapActions, mapState } from 'pinia'
+<script setup lang="ts" name="SwapModuleDetails">
+import type BigNumber from 'bignumber.js'
 
-export default {
-  name: 'SwapModuleDetails',
-  computed: {
-    ...mapState(useTokensStore, ['selectedTokens']),
-    getRoute() {
-      return `${this.selectedTokens.tokenA.symbol} > ${this.selectedTokens.tokenB.symbol}`
-    },
-    isValid() {
-      return (
-        this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
-      )
-    },
-  },
-  methods: {
-    getFormattedRate(v1, v2) {
-      const bigNA = $kaikas.bigNumber(v1)
-      const bigNB = $kaikas.bigNumber(v2)
+const tokensStore = useTokensStore()
+const { selectedTokens } = toRefs(tokensStore)
+const { tokenA, tokenB, userBalance, pairBalance } = toRefs(selectedTokens.value)
 
-      return bigNA.dividedBy(bigNB).toFixed(5)
-    },
-    getFormattedPercent(v1, v2) {
-      const bigNA = $kaikas.bigNumber(v1)
-      const bigNB = $kaikas.bigNumber(v2)
-      const percent = bigNA.dividedToIntegerBy(100)
+const getRoute = computed(() => {
+  if (tokenA.value === null || tokenB.value === null)
+    return ''
 
-      return `${bigNB.dividedBy(percent).toFixed(2)}%`
-    },
-  },
+  return `${tokenA.value.symbol} > ${tokenB.value.symbol}`
+})
+const isValid = computed(() => {
+  return tokenA.value?.value && tokenB.value?.value
+})
+
+function getFormattedRate(v1: BigNumber.Value, v2: BigNumber.Value) {
+  const bigNA = $kaikas.bigNumber(v1)
+  const bigNB = $kaikas.bigNumber(v2)
+
+  return bigNA.dividedBy(bigNB).toFixed(5)
+}
+
+function getFormattedPercent(v1: BigNumber.Value, v2: BigNumber.Value) {
+  const bigNA = $kaikas.bigNumber(v1)
+  const bigNB = $kaikas.bigNumber(v2)
+  const percent = bigNA.dividedToIntegerBy(100)
+
+  return `${bigNB.dividedBy(percent).toFixed(2)}%`
 }
 </script>
 
@@ -41,28 +40,28 @@ export default {
         </h3>
       </template>
       <template #main>
-        <div v-if="isValid" class="details">
+        <div v-if="tokenA && tokenB && pairBalance && userBalance && isValid" class="details">
           <div class="details--row">
             <span>
-              {{ selectedTokens.tokenA.symbol }} per
-              {{ selectedTokens.tokenB.symbol }}
+              {{ tokenA.symbol }} per
+              {{ tokenB.symbol }}
             </span>
             <span>
-              {{ getFormattedRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
+              {{ getFormattedRate(tokenA.value, tokenB.value) }}
             </span>
           </div>
           <div class="details--row">
             <span>
-              {{ selectedTokens.tokenB.symbol }} per
-              {{ selectedTokens.tokenA.symbol }}
+              {{ tokenB.symbol }} per
+              {{ tokenA.symbol }}
             </span>
             <span>
-              {{ getFormattedRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
+              {{ getFormattedRate(tokenB.value, tokenA.value) }}
             </span>
           </div>
-          <div v-if="selectedTokens.pairBalance" class="details--row">
+          <div v-if="pairBalance" class="details--row">
             <span>Share of pool</span>
-            <span>{{ getFormattedPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}</span>
+            <span>{{ getFormattedPercent(pairBalance, userBalance) }}</span>
           </div>
           <div class="details--row">
             <span>Route</span>

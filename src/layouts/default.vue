@@ -122,15 +122,13 @@ onMounted(connect)
         </div>
       </div>
     </header>
-    <client-only>
-      <div v-if="isNotInstalled">
-        <h1>Install Kaikas before use swap</h1>
-      </div>
-      <div v-else-if="!address">
-        <h1>Please connect Kaikas</h1>
-      </div>
-      <RouterView v-else />
-    </client-only>
+    <div v-if="isNotInstalled">
+      <h1>Install Kaikas before use swap</h1>
+    </div>
+    <div v-else-if="!address">
+      <h1>Please connect Kaikas</h1>
+    </div>
+    <RouterView v-else />
   </main>
 </template>
 

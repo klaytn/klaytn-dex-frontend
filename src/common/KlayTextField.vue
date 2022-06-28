@@ -1,8 +1,4 @@
-<script lang="ts">
-export default {
-  name: 'KlayTextField',
-}
-</script>
+<script setup lang="ts" name="KlayTextField" />
 
 <template>
   <p class="text-field" v-bind="$attrs">

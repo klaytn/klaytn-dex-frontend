@@ -1,12 +1,7 @@
-<script lang="ts">
-export default {
-  name: 'KlayButton',
-  props: {
-    loading: {
-      type: Boolean,
-    },
-  },
-}
+<script setup lang="ts" name="KlayButton">
+const { loading = false } = defineProps<{
+  loading?: boolean
+}>()
 </script>
 
 <template>

@@ -1,30 +1,20 @@
-<script lang="ts">
-import { mapActions, mapState } from 'pinia'
+<script setup lang="ts" name="KlaySlippage">
+const selectedPercent = ref(0.5)
 
-export default {
-  name: 'KlaySlippage',
-  data() {
-    return {
-      selectedPercent: 0.5,
-    }
-  },
-  computed: {
-    ...mapState(useSwapStore, ['slippagePercent']),
-    renderPercent() {
-      return `${this.slippagePercent}%`
-    },
-  },
-  methods: {
-    ...mapActions(useSwapStore, ['setSlippage']),
-    input(value) {
-      if (value > 0 && value <= 10)
-        this.setSlippage(value)
-    },
-    select(value) {
-      this.selectedPercent = value
-      this.setSlippage(value)
-    },
-  },
+const swapStore = useSwapStore()
+const { slippagePercent } = toRefs(swapStore)
+const { setSlippage } = swapStore
+
+const renderPercent = computed(() => `${slippagePercent.value}%`)
+
+function input(value: number) {
+  if (value > 0 && value <= 10)
+    setSlippage(value)
+}
+
+function select(value: number) {
+  selectedPercent.value = value
+  setSlippage(value)
 }
 </script>
 

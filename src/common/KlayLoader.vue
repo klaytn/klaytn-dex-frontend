@@ -1,8 +1,4 @@
-<script lang="ts">
-export default {
-  name: 'KlayLoader',
-}
-</script>
+<script setup lang="ts" name="KlayLoader" />
 
 <template>
   <div class="loader" />

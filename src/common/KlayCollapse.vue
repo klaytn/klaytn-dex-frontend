@@ -1,12 +1,5 @@
-<script lang="ts">
-export default {
-  name: 'KlayCollapse',
-  data() {
-    return {
-      isOpen: false,
-    }
-  },
-}
+<script setup lang="ts" name="KlayCollapse">
+const isOpen = ref(false)
 </script>
 
 <template>
