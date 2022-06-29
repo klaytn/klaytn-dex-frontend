@@ -5,14 +5,13 @@ import type { AbiItem } from 'caver-js'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
 import pairAbi from '@/utils/smartcontracts/pair.json'
 import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
-import type { Address, Pair, Token } from '@/types'
+import type { Token } from '@/types'
 import { LiquidityStatus } from '@/types'
 import type { DexPair } from '@/types/typechain/swap'
 import type { KIP7 } from '@/types/typechain/tokens'
 
 interface State {
   liquidityStatus: LiquidityStatus
-  pairs: Pair[]
   removeLiquidityPair: {
     lpTokenValue: string | null
     tokenA: Token | null
@@ -26,7 +25,6 @@ export const useLiquidityStore = defineStore('liquidity', {
   state(): State {
     return {
       liquidityStatus: LiquidityStatus.Initial,
-      pairs: [],
       removeLiquidityPair: {
         lpTokenValue: null,
         tokenA: null,
@@ -123,78 +121,6 @@ export const useLiquidityStore = defineStore('liquidity', {
     //   }
     //   return;
     // },
-
-    async getPairs() {
-      const config = useConfigWithConnectedKaikas()
-
-      const pairsCount = await config.factoryContract.methods
-        .allPairsLength()
-        .call()
-
-      const pairs = await Promise.all(
-        new Array(Number(pairsCount)).fill(null).map(async (it, i) => {
-          const address = await config.factoryContract.methods
-            .allPairs(i)
-            .call()
-
-          const pair: {
-            address: Address
-            symbolA?: string
-            symbolB?: string
-          } = { address }
-
-          const contract = config.createContract<DexPair>(
-            address,
-            pairAbi.abi as AbiItem[],
-          )
-
-          const addressA = await contract.methods.token0().call()
-          const addressB = await contract.methods.token1().call()
-
-          const contractA = config.createContract<KIP7>(
-            addressA,
-            kip7.abi as AbiItem[],
-          )
-          const contractB = config.createContract<KIP7>(
-            addressB,
-            kip7.abi as AbiItem[],
-          )
-
-          let name = await contract.methods.name().call()
-          const symbol = await contract.methods.symbol().call()
-
-          if (
-            !$kaikas.utils.isEmptyAddress(addressA)
-            && !$kaikas.utils.isEmptyAddress(addressB)
-          ) {
-            const symbolA = await contractA.methods.symbol().call()
-            const symbolB = await contractB.methods.symbol().call()
-
-            name = `${symbolA} - ${symbolB}`
-
-            pair.symbolA = symbolA
-            pair.symbolB = symbolB
-          }
-
-          const pairBalance = await contract.methods.totalSupply().call()
-          const userBalance = await contract.methods
-            .balanceOf(config.address)
-            .call()
-
-          const reserves = await contract.methods.getReserves().call()
-
-          return {
-            ...pair,
-            userBalance,
-            pairBalance,
-            symbol,
-            name,
-            reserves,
-          }
-        }),
-      )
-      this.pairs = pairs
-    },
 
     async addLiquidityAmountOut() {
       const config = useConfigWithConnectedKaikas()
