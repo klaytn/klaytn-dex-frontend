@@ -40,7 +40,6 @@ const { getTokens: loadTokensList } = tokensStore
 
 const liquidityStore = useLiquidityStore()
 const { pairs } = toRefs(liquidityStore)
-const { getPairs: loadPairs } = liquidityStore
 
 const formattedAddress = computed(() => {
   const addressLength = address.value.length
@@ -57,9 +56,6 @@ async function connect() {
 
   if (!tokensList.value.length)
     await loadTokensList()
-
-  if (!pairs.value.length)
-    await loadPairs()
 }
 
 onMounted(connect)

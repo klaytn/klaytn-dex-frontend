@@ -4,7 +4,7 @@ const { name, char } = defineProps<{
   char?: string
 }>()
 
-const CurrentIcon = defineAsyncComponent(() => import(`../assets/svg/${name}.svg?component`))
+const CurrentIcon = defineAsyncComponent(() => import(`../assets/icons/${name}.svg?component`))
 </script>
 
 <template>

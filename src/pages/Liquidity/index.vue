@@ -3,30 +3,32 @@ name: Liquidity
 </route>
 
 <script lang="ts">
-import { mapActions, mapState } from 'pinia'
 import { roundTo } from 'round-to'
-import web3 from 'web3'
+import gql from 'graphql-tag'
 
 export default {
   name: 'Liquidity',
+  data() {
+    return {
+      emptyUser: false,
+    }
+  },
   computed: {
-    ...mapState(useLiquidityStore, ['pairs']),
     renderPairs() {
-      if (!this.pairs.length)
+      if (!this.pairs?.length)
         return null
 
-      return this.pairs.filter(p => !!Number(p.userBalance))
+      return this.pairs
     },
-  },
-  beforeMount() {
-    this.getPairs()
   },
   methods: {
-    ...mapActions(useLiquidityStore, ['getPairs']),
     getFormatted(v) {
-      return roundTo(Number(web3.utils.fromWei(v)), 5)
+      return roundTo(Number(v), 5)
     },
     getFormattedPercent(v1, v2) {
+      if (v1.toString() === '0')
+        return '0'
+
       const bigNA = $kaikas.bigNumber(v1)
       const bigNB = $kaikas.bigNumber(v2)
       const percent = bigNA.dividedToIntegerBy(100)
@@ -48,6 +50,63 @@ export default {
       return `~${this.getFormatted(token0Pooled.toFixed(0))}`
     },
   },
+  apollo: {
+    pairs: {
+      query: gql`query GetUserPairs($id: String!) {
+            user(id: $id) {
+              liquidityPositions {
+                liquidityTokenBalance
+                pair {
+                  name
+                  reserve0
+                  reserve1
+                  mints {
+                    amount0
+                    amount1
+                  }
+                  token0 {
+                    id
+                    name
+                    symbol
+                  }
+                  token1 {
+                    id
+                    name
+                    symbol
+                  }
+                  reserveKLAY
+                  reserveUSD
+                  token1Price
+                  totalSupply
+                  volumeUSD
+                }
+              }
+        }
+      }`,
+      variables() {
+        return {
+          id: $kaikas.config.address.toString().toLowerCase(),
+        }
+      },
+      update({ user }) {
+        if (!user) {
+          this.emptyUser = true
+          return []
+        }
+
+        this.emptyUser = true
+
+        return user?.liquidityPositions.map(({ pair, liquidityTokenBalance }) => ({
+          ...pair,
+          liquidityTokenBalance,
+        }))
+      },
+      skip() {
+        this.emptyUser = !$kaikas.config.address
+        return this.emptyUser
+      },
+    },
+  },
 }
 </script>
 
@@ -62,26 +121,26 @@ export default {
       </KlayButton>
     </RouterLink>
 
-    <p class="liquidity--title mt">
+    <p v-if="!emptyUser" class="liquidity--title mt">
       Your Liquidity
     </p>
 
-    <div v-if="!renderPairs" class="ma">
+    <div v-if="!emptyUser && !renderPairs" class="ma">
       <KlayLoader />
     </div>
-    <div v-else-if="!renderPairs.length">
+    <div v-else-if="!emptyUser && !renderPairs?.length">
       Empty
     </div>
     <div v-else class="liquidity--list">
-      <div v-for="p in renderPairs" :key="p.address" class="liquidity--item">
+      <div v-for="p in renderPairs" :key="p.id" class="liquidity--item">
         <KlayCollapse>
           <template #head>
             <div class="pair--head">
               <div class="pair--icon-f">
-                <KlayIcon :char="p.symbolA[0]" name="empty-token" />
+                <KlayIcon :char="p.token0.symbol[0]" name="empty-token" />
               </div>
               <div class="pair--icon-s">
-                <KlayIcon :char="p.symbolB[0]" name="empty-token" />
+                <KlayIcon :char="p.token1.symbol[0]" name="empty-token" />
               </div>
 
               <!--              <img -->
@@ -95,48 +154,38 @@ export default {
               <!--                alt="" -->
               <!--              /> -->
               <span class="pair--names"> {{ p.name }} </span>
-              <span v-if="p.userBalance" class="pair--rate">
-                {{ getFormatted(p.userBalance) }}
-                <!--                <span class="pair&#45;&#45;rate-gray">($5.87) </span> -->
+              <span class="pair--rate">
+                {{ getFormatted(p.totalSupply) }}
+                <span class="pair--rate-gray">(${{ getFormatted(p.reserveUSD) }}) </span>
               </span>
             </div>
           </template>
           <template #main>
             <div class="pair--main">
               <div class="pair--info">
-                <div v-if="p.pairBalance" class="pair--row">
-                  <span>Pooled {{ p.symbolA }}</span>
-                  <span>{{
-                    getFormattedTokens(
-                      p.userBalance,
-                      p.pairBalance,
-                      p.reserves[0],
-                    )
-                  }}</span>
+                <div class="pair--row">
+                  <span>Pooled {{ p.token0.name }}</span>
+                  <span>
+                    {{ getFormatted(p.reserve0) }}
+                  </span>
                 </div>
-                <div v-if="p.pairBalance" class="pair--row">
-                  <span>Pooled {{ p.symbolB }}</span>
-                  <span>{{
-                    getFormattedTokens(
-                      p.userBalance,
-                      p.pairBalance,
-                      p.reserves[1],
-                    )
-                  }}</span>
-                </div>
-                <div v-if="p.pairBalance" class="pair--row">
-                  <span>Pooled {{ p.name }}</span>
-                  <span>{{ getFormatted(p.pairBalance) }}</span>
+                <div class="pair--row">
+                  <span>Pooled {{ p.token1.name }}</span>
+                  <span>
+                    {{ getFormatted(p.reserve1) }}
+                  </span>
                 </div>
                 <div class="pair--row">
                   <span>Your pool tokens:</span>
-                  <span>{{ getFormatted(p.userBalance) }}</span>
+                  <span>
+                    {{ getFormatted(p.liquidityTokenBalance) }}
+                  </span>
                 </div>
                 <div class="pair--row">
                   <span>Your pool share:</span>
-                  <span>{{
-                    getFormattedPercent(p.pairBalance, p.userBalance)
-                  }}</span>
+                  <span>
+                    {{ getFormattedPercent(p.reserveKLAY, p.liquidityTokenBalance) }}
+                  </span>
                 </div>
               </div>
 
