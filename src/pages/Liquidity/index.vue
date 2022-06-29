@@ -1,5 +1,4 @@
 <script>
-import { mapActions } from 'pinia'
 import { roundTo } from 'round-to'
 import gql from 'graphql-tag'
 
@@ -40,9 +39,9 @@ export default {
       const yourPoolShare = bigNB.dividedToIntegerBy(bigNA).multipliedBy(100)
 
       const token0Pooled = $kaikas
-          .bigNumber(reserve)
-          .multipliedBy(yourPoolShare)
-          .dividedToIntegerBy(100)
+        .bigNumber(reserve)
+        .multipliedBy(yourPoolShare)
+        .dividedToIntegerBy(100)
 
       return `~${this.getFormatted(token0Pooled.toFixed(0))}`
     },
@@ -100,7 +99,7 @@ export default {
       },
       skip() {
         this.emptyUser = !$kaikas.config.address
-        return !$kaikas.config.address
+        return this.emptyUser
       },
     },
   },

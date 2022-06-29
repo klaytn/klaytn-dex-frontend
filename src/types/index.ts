@@ -1,6 +1,15 @@
-import { type ViteSSGContext } from 'vite-ssg'
+import type { App } from 'vue'
+import type { RouteRecordRaw, Router } from 'vue-router'
+import type { HeadClient } from '@vueuse/head'
 
-export type Plugin = (ctx: ViteSSGContext) => void
+export interface AppContext<HasRouter extends boolean = true> {
+  app: App<Element>
+  router: HasRouter extends true ? Router : undefined
+  routes: HasRouter extends true ? RouteRecordRaw[] : undefined
+  head: HeadClient | undefined
+}
+
+export type Plugin = (ctx: AppContext) => void
 
 export enum RouteName {
   Assets = 'Assets',
