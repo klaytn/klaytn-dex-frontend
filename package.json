@@ -4,7 +4,9 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite --port 3333 --open",
-    "lint": "",
+    "lint:base": "prettier-eslint \"**/*.{js,ts,vue,json}\"",
+    "lint:check": "pnpm run lint:base --list-different",
+    "lint:fix": "pnpm run lint:base --write",
     "preview": "vite preview",
     "preview-https": "serve dist",
     "test": "vitest",
