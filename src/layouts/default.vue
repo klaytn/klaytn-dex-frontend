@@ -38,11 +38,10 @@ const tokensStore = useTokensStore()
 const { tokensList } = toRefs(tokensStore)
 const { getTokens: loadTokensList } = tokensStore
 
-const liquidityStore = useLiquidityStore()
-const { pairs } = toRefs(liquidityStore)
-const { getPairs: loadPairs } = liquidityStore
-
 const formattedAddress = computed(() => {
+  if (address.value === null)
+    return ''
+
   const addressLength = address.value.length
   return `${address.value.slice(2, 6)}...${address.value.slice(
     addressLength - 6,
@@ -57,9 +56,6 @@ async function connect() {
 
   if (!tokensList.value.length)
     await loadTokensList()
-
-  if (!pairs.value.length)
-    await loadPairs()
 }
 
 onMounted(connect)
