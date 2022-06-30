@@ -7,10 +7,7 @@ import type { Address, Token } from '@/types'
 class Utils {
   getFormattedAddress(address: Address) {
     const addressLength = address.length
-    return `${address.slice(2, 6)}...${address.slice(
-      addressLength - 6,
-      addressLength - 2,
-    )}`
+    return `${address.slice(2, 6)}...${address.slice(addressLength - 6, addressLength - 2)}`
   }
 
   isEmptyAddress(address: string) {
@@ -38,8 +35,7 @@ class Utils {
   }
 
   sortKlayPair(tokenA: Token, tokenB: Token) {
-    if (this.isNativeToken(tokenA.address))
-      return [tokenB, tokenA]
+    if (this.isNativeToken(tokenA.address)) return [tokenB, tokenA]
 
     return [tokenA, tokenB]
   }

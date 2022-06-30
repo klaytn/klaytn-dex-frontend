@@ -11,4 +11,3 @@ export default {
 <route lang="yaml">
 name: Charts
 </route>
-

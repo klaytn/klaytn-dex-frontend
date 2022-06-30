@@ -21,7 +21,10 @@ export default {
 <template>
   <KlayWrap>
     <template #head>
-      <RouterLink to="/liquidity" class="back">
+      <RouterLink
+        to="/liquidity"
+        class="back"
+      >
         <KlayIcon name="back-arrow" />
         <span v-if="isValid">
           Remove
@@ -32,7 +35,10 @@ export default {
     </template>
     <div class="add-liq">
       <LiquidityModuleRemove v-if="isValid" />
-      <div v-else class="loader-wrapper">
+      <div
+        v-else
+        class="loader-wrapper"
+      >
         <KlayLoader />
       </div>
     </div>

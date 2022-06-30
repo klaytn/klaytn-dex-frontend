@@ -15,8 +15,7 @@ export default {
   },
   computed: {
     renderPairs() {
-      if (!this.pairs?.length)
-        return null
+      if (!this.pairs?.length) return null
 
       return this.pairs
     },
@@ -26,8 +25,7 @@ export default {
       return roundTo(Number(v), 5)
     },
     getFormattedPercent(v1, v2) {
-      if (v1.toString() === '0')
-        return '0'
+      if (v1.toString() === '0') return '0'
 
       const bigNA = $kaikas.bigNumber(v1)
       const bigNB = $kaikas.bigNumber(v2)
@@ -42,47 +40,46 @@ export default {
 
       const yourPoolShare = bigNB.dividedToIntegerBy(bigNA).multipliedBy(100)
 
-      const token0Pooled = $kaikas
-        .bigNumber(reserve)
-        .multipliedBy(yourPoolShare)
-        .dividedToIntegerBy(100)
+      const token0Pooled = $kaikas.bigNumber(reserve).multipliedBy(yourPoolShare).dividedToIntegerBy(100)
 
       return `~${this.getFormatted(token0Pooled.toFixed(0))}`
     },
   },
   apollo: {
     pairs: {
-      query: gql`query GetUserPairs($id: String!) {
-            user(id: $id) {
-              liquidityPositions {
-                liquidityTokenBalance
-                pair {
-                  name
-                  reserve0
-                  reserve1
-                  mints {
-                    amount0
-                    amount1
-                  }
-                  token0 {
-                    id
-                    name
-                    symbol
-                  }
-                  token1 {
-                    id
-                    name
-                    symbol
-                  }
-                  reserveKLAY
-                  reserveUSD
-                  token1Price
-                  totalSupply
-                  volumeUSD
+      query: gql`
+        query GetUserPairs($id: String!) {
+          user(id: $id) {
+            liquidityPositions {
+              liquidityTokenBalance
+              pair {
+                name
+                reserve0
+                reserve1
+                mints {
+                  amount0
+                  amount1
                 }
+                token0 {
+                  id
+                  name
+                  symbol
+                }
+                token1 {
+                  id
+                  name
+                  symbol
+                }
+                reserveKLAY
+                reserveUSD
+                token1Price
+                totalSupply
+                volumeUSD
               }
+            }
+          }
         }
-      }`,
+      `,
       variables() {
         return {
           id: $kaikas.config.address.toString().toLowerCase(),
@@ -121,26 +118,45 @@ export default {
       </KlayButton>
     </RouterLink>
 
-    <p v-if="!emptyUser" class="liquidity--title mt">
+    <p
+      v-if="!emptyUser"
+      class="liquidity--title mt"
+    >
       Your Liquidity
     </p>
 
-    <div v-if="!emptyUser && !renderPairs" class="ma">
+    <div
+      v-if="!emptyUser && !renderPairs"
+      class="ma"
+    >
       <KlayLoader />
     </div>
     <div v-else-if="!emptyUser && !renderPairs?.length">
       Empty
     </div>
-    <div v-else class="liquidity--list">
-      <div v-for="p in renderPairs" :key="p.id" class="liquidity--item">
+    <div
+      v-else
+      class="liquidity--list"
+    >
+      <div
+        v-for="p in renderPairs"
+        :key="p.id"
+        class="liquidity--item"
+      >
         <KlayCollapse>
           <template #head>
             <div class="pair--head">
               <div class="pair--icon-f">
-                <KlayIcon :char="p.token0.symbol[0]" name="empty-token" />
+                <KlayIcon
+                  :char="p.token0.symbol[0]"
+                  name="empty-token"
+                />
               </div>
               <div class="pair--icon-s">
-                <KlayIcon :char="p.token1.symbol[0]" name="empty-token" />
+                <KlayIcon
+                  :char="p.token1.symbol[0]"
+                  name="empty-token"
+                />
               </div>
 
               <!--              <img -->
@@ -196,7 +212,10 @@ export default {
                 <RouterLink :to="`/liquidity/remove/${p.address}`">
                   Remove
                 </RouterLink>
-                <a href="#" class="deposit">Deposit</a>
+                <a
+                  href="#"
+                  class="deposit"
+                >Deposit</a>
               </div>
             </div>
           </template>

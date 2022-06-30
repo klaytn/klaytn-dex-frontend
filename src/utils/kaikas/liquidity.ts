@@ -3,17 +3,21 @@ import { useConfigWithConnectedKaikas } from './config'
 import type { Address } from '@/types'
 
 export default class Liquidity {
-  async addLiquidityAmountOutForExistPair(
-    { tokenBValue, tokenAValue, tokenAddressA, tokenAddressB, amountAMin, deadLine }:
-    {
-      tokenBValue: BigNumber
-      tokenAValue: BigNumber
-      tokenAddressA: Address
-      tokenAddressB: Address
-      amountAMin: BigNumber
-      deadLine: number
-    },
-  ) {
+  async addLiquidityAmountOutForExistPair({
+    tokenBValue,
+    tokenAValue,
+    tokenAddressA,
+    tokenAddressB,
+    amountAMin,
+    deadLine,
+  }: {
+    tokenBValue: BigNumber
+    tokenAValue: BigNumber
+    tokenAddressA: Address
+    tokenAddressB: Address
+    amountAMin: BigNumber
+    deadLine: number
+  }) {
     const config = useConfigWithConnectedKaikas()
 
     const params = {
@@ -22,9 +26,7 @@ export default class Liquidity {
       tokenAValue: tokenAValue.toFixed(0),
       tokenBValue: tokenBValue.toFixed(0),
       amountAMin: amountAMin.toFixed(0),
-      amountBMin: tokenBValue
-        .minus(tokenBValue.dividedToIntegerBy(100))
-        .toFixed(0),
+      amountBMin: tokenBValue.minus(tokenBValue.dividedToIntegerBy(100)).toFixed(0),
       userAddress: config.address,
       deadLine,
     }
@@ -66,17 +68,21 @@ export default class Liquidity {
     }
   }
 
-  async addLiquidityAmountInForExistPair(
-    { tokenBValue, tokenAValue, tokenAddressA, tokenAddressB, amountBMin, deadLine }:
-    {
-      tokenBValue: BigNumber
-      tokenAValue: BigNumber
-      tokenAddressA: Address
-      tokenAddressB: Address
-      amountBMin: BigNumber
-      deadLine: number
-    },
-  ) {
+  async addLiquidityAmountInForExistPair({
+    tokenBValue,
+    tokenAValue,
+    tokenAddressA,
+    tokenAddressB,
+    amountBMin,
+    deadLine,
+  }: {
+    tokenBValue: BigNumber
+    tokenAValue: BigNumber
+    tokenAddressA: Address
+    tokenAddressB: Address
+    amountBMin: BigNumber
+    deadLine: number
+  }) {
     const config = useConfigWithConnectedKaikas()
 
     const params = {
@@ -84,9 +90,7 @@ export default class Liquidity {
       tokenBAddress: tokenAddressB,
       tokenAValue: tokenAValue.toFixed(0),
       tokenBValue: tokenBValue.toFixed(0),
-      amountAMin: tokenAValue
-        .minus(tokenAValue.dividedToIntegerBy(100))
-        .toFixed(0),
+      amountAMin: tokenAValue.minus(tokenAValue.dividedToIntegerBy(100)).toFixed(0),
       amountBMin: amountBMin.toFixed(0),
       userAddress: config.address,
       deadLine,
@@ -129,25 +133,26 @@ export default class Liquidity {
     }
   }
 
-  async addLiquidityKlayForExistsPair(
-    { tokenAValue, tokenBValue, addressA, amountAMin, deadLine }:
-    {
-      tokenBValue: BigNumber
-      tokenAValue: BigNumber
-      addressA: Address
-      amountAMin: BigNumber
-      deadLine: number
-    },
-  ) {
+  async addLiquidityKlayForExistsPair({
+    tokenAValue,
+    tokenBValue,
+    addressA,
+    amountAMin,
+    deadLine,
+  }: {
+    tokenBValue: BigNumber
+    tokenAValue: BigNumber
+    addressA: Address
+    amountAMin: BigNumber
+    deadLine: number
+  }) {
     const config = useConfigWithConnectedKaikas()
 
     const params = {
       addressA,
       tokenAValue: tokenAValue.toFixed(0),
       amountAMin: amountAMin.toFixed(0),
-      amountBMin: tokenBValue
-        .minus(tokenBValue.dividedToIntegerBy(100).toFixed(0))
-        .toFixed(0),
+      amountBMin: tokenBValue.minus(tokenBValue.dividedToIntegerBy(100).toFixed(0)).toFixed(0),
       address: config.address,
       deadLine,
     }
@@ -187,17 +192,21 @@ export default class Liquidity {
     return { gas: lqETHGas, send }
   }
 
-  async addLiquidityKlay(
-    { addressA, tokenAValue, tokenBValue, amountAMin, amountBMin, deadLine }:
-    {
-      addressA: Address
-      tokenAValue: BigNumber
-      tokenBValue: BigNumber
-      amountAMin: BigNumber
-      amountBMin: BigNumber
-      deadLine: number
-    },
-  ) {
+  async addLiquidityKlay({
+    addressA,
+    tokenAValue,
+    tokenBValue,
+    amountAMin,
+    amountBMin,
+    deadLine,
+  }: {
+    addressA: Address
+    tokenAValue: BigNumber
+    tokenBValue: BigNumber
+    amountAMin: BigNumber
+    amountBMin: BigNumber
+    deadLine: number
+  }) {
     const config = useConfigWithConnectedKaikas()
 
     const params = {

@@ -28,10 +28,7 @@ class Kaikas {
 
   getFormattedAddress(address: Address) {
     const addressLength = address.length
-    return `${address.slice(2, 6)}...${address.slice(
-      addressLength - 6,
-      addressLength - 2,
-    )}`
+    return `${address.slice(2, 6)}...${address.slice(addressLength - 6, addressLength - 2)}`
   }
 
   isEmptyAddress(address: Address) {
@@ -55,8 +52,7 @@ class Kaikas {
   }
 
   sortKlayPair(tokenA: Token, tokenB: Token) {
-    if (utils.isNativeToken(tokenA.address))
-      return [tokenB, tokenA]
+    if (utils.isNativeToken(tokenA.address)) return [tokenB, tokenA]
 
     return [tokenA, tokenB]
   }

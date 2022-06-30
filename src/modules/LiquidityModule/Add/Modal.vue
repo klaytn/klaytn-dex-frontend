@@ -15,9 +15,7 @@ export default {
   computed: {
     ...mapState(useTokensStore, ['selectedTokens', 'computedToken']),
     isValid() {
-      return (
-        this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
-      )
+      return this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
     },
   },
   methods: {
@@ -26,9 +24,9 @@ export default {
       try {
         this.error = false
         this.status = 'in_progress'
-        const isKlayToken
-          = $kaikas.utils.isNativeToken(this.selectedTokens.tokenA.address)
-          || $kaikas.utils.isNativeToken(this.selectedTokens.tokenB.address)
+        const isKlayToken =
+          $kaikas.utils.isNativeToken(this.selectedTokens.tokenA.address) ||
+          $kaikas.utils.isNativeToken(this.selectedTokens.tokenB.address)
 
         if (isKlayToken) {
           await this.addLiquidityETH()
@@ -48,8 +46,7 @@ export default {
         }
         this.status = 'submitted'
         $notify({ status: Status.Success, description: 'Transaction Submitted' })
-      }
-      catch (e) {
+      } catch (e) {
         this.status = 'initial'
         $notify({ status: Status.Error, description: 'Transaction Reverted' })
       }
@@ -72,7 +69,11 @@ export default {
 </script>
 
 <template>
-  <KlayModal width="344" label="Confirm Supply" @close="$emit('close')">
+  <KlayModal
+    width="344"
+    label="Confirm Supply"
+    @close="$emit('close')"
+  >
     <div>
       <div
         v-if="status === 'initial' || status === 'in_progress'"
@@ -85,7 +86,10 @@ export default {
         <!--          <p>3.6747823</p> -->
         <!--        </div> -->
 
-        <div v-if="isValid" class="liquidity--details">
+        <div
+          v-if="isValid"
+          class="liquidity--details"
+        >
           <h3>Prices and pool share</h3>
 
           <div class="liquidity--details--row">
@@ -94,12 +98,7 @@ export default {
               {{ selectedTokens.tokenB.symbol }}
             </span>
             <span>
-              {{
-                getFormattedRate(
-                  selectedTokens.tokenA.value,
-                  selectedTokens.tokenB.value,
-                )
-              }}
+              {{ getFormattedRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
             </span>
           </div>
           <div class="liquidity--details--row">
@@ -108,12 +107,7 @@ export default {
               {{ selectedTokens.tokenA.symbol }}
             </span>
             <span>
-              {{
-                getFormattedRate(
-                  selectedTokens.tokenB.value,
-                  selectedTokens.tokenA.value,
-                )
-              }}
+              {{ getFormattedRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
             </span>
           </div>
           <div
@@ -122,12 +116,7 @@ export default {
           >
             <span>Share of pool</span>
             <span>
-              {{
-                getFormattedPercent(
-                  selectedTokens.pairBalance,
-                  selectedTokens.userBalance,
-                )
-              }}
+              {{ getFormattedPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}
             </span>
           </div>
           <!--          <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
@@ -147,15 +136,21 @@ export default {
           class="liquidity--btn"
           @click="handleAddLiquidity"
         >
-          {{ status === "in_progress" ? "Wait" : "Supply" }}
+          {{ status === 'in_progress' ? 'Wait' : 'Supply' }}
         </KlayButton>
       </div>
-      <div v-else-if="status === 'submitted'" class="m-content">
+      <div
+        v-else-if="status === 'submitted'"
+        class="m-content"
+      >
         <div class="submitted">
           <p>Transaction Submitted</p>
           <!--          <a href="#"> View on BscScan </a> -->
         </div>
-        <KlayButton type="button" @click="$emit('close')">
+        <KlayButton
+          type="button"
+          @click="$emit('close')"
+        >
           Close
         </KlayButton>
       </div>

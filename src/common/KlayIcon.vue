@@ -8,7 +8,10 @@ const CurrentIcon = defineAsyncComponent(() => import(`../assets/icons/${name}.s
 </script>
 
 <template>
-  <div v-if="char" class="char">
+  <div
+    v-if="char"
+    class="char"
+  >
     {{ char }}
   </div>
   <!-- eslint-disable vue/no-v-html -->
@@ -22,7 +25,7 @@ const CurrentIcon = defineAsyncComponent(() => import(`../assets/icons/${name}.s
 <style lang="scss" scoped>
 .char {
   width: 24px;
-  height:24px;
+  height: 24px;
   background: $gray5;
   border-radius: 50%;
   font-weight: 700;

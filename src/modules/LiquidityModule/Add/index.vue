@@ -12,9 +12,7 @@ export default {
     ...mapState(useTokensStore, ['selectedTokens']),
     ...mapState(useLiquidityStore, ['pairs']),
     isValid() {
-      return (
-        this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
-      )
+      return this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
     },
   },
   beforeUnmount() {
@@ -47,13 +45,24 @@ export default {
       <KlaySlippage />
     </div>
 
-    <KlayButton type="button" :disabled="!isValid" class="liquidity--btn" @click="isOpen = true">
+    <KlayButton
+      type="button"
+      :disabled="!isValid"
+      class="liquidity--btn"
+      @click="isOpen = true"
+    >
       Supply
     </KlayButton>
 
-    <LiquidityModuleAddModal v-if="isOpen" @close="isOpen = false" />
+    <LiquidityModuleAddModal
+      v-if="isOpen"
+      @close="isOpen = false"
+    />
 
-    <div v-if="isValid" class="liquidity--details">
+    <div
+      v-if="isValid"
+      class="liquidity--details"
+    >
       <h3>Prices and pool share</h3>
 
       <div class="liquidity--details--row">
@@ -74,7 +83,10 @@ export default {
           {{ getFormattedRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
         </span>
       </div>
-      <div v-if="selectedTokens.pairBalance" class="liquidity--details--row">
+      <div
+        v-if="selectedTokens.pairBalance"
+        class="liquidity--details--row"
+      >
         <span>Share of pool</span>
         <span>{{ getFormattedPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}</span>
       </div>

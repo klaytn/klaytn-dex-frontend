@@ -4,13 +4,22 @@ const isOpen = ref(false)
 
 <template>
   <div class="collapse">
-    <div class="collapse--head" @click="isOpen = !isOpen">
+    <div
+      class="collapse--head"
+      @click="isOpen = !isOpen"
+    >
       <slot name="head" />
-      <div class="icon-wrap" :style="{ transform: `rotate(${isOpen ? 180 : 0}deg)` }">
+      <div
+        class="icon-wrap"
+        :style="{ transform: `rotate(${isOpen ? 180 : 0}deg)` }"
+      >
         <KlayIcon name="collapse-arrow" />
       </div>
     </div>
-    <slot v-if="isOpen" name="main" />
+    <slot
+      v-if="isOpen"
+      name="main"
+    />
   </div>
 </template>
 

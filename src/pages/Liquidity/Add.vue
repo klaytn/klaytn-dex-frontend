@@ -7,11 +7,12 @@ name: LiquidityAdd
 <template>
   <KlayWrap>
     <template #head>
-      <RouterLink to="/liquidity" class="back">
+      <RouterLink
+        to="/liquidity"
+        class="back"
+      >
         <KlayIcon name="back-arrow" />
-        <span>
-          Add Liquidity
-        </span>
+        <span> Add Liquidity </span>
       </RouterLink>
     </template>
     <div class="add-liq">
@@ -34,4 +35,3 @@ name: LiquidityAdd
   }
 }
 </style>
-

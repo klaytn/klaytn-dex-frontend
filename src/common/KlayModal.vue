@@ -11,7 +11,10 @@ const vBem = useBemClass()
 
 <template>
   <div v-bem>
-    <div v-bem="'close-layer'" @click="$emit('close')" />
+    <div
+      v-bem="'close-layer'"
+      @click="$emit('close')"
+    />
     <div
       v-bem="'body'"
       :style="{
@@ -19,8 +22,12 @@ const vBem = useBemClass()
       }"
     >
       <div v-bem="'head'">
-        <h3>{{ label || "" }}</h3>
-        <button v-bem="'close'" type="button" @click="$emit('close')">
+        <h3>{{ label || '' }}</h3>
+        <button
+          v-bem="'close'"
+          type="button"
+          @click="$emit('close')"
+        >
           <KlayIcon name="close" />
         </button>
       </div>

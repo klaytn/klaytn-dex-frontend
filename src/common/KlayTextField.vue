@@ -1,7 +1,10 @@
 <script setup lang="ts" name="KlayTextField" />
 
 <template>
-  <p class="text-field" v-bind="$attrs">
+  <p
+    class="text-field"
+    v-bind="$attrs"
+  >
     <slot />
   </p>
 </template>

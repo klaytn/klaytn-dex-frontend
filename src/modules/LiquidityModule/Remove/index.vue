@@ -15,8 +15,7 @@ export default {
   methods: {
     ...mapActions(useLiquidityStore, ['removeLiquidity']),
     getFormattedValue(_v) {
-      if (!_v)
-        return '-'
+      if (!_v) return '-'
 
       const bn = $kaikas.bigNumber($kaikas.fromWei(_v))
 
@@ -48,7 +47,11 @@ export default {
     <LiquidityModuleRemoveAmount v-if="active === 'amount'" />
     <LiquidityModuleRemoveDetailed v-if="active === 'detailed'" />
 
-    <KlayButton type="button" class="mt" @click="removeLiquidity">
+    <KlayButton
+      type="button"
+      class="mt"
+      @click="removeLiquidity"
+    >
       Remove
     </KlayButton>
 
@@ -66,19 +69,13 @@ export default {
           >
             <div>{{ selectedTokens.tokenA.symbol }}</div>
             <div>
-              {{
-                removeLiquidityPair.amount0
-                  && getFormattedValue(removeLiquidityPair.amount0)
-              }}
+              {{ removeLiquidityPair.amount0 && getFormattedValue(removeLiquidityPair.amount0) }}
             </div>
           </div>
           <div class="rl--row">
             <div>{{ selectedTokens.tokenB.symbol }}</div>
             <div>
-              {{
-                removeLiquidityPair.amount1
-                  && getFormattedValue(removeLiquidityPair.amount1)
-              }}
+              {{ removeLiquidityPair.amount1 && getFormattedValue(removeLiquidityPair.amount1) }}
             </div>
           </div>
           <div

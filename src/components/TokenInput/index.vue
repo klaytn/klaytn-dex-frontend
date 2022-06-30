@@ -34,12 +34,9 @@ export default {
       //   : "Price loading";
     },
     value() {
-      if (!this.selected?.value)
-        return null
+      if (!this.selected?.value) return null
 
-      const bn = $kaikas.bigNumber(
-        $kaikas.fromWei(this.selected.value),
-      )
+      const bn = $kaikas.bigNumber($kaikas.fromWei(this.selected.value))
 
       return Number(bn.toFixed(4))
     },
@@ -48,13 +45,8 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useTokensStore, [
-      'checkEmptyPair',
-      'setSelectedToken',
-    ]),
-    ...mapActions(useSwapStore, [
-      'setComputedToken',
-    ]),
+    ...mapActions(useTokensStore, ['checkEmptyPair', 'setSelectedToken']),
+    ...mapActions(useSwapStore, ['setComputedToken']),
     copyToClipboard,
     async setToken(token) {
       this.setSelectedToken({ token, type: this.tokenType })
@@ -82,17 +74,32 @@ export default {
         @input="input($event.target.value)"
       >
 
-      <button v-if="selected" @click="input(renderBalance.toString())">
+      <button
+        v-if="selected"
+        @click="input(renderBalance.toString())"
+      >
         MAX
       </button>
       <div class="token-select-wrap">
-        <TokenSelect :selected-token="selected" @select="setToken" />
+        <TokenSelect
+          :selected-token="selected"
+          @select="setToken"
+        />
       </div>
     </div>
-    <div v-if="selected" class="token-meta">
+    <div
+      v-if="selected"
+      class="token-meta"
+    >
       <span class="price">{{ price }}</span>
-      <div v-if="selected" class="row">
-        <KlayTextField :title="selected.balance" class="price">
+      <div
+        v-if="selected"
+        class="row"
+      >
+        <KlayTextField
+          :title="selected.balance"
+          class="price"
+        >
           Balance: {{ renderBalance }}
         </KlayTextField>
 
@@ -110,7 +117,10 @@ export default {
             <span class="link-name">Coinmarketcap</span>
             <KlayIcon name="link" />
           </a>
-          <div class="address" @click="copyToClipboard(selected.address)">
+          <div
+            class="address"
+            @click="copyToClipboard(selected.address)"
+          >
             <span class="address-name">{{ formattedAddress }}</span>
             <KlayIcon name="copy" />
           </div>

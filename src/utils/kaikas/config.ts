@@ -44,19 +44,15 @@ export class Config {
       this.factoryAddress,
     ) as unknown as DexFactory
 
-    this.wethContract = new caver.klay.Contract(
-      wethABI.abi as AbiItem[],
-      this.wethAddress,
-    ) as unknown as WETH9
+    this.wethContract = new caver.klay.Contract(wethABI.abi as AbiItem[], this.wethAddress) as unknown as WETH9
 
     this.status = KaikasStatus.ShouldConnect
   }
 
   async connectKaikas() {
-    if (this.status !== KaikasStatus.ShouldConnect)
-      throw new Error('Can\'t connect to Kaikas')
+    if (this.status !== KaikasStatus.ShouldConnect) throw new Error("Can't connect to Kaikas")
 
-    this.caver = <Caver> this.caver
+    this.caver = <Caver>this.caver
     const { klaytn } = window
     const addresses = await klaytn.enable()
     this.address = addresses[0]
@@ -68,31 +64,25 @@ export class Config {
   }
 
   createContract<T>(address: Address, abi: AbiItem[]) {
-    if (this.status !== KaikasStatus.Connected)
-      throw new Error('Can\'t create contract, check connect to Kaikas')
+    if (this.status !== KaikasStatus.Connected) throw new Error("Can't create contract, check connect to Kaikas")
 
-    this.caver = <Caver> this.caver
+    this.caver = <Caver>this.caver
     return new this.caver.klay.Contract(abi, address) as unknown as T
   }
 
   async approveAmount(address: Address, abi: AbiItem[], amount: BigNumber.Value) {
     const contract = this.createContract<Contract>(address, abi)
 
-    const allowance = await contract.methods
-      .allowance(this.address, this.routerAddress)
-      .call({
-        from: this.address,
-      })
+    const allowance = await contract.methods.allowance(this.address, this.routerAddress).call({
+      from: this.address,
+    })
 
     const amountValue = utils.bigNumber(amount)
     const allowanceValue = utils.bigNumber(allowance)
 
-    if (amountValue.isLessThanOrEqualTo(allowanceValue))
-      return amount
+    if (amountValue.isLessThanOrEqualTo(allowanceValue)) return amount
 
-    const gas = await contract.methods
-      .approve(this.routerAddress, amount)
-      .estimateGas()
+    const gas = await contract.methods.approve(this.routerAddress, amount).estimateGas()
 
     return await contract.methods.approve(this.routerAddress, amount).send({
       from: this.address,
@@ -116,8 +106,7 @@ interface ConfigWithConnectedKaikas extends Config {
 }
 
 export function useConfigWithConnectedKaikas() {
-  if (config.status !== KaikasStatus.Connected)
-    throw new Error('Kaikas is not connected')
+  if (config.status !== KaikasStatus.Connected) throw new Error('Kaikas is not connected')
 
   return config as ConfigWithConnectedKaikas
 }

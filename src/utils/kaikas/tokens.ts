@@ -9,14 +9,11 @@ export default class Tokens {
   async getTokenBQuote(addressA: string, addressB: string, value: string) {
     const config = useConfigWithConnectedKaikas()
 
-    const pairAddress = await config.factoryContract.methods
-      .getPair(addressA, addressB)
-      .call({
-        from: config.address,
-      })
+    const pairAddress = await config.factoryContract.methods.getPair(addressA, addressB).call({
+      from: config.address,
+    })
 
-    if (utils.isEmptyAddress(pairAddress))
-      throw new Error('EMPTY_ADDRESS')
+    if (utils.isEmptyAddress(pairAddress)) throw new Error('EMPTY_ADDRESS')
 
     const pairContract = config.createContract(pairAddress, pair.abi as AbiItem[]) as unknown as DexPair
     const token0 = await pairContract.methods.token0().call({
@@ -27,29 +24,21 @@ export default class Tokens {
       from: config.address,
     })
 
-    const sortedReserves
-      = token0 === addressA
-        ? [reserves[0], reserves[1]]
-        : [reserves[1], reserves[0]]
+    const sortedReserves = token0 === addressA ? [reserves[0], reserves[1]] : [reserves[1], reserves[0]]
 
-    return await config.routerContract.methods
-      .quote(value, sortedReserves[0], sortedReserves[1])
-      .call({
-        from: config.address,
-      })
+    return await config.routerContract.methods.quote(value, sortedReserves[0], sortedReserves[1]).call({
+      from: config.address,
+    })
   }
 
   async getTokenAQuote(addressA: Address, addressB: Address, value: string) {
     const config = useConfigWithConnectedKaikas()
 
-    const pairAddress = await config.factoryContract.methods
-      .getPair(addressA, addressB)
-      .call({
-        from: config.address,
-      })
+    const pairAddress = await config.factoryContract.methods.getPair(addressA, addressB).call({
+      from: config.address,
+    })
 
-    if (utils.isEmptyAddress(pairAddress))
-      throw new Error('EMPTY_ADDRESS')
+    if (utils.isEmptyAddress(pairAddress)) throw new Error('EMPTY_ADDRESS')
 
     const pairContract = config.createContract(pairAddress, pair.abi as AbiItem[]) as unknown as DexPair
 
@@ -64,29 +53,21 @@ export default class Tokens {
       from: config.address,
     })
 
-    const sortedReserves
-      = token0 !== addressA
-        ? [reserves[0], reserves[1]]
-        : [reserves[1], reserves[0]]
+    const sortedReserves = token0 !== addressA ? [reserves[0], reserves[1]] : [reserves[1], reserves[0]]
 
-    return await config.routerContract.methods
-      .quote(value, sortedReserves[0], sortedReserves[1])
-      .call({
-        from: config.address,
-      })
+    return await config.routerContract.methods.quote(value, sortedReserves[0], sortedReserves[1]).call({
+      from: config.address,
+    })
   }
 
   async getKlayQuote(addressA: Address, addressB: Address, value: string, reversed: boolean) {
     const config = useConfigWithConnectedKaikas()
 
-    const pairAddress = await config.factoryContract.methods
-      .getPair(addressA, addressB)
-      .call({
-        from: config.address,
-      })
+    const pairAddress = await config.factoryContract.methods.getPair(addressA, addressB).call({
+      from: config.address,
+    })
 
-    if (utils.isEmptyAddress(pairAddress))
-      throw new Error('EMPTY_ADDRESS')
+    if (utils.isEmptyAddress(pairAddress)) throw new Error('EMPTY_ADDRESS')
 
     const pairContract = config.createContract(pairAddress, pair.abi as AbiItem[]) as unknown as DexPair
 
@@ -94,35 +75,26 @@ export default class Tokens {
       from: config.address,
     })
 
-    const sortedReserves = reversed
-      ? [reserves[0], reserves[1]]
-      : [reserves[1], reserves[0]]
+    const sortedReserves = reversed ? [reserves[0], reserves[1]] : [reserves[1], reserves[0]]
 
-    return await config.routerContract.methods
-      .quote(value, sortedReserves[0], sortedReserves[1])
-      .call({
-        from: config.address,
-      })
+    return await config.routerContract.methods.quote(value, sortedReserves[0], sortedReserves[1]).call({
+      from: config.address,
+    })
   }
 
   async getPairBalance(addressA: Address, addressB: Address) {
     const config = useConfigWithConnectedKaikas()
 
-    const pairAddress = await config.factoryContract.methods
-      .getPair(addressA, addressB)
-      .call({
-        from: config.address,
-      })
+    const pairAddress = await config.factoryContract.methods.getPair(addressA, addressB).call({
+      from: config.address,
+    })
 
-    if (utils.isEmptyAddress(pairAddress))
-      throw new Error('EMPTY_ADDRESS')
+    if (utils.isEmptyAddress(pairAddress)) throw new Error('EMPTY_ADDRESS')
 
     const pairContract = config.createContract(pairAddress, pair.abi as AbiItem[]) as unknown as DexPair
 
     const pairBalance = await pairContract.methods.totalSupply().call()
-    const userBalance = await pairContract.methods
-      .balanceOf(config.address)
-      .call()
+    const userBalance = await pairContract.methods.balanceOf(config.address).call()
 
     return { pairBalance, userBalance }
   }
@@ -130,10 +102,8 @@ export default class Tokens {
   async getPairAddress(addressA: Address, addressB: Address) {
     const config = useConfigWithConnectedKaikas()
 
-    return await config.factoryContract.methods
-      .getPair(addressA, addressB)
-      .call({
-        from: config.address,
-      })
+    return await config.factoryContract.methods.getPair(addressA, addressB).call({
+      from: config.address,
+    })
   }
 }

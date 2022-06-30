@@ -9,25 +9,17 @@ export default {
     }
   },
   computed: {
-    ...mapState(useSwapStore, [
-      'pairNotExist',
-      'exchangeRateIntervalID',
-      'exchangeRateLoading',
-    ]),
-    ...mapState(useTokensStore, [
-      'selectedTokens',
-      'tokensList',
-      'computedToken',
-    ]),
+    ...mapState(useSwapStore, ['pairNotExist', 'exchangeRateIntervalID', 'exchangeRateLoading']),
+    ...mapState(useTokensStore, ['selectedTokens', 'tokensList', 'computedToken']),
     isLoading() {
       return !this.tokensList?.length
     },
     isValidTokens() {
       return (
-        !this.isSwapLoading
-        && !this.selectedTokens.emptyPair
-        && Number(this.selectedTokens.tokenA?.balance) >= 0
-        && Number(this.selectedTokens.tokenB?.balance) >= 0
+        !this.isSwapLoading &&
+        !this.selectedTokens.emptyPair &&
+        Number(this.selectedTokens.tokenA?.balance) >= 0 &&
+        Number(this.selectedTokens.tokenB?.balance) >= 0
       )
     },
   },
@@ -43,31 +35,25 @@ export default {
       'refreshStore',
       'setExchangeRateIntervalID',
     ]),
-    ...mapActions(useTokensStore, [
-      'clearSelectedTokens',
-    ]),
+    ...mapActions(useTokensStore, ['clearSelectedTokens']),
     async swapTokens() {
       try {
         this.isSwapLoading = true
-        const isWKLAY
-          = $kaikas.utils.isNativeToken(this.selectedTokens.tokenA.address)
-          || $kaikas.utils.isNativeToken(this.selectedTokens.tokenB.address)
+        const isWKLAY =
+          $kaikas.utils.isNativeToken(this.selectedTokens.tokenA.address) ||
+          $kaikas.utils.isNativeToken(this.selectedTokens.tokenB.address)
 
-        if (isWKLAY)
-          await this.swapForKlayTokens()
+        if (isWKLAY) await this.swapForKlayTokens()
 
-        if (this.computedToken === 'tokenB' && !isWKLAY)
-          await this.swapExactTokensForTokens()
+        if (this.computedToken === 'tokenB' && !isWKLAY) await this.swapExactTokensForTokens()
 
-        if (this.computedToken === 'tokenA' && !isWKLAY)
-          await this.swapTokensForExactTokens()
+        if (this.computedToken === 'tokenA' && !isWKLAY) await this.swapTokensForExactTokens()
 
         if (this.exchangeRateIntervalID) {
           clearInterval(this.exchangeRateIntervalID)
           this.setExchangeRateIntervalID(null)
         }
-      }
-      catch (e) {}
+      } catch (e) {}
       this.isSwapLoading = false
     },
     onRefresh() {
@@ -78,7 +64,10 @@ export default {
 </script>
 
 <template>
-  <div v-if="isLoading" class="wrap">
+  <div
+    v-if="isLoading"
+    class="wrap"
+  >
     <div class="head">
       <button class="head--btn head--btn-active">
         Swap
@@ -86,7 +75,10 @@ export default {
       <button class="head--btn">
         Liquidity
       </button>
-      <button class="head--btn head--btn-left" @click="onRefresh">
+      <button
+        class="head--btn head--btn-left"
+        @click="onRefresh"
+      >
         <KlayIcon name="refresh" />
       </button>
       <button class="head--btn">
@@ -105,8 +97,11 @@ export default {
       <KlaySlippage />
     </div>
 
-    <KlayButton :disabled="!isValidTokens" @click="swapTokens">
-      {{ isSwapLoading ? "Wait" : "Swap" }}
+    <KlayButton
+      :disabled="!isValidTokens"
+      @click="swapTokens"
+    >
+      {{ isSwapLoading ? 'Wait' : 'Swap' }}
     </KlayButton>
 
     <SwapModuleDetails />
