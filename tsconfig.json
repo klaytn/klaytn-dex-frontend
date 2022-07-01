@@ -10,7 +10,11 @@
     "skipLibCheck": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "noUnusedLocals": true,
+
+    // there are a lot in src/types/typechain
+    // anyway, let ESLint catch those errors
+    "noUnusedLocals": false,
+
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "types": [
