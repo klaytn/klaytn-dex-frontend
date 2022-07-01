@@ -2,14 +2,14 @@
 
 import type Caver from 'caver-js'
 import type { ShowNotificationParams, ShowNotificationReturn } from '@soramitsu-ui/ui'
-import type { Klaytn } from '@/types'
+import { type Klaytn } from '@/core/kaikas'
 
 declare global {
   interface Window {
     // extend the window
     $notify: (params: ShowNotificationParams) => ShowNotificationReturn
-    caver: Caver
-    klaytn: Klaytn
+    caver?: Caver
+    klaytn?: Klaytn
   }
   interface HTMLElement {
     bemClassList?: string[]

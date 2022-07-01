@@ -1,9 +1,16 @@
-import type BigNumber from 'bignumber.js'
-import { useConfigWithConnectedKaikas } from './config'
-import type { Address } from '@/types'
+import Config from './Config'
+import { type Address } from './types'
+import BigNumber from 'bignumber.js'
+import { MAGIC_GAS_PRICE } from './const'
 
 export default class Liquidity {
-  async addLiquidityAmountOutForExistPair({
+  private readonly cfg: Config
+
+  public constructor(cfg: Config) {
+    this.cfg = cfg
+  }
+
+  public async addLiquidityAmountOutForExistPair({
     tokenBValue,
     tokenAValue,
     tokenAddressA,
@@ -18,8 +25,6 @@ export default class Liquidity {
     amountAMin: BigNumber
     deadLine: number
   }) {
-    const config = useConfigWithConnectedKaikas()
-
     const params = {
       tokenAAddress: tokenAddressA,
       tokenBAddress: tokenAddressB,
@@ -27,11 +32,11 @@ export default class Liquidity {
       tokenBValue: tokenBValue.toFixed(0),
       amountAMin: amountAMin.toFixed(0),
       amountBMin: tokenBValue.minus(tokenBValue.dividedToIntegerBy(100)).toFixed(0),
-      userAddress: config.address,
+      userAddress: this.cfg.addrs.self,
       deadLine,
     }
 
-    const lqGas = await config.routerContract.methods
+    const lqGas = await this.cfg.contracts.router.methods
       .addLiquidity(
         params.tokenAAddress,
         params.tokenBAddress,
@@ -45,7 +50,7 @@ export default class Liquidity {
       .estimateGas()
 
     const send = async () =>
-      await config.routerContract.methods
+      await this.cfg.contracts.router.methods
         .addLiquidity(
           params.tokenAAddress,
           params.tokenBAddress,
@@ -57,9 +62,9 @@ export default class Liquidity {
           params.deadLine,
         )
         .send({
-          from: config.address,
+          from: this.cfg.addrs.self,
           gas: lqGas,
-          gasPrice: 250000000000,
+          gasPrice: MAGIC_GAS_PRICE,
         })
 
     return {
@@ -68,7 +73,7 @@ export default class Liquidity {
     }
   }
 
-  async addLiquidityAmountInForExistPair({
+  public async addLiquidityAmountInForExistPair({
     tokenBValue,
     tokenAValue,
     tokenAddressA,
@@ -83,8 +88,6 @@ export default class Liquidity {
     amountBMin: BigNumber
     deadLine: number
   }) {
-    const config = useConfigWithConnectedKaikas()
-
     const params = {
       tokenAAddress: tokenAddressA,
       tokenBAddress: tokenAddressB,
@@ -92,11 +95,11 @@ export default class Liquidity {
       tokenBValue: tokenBValue.toFixed(0),
       amountAMin: tokenAValue.minus(tokenAValue.dividedToIntegerBy(100)).toFixed(0),
       amountBMin: amountBMin.toFixed(0),
-      userAddress: config.address,
+      userAddress: this.cfg.addrs.self,
       deadLine,
     }
 
-    const lqGas = await config.routerContract.methods
+    const lqGas = await this.cfg.contracts.router.methods
       .addLiquidity(
         params.tokenBAddress,
         params.tokenAAddress,
@@ -110,7 +113,7 @@ export default class Liquidity {
       .estimateGas()
 
     const send = async () =>
-      await config.routerContract.methods
+      await this.cfg.contracts.router.methods
         .addLiquidity(
           params.tokenBAddress,
           params.tokenAAddress,
@@ -122,9 +125,9 @@ export default class Liquidity {
           params.deadLine,
         )
         .send({
-          from: config.address,
+          from: this.cfg.addrs.self,
           gas: lqGas,
-          gasPrice: 250000000000,
+          gasPrice: MAGIC_GAS_PRICE,
         })
 
     return {
@@ -133,7 +136,7 @@ export default class Liquidity {
     }
   }
 
-  async addLiquidityKlayForExistsPair({
+  public async addLiquidityKlayForExistsPair({
     tokenAValue,
     tokenBValue,
     addressA,
@@ -146,18 +149,16 @@ export default class Liquidity {
     amountAMin: BigNumber
     deadLine: number
   }) {
-    const config = useConfigWithConnectedKaikas()
-
     const params = {
       addressA,
       tokenAValue: tokenAValue.toFixed(0),
       amountAMin: amountAMin.toFixed(0),
       amountBMin: tokenBValue.minus(tokenBValue.dividedToIntegerBy(100).toFixed(0)).toFixed(0),
-      address: config.address,
+      address: this.cfg.addrs.self,
       deadLine,
     }
 
-    const lqETHGas = await config.routerContract.methods
+    const lqETHGas = await this.cfg.contracts.router.methods
       .addLiquidityETH(
         params.addressA,
         params.tokenAValue,
@@ -167,13 +168,13 @@ export default class Liquidity {
         params.deadLine,
       )
       .estimateGas({
-        from: config.address,
-        gasPrice: 250000000000,
+        from: this.cfg.addrs.self,
+        gasPrice: MAGIC_GAS_PRICE,
         value: tokenBValue.toFixed(0),
       })
 
     const send = async () =>
-      await config.routerContract.methods
+      await this.cfg.contracts.router.methods
         .addLiquidityETH(
           params.addressA,
           params.tokenAValue,
@@ -183,8 +184,8 @@ export default class Liquidity {
           params.deadLine,
         )
         .send({
-          from: config.address,
-          gasPrice: 250000000000,
+          from: this.cfg.addrs.self,
+          gasPrice: MAGIC_GAS_PRICE,
           gas: lqETHGas,
           value: tokenBValue.toFixed(0),
         })
@@ -192,7 +193,7 @@ export default class Liquidity {
     return { gas: lqETHGas, send }
   }
 
-  async addLiquidityKlay({
+  public async addLiquidityKlay({
     addressA,
     tokenAValue,
     tokenBValue,
@@ -207,18 +208,16 @@ export default class Liquidity {
     amountBMin: BigNumber
     deadLine: number
   }) {
-    const config = useConfigWithConnectedKaikas()
-
     const params = {
       addressA,
       tokenAValue: tokenAValue.toFixed(0),
       amountAMin: amountAMin.toFixed(0),
       amountBMin: amountBMin.toFixed(0), // KLAY
       deadLine,
-      address: config.address,
+      address: this.cfg.addrs.self,
     }
 
-    const lqETHGas = await config.routerContract.methods
+    const lqETHGas = await this.cfg.contracts.router.methods
       .addLiquidityETH(
         params.addressA,
         params.tokenAValue,
@@ -228,13 +227,13 @@ export default class Liquidity {
         params.deadLine,
       )
       .estimateGas({
-        from: config.address,
-        gasPrice: 250000000000,
+        from: this.cfg.addrs.self,
+        gasPrice: MAGIC_GAS_PRICE,
         value: tokenBValue.toFixed(0),
       })
 
     const send = async () =>
-      await config.routerContract.methods
+      await this.cfg.contracts.router.methods
         .addLiquidityETH(
           params.addressA,
           params.tokenAValue,
@@ -244,8 +243,8 @@ export default class Liquidity {
           params.deadLine,
         )
         .send({
-          from: config.address,
-          gasPrice: 250000000000,
+          from: this.cfg.addrs.self,
+          gasPrice: MAGIC_GAS_PRICE,
           value: tokenBValue.toFixed(0),
           gas: lqETHGas,
         })

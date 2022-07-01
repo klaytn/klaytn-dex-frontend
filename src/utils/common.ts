@@ -1,3 +1,4 @@
+// FIXME use `@vueuse/core`
 export const copyToClipboard = function myFunction(value) {
   /* Create the text field */
   const copyText = document.createElement('input')

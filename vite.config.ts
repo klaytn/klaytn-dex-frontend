@@ -38,6 +38,10 @@ export default defineConfig({
     },
   },
 
+  define: {
+    'import.meta.vitest': 'undefined',
+  },
+
   plugins: [
     Vue({
       include: [/\.vue$/, /\.md$/],
@@ -149,6 +153,7 @@ export default defineConfig({
   // https://github.com/vitest-dev/vitest
   test: {
     include: ['test/**/*.test.ts'],
+    includeSource: ['src/**/*.ts'],
     environment: 'jsdom',
     deps: {
       inline: ['@vue', '@vueuse', 'vue-demi'],

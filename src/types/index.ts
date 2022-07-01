@@ -11,17 +11,20 @@ export interface AppContext<HasRouter extends boolean = true> {
 
 export type Plugin = (ctx: AppContext) => void
 
-export enum RouteName {
-  Assets = 'Assets',
-  Swap = 'Swap',
-  Liquidity = 'Liquidity',
-  LiquidityAdd = 'LiquidityAdd',
-  LiquidityRemove = 'LiquidityRemove',
-  Farms = 'Farms',
-  Pools = 'Pools',
-  Voting = 'Voting',
-  Charts = 'Charts',
-}
+export const RouteName = {
+  Assets: 'Assets',
+  Swap: 'Swap',
+  Liquidity: 'Liquidity',
+  LiquidityAdd: 'LiquidityAdd',
+  LiquidityRemove: 'LiquidityRemove',
+  Farms: 'Farms',
+  Pools: 'Pools',
+  Voting: 'Voting',
+  Charts: 'Charts',
+} as const
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export type RouteName = typeof RouteName[keyof typeof RouteName]
 
 export interface HeaderMenuItem {
   label: string
@@ -29,49 +32,54 @@ export interface HeaderMenuItem {
   activeWith?: RouteName[]
 }
 
-export interface Klaytn {
-  enable: () => string[]
-}
+// export interface Klaytn {
+//   enable: () => string[]
+// }
 
-export interface Token {
-  address: Address
-  value: string
-  name: string
-  price?: string
-  symbol: string
-  balance: string
-}
+// export interface Token {
+//   address: Address
+//   value: string
+//   name: string
+//   price?: string
+//   symbol: string
+//   balance: string
+// }
 
-export type Address = string
+// export type Address = Opaque<string, 'Address'>
 
-export enum KaikasStatus {
-  Initial = 'INITIAL',
-  NotInstalled = 'NOT_INSTALLED',
-  ShouldConnect = 'SHOULD_CONNECT',
-  Connected = 'CONNECTED',
-}
+// export interface AddressPair {
+//   a: Address
+//   b: Address
+// }
 
-export enum LiquidityStatus {
-  Initial = 'initial',
-  Pending = 'pending',
-  Success = 'success',
-  Error = 'error',
-}
+// export enum KaikasStatus {
+//   Initial = 'INITIAL',
+//   NotInstalled = 'NOT_INSTALLED',
+//   ShouldConnect = 'SHOULD_CONNECT',
+//   Connected = 'CONNECTED',
+// }
 
-export interface Pair {
-  userBalance: string
-  pairBalance: string
-  symbol: string
-  name: string
-  reserves: {
-    _reserve0: string
-    _reserve1: string
-    _blockTimestampLast: string
-    0: string
-    1: string
-    2: string
-  }
-  address: Address
-  symbolA?: string | undefined
-  symbolB?: string | undefined
-}
+// export enum LiquidityStatus {
+//   Initial = 'initial',
+//   Pending = 'pending',
+//   Success = 'success',
+//   Error = 'error',
+// }
+
+// export interface Pair {
+//   userBalance: string
+//   pairBalance: string
+//   symbol: string
+//   name: string
+//   reserves: {
+//     _reserve0: string
+//     _reserve1: string
+//     _blockTimestampLast: string
+//     0: string
+//     1: string
+//     2: string
+//   }
+//   address: Address
+//   symbolA?: string | undefined
+//   symbolB?: string | undefined
+// }
