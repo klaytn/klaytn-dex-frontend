@@ -5,8 +5,7 @@ import type { AbiItem } from 'caver-js'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
 import pairAbi from '@/utils/smartcontracts/pair.json'
 import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
-import type { Token } from '@/types'
-import { LiquidityStatus } from '@/types'
+import { LiquidityStatus, type Token } from '@/types'
 import type { DexPair } from '@/types/typechain/swap'
 import type { KIP7 } from '@/types/typechain/tokens'
 
@@ -345,7 +344,7 @@ export const useLiquidityStore = defineStore('liquidity', {
       const tokensStore = useTokensStore()
       const { selectedTokens } = tokensStore
       const { tokenA, tokenB, pairAddress } = selectedTokens
-      if (tokenA === null || tokenB === null || pairAddress == null) throw new Error('No selected tokens')
+      if (tokenA === null || tokenB === null || pairAddress === null) throw new Error('No selected tokens')
 
       const { removeLiquidityPair } = liquidity
 

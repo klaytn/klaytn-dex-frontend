@@ -1,6 +1,6 @@
 module.exports = {
   root: true,
-  extends: ['alloy', 'alloy/typescript', 'plugin:vue/vue3-recommended'],
+  extends: ['alloy', 'alloy/typescript', 'plugin:vue/vue3-recommended', './.eslintrc-auto-import.json'],
   parser: 'vue-eslint-parser',
   parserOptions: {
     parser: '@typescript-eslint/parser',

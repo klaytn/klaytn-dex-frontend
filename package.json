@@ -4,9 +4,10 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite --port 3333 --open",
-    "lint:base": "prettier-eslint \"**/*.{js,ts,vue,json}\"",
-    "lint:check": "pnpm run lint:base --list-different",
-    "lint:fix": "pnpm run lint:base --write",
+    "lint": "eslint --ext=js,ts,vue .",
+    "format:base": "prettier-eslint \"**/*.{js,ts,vue,json}\"",
+    "format:check": "pnpm run format:base --list-different",
+    "format:fix": "pnpm run format:base --write",
     "preview": "vite preview",
     "preview-https": "serve dist",
     "test": "vitest",
