@@ -5,7 +5,11 @@ const { loading = false } = defineProps<{
 </script>
 
 <template>
-  <button v-bind="$attrs" class="btn" :class="[{ loading }]">
+  <button
+    v-bind="$attrs"
+    class="btn"
+    :class="[{ loading }]"
+  >
     <slot />
   </button>
 </template>

@@ -6,8 +6,7 @@ const { selectedTokens } = toRefs(tokensStore)
 const { tokenA, tokenB, userBalance, pairBalance } = toRefs(selectedTokens.value)
 
 const getRoute = computed(() => {
-  if (tokenA.value === null || tokenB.value === null)
-    return ''
+  if (tokenA.value === null || tokenB.value === null) return ''
 
   return `${tokenA.value.symbol} > ${tokenB.value.symbol}`
 })
@@ -32,7 +31,10 @@ function getFormattedPercent(v1: BigNumber.Value, v2: BigNumber.Value) {
 </script>
 
 <template>
-  <div v-if="isValid" class="details--wrap">
+  <div
+    v-if="isValid"
+    class="details--wrap"
+  >
     <KlayCollapse>
       <template #head>
         <h3 class="details--title">
@@ -40,7 +42,10 @@ function getFormattedPercent(v1: BigNumber.Value, v2: BigNumber.Value) {
         </h3>
       </template>
       <template #main>
-        <div v-if="tokenA && tokenB && pairBalance && userBalance && isValid" class="details">
+        <div
+          v-if="tokenA && tokenB && pairBalance && userBalance && isValid"
+          class="details"
+        >
           <div class="details--row">
             <span>
               {{ tokenA.symbol }} per
@@ -59,7 +64,10 @@ function getFormattedPercent(v1: BigNumber.Value, v2: BigNumber.Value) {
               {{ getFormattedRate(tokenB.value, tokenA.value) }}
             </span>
           </div>
-          <div v-if="pairBalance" class="details--row">
+          <div
+            v-if="pairBalance"
+            class="details--row"
+          >
             <span>Share of pool</span>
             <span>{{ getFormattedPercent(pairBalance, userBalance) }}</span>
           </div>

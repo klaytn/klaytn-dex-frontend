@@ -16,17 +16,13 @@ export default {
     ...mapState(useTokensStore, ['tokensList']),
     renderTokens() {
       return this.tokensList.filter(
-        token =>
-          token.symbol.search(this.searchValue.toUpperCase()) !== -1
-          || token.address === this.searchValue,
+        (token) => token.symbol.search(this.searchValue.toUpperCase()) !== -1 || token.address === this.searchValue,
       )
     },
   },
   watch: {
     async searchValue(_new) {
-      const code
-        = $kaikas.utils.isAddress(_new)
-        && (await $kaikas.config.caver.klay.getCode(_new))
+      const code = $kaikas.utils.isAddress(_new) && (await $kaikas.config.caver.klay.getCode(_new))
 
       const isExists = this.tokensList.find(({ address }) => address === _new)
 
@@ -39,9 +35,7 @@ export default {
         const symbol = await contract.methods.symbol().call()
         const name = await contract.methods.name().call()
 
-        const balance = await contract.methods
-          .balanceOf($kaikas.config.address)
-          .call()
+        const balance = await contract.methods.balanceOf($kaikas.config.address).call()
         this.importToken = {
           id: _new,
           name,
@@ -51,8 +45,7 @@ export default {
           slug: '-',
           address: _new,
         }
-      }
-      catch (e) {
+      } catch (e) {
         console.log(e)
       }
     },
@@ -66,8 +59,7 @@ export default {
       return value.toFixed(4)
     },
     onSelect(t) {
-      if (Number(t.balance) <= 0)
-        return
+      if (Number(t.balance) <= 0) return
 
       this.$emit('select', t)
     },
@@ -94,7 +86,11 @@ export default {
       <div class="token-select-modal">
         <div class="token-select-modal--input">
           <p>Search name or paste adress</p>
-          <input v-model="searchValue" type="text" placeholder="KLAY">
+          <input
+            v-model="searchValue"
+            type="text"
+            placeholder="KLAY"
+          >
         </div>
       </div>
     </div>
@@ -106,8 +102,14 @@ export default {
         class="token-select-modal--tag"
         @click="onSelect(t)"
       >
-        <TagName :key="t.symbol" :label="t.symbol">
-          <KlayIcon :char="t.symbol[0]" name="empty-token" />
+        <TagName
+          :key="t.symbol"
+          :label="t.symbol"
+        >
+          <KlayIcon
+            :char="t.symbol[0]"
+            name="empty-token"
+          />
           <!--          <img class="token-logo" :src="t.logo" alt="token logo" /> -->
         </TagName>
       </div>
@@ -119,14 +121,20 @@ export default {
         class="token-select-modal--item"
         @click="onAddToken"
       >
-        <KlayIcon :char="importToken.symbol[0]" name="empty-token" />
+        <KlayIcon
+          :char="importToken.symbol[0]"
+          name="empty-token"
+        />
         <div class="info">
           <p class="token">
             {{ importToken.symbol }}
           </p>
           <span class="token-name">{{ importToken.name }}</span>
         </div>
-        <button type="button" class="token-select-modal--import">
+        <button
+          type="button"
+          class="token-select-modal--import"
+        >
           Import
         </button>
       </div>
@@ -138,14 +146,20 @@ export default {
         :class="{ 'token-select-modal--item-disabled': Number(t.balance) <= 0 }"
         @click="onSelect(t)"
       >
-        <KlayIcon :char="t.symbol[0]" name="empty-token" />
+        <KlayIcon
+          :char="t.symbol[0]"
+          name="empty-token"
+        />
         <div class="info">
           <p class="token">
             {{ t.symbol }}
           </p>
           <span class="token-name">{{ t.name.toLowerCase() }}</span>
         </div>
-        <KlayTextField :title="`${t.balance} ${t.symbol}`" class="token-count">
+        <KlayTextField
+          :title="`${t.balance} ${t.symbol}`"
+          class="token-count"
+        >
           {{ getRenderBalance(t.balance) }} {{ t.symbol }}
         </KlayTextField>
       </div>

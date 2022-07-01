@@ -19,8 +19,7 @@ export default {
     ...mapActions(useTokensStore, ['Token', 'setComputedToken', 'setSelectedToken']),
     ...mapActions(useLiquidityStore, ['quoteForTokenA', 'quoteForTokenB']),
     onInput: debounce(async function (_v, tokenType) {
-      if (!_v || this.isNotValid)
-        return
+      if (!_v || this.isNotValid) return
 
       // if (this.exchangeRateIntervalID) {
       //   clearInterval(this.exchangeRateIntervalID);
@@ -37,8 +36,7 @@ export default {
         type: tokenType,
       })
 
-      if (this.selectedTokens.emptyPair)
-        return
+      if (this.selectedTokens.emptyPair) return
 
       this.setComputedToken(tokenType === 'tokenA' ? 'tokenB' : 'tokenA')
 
@@ -90,7 +88,10 @@ export default {
       />
     </div>
 
-    <div v-if="selectedTokens.emptyPair" class="warning-text">
+    <div
+      v-if="selectedTokens.emptyPair"
+      class="warning-text"
+    >
       <KlayIcon name="important" />
       <span>Pair not exist</span>
     </div>

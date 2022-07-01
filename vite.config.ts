@@ -20,10 +20,12 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: '@use \'@soramitsu-ui/ui/styles\'; @use \'@soramitsu-ui/theme/fonts/Sora\'; @use \'@soramitsu-ui/theme/sass\' as theme; @import \'@/styles/vars.sass\';',
+        additionalData:
+          "@use '@soramitsu-ui/ui/styles'; @use '@soramitsu-ui/theme/fonts/Sora'; @use '@soramitsu-ui/theme/sass' as theme; @import '@/styles/vars.sass';",
       },
       sass: {
-        additionalData: '@use \'@soramitsu-ui/ui/styles\'\n@use \'@soramitsu-ui/theme/fonts/Sora\'\n@use \'@soramitsu-ui/theme/sass\' as theme\n@import \'@/styles/vars.sass\'\n',
+        additionalData:
+          "@use '@soramitsu-ui/ui/styles'\n@use '@soramitsu-ui/theme/fonts/Sora'\n@use '@soramitsu-ui/theme/sass' as theme\n@import '@/styles/vars.sass'\n",
       },
     },
   },
@@ -31,7 +33,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@/': `${path.resolve(__dirname, 'src')}/`,
-      'web3': 'web3/dist/web3.min.js',
+      web3: 'web3/dist/web3.min.js',
       '@popperjs/core': '@popperjs/core/dist/esm/index.js',
     },
   },
@@ -65,20 +67,13 @@ export default defineConfig({
 
     // https://github.com/antfu/unplugin-auto-import
     AutoImport({
-      imports: [
-        'vue',
-        'vue-router',
-        'vue-i18n',
-        'vue/macros',
-        '@vueuse/head',
-        '@vueuse/core',
-      ],
+      imports: ['vue', 'vue-router', 'vue-i18n', 'vue/macros', '@vueuse/head', '@vueuse/core'],
       dts: 'src/auto-imports.d.ts',
-      dirs: [
-        'src/composables',
-        'src/store',
-      ],
+      dirs: ['src/composables', 'src/store'],
       vueTemplate: true,
+      eslintrc: {
+        enabled: true
+      }
     }),
 
     // https://github.com/antfu/unplugin-vue-components

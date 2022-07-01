@@ -16,9 +16,7 @@ export default {
     ...mapActions(useLiquidityStore, ['removeLiquidity', 'calcRemoveLiquidityAmounts', 'setRmLiqValue']),
     onDragEnd(v) {
       this.value = v
-      const bnValue = $kaikas.utils.bigNumber(
-        this.selectedTokens.userBalance,
-      )
+      const bnValue = $kaikas.utils.bigNumber(this.selectedTokens.userBalance)
 
       const value = bnValue.dividedBy(100).multipliedBy(v).toFixed(0)
       const renderValue = $kaikas.utils.bigNumber($kaikas.utils.fromWei(value))
@@ -27,8 +25,7 @@ export default {
       this.calcRemoveLiquidityAmounts(renderValue.toFixed(5))
     },
     getFormattedValue(_v) {
-      if (!_v)
-        return '-'
+      if (!_v) return '-'
 
       const bn = $kaikas.bigNumber($kaikas.fromWei(_v))
 
@@ -45,22 +42,45 @@ export default {
         {{ value }}%
       </div>
       <div class="rl-amount--slide">
-        <KlaySlider v-model="value" @drag-end="onDragEnd" />
+        <KlaySlider
+          v-model="value"
+          @drag-end="onDragEnd"
+        />
       </div>
       <div class="rl-amount--tags">
-        <button type="button" class="rl-amount--tag" @click="value = 10">
+        <button
+          type="button"
+          class="rl-amount--tag"
+          @click="value = 10"
+        >
           10%
         </button>
-        <button type="button" class="rl-amount--tag" @click="value = 25">
+        <button
+          type="button"
+          class="rl-amount--tag"
+          @click="value = 25"
+        >
           25%
         </button>
-        <button type="button" class="rl-amount--tag" @click="value = 50">
+        <button
+          type="button"
+          class="rl-amount--tag"
+          @click="value = 50"
+        >
           50%
         </button>
-        <button type="button" class="rl-amount--tag" @click="value = 75">
+        <button
+          type="button"
+          class="rl-amount--tag"
+          @click="value = 75"
+        >
           75%
         </button>
-        <button type="button" class="rl-amount--tag" @click="value = 100">
+        <button
+          type="button"
+          class="rl-amount--tag"
+          @click="value = 100"
+        >
           max
         </button>
       </div>
@@ -71,12 +91,18 @@ export default {
         You will receive
       </div>
 
-      <div v-if="removeLiquidityPair.amount0" class="rl-amount--row">
+      <div
+        v-if="removeLiquidityPair.amount0"
+        class="rl-amount--row"
+      >
         <div>{{ selectedTokens.tokenA.symbol }}</div>
         <div>{{ getFormattedValue(removeLiquidityPair.amount0) }}</div>
       </div>
 
-      <div v-if="removeLiquidityPair.amount1" class="rl-amount--row">
+      <div
+        v-if="removeLiquidityPair.amount1"
+        class="rl-amount--row"
+      >
         <div>{{ selectedTokens.tokenB.symbol }}</div>
         <div>{{ getFormattedValue(removeLiquidityPair.amount1) }}</div>
       </div>

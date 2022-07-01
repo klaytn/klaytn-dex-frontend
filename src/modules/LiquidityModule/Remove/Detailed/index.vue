@@ -34,8 +34,7 @@ export default {
       return bigNA.dividedBy(bigNB).toFixed(5)
     },
     getFormattedValue(_v) {
-      if (!_v)
-        return '-'
+      if (!_v) return '-'
 
       const bn = $kaikas.bigNumber($kaikas.fromWei(_v))
 
@@ -63,15 +62,17 @@ export default {
 
       <div class="input-amount--col">
         <div class="input-amount--row">
-          <button type="button" class="input-amount--max" @click="setMax">
+          <button
+            type="button"
+            class="input-amount--max"
+            @click="setMax"
+          >
             max
           </button>
           <!--          <img src="" alt=""> -->
           <!--          <img src="" alt=""> -->
           <span class="input-amount--tokens">
-            {{ selectedTokens.tokenA.symbol }}-{{
-              selectedTokens.tokenB.symbol
-            }}
+            {{ selectedTokens.tokenA.symbol }}-{{ selectedTokens.tokenB.symbol }}
           </span>
         </div>
         <div class="input-amount--price">
@@ -86,7 +87,10 @@ export default {
 
     <div class="detailed--input input-amount">
       <div class="input-amount--col">
-        <div type="text" class="input-amount--value">
+        <div
+          type="text"
+          class="input-amount--value"
+        >
           {{ getFormattedValue(removeLiquidityPair.amount0) }}
         </div>
         <div class="input-amount--price">
@@ -109,7 +113,10 @@ export default {
 
     <div class="detailed--input input-amount">
       <div class="input-amount--col">
-        <div type="text" class="input-amount--value">
+        <div
+          type="text"
+          class="input-amount--value"
+        >
           {{ getFormattedValue(removeLiquidityPair.amount1) }}
         </div>
         <div class="input-amount--price">
@@ -132,12 +139,7 @@ export default {
           {{ selectedTokens.tokenB.symbol }}
         </div>
         <div>
-          {{
-            getFormattedRate(
-              selectedTokens.tokenA.value,
-              selectedTokens.tokenB.value,
-            )
-          }}
+          {{ getFormattedRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
           {{ selectedTokens.tokenA.symbol }}
         </div>
       </div>
@@ -147,12 +149,7 @@ export default {
           {{ selectedTokens.tokenA.symbol }}
         </div>
         <div>
-          {{
-            getFormattedRate(
-              selectedTokens.tokenB.value,
-              selectedTokens.tokenA.value,
-            )
-          }}
+          {{ getFormattedRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
           {{ selectedTokens.tokenB.symbol }}
         </div>
       </div>

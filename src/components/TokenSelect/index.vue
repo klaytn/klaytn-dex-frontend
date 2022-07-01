@@ -29,15 +29,28 @@ export default {
       @select="onSelect"
       @close="modalOpen = false"
     />
-    <button v-if="!selectedToken" class="select-btn" @click="modalOpen = true">
+    <button
+      v-if="!selectedToken"
+      class="select-btn"
+      @click="modalOpen = true"
+    >
       <span>Select token</span>
       <KlayIcon name="collapse-arrow" />
     </button>
 
-    <div v-if="selectedToken" class="select">
-      <div class="select--head" @click="modalOpen = true">
+    <div
+      v-if="selectedToken"
+      class="select"
+    >
+      <div
+        class="select--head"
+        @click="modalOpen = true"
+      >
         <!--        <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo" /> -->
-        <KlayIcon :char="selectedToken.symbol[0]" name="empty-token" />
+        <KlayIcon
+          :char="selectedToken.symbol[0]"
+          name="empty-token"
+        />
         <span v-if="selectedToken">
           {{ selectedToken.symbol }}
         </span>

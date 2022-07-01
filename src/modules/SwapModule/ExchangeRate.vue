@@ -10,16 +10,11 @@ const { getAmountOut, getAmountIn } = useSwapStore()
 const exchangeLoading = ref<'tokenA' | 'tokenB' | null>(null)
 
 const isNotValid = computed(() => {
-  return (
-    !selectedTokens.value.tokenA
-    || !selectedTokens.value.tokenB
-    || selectedTokens.value.emptyPair
-  )
+  return !selectedTokens.value.tokenA || !selectedTokens.value.tokenB || selectedTokens.value.emptyPair
 })
 
 const onInput = debounce(async (_v, tokenType: 'tokenA' | 'tokenB') => {
-  if (!_v || isNotValid.value)
-    return
+  if (!_v || isNotValid.value) return
 
   // if (this.exchangeRateIntervalID) {
   //   clearInterval(this.exchangeRateIntervalID);
@@ -78,7 +73,10 @@ const onInput = debounce(async (_v, tokenType: 'tokenA' | 'tokenB') => {
       />
     </div>
 
-    <div v-if="selectedTokens.emptyPair" class="warning-text">
+    <div
+      v-if="selectedTokens.emptyPair"
+      class="warning-text"
+    >
       <KlayIcon name="important" />
       <span>Pair not exist</span>
     </div>

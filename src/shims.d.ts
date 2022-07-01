@@ -1,3 +1,5 @@
+/* eslint-disable no-duplicate-imports */
+
 import type Caver from 'caver-js'
 import type { ShowNotificationParams, ShowNotificationReturn } from '@soramitsu-ui/ui'
 import type { Klaytn } from '@/types'

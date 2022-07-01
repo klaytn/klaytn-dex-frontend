@@ -52,13 +52,9 @@ export const useTokensStore = defineStore('tokens', {
   actions: {
     async checkEmptyPair() {
       const { tokenA, tokenB } = this.selectedTokens
-      if (!tokenA || !tokenB)
-        return
+      if (!tokenA || !tokenB) return
 
-      const pairAddress = await $kaikas.tokens.getPairAddress(
-        tokenA.address,
-        tokenB.address,
-      )
+      const pairAddress = await $kaikas.tokens.getPairAddress(tokenA.address, tokenB.address)
       if ($kaikas.utils.isEmptyAddress(pairAddress)) {
         this.selectedTokens = {
           ...this.selectedTokens,
@@ -75,10 +71,7 @@ export const useTokensStore = defineStore('tokens', {
     async setSelectedTokensByPair(pairAddress: Address) {
       const config = useConfigWithConnectedKaikas()
 
-      const pairContract = $kaikas.config.createContract<DexPair>(
-        pairAddress,
-        pairAbi.abi as AbiItem[],
-      )
+      const pairContract = $kaikas.config.createContract<DexPair>(pairAddress, pairAbi.abi as AbiItem[])
 
       const token0Address = await pairContract.methods.token0().call({
         from: config.address,
@@ -87,35 +80,22 @@ export const useTokensStore = defineStore('tokens', {
         from: config.address,
       })
 
-      const contractToken0 = $kaikas.config.createContract<KIP7>(
-        token0Address,
-        kip7.abi as AbiItem[],
-      )
-      const contractToken1 = $kaikas.config.createContract<KIP7>(
-        token1Address,
-        kip7.abi as AbiItem[],
-      )
+      const contractToken0 = $kaikas.config.createContract<KIP7>(token0Address, kip7.abi as AbiItem[])
+      const contractToken1 = $kaikas.config.createContract<KIP7>(token1Address, kip7.abi as AbiItem[])
 
       const token0: Token = {
         address: token0Address,
         name: await contractToken0.methods.name().call(),
         symbol: await contractToken0.methods.symbol().call(),
-        balance: await contractToken0.methods
-          .balanceOf(config.address)
-          .call(),
+        balance: await contractToken0.methods.balanceOf(config.address).call(),
       }
       const token1: Token = {
         address: token1Address,
         name: await contractToken1.methods.name().call(),
         symbol: await contractToken1.methods.symbol().call(),
-        balance: await contractToken1.methods
-          .balanceOf(config.address)
-          .call(),
+        balance: await contractToken1.methods.balanceOf(config.address).call(),
       }
-      const { pairBalance, userBalance } = await $kaikas.tokens.getPairBalance(
-        token0Address,
-        token1Address,
-      )
+      const { pairBalance, userBalance } = await $kaikas.tokens.getPairBalance(token0Address, token1Address)
 
       this.selectedTokens = {
         tokenA: token0,
@@ -143,15 +123,10 @@ export const useTokensStore = defineStore('tokens', {
       }
 
       const listTokens = mockedTokens.map(async (token) => {
-        const contract = $kaikas.config.createContract<KIP7>(
-          token,
-          kip7.abi as AbiItem[],
-        )
+        const contract = $kaikas.config.createContract<KIP7>(token, kip7.abi as AbiItem[])
         const name = await contract.methods.name().call()
         const symbol = await contract.methods.symbol().call()
-        const balance = await contract.methods
-          .balanceOf(config.address)
-          .call()
+        const balance = await contract.methods.balanceOf(config.address).call()
 
         return {
           id: token,
@@ -175,8 +150,7 @@ export const useTokensStore = defineStore('tokens', {
 
     async setCurrencyRate({ type }: { type: 'tokenB' | 'tokenA' }) {
       const token = this.selectedTokens[type]
-      if (token === null)
-        throw new Error('No selected tokens')
+      if (token === null) throw new Error('No selected tokens')
 
       this.selectedTokens[type] = {
         ...token,
@@ -204,15 +178,17 @@ export const useTokensStore = defineStore('tokens', {
       return state
     },
 
-    setTokenValue(
-      { type, value, pairBalance, userBalance }:
-      {
-        type: 'tokenB' | 'tokenA'
-        value: any
-        pairBalance: string | null
-        userBalance: string | null
-      },
-    ) {
+    setTokenValue({
+      type,
+      value,
+      pairBalance,
+      userBalance,
+    }: {
+      type: 'tokenB' | 'tokenA'
+      value: any
+      pairBalance: string | null
+      userBalance: string | null
+    }) {
       this.selectedTokens = {
         ...this.selectedTokens,
         pairBalance,
@@ -226,5 +202,4 @@ export const useTokensStore = defineStore('tokens', {
   },
 })
 
-if (import.meta.hot)
-  import.meta.hot.accept(acceptHMRUpdate(useTokensStore, import.meta.hot))
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useTokensStore, import.meta.hot))

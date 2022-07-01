@@ -28,17 +28,11 @@ export const useSwapStore = defineStore('swap', {
     async getAmountOut(value: string) {
       const tokensStore = useTokensStore()
       const { tokenA, tokenB } = tokensStore.selectedTokens
-      if (tokenA === null || tokenB === null)
-        throw new Error('No selected tokens')
+      if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
 
-      const amountOut = await $kaikas.swap.getAmountOut(
-        tokenA.address,
-        tokenB.address,
-        value,
-      )
+      const amountOut = await $kaikas.swap.getAmountOut(tokenA.address, tokenB.address, value)
 
-      const { pairBalance, userBalance }
-        = await $kaikas.tokens.getPairBalance(tokenA.address, tokenB.address)
+      const { pairBalance, userBalance } = await $kaikas.tokens.getPairBalance(tokenA.address, tokenB.address)
 
       tokensStore.setTokenValue({ type: 'tokenB', value: amountOut[1], pairBalance, userBalance })
     },
@@ -46,17 +40,11 @@ export const useSwapStore = defineStore('swap', {
     async getAmountIn(value: string) {
       const tokensStore = useTokensStore()
       const { tokenA, tokenB } = tokensStore.selectedTokens
-      if (tokenA === null || tokenB === null)
-        throw new Error('No selected tokens')
+      if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
 
-      const amountIn = await $kaikas.swap.getAmountIn(
-        tokenA.address,
-        tokenB.address,
-        value,
-      )
+      const amountIn = await $kaikas.swap.getAmountIn(tokenA.address, tokenB.address, value)
 
-      const { pairBalance, userBalance }
-        = await $kaikas.tokens.getPairBalance(tokenA.address, tokenB.address)
+      const { pairBalance, userBalance } = await $kaikas.tokens.getPairBalance(tokenA.address, tokenB.address)
 
       tokensStore.setTokenValue({ type: 'tokenA', value: amountIn[0], pairBalance, userBalance })
     },
@@ -66,14 +54,9 @@ export const useSwapStore = defineStore('swap', {
       try {
         const { selectedTokens } = tokensStore
         const { tokenA, tokenB } = selectedTokens
-        if (tokenA === null || tokenB === null)
-          throw new Error('No selected tokens')
+        if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
 
-        await config.approveAmount(
-          tokenA.address,
-          kip7.abi as AbiItem[],
-          tokenA.value,
-        )
+        await config.approveAmount(tokenA.address, kip7.abi as AbiItem[], tokenA.value)
 
         const { send } = await $kaikas.swap.swapExactTokensForTokens({
           addressA: tokenA.address,
@@ -85,8 +68,7 @@ export const useSwapStore = defineStore('swap', {
         await send()
         $notify({ status: Status.Success, description: 'Swap success' })
         tokensStore.getTokens()
-      }
-      catch (e) {
+      } catch (e) {
         $notify({ status: Status.Error, description: `${e}` })
       }
     },
@@ -96,14 +78,9 @@ export const useSwapStore = defineStore('swap', {
       try {
         const { selectedTokens } = tokensStore
         const { tokenA, tokenB } = selectedTokens
-        if (tokenA === null || tokenB === null)
-          throw new Error('No selected tokens')
+        if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
 
-        await config.approveAmount(
-          tokenA.address,
-          kip7.abi as AbiItem[],
-          tokenA.value,
-        )
+        await config.approveAmount(tokenA.address, kip7.abi as AbiItem[], tokenA.value)
 
         const { send } = await $kaikas.swap.swapExactTokensForTokens({
           addressA: tokenA.address,
@@ -117,8 +94,7 @@ export const useSwapStore = defineStore('swap', {
         $notify({ status: Status.Success, description: 'Swap success' })
 
         tokensStore.getTokens()
-      }
-      catch (e) {
+      } catch (e) {
         $notify({ status: Status.Error, description: `${e}` })
       }
     },
@@ -126,8 +102,7 @@ export const useSwapStore = defineStore('swap', {
     async swapForKlayTokens() {
       const tokensStore = useTokensStore()
       const { selectedTokens, computedToken } = tokensStore
-      if (computedToken === null)
-        throw new Error('No computed token')
+      if (computedToken === null) throw new Error('No computed token')
       const { tokenA, tokenB } = selectedTokens
 
       const selectedToken = selectedTokens[computedToken]
@@ -135,9 +110,7 @@ export const useSwapStore = defineStore('swap', {
       if (tokenA === null || tokenB === null || selectedToken === null || inputToken === null)
         throw new Error('No selected tokens')
 
-      const isComputedNativeToken = $kaikas.utils.isNativeToken(
-        selectedToken.address,
-      )
+      const isComputedNativeToken = $kaikas.utils.isNativeToken(selectedToken.address)
 
       // await config.approveAmount(
       //   inputToken.address,
@@ -145,20 +118,12 @@ export const useSwapStore = defineStore('swap', {
       //   inputToken.value
       // );
 
-      await config.approveAmount(
-        tokenA.address,
-        kip7.abi as AbiItem[],
-        tokenA.value,
-      )
+      await config.approveAmount(tokenA.address, kip7.abi as AbiItem[], tokenA.value)
 
-      const exactTokensForEth
-        = computedToken === 'tokenB' && isComputedNativeToken
-      const exactETHForTokens
-        = computedToken === 'tokenB' && !isComputedNativeToken
-      const ETHForExactTokens
-        = computedToken === 'tokenA' && isComputedNativeToken
-      const tokensForExactETH
-        = computedToken === 'tokenA' && !isComputedNativeToken
+      const exactTokensForEth = computedToken === 'tokenB' && isComputedNativeToken
+      const exactETHForTokens = computedToken === 'tokenB' && !isComputedNativeToken
+      const ETHForExactTokens = computedToken === 'tokenA' && isComputedNativeToken
+      const tokensForExactETH = computedToken === 'tokenA' && !isComputedNativeToken
 
       if (exactTokensForEth) {
         const { send } = await $kaikas.swap.swapExactTokensForETH({
@@ -217,5 +182,4 @@ export const useSwapStore = defineStore('swap', {
   },
 })
 
-if (import.meta.hot)
-  import.meta.hot.accept(acceptHMRUpdate(useSwapStore, import.meta.hot))
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useSwapStore, import.meta.hot))

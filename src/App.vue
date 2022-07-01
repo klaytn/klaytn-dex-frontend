@@ -6,9 +6,7 @@ import { SNotificationsProvider } from '@soramitsu-ui/ui'
 // they will be rendered correctly in the html results with vite-ssg
 useHead({
   title: 'Dex',
-  meta: [
-    { name: 'description', content: 'Decentralized exchange platform' },
-  ],
+  meta: [{ name: 'description', content: 'Decentralized exchange platform' }],
   link: [
     {
       rel: 'icon',
@@ -20,7 +18,10 @@ useHead({
 </script>
 
 <template>
-  <SNotificationsProvider vertical="bottom" horizontal="right">
+  <SNotificationsProvider
+    vertical="bottom"
+    horizontal="right"
+  >
     <RouterView />
     <NotificationsInit />
   </SNotificationsProvider>

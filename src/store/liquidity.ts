@@ -5,8 +5,7 @@ import type { AbiItem } from 'caver-js'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
 import pairAbi from '@/utils/smartcontracts/pair.json'
 import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
-import type { Token } from '@/types'
-import { LiquidityStatus } from '@/types'
+import { LiquidityStatus, type Token } from '@/types'
 import type { DexPair } from '@/types/typechain/swap'
 import type { KIP7 } from '@/types/typechain/tokens'
 
@@ -40,24 +39,14 @@ export const useLiquidityStore = defineStore('liquidity', {
       try {
         const { selectedTokens, computedToken } = tokensStore
         const { tokenA, tokenB } = selectedTokens
-        if (tokenA === null || tokenB === null)
-          throw new Error('No selected tokens')
+        if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
 
-        const exchangeRate = await $kaikas.tokens.getTokenBQuote(
-          tokenA.address,
-          tokenB.address,
-          value,
-        )
+        const exchangeRate = await $kaikas.tokens.getTokenBQuote(tokenA.address, tokenB.address, value)
 
-        const { pairBalance, userBalance }
-          = await $kaikas.tokens.getPairBalance(
-            tokenA.address,
-            tokenB.address,
-          )
+        const { pairBalance, userBalance } = await $kaikas.tokens.getPairBalance(tokenA.address, tokenB.address)
 
         tokensStore.setTokenValue({ type: computedToken, value: exchangeRate, pairBalance, userBalance })
-      }
-      catch (e) {
+      } catch (e) {
         console.error(e)
         $notify({ status: Status.Error, description: `${e}` })
       }
@@ -67,24 +56,14 @@ export const useLiquidityStore = defineStore('liquidity', {
       try {
         const { selectedTokens, computedToken } = tokensStore
         const { tokenA, tokenB } = selectedTokens
-        if (tokenA === null || tokenB === null)
-          throw new Error('No selected tokens')
+        if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
 
-        const exchangeRate = await $kaikas.tokens.getTokenAQuote(
-          tokenA.address,
-          tokenB.address,
-          value,
-        )
+        const exchangeRate = await $kaikas.tokens.getTokenAQuote(tokenA.address, tokenB.address, value)
 
-        const { pairBalance, userBalance }
-          = await $kaikas.tokens.getPairBalance(
-            tokenA.address,
-            tokenB.address,
-          )
+        const { pairBalance, userBalance } = await $kaikas.tokens.getPairBalance(tokenA.address, tokenB.address)
 
         tokensStore.setTokenValue({ type: computedToken, value: exchangeRate, pairBalance, userBalance })
-      }
-      catch (e) {
+      } catch (e) {
         console.error(e)
         $notify({ status: Status.Error, description: `${e}` })
       }
@@ -126,8 +105,7 @@ export const useLiquidityStore = defineStore('liquidity', {
       const config = useConfigWithConnectedKaikas()
       const tokensStore = useTokensStore()
       const { tokenA, tokenB } = tokensStore.selectedTokens
-      if (tokenA === null || tokenB === null)
-        throw new Error('No selected tokens')
+      if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
 
       try {
         const tokenAValue = $kaikas.bigNumber(tokenA.value)
@@ -136,33 +114,22 @@ export const useLiquidityStore = defineStore('liquidity', {
         const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100))
         const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100))
 
-        await config.approveAmount(
-          tokenA.address,
-          kip7.abi as AbiItem[],
-          tokenAValue.toFixed(0),
-        )
+        await config.approveAmount(tokenA.address, kip7.abi as AbiItem[], tokenAValue.toFixed(0))
 
-        await config.approveAmount(
-          tokenB.address,
-          kip7.abi as AbiItem[],
-          tokenBValue.toFixed(0),
-        )
-        const pairAddress = await config.factoryContract.methods
-          .getPair(tokenA.address, tokenB.address)
-          .call({
-            from: this.address,
-          })
+        await config.approveAmount(tokenB.address, kip7.abi as AbiItem[], tokenBValue.toFixed(0))
+        const pairAddress = await config.factoryContract.methods.getPair(tokenA.address, tokenB.address).call({
+          from: this.address,
+        })
 
         if (!$kaikas.isEmptyAddress(pairAddress)) {
-          const { send }
-            = await $kaikas.liquidity.addLiquidityAmountOutForExistPair({
-              tokenAValue,
-              tokenBValue,
-              tokenAddressA: tokenA.address,
-              tokenAddressB: tokenB.address,
-              amountAMin,
-              deadLine,
-            })
+          const { send } = await $kaikas.liquidity.addLiquidityAmountOutForExistPair({
+            tokenAValue,
+            tokenBValue,
+            tokenAddressA: tokenA.address,
+            tokenAddressB: tokenB.address,
+            amountAMin,
+            deadLine,
+          })
 
           await send()
           $notify({
@@ -203,8 +170,7 @@ export const useLiquidityStore = defineStore('liquidity', {
           })
 
         $notify({ status: Status.Success, description: 'Liquidity success' })
-      }
-      catch (e) {
+      } catch (e) {
         console.error(e)
         $notify({ status: Status.Error, description: `${e}` })
         throw new Error('Error')
@@ -215,8 +181,7 @@ export const useLiquidityStore = defineStore('liquidity', {
 
       const tokensStore = useTokensStore()
       const { tokenA, tokenB } = tokensStore.selectedTokens
-      if (tokenA === null || tokenB === null)
-        throw new Error('No selected tokens')
+      if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
 
       try {
         const tokenAValue = $kaikas.bigNumber(tokenA.value)
@@ -225,33 +190,22 @@ export const useLiquidityStore = defineStore('liquidity', {
         const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100))
         const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100))
 
-        await config.approveAmount(
-          tokenA.address,
-          kip7.abi as AbiItem[],
-          tokenAValue.toFixed(0),
-        )
-        await config.approveAmount(
-          tokenB.address,
-          kip7.abi as AbiItem[],
-          tokenBValue.toFixed(0),
-        )
+        await config.approveAmount(tokenA.address, kip7.abi as AbiItem[], tokenAValue.toFixed(0))
+        await config.approveAmount(tokenB.address, kip7.abi as AbiItem[], tokenBValue.toFixed(0))
 
-        const pairAddress = await config.factoryContract.methods
-          .getPair(tokenA.address, tokenB.address)
-          .call({
-            from: this.address,
-          })
+        const pairAddress = await config.factoryContract.methods.getPair(tokenA.address, tokenB.address).call({
+          from: this.address,
+        })
 
         if (!$kaikas.utils.isEmptyAddress(pairAddress)) {
-          const { send }
-            = await $kaikas.liquidity.addLiquidityAmountInForExistPair({
-              tokenAValue,
-              tokenBValue,
-              tokenAddressA: tokenA.address,
-              tokenAddressB: tokenB.address,
-              amountBMin,
-              deadLine,
-            })
+          const { send } = await $kaikas.liquidity.addLiquidityAmountInForExistPair({
+            tokenAValue,
+            tokenBValue,
+            tokenAddressA: tokenA.address,
+            tokenAddressB: tokenB.address,
+            amountBMin,
+            deadLine,
+          })
 
           await send()
           $notify({
@@ -296,8 +250,7 @@ export const useLiquidityStore = defineStore('liquidity', {
           status: Status.Success,
           description: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
         })
-      }
-      catch (e) {
+      } catch (e) {
         console.error(e)
         $notify({ status: Status.Error, description: 'Liquidity error' })
         throw new Error('Error')
@@ -308,8 +261,7 @@ export const useLiquidityStore = defineStore('liquidity', {
 
       const tokensStore = useTokensStore()
       const { tokenA, tokenB } = tokensStore.selectedTokens
-      if (tokenA === null || tokenB === null)
-        throw new Error('No selected tokens')
+      if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
 
       const sortedPair = $kaikas.utils.sortKlayPair(tokenA, tokenB)
       const tokenAValue = $kaikas.utils.bigNumber(sortedPair[0].value)
@@ -320,17 +272,9 @@ export const useLiquidityStore = defineStore('liquidity', {
       const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100))
       const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100))
 
-      await config.approveAmount(
-        sortedPair[0].address,
-        kip7.abi as AbiItem[],
-        tokenAValue.toFixed(0),
-      )
+      await config.approveAmount(sortedPair[0].address, kip7.abi as AbiItem[], tokenAValue.toFixed(0))
 
-      await config.approveAmount(
-        sortedPair[1].address,
-        kip7.abi as AbiItem[],
-        tokenBValue.toFixed(0),
-      )
+      await config.approveAmount(sortedPair[1].address, kip7.abi as AbiItem[], tokenBValue.toFixed(0))
 
       const pairAddress = await config.factoryContract.methods
         .getPair(sortedPair[0].address, sortedPair[1].address)
@@ -365,31 +309,17 @@ export const useLiquidityStore = defineStore('liquidity', {
 
       const tokensStore = useTokensStore()
       const { tokenA, tokenB, pairAddress } = tokensStore.selectedTokens
-      if (tokenA === null || tokenB === null || pairAddress === null)
-        throw new Error('No selected tokens')
+      if (tokenA === null || tokenB === null || pairAddress === null) throw new Error('No selected tokens')
 
-      const pairContract = config.createContract<DexPair>(
-        pairAddress,
-        pairAbi.abi as AbiItem[],
-      )
+      const pairContract = config.createContract<DexPair>(pairAddress, pairAbi.abi as AbiItem[])
 
       const oneBN = $kaikas.utils.bigNumber('1')
 
-      const totalSupply = $kaikas.utils.bigNumber(
-        await pairContract.methods.totalSupply().call(),
-      )
-      const lpToken = $kaikas.utils.bigNumber(
-        $kaikas.utils.toWei(lpTokenValue),
-      )
+      const totalSupply = $kaikas.utils.bigNumber(await pairContract.methods.totalSupply().call())
+      const lpToken = $kaikas.utils.bigNumber($kaikas.utils.toWei(lpTokenValue))
 
-      const contract0 = config.createContract<KIP7>(
-        tokenA.address,
-        kip7.abi as AbiItem[],
-      )
-      const contract1 = config.createContract<KIP7>(
-        tokenB.address,
-        kip7.abi as AbiItem[],
-      )
+      const contract0 = config.createContract<KIP7>(tokenA.address, kip7.abi as AbiItem[])
+      const contract1 = config.createContract<KIP7>(tokenB.address, kip7.abi as AbiItem[])
 
       const balance0 = await contract0.methods.balanceOf(pairAddress).call({
         from: config.address,
@@ -399,14 +329,8 @@ export const useLiquidityStore = defineStore('liquidity', {
         from: config.address,
       })
 
-      const amount0 = lpToken
-        .multipliedBy(balance0)
-        .dividedBy(totalSupply)
-        .minus(oneBN)
-      const amount1 = lpToken
-        .multipliedBy(balance1)
-        .dividedBy(totalSupply)
-        .minus(oneBN)
+      const amount0 = lpToken.multipliedBy(balance0).dividedBy(totalSupply).minus(oneBN)
+      const amount1 = lpToken.multipliedBy(balance1).dividedBy(totalSupply).minus(oneBN)
 
       this.removeLiquidityPair = {
         ...this.removeLiquidityPair,
@@ -420,8 +344,7 @@ export const useLiquidityStore = defineStore('liquidity', {
       const tokensStore = useTokensStore()
       const { selectedTokens } = tokensStore
       const { tokenA, tokenB, pairAddress } = selectedTokens
-      if (tokenA === null || tokenB === null || pairAddress == null)
-        throw new Error('No selected tokens')
+      if (tokenA === null || tokenB === null || pairAddress === null) throw new Error('No selected tokens')
 
       const { removeLiquidityPair } = liquidity
 
@@ -435,38 +358,19 @@ export const useLiquidityStore = defineStore('liquidity', {
       // balance0 = IKIP7(_token0).balanceOf(pairAddress);
       // balance1 = IKIP7(_token1).balanceOf(pairAddress);
 
-      const pairContract = config.createContract<DexPair>(
-        pairAddress,
-        pairAbi.abi as AbiItem[],
-      )
+      const pairContract = config.createContract<DexPair>(pairAddress, pairAbi.abi as AbiItem[])
 
       const oneBN = $kaikas.utils.bigNumber('1')
-      const pairBalance = await pairContract.methods
-        .balanceOf(pairAddress)
-        .call()
+      const pairBalance = await pairContract.methods.balanceOf(pairAddress).call()
 
-      const totalSupply = $kaikas.utils.bigNumber(
-        await pairContract.methods.totalSupply().call(),
-      )
+      const totalSupply = $kaikas.utils.bigNumber(await pairContract.methods.totalSupply().call())
 
-      const lpToken = $kaikas.utils.bigNumber(
-        $kaikas.utils.toWei(removeLiquidityPair.lpTokenValue).toString(),
-      )
+      const lpToken = $kaikas.utils.bigNumber($kaikas.utils.toWei(removeLiquidityPair.lpTokenValue).toString())
 
-      await config.approveAmount(
-        pairAddress,
-        pairAbi.abi as AbiItem[],
-        lpToken.toFixed(0),
-      )
+      await config.approveAmount(pairAddress, pairAbi.abi as AbiItem[], lpToken.toFixed(0))
 
-      const contract0 = config.createContract<KIP7>(
-        tokenA.address,
-        kip7.abi as AbiItem[],
-      )
-      const contract1 = config.createContract<KIP7>(
-        tokenB.address,
-        kip7.abi as AbiItem[],
-      )
+      const contract0 = config.createContract<KIP7>(tokenA.address, kip7.abi as AbiItem[])
+      const contract1 = config.createContract<KIP7>(tokenB.address, kip7.abi as AbiItem[])
 
       const balance0 = await contract0.methods.balanceOf(pairAddress).call({
         from: config.address,
@@ -476,14 +380,8 @@ export const useLiquidityStore = defineStore('liquidity', {
         from: config.address,
       })
 
-      const amount0 = lpToken
-        .multipliedBy(balance0)
-        .dividedBy(totalSupply)
-        .minus(oneBN)
-      const amount1 = lpToken
-        .multipliedBy(balance1)
-        .dividedBy(totalSupply)
-        .minus(oneBN)
+      const amount0 = lpToken.multipliedBy(balance0).dividedBy(totalSupply).minus(oneBN)
+      const amount1 = lpToken.multipliedBy(balance1).dividedBy(totalSupply).minus(oneBN)
 
       const deadLine = Math.floor(Date.now() / 1000 + 300)
 
@@ -532,8 +430,7 @@ export const useLiquidityStore = defineStore('liquidity', {
           status: Status.Success,
           description: `Remove liquidity success ${tokenA.name} + ${tokenB.name}`,
         })
-      }
-      catch (e) {
+      } catch (e) {
         console.error(e)
       }
     },
@@ -543,8 +440,7 @@ export const useLiquidityStore = defineStore('liquidity', {
       const tokensStore = useTokensStore()
       const { selectedTokens } = tokensStore
       const { tokenA, tokenB, pairAddress } = selectedTokens
-      if (tokenA === null || tokenB === null || pairAddress === null)
-        throw new Error('No selected tokens')
+      if (tokenA === null || tokenB === null || pairAddress === null) throw new Error('No selected tokens')
 
       //   address token, not klay
       //   uint256 liquidity,
@@ -553,39 +449,20 @@ export const useLiquidityStore = defineStore('liquidity', {
       //   address to,
       //   uint256 deadline
 
-      const pairContract = config.createContract<DexPair>(
-        pairAddress,
-        pairAbi.abi as AbiItem[],
-      )
+      const pairContract = config.createContract<DexPair>(pairAddress, pairAbi.abi as AbiItem[])
 
       const oneBN = $kaikas.utils.bigNumber('1')
 
-      const pairBalance = await pairContract.methods
-        .balanceOf(pairAddress)
-        .call()
+      const pairBalance = await pairContract.methods.balanceOf(pairAddress).call()
 
-      const totalSupply = $kaikas.utils.bigNumber(
-        await pairContract.methods.totalSupply().call(),
-      )
+      const totalSupply = $kaikas.utils.bigNumber(await pairContract.methods.totalSupply().call())
 
-      const lpToken = $kaikas.utils.bigNumber(
-        $kaikas.utils.toWei('10'),
-      )
+      const lpToken = $kaikas.utils.bigNumber($kaikas.utils.toWei('10'))
 
-      await config.approveAmount(
-        pairAddress,
-        pairAbi.abi as AbiItem[],
-        lpToken.toFixed(0),
-      )
+      await config.approveAmount(pairAddress, pairAbi.abi as AbiItem[], lpToken.toFixed(0))
 
-      const contract0 = config.createContract<KIP7>(
-        tokenA.address,
-        kip7.abi as AbiItem[],
-      )
-      const contract1 = config.createContract<KIP7>(
-        tokenB.address,
-        kip7.abi as AbiItem[],
-      )
+      const contract0 = config.createContract<KIP7>(tokenA.address, kip7.abi as AbiItem[])
+      const contract1 = config.createContract<KIP7>(tokenB.address, kip7.abi as AbiItem[])
 
       const balance0 = $kaikas.utils.bigNumber(
         await contract0.methods.balanceOf(pairAddress).call({
@@ -599,14 +476,8 @@ export const useLiquidityStore = defineStore('liquidity', {
         }),
       )
 
-      const amount0 = lpToken
-        .multipliedBy(balance0)
-        .dividedBy(totalSupply)
-        .minus(oneBN)
-      const amount1 = lpToken
-        .multipliedBy(balance1)
-        .dividedBy(totalSupply)
-        .minus(oneBN)
+      const amount0 = lpToken.multipliedBy(balance0).dividedBy(totalSupply).minus(oneBN)
+      const amount1 = lpToken.multipliedBy(balance1).dividedBy(totalSupply).minus(oneBN)
 
       const deadLine = Math.floor(Date.now() / 1000 + 300)
 
@@ -659,8 +530,7 @@ export const useLiquidityStore = defineStore('liquidity', {
             gasPrice: 250000000000,
             gas: removeLiqGas,
           })
-      }
-      catch (e) {
+      } catch (e) {
         console.error(e)
       }
     },
@@ -673,5 +543,4 @@ export const useLiquidityStore = defineStore('liquidity', {
   },
 })
 
-if (import.meta.hot)
-  import.meta.hot.accept(acceptHMRUpdate(useLiquidityStore, import.meta.hot))
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useLiquidityStore, import.meta.hot))
