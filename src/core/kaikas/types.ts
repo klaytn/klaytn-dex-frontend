@@ -1,3 +1,4 @@
+import BN from 'bn.js'
 import { Opaque } from 'type-fest'
 
 export interface Klaytn {
@@ -8,22 +9,58 @@ export interface Klaytn {
 }
 
 export interface Token {
-  address: Address
-  value: string
   name: string
-  price?: string
+  address: Address
+
+  /**
+   * FIXME describe. What is the difference between `value` and `balance`?
+   */
+  value?: never // string
+
+  /**
+   * FIXME describe
+   */
   symbol: string
-  balance: string
+  balance: Balance
+
+  /**
+   * FIXME what is a price? Why it is `-`? Should be typed stricter
+   * maybe from CoinMarketCap too
+   */
+  price?: string
+
+  // rudiment from CoinMarketCap integration
+  // logo?: string
+  // slug?: string
+
+  // /**
+  //  * Address too? Usually is the same as `address` field
+  //  */
+  // id?: Address
 }
 
+/**
+ * Address like `0xb9920BD871e39C6EF46169c32e7AC4C698688881`
+ */
 export type Address = Opaque<string, 'Address'>
 
 /**
- * TODO describe
+ * `BigNumber` (from `bignumber.js` package) as a string
+ */
+export type Balance = Opaque<string, 'Balance'>
+
+export type ValueBigNumOrString<T extends BN | string = BN | string> = T
+
+export type ValueEther<T extends ValueBigNumOrString = ValueBigNumOrString> = Opaque<T, 'ether'>
+
+export type ValueWei<T extends ValueBigNumOrString = ValueBigNumOrString> = Opaque<T, 'wei'>
+
+/**
+ * FIXME describe all internals
  */
 export interface Pair {
-  userBalance: string
-  pairBalance: string
+  userBalance: Balance
+  pairBalance: Balance
   symbol: string
   name: string
   reserves: {

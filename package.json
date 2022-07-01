@@ -23,7 +23,10 @@
     "@vue/apollo-option": "^4.0.0-alpha.18",
     "@vueuse/core": "^8.6.0",
     "@vueuse/head": "^0.7.6",
+    "bignumber.js": "^9.0.2",
+    "bn.js": "^5.2.1",
     "bulma": "^0.9.4",
+    "caver-js": "^1.8.2",
     "debounce": "^1.2.1",
     "graphql": "^16.5.0",
     "graphql-tag": "^2.12.6",
@@ -36,7 +39,8 @@
     "vue-demi": "^0.13.1",
     "vue-i18n": "^9.1.10",
     "vue-router": "^4.0.15",
-    "web3": "^1.7.3"
+    "web3": "^1.7.3",
+    "web3-utils": "^1.7.4"
   },
   "devDependencies": {
     "@iconify-json/carbon": "^1.1.5",
@@ -48,8 +52,6 @@
     "@typescript-eslint/parser": "^5.30.0",
     "@vitejs/plugin-vue": "^2.3.3",
     "@vue/test-utils": "^2.0.0",
-    "bn.js": "^5.2.1",
-    "caver-js": "^1.8.2",
     "critters": "^0.0.16",
     "cypress": "^9.7.0",
     "eslint": "^8.16.0",
@@ -60,7 +62,6 @@
     "jsdom": "^20.0.0",
     "markdown-it-link-attributes": "^4.0.0",
     "markdown-it-prism": "^2.2.4",
-    "pnpm": "^7.1.7",
     "prettier": "^2.7.1",
     "prettier-eslint": "^15.0.1",
     "prettier-eslint-cli": "^6.0.1",

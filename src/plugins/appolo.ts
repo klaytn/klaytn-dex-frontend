@@ -14,5 +14,8 @@ const apolloProvider = createApolloProvider({
 
 export const install: Plugin = ({ app }) => {
   app.use(apolloProvider)
-  app.use(apolloClient)
+
+  // FIXME `apolloClient` is not a plugin itself
+  // this line should be removed?
+  // app.use(apolloClient)
 }

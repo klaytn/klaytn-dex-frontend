@@ -2,15 +2,21 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 
 import { Status } from '@soramitsu-ui/ui'
 import type { AbiItem } from 'caver-js'
-import kip7 from '@/utils/smartcontracts/kip-7.json'
-import pairAbi from '@/utils/smartcontracts/pair.json'
-import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
-import { LiquidityStatus, type Token } from '@/types'
+// import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
+import { ValueWei, type Token } from '@/core/kaikas'
 import type { DexPair } from '@/types/typechain/swap'
 import type { KIP7 } from '@/types/typechain/tokens'
 
+import { abi as KIP7_ABI_RAW } from '@/core/kaikas/smartcontracts/kip-7.json'
+import { abi as PAIR_ABI_RAW } from '@/core/kaikas/smartcontracts/pair.json'
+
+const KIP7_ABI = KIP7_ABI_RAW as AbiItem[]
+const PAIR_ABI = PAIR_ABI_RAW as AbiItem[]
+
 interface State {
-  liquidityStatus: LiquidityStatus
+  // unused
+  // liquidityStatus: LiquidityStatus
+
   removeLiquidityPair: {
     lpTokenValue: string | null
     tokenA: Token | null
@@ -20,10 +26,38 @@ interface State {
   }
 }
 
+export const useNew = defineStore('liquidity', () => {
+  const kaikasStore = useKaikasStore()
+  const tokensStore = useTokensStore()
+
+  async function quoteForToken(value: ValueWei, whichToken: 'tokenA' | 'tokenB') {
+    const kaikas = kaikasStore.getKaikasAnyway()
+
+    try {
+      const { selectedTokens, computedToken } = tokensStore.state
+      const { tokenA, tokenB } = selectedTokens
+      if (!tokenA || !tokenB || !computedToken) throw new Error('No selected tokens')
+
+      const exchangeRate = await kaikas.tokens.getTokenQuote(tokenA.address, tokenB.address, value, whichToken)
+      const { pairBalance, userBalance } = await kaikas.tokens.getPairBalance(tokenA.address, tokenB.address)
+
+      tokensStore.setTokenValue({ type: computedToken, value: exchangeRate, pairBalance, userBalance })
+    } catch (e) {
+      console.error(e)
+      $notify({ status: Status.Error, description: String(e) })
+    }
+  }
+
+  return {
+    quoteForToken,
+  }
+})
+
 export const useLiquidityStore = defineStore('liquidity', {
   state(): State {
     return {
-      liquidityStatus: LiquidityStatus.Initial,
+      // liquidityStatus: LiquidityStatus.Initial,
+
       removeLiquidityPair: {
         lpTokenValue: null,
         tokenA: null,

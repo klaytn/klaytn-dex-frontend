@@ -81,6 +81,9 @@ export default class Config {
 
     if (amount.isLessThanOrEqualTo(allowance)) return amountValue
 
+    /**
+     * FIXME untyped
+     */
     const gas = await contract.methods.approve(this.addrs.router, amountValue).estimateGas()
 
     return await contract.methods.approve(this.addrs.router, amountValue).send({
