@@ -53,6 +53,7 @@ export default {
             liquidityPositions {
               liquidityTokenBalance
               pair {
+                id
                 name
                 reserve0
                 reserve1
@@ -209,7 +210,7 @@ export default {
                 <RouterLink to="/liquidity/add">
                   Add
                 </RouterLink>
-                <RouterLink :to="`/liquidity/remove/${p.address}`">
+                <RouterLink :to="`/liquidity/remove/${p.id}`">
                   Remove
                 </RouterLink>
                 <a
