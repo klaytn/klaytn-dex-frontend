@@ -1,8 +1,7 @@
 import web3 from 'web3'
 import BigNumber from 'bignumber.js'
 import { type Address, type Token } from './types'
-
-const NATIVE_TOKEN = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address
+import { NATIVE_TOKEN } from './const'
 
 export function formatAddress(address: Address): string {
   const addressLength = address.length
