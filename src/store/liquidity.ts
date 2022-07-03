@@ -2,33 +2,53 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 
 import { Status } from '@soramitsu-ui/ui'
 import type { AbiItem } from 'caver-js'
-// import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
-import { ValueWei, type Token } from '@/core/kaikas'
+import { Address, Balance, isEmptyAddress, sortKlayPair, ValueEther, ValueWei, type Token } from '@/core/kaikas'
 import type { DexPair } from '@/types/typechain/swap'
 import type { KIP7 } from '@/types/typechain/tokens'
-
+import BigNumber from 'bignumber.js'
 import { abi as KIP7_ABI_RAW } from '@/core/kaikas/smartcontracts/kip-7.json'
 import { abi as PAIR_ABI_RAW } from '@/core/kaikas/smartcontracts/pair.json'
+import { AddLiquidityAmountParamsBase, deadlineFromMs, Deadline } from '@/core/kaikas/Liquidity'
+import { toWei } from 'web3-utils'
+import { MAGIC_GAS_PRICE } from '@/core/kaikas/const'
+import invariant from 'tiny-invariant'
 
 const KIP7_ABI = KIP7_ABI_RAW as AbiItem[]
 const PAIR_ABI = PAIR_ABI_RAW as AbiItem[]
+
+const BN_ONE = new BigNumber('1')
+
+function computeFiveMinutesDeadline(): Deadline {
+  return deadlineFromMs(Date.now() + 300_000)
+}
 
 interface State {
   // unused
   // liquidityStatus: LiquidityStatus
 
   removeLiquidityPair: {
-    lpTokenValue: string | null
+    lpTokenValue: ValueEther<string> | null // string | null
     tokenA: Token | null
     tokenB: Token | null
-    amount1: string | null
+    // FIXME amount in what?
     amount0: string | null
+    amount1: string | null
   }
 }
 
-export const useNew = defineStore('liquidity', () => {
+export const useLiquidityStore = defineStore('liquidity', () => {
   const kaikasStore = useKaikasStore()
   const tokensStore = useTokensStore()
+
+  const state = reactive<State>({
+    removeLiquidityPair: {
+      lpTokenValue: null,
+      tokenA: null,
+      tokenB: null,
+      amount1: null,
+      amount0: null,
+    },
+  })
 
   async function quoteForToken(value: ValueWei, whichToken: 'tokenA' | 'tokenB') {
     const kaikas = kaikasStore.getKaikasAnyway()
@@ -36,7 +56,7 @@ export const useNew = defineStore('liquidity', () => {
     try {
       const { selectedTokens, computedToken } = tokensStore.state
       const { tokenA, tokenB } = selectedTokens
-      if (!tokenA || !tokenB || !computedToken) throw new Error('No selected tokens')
+      invariant(tokenA && tokenB && computedToken, 'No selected tokens')
 
       const exchangeRate = await kaikas.tokens.getTokenQuote(tokenA.address, tokenB.address, value, whichToken)
       const { pairBalance, userBalance } = await kaikas.tokens.getPairBalance(tokenA.address, tokenB.address)
@@ -48,533 +68,350 @@ export const useNew = defineStore('liquidity', () => {
     }
   }
 
-  return {
-    quoteForToken,
-  }
-})
+  async function addLiquidityAmount(mode: 'in' | 'out') {
+    const kaikas = kaikasStore.getKaikasAnyway()
 
-export const useLiquidityStore = defineStore('liquidity', {
-  state(): State {
-    return {
-      // liquidityStatus: LiquidityStatus.Initial,
+    const { tokenA, tokenB } = tokensStore.state.selectedTokens
+    invariant(tokenA && tokenB)
 
-      removeLiquidityPair: {
-        lpTokenValue: null,
-        tokenA: null,
-        tokenB: null,
-        amount1: null,
-        amount0: null,
-      },
-    }
-  },
-  actions: {
-    async quoteForTokenB(value: string) {
-      const tokensStore = useTokensStore()
-      try {
-        const { selectedTokens, computedToken } = tokensStore
-        const { tokenA, tokenB } = selectedTokens
-        if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
+    try {
+      // FIXME token.value
+      const tokenAValue = new BigNumber(tokenA.value!)
+      const tokenBValue = new BigNumber(tokenB.value!)
 
-        const exchangeRate = await $kaikas.tokens.getTokenBQuote(tokenA.address, tokenB.address, value)
+      const deadline = computeFiveMinutesDeadline()
+      const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100))
+      const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100))
 
-        const { pairBalance, userBalance } = await $kaikas.tokens.getPairBalance(tokenA.address, tokenB.address)
+      await kaikas.cfg.approveAmount(tokenA.address, KIP7_ABI, tokenAValue.toFixed(0))
+      await kaikas.cfg.approveAmount(tokenB.address, KIP7_ABI, tokenBValue.toFixed(0))
 
-        tokensStore.setTokenValue({ type: computedToken, value: exchangeRate, pairBalance, userBalance })
-      } catch (e) {
-        console.error(e)
-        $notify({ status: Status.Error, description: `${e}` })
-      }
-    },
-    async quoteForTokenA(value: string) {
-      const tokensStore = useTokensStore()
-      try {
-        const { selectedTokens, computedToken } = tokensStore
-        const { tokenA, tokenB } = selectedTokens
-        if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
+      const pairAddress = (await kaikas.cfg.contracts.factory.methods.getPair(tokenA.address, tokenB.address).call({
+        from:
+          // FIXME is it correct?
+          // this.address,
+          kaikas.cfg.addrs.self,
+      })) as Address
 
-        const exchangeRate = await $kaikas.tokens.getTokenAQuote(tokenA.address, tokenB.address, value)
-
-        const { pairBalance, userBalance } = await $kaikas.tokens.getPairBalance(tokenA.address, tokenB.address)
-
-        tokensStore.setTokenValue({ type: computedToken, value: exchangeRate, pairBalance, userBalance })
-      } catch (e) {
-        console.error(e)
-        $notify({ status: Status.Error, description: `${e}` })
-      }
-    },
-
-    // async quoteForKlay({ commit, rootState: { tokens } }, { value, reversed }) {
-    //   try {
-    //     const {
-    //       selectedTokens: { tokenA, tokenB },
-    //       computedToken,
-    //     } = tokens;
-    //
-    //     const exchangeRate = await $kaikas.tokens.getKlayQuote(
-    //       tokenA.address,
-    //       tokenB.address,
-    //       value,
-    //       reversed
-    //     );
-    //
-    //     const { pairBalance, userBalance } =
-    //       await $kaikas.tokens.getPairBalance(
-    //         tokenA.address,
-    //         tokenB.address
-    //       );
-    //
-    //     commit(
-    //       "tokens/SET_TOKEN_VALUE",
-    //       { type: computedToken, value: exchangeRate, pairBalance, userBalance },
-    //       { root: true }
-    //     );
-    //   } catch (e) {
-    //     console.log(e);
-    //     $notify({ status: Status.Error, description: e });
-    //   }
-    //   return;
-    // },
-
-    async addLiquidityAmountOut() {
-      const config = useConfigWithConnectedKaikas()
-      const tokensStore = useTokensStore()
-      const { tokenA, tokenB } = tokensStore.selectedTokens
-      if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
-
-      try {
-        const tokenAValue = $kaikas.bigNumber(tokenA.value)
-        const tokenBValue = $kaikas.bigNumber(tokenB.value)
-        const deadLine = Math.floor(Date.now() / 1000 + 300)
-        const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100))
-        const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100))
-
-        await config.approveAmount(tokenA.address, kip7.abi as AbiItem[], tokenAValue.toFixed(0))
-
-        await config.approveAmount(tokenB.address, kip7.abi as AbiItem[], tokenBValue.toFixed(0))
-        const pairAddress = await config.factoryContract.methods.getPair(tokenA.address, tokenB.address).call({
-          from: this.address,
-        })
-
-        if (!$kaikas.isEmptyAddress(pairAddress)) {
-          const { send } = await $kaikas.liquidity.addLiquidityAmountOutForExistPair({
-            tokenAValue,
-            tokenBValue,
-            tokenAddressA: tokenA.address,
-            tokenAddressB: tokenB.address,
-            amountAMin,
-            deadLine,
-          })
-
-          await send()
-          $notify({
-            status: Status.Success,
-            description: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
-          })
-
-          return
+      if (!isEmptyAddress(pairAddress)) {
+        const baseParams: AddLiquidityAmountParamsBase = {
+          tokenAValue,
+          tokenBValue,
+          tokenAddressA: tokenA.address,
+          tokenAddressB: tokenB.address,
+          deadline,
         }
 
-        const lqGas = await config.routerContract.methods
-          .addLiquidity(
-            tokenA.address,
-            tokenB.address,
-            tokenAValue.toFixed(0),
-            tokenBValue.toFixed(0),
-            amountAMin.toFixed(0),
-            amountBMin.toFixed(0),
-            config.address,
-            deadLine,
-          )
-          .estimateGas()
-
-        await config.routerContract.methods
-          .addLiquidity(
-            tokenA.address,
-            tokenB.address,
-            tokenAValue.toFixed(0),
-            tokenBValue.toFixed(0),
-            amountAMin.toFixed(0),
-            amountBMin.toFixed(0),
-            config.address,
-            deadLine,
-          )
-          .send({
-            gas: lqGas,
-            gasPrice: 250000000000,
-          })
-
-        $notify({ status: Status.Success, description: 'Liquidity success' })
-      } catch (e) {
-        console.error(e)
-        $notify({ status: Status.Error, description: `${e}` })
-        throw new Error('Error')
-      }
-    },
-    async addLiquidityAmountIn() {
-      const config = useConfigWithConnectedKaikas()
-
-      const tokensStore = useTokensStore()
-      const { tokenA, tokenB } = tokensStore.selectedTokens
-      if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
-
-      try {
-        const tokenAValue = $kaikas.bigNumber(tokenA.value)
-        const tokenBValue = $kaikas.bigNumber(tokenB.value)
-        const deadLine = Math.floor(Date.now() / 1000 + 300)
-        const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100))
-        const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100))
-
-        await config.approveAmount(tokenA.address, kip7.abi as AbiItem[], tokenAValue.toFixed(0))
-        await config.approveAmount(tokenB.address, kip7.abi as AbiItem[], tokenBValue.toFixed(0))
-
-        const pairAddress = await config.factoryContract.methods.getPair(tokenA.address, tokenB.address).call({
-          from: this.address,
+        const { send } = await kaikas.liquidity.addLiquidityAmountForExistingPair({
+          ...baseParams,
+          ...(mode === 'in' ? { mode, amountBMin } : { mode, amountAMin }),
         })
 
-        if (!$kaikas.utils.isEmptyAddress(pairAddress)) {
-          const { send } = await $kaikas.liquidity.addLiquidityAmountInForExistPair({
-            tokenAValue,
-            tokenBValue,
-            tokenAddressA: tokenA.address,
-            tokenAddressB: tokenB.address,
-            amountBMin,
-            deadLine,
-          })
-
-          await send()
-          $notify({
-            status: Status.Success,
-            description: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
-          })
-
-          return
-        }
-
-        const lqGas = await config.routerContract.methods
-          .addLiquidity(
-            tokenA.address,
-            tokenB.address,
-            tokenAValue.toFixed(0),
-            tokenBValue.toFixed(0),
-            amountAMin.toFixed(0),
-            amountBMin.toFixed(0),
-            config.address,
-            deadLine,
-          )
-          .estimateGas()
-
-        await config.routerContract.methods
-          .addLiquidity(
-            tokenA.address,
-            tokenB.address,
-            tokenAValue.toFixed(0),
-            tokenBValue.toFixed(0),
-            amountAMin.toFixed(0),
-            amountBMin.toFixed(0),
-            config.address,
-            deadLine,
-          )
-          .send({
-            from: config.address,
-            gas: lqGas,
-            gasPrice: 250000000000,
-          })
-
+        await send()
         $notify({
           status: Status.Success,
           description: `Liquidity success ${tokenA.name} + ${tokenB.name}`,
         })
-      } catch (e) {
-        console.error(e)
-        $notify({ status: Status.Error, description: 'Liquidity error' })
-        throw new Error('Error')
-      }
-    },
-    async addLiquidityETH() {
-      const config = useConfigWithConnectedKaikas()
 
-      const tokensStore = useTokensStore()
-      const { tokenA, tokenB } = tokensStore.selectedTokens
-      if (tokenA === null || tokenB === null) throw new Error('No selected tokens')
-
-      const sortedPair = $kaikas.utils.sortKlayPair(tokenA, tokenB)
-      const tokenAValue = $kaikas.utils.bigNumber(sortedPair[0].value)
-      const tokenBValue = $kaikas.utils.bigNumber(sortedPair[1].value) // KLAY
-
-      const deadLine = Math.floor(Date.now() / 1000 + 300)
-
-      const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100))
-      const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100))
-
-      await config.approveAmount(sortedPair[0].address, kip7.abi as AbiItem[], tokenAValue.toFixed(0))
-
-      await config.approveAmount(sortedPair[1].address, kip7.abi as AbiItem[], tokenBValue.toFixed(0))
-
-      const pairAddress = await config.factoryContract.methods
-        .getPair(sortedPair[0].address, sortedPair[1].address)
-        .call({
-          from: config.address,
-        })
-
-      if (!$kaikas.utils.isEmptyAddress(pairAddress)) {
-        const { send } = await $kaikas.liquidity.addLiquidityKlayForExistsPair({
-          tokenAValue,
-          tokenBValue,
-          amountAMin,
-          addressA: sortedPair[0].address,
-          deadLine,
-        })
-        return await send()
+        return
       }
 
-      const { send } = await $kaikas.liquidity.addLiquidityKlay({
+      const addLiquidity = () =>
+        kaikas.cfg.contracts.router.methods.addLiquidity(
+          // FIXME in original methods there is no difference between IN and OUT
+          // but in core `Liquidity` there is a difference `addLiquidity` order:
+          // A,B,A,B,A,B for OUT and B,A,B,A,B,A for IN
+          // see Liquidity.addLiquidityForExisingPair
+          tokenA.address,
+          tokenB.address,
+          tokenAValue.toFixed(0),
+          tokenBValue.toFixed(0),
+          amountAMin.toFixed(0),
+          amountBMin.toFixed(0),
+          kaikas.cfg.addrs.self,
+          deadline,
+        )
+
+      const lqGas = await addLiquidity().estimateGas()
+      await addLiquidity().send({
+        gas: lqGas,
+        gasPrice: MAGIC_GAS_PRICE,
+      })
+
+      $notify({ status: Status.Success, description: 'Liquidity success' })
+    } catch (e) {
+      console.error(e)
+      $notify({ status: Status.Error, description: `${e}` })
+      throw new Error('Error')
+    }
+  }
+
+  async function addLiquidityETH() {
+    const kaikas = kaikasStore.getKaikasAnyway()
+
+    const { tokenA, tokenB } = tokensStore.state.selectedTokens
+    invariant(tokenA && tokenB)
+
+    const sortedPair = sortKlayPair(tokenA, tokenB)
+    const tokenAValue = new BigNumber(sortedPair[0].value!) // FIXME `.value!`
+    const tokenBValue = new BigNumber(sortedPair[1].value!) // KLAY
+
+    const deadline = computeFiveMinutesDeadline()
+    const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100))
+    const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100))
+
+    await kaikas.cfg.approveAmount(sortedPair[0].address, KIP7_ABI, tokenAValue.toFixed(0))
+    await kaikas.cfg.approveAmount(sortedPair[1].address, KIP7_ABI, tokenBValue.toFixed(0))
+
+    const pairAddress = (await kaikas.cfg.contracts.factory.methods
+      .getPair(sortedPair[0].address, sortedPair[1].address)
+      .call({
+        from: kaikas.cfg.addrs.self,
+      })) as Address
+
+    if (isEmptyAddress(pairAddress)) {
+      const { send } = await kaikas.liquidity.addLiquidityKlayForExistsPair({
         addressA: sortedPair[0].address,
         tokenAValue,
         tokenBValue,
         amountAMin,
-        amountBMin,
-        deadLine,
+        deadline,
       })
-
       return await send()
-    },
-    async calcRemoveLiquidityAmounts(lpTokenValue: string) {
-      const config = useConfigWithConnectedKaikas()
+    }
 
-      const tokensStore = useTokensStore()
-      const { tokenA, tokenB, pairAddress } = tokensStore.selectedTokens
-      if (tokenA === null || tokenB === null || pairAddress === null) throw new Error('No selected tokens')
+    const { send } = await kaikas.liquidity.addLiquidityKlay({
+      addressA: sortedPair[0].address,
+      tokenAValue,
+      tokenBValue,
+      amountAMin,
+      amountBMin,
+      deadline,
+    })
+    return await send()
+  }
 
-      const pairContract = config.createContract<DexPair>(pairAddress, pairAbi.abi as AbiItem[])
+  async function calcRemoveLiquidityAmounts(
+    // FIXME type stricter
+    // seems to be ether value
+    lpTokenValue: ValueEther<string>,
+  ) {
+    const kaikas = kaikasStore.getKaikasAnyway()
+    const selfAddr = kaikas.cfg.addrs.self
 
-      const oneBN = $kaikas.utils.bigNumber('1')
+    const { tokenA, tokenB, pairAddress } = tokensStore.state.selectedTokens
+    invariant(tokenA && tokenB && pairAddress)
 
-      const totalSupply = $kaikas.utils.bigNumber(await pairContract.methods.totalSupply().call())
-      const lpToken = $kaikas.utils.bigNumber($kaikas.utils.toWei(lpTokenValue))
+    const pairContract = kaikas.cfg.createContract<DexPair>(pairAddress, PAIR_ABI)
 
-      const contract0 = config.createContract<KIP7>(tokenA.address, kip7.abi as AbiItem[])
-      const contract1 = config.createContract<KIP7>(tokenB.address, kip7.abi as AbiItem[])
+    const totalSupply = new BigNumber(await pairContract.methods.totalSupply().call())
+    const lpToken = new BigNumber(toWei(lpTokenValue, 'ether'))
 
-      const balance0 = await contract0.methods.balanceOf(pairAddress).call({
-        from: config.address,
-      })
+    const contract0 = kaikas.cfg.createContract<KIP7>(tokenA.address, KIP7_ABI)
+    const contract1 = kaikas.cfg.createContract<KIP7>(tokenB.address, KIP7_ABI)
 
-      const balance1 = await contract1.methods.balanceOf(pairAddress).call({
-        from: config.address,
-      })
+    const balance0 = await contract0.methods.balanceOf(pairAddress).call({
+      from: selfAddr,
+    })
 
-      const amount0 = lpToken.multipliedBy(balance0).dividedBy(totalSupply).minus(oneBN)
-      const amount1 = lpToken.multipliedBy(balance1).dividedBy(totalSupply).minus(oneBN)
+    const balance1 = await contract1.methods.balanceOf(pairAddress).call({
+      from: selfAddr,
+    })
 
-      this.removeLiquidityPair = {
-        ...this.removeLiquidityPair,
-        amount0: amount0.toFixed(0),
-        amount1: amount1.toFixed(0),
-      }
-    },
-    async removeLiquidity({ rootState: { liquidity } }) {
-      const config = useConfigWithConnectedKaikas()
+    const amount0 = lpToken.multipliedBy(balance0).dividedBy(totalSupply).minus(BN_ONE)
+    const amount1 = lpToken.multipliedBy(balance1).dividedBy(totalSupply).minus(BN_ONE)
 
-      const tokensStore = useTokensStore()
-      const { selectedTokens } = tokensStore
-      const { tokenA, tokenB, pairAddress } = selectedTokens
-      if (tokenA === null || tokenB === null || pairAddress === null) throw new Error('No selected tokens')
+    state.removeLiquidityPair = {
+      ...state.removeLiquidityPair,
+      amount0: amount0.toFixed(0),
+      amount1: amount1.toFixed(0),
+    }
+  }
 
-      const { removeLiquidityPair } = liquidity
+  async function removeLiquidity(state: State) {
+    const kaikas = kaikasStore.getKaikasAnyway()
+    const selfAddr = kaikas.cfg.addrs.self
 
-      // amount0 = (liquidity * balance0) / _totalSupply; // using balances ensures pro-rata distribution
-      // amount1 = (liquidity * balance1) / _totalSupply; // using balances ensures pro-rata distribution
-      //
-      // amountAMin = amount0
-      //
-      // amountBMin = amount1
-      //
-      // balance0 = IKIP7(_token0).balanceOf(pairAddress);
-      // balance1 = IKIP7(_token1).balanceOf(pairAddress);
+    const { tokenA, tokenB, pairAddress } = tokensStore.state.selectedTokens
+    const { removeLiquidityPair } = state
+    invariant(tokenA && tokenB && pairAddress)
 
-      const pairContract = config.createContract<DexPair>(pairAddress, pairAbi.abi as AbiItem[])
+    // amount0 = (liquidity * balance0) / _totalSupply; // using balances ensures pro-rata distribution
+    // amount1 = (liquidity * balance1) / _totalSupply; // using balances ensures pro-rata distribution
+    //
+    // amountAMin = amount0
+    //
+    // amountBMin = amount1
+    //
+    // balance0 = IKIP7(_token0).balanceOf(pairAddress);
+    // balance1 = IKIP7(_token1).balanceOf(pairAddress);
 
-      const oneBN = $kaikas.utils.bigNumber('1')
-      const pairBalance = await pairContract.methods.balanceOf(pairAddress).call()
+    const pairContract = kaikas.cfg.createContract<DexPair>(pairAddress, PAIR_ABI)
 
-      const totalSupply = $kaikas.utils.bigNumber(await pairContract.methods.totalSupply().call())
+    // FIXME unused...
+    const pairBalance = await pairContract.methods.balanceOf(pairAddress).call()
+    const totalSupply = new BigNumber(await pairContract.methods.totalSupply().call())
 
-      const lpToken = $kaikas.utils.bigNumber($kaikas.utils.toWei(removeLiquidityPair.lpTokenValue).toString())
+    if (!removeLiquidityPair.lpTokenValue) throw new Error(`No lp token value`)
+    const lpToken = new BigNumber(toWei(removeLiquidityPair.lpTokenValue, 'ether').toString())
 
-      await config.approveAmount(pairAddress, pairAbi.abi as AbiItem[], lpToken.toFixed(0))
+    await kaikas.cfg.approveAmount(pairAddress, PAIR_ABI, lpToken.toFixed(0))
 
-      const contract0 = config.createContract<KIP7>(tokenA.address, kip7.abi as AbiItem[])
-      const contract1 = config.createContract<KIP7>(tokenB.address, kip7.abi as AbiItem[])
+    const amountByTokenAddr = async (addr: Address) => {
+      const contract = kaikas.cfg.createContract<KIP7>(addr, KIP7_ABI)
 
-      const balance0 = await contract0.methods.balanceOf(pairAddress).call({
-        from: config.address,
-      })
+      const balance = (await contract.methods.balanceOf(pairAddress).call({
+        from: selfAddr,
+      })) as Balance
 
-      const balance1 = await contract1.methods.balanceOf(pairAddress).call({
-        from: config.address,
-      })
+      // FIXME what is amount?
+      const amount = lpToken
+        .multipliedBy(balance)
+        .dividedBy(totalSupply)
+        // FIXME there is minus 1 again later... is it a bug?
+        .minus(BN_ONE)
 
-      const amount0 = lpToken.multipliedBy(balance0).dividedBy(totalSupply).minus(oneBN)
-      const amount1 = lpToken.multipliedBy(balance1).dividedBy(totalSupply).minus(oneBN)
+      return amount
+    }
 
-      const deadLine = Math.floor(Date.now() / 1000 + 300)
+    const deadLine = Math.floor(Date.now() / 1000 + 300)
 
-      const params = {
-        addressA: tokenA.address,
-        addressB: tokenB.address,
-        lpToken: lpToken.toFixed(0),
-        amount0: amount0.minus(oneBN).toFixed(0),
-        amount1: amount1.minus(oneBN).toFixed(0),
-        address: config.address,
-        deadLine,
-      }
+    const params = {
+      addressA: tokenA.address,
+      addressB: tokenB.address,
+      lpToken: lpToken.toFixed(0),
+      amount0: (await amountByTokenAddr(tokenA.address))
+        // FIXME minus 1 duplication - bug?
+        .minus(BN_ONE)
+        .toFixed(0),
+      amount1: (await amountByTokenAddr(tokenB.address)).minus(BN_ONE).toFixed(0),
+      address: selfAddr,
+      deadLine,
+    }
 
-      try {
-        const removeLiqGas = await config.routerContract.methods
-          .removeLiquidity(
-            params.addressA,
-            params.addressB,
-            params.lpToken,
-            params.amount0,
-            params.amount1,
-            params.address,
-            params.deadLine,
-          )
-          .estimateGas({
-            from: config.address,
-            gasPrice: 250000000000,
-          })
-
-        await config.routerContract.methods
-          .removeLiquidity(
-            params.addressA,
-            params.addressB,
-            params.lpToken,
-            params.amount0,
-            params.amount1,
-            params.address,
-            params.deadLine,
-          )
-          .send({
-            from: config.address,
-            gasPrice: 250000000000,
-            gas: removeLiqGas,
-          })
-        $notify({
-          status: Status.Success,
-          description: `Remove liquidity success ${tokenA.name} + ${tokenB.name}`,
-        })
-      } catch (e) {
-        console.error(e)
-      }
-    },
-    async removeLiquidityETH() {
-      const config = useConfigWithConnectedKaikas()
-
-      const tokensStore = useTokensStore()
-      const { selectedTokens } = tokensStore
-      const { tokenA, tokenB, pairAddress } = selectedTokens
-      if (tokenA === null || tokenB === null || pairAddress === null) throw new Error('No selected tokens')
-
-      //   address token, not klay
-      //   uint256 liquidity,
-      //   uint256 amountTokenMin, // amountTokenMin = (liquidity * balance1) / _totalSupply;
-      //   uint256 amountETHMin,   // amountTokenMin = (liquidity * wklayBalance) / _totalSupply;
-      //   address to,
-      //   uint256 deadline
-
-      const pairContract = config.createContract<DexPair>(pairAddress, pairAbi.abi as AbiItem[])
-
-      const oneBN = $kaikas.utils.bigNumber('1')
-
-      const pairBalance = await pairContract.methods.balanceOf(pairAddress).call()
-
-      const totalSupply = $kaikas.utils.bigNumber(await pairContract.methods.totalSupply().call())
-
-      const lpToken = $kaikas.utils.bigNumber($kaikas.utils.toWei('10'))
-
-      await config.approveAmount(pairAddress, pairAbi.abi as AbiItem[], lpToken.toFixed(0))
-
-      const contract0 = config.createContract<KIP7>(tokenA.address, kip7.abi as AbiItem[])
-      const contract1 = config.createContract<KIP7>(tokenB.address, kip7.abi as AbiItem[])
-
-      const balance0 = $kaikas.utils.bigNumber(
-        await contract0.methods.balanceOf(pairAddress).call({
-          from: config.address,
-        }),
+    const removeLiquidity = () =>
+      kaikas.cfg.contracts.router.methods.removeLiquidity(
+        params.addressA,
+        params.addressB,
+        params.lpToken,
+        params.amount0,
+        params.amount1,
+        params.address,
+        params.deadLine,
       )
 
-      const balance1 = $kaikas.utils.bigNumber(
-        await contract1.methods.balanceOf(pairAddress).call({
-          from: config.address,
+    const removeLiqGas = await removeLiquidity().estimateGas({
+      from: selfAddr,
+      gasPrice: MAGIC_GAS_PRICE,
+    })
+    await removeLiquidity().send({
+      from: selfAddr,
+      gasPrice: MAGIC_GAS_PRICE,
+      gas: removeLiqGas,
+    })
+
+    $notify({
+      status: Status.Success,
+      description: `Remove liquidity success ${tokenA.name} + ${tokenB.name}`,
+    })
+  }
+
+  async function removeLiquidityETH() {
+    const kaikas = kaikasStore.getKaikasAnyway()
+    const selfAddr = kaikas.cfg.addrs.self
+
+    const { tokenA, tokenB, pairAddress } = tokensStore.state.selectedTokens
+    invariant(tokenA && tokenB && pairAddress)
+
+    //   address token, not klay
+    //   uint256 liquidity,
+    //   uint256 amountTokenMin, // amountTokenMin = (liquidity * balance1) / _totalSupply;
+    //   uint256 amountETHMin,   // amountTokenMin = (liquidity * wklayBalance) / _totalSupply;
+    //   address to,
+    //   uint256 deadline
+
+    const pairContract = kaikas.cfg.createContract<DexPair>(pairAddress, PAIR_ABI)
+
+    // const oneBN = new BigNumber('1')
+
+    const pairBalance = (await pairContract.methods.balanceOf(pairAddress).call()) as Balance
+    const totalSupply = new BigNumber(await pairContract.methods.totalSupply().call())
+    const lpToken = new BigNumber(toWei('10', 'ether')) as ValueWei<BigNumber>
+
+    await kaikas.cfg.approveAmount(pairAddress, PAIR_ABI, lpToken.toFixed(0))
+
+    const computeTokenAmount = async (addr: Address) => {
+      const contract = kaikas.cfg.createContract<KIP7>(addr, KIP7_ABI)
+      const balance = new BigNumber(
+        await contract.methods.balanceOf(pairAddress).call({
+          from: selfAddr,
         }),
       )
+      const amount = lpToken.multipliedBy(balance).dividedBy(totalSupply).minus(BN_ONE)
+      return amount
+    }
 
-      const amount0 = lpToken.multipliedBy(balance0).dividedBy(totalSupply).minus(oneBN)
-      const amount1 = lpToken.multipliedBy(balance1).dividedBy(totalSupply).minus(oneBN)
+    // FIXME magic numbers. 5 minutes?
+    const deadLine = Math.floor(Date.now() / 1000 + 300)
 
-      const deadLine = Math.floor(Date.now() / 1000 + 300)
+    const params = {
+      addressA: tokenA.address,
+      addressB: tokenB.address,
+      lpToken: lpToken.toFixed(0),
+      amount0: (await computeTokenAmount(tokenA.address)).minus(BN_ONE).toFixed(0),
+      amount1: (await computeTokenAmount(tokenB.address)).minus(BN_ONE).toFixed(0),
+      address: selfAddr,
+      deadLine,
+    }
 
-      const params = {
-        addressA: tokenA.address,
-        addressB: tokenB.address,
-        lpToken: lpToken.toFixed(0),
-        amount0: amount0.minus(oneBN).toFixed(0),
-        amount1: amount1.minus(oneBN).toFixed(0),
-        address: config.address,
-        deadLine,
-      }
+    // - address tokenA,
+    // - address tokenB,
+    // - uint256 liquidity,
+    // - uint256 amountAMin,
+    // - uint256 amountBMin,
+    // - address to,
+    // - uint256 deadline
 
-      try {
-        // - address tokenA,
-        // - address tokenB,
-        // - uint256 liquidity,
-        // - uint256 amountAMin,
-        // - uint256 amountBMin,
-        // - address to,
-        // - uint256 deadline
+    const removeLiquidityMethod = () =>
+      kaikas.cfg.contracts.router.methods.removeLiquidity(
+        params.addressA,
+        params.addressB,
+        params.lpToken,
+        params.amount0,
+        params.amount1,
+        params.address,
+        params.deadLine,
+      )
 
-        const removeLiqGas = await config.routerContract.methods
-          .removeLiquidity(
-            params.addressA,
-            params.addressB,
-            params.lpToken,
-            params.amount0,
-            params.amount1,
-            params.address,
-            params.deadLine,
-          )
-          .estimateGas({
-            from: config.address,
-            gasPrice: 250000000000,
-          })
+    const removeLiqGas = await removeLiquidityMethod().estimateGas({
+      from: selfAddr,
+      gasPrice: MAGIC_GAS_PRICE,
+    })
 
-        await config.routerContract.methods
-          .removeLiquidity(
-            params.addressA,
-            params.addressB,
-            params.lpToken,
-            params.amount0,
-            params.amount1,
-            params.address,
-            params.deadLine,
-          )
-          .send({
-            from: config.address,
-            gasPrice: 250000000000,
-            gas: removeLiqGas,
-          })
-      } catch (e) {
-        console.error(e)
-      }
-    },
-    setRmLiqValue(lpTokenValue: string) {
-      this.removeLiquidityPair = {
-        ...this.removeLiquidityPair,
-        lpTokenValue,
-      }
-    },
-  },
+    await removeLiquidityMethod().send({
+      from: selfAddr,
+      gasPrice: MAGIC_GAS_PRICE,
+      gas: removeLiqGas,
+    })
+  }
+
+  function setRmLiqValue(lpTokenValue: ValueEther<string>) {
+    state.removeLiquidityPair = {
+      ...state.removeLiquidityPair,
+      lpTokenValue,
+    }
+  }
+
+  return {
+    state,
+    quoteForToken,
+    addLiquidityAmount,
+    addLiquidityETH,
+    calcRemoveLiquidityAmounts,
+    removeLiquidity,
+    removeLiquidityETH,
+    setRmLiqValue,
+  }
 })
 
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useLiquidityStore, import.meta.hot))

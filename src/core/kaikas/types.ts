@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
 import { Opaque } from 'type-fest'
 
@@ -14,8 +15,9 @@ export interface Token {
 
   /**
    * FIXME describe. What is the difference between `value` and `balance`?
+   * Is it ether value?
    */
-  value?: never // string
+  value?: string
 
   /**
    * FIXME describe
@@ -49,11 +51,9 @@ export type Address = Opaque<string, 'Address'>
  */
 export type Balance = Opaque<string, 'Balance'>
 
-export type ValueBigNumOrString<T extends BN | string = BN | string> = T
+export type ValueEther<T extends BN | string = BN | string> = Opaque<T, 'ether'>
 
-export type ValueEther<T extends ValueBigNumOrString = ValueBigNumOrString> = Opaque<T, 'ether'>
-
-export type ValueWei<T extends ValueBigNumOrString = ValueBigNumOrString> = Opaque<T, 'wei'>
+export type ValueWei<T extends BN | string | BigNumber = BN | string | BigNumber> = Opaque<T, 'wei'>
 
 /**
  * FIXME describe all internals
