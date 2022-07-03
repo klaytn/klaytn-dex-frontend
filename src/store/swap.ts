@@ -1,12 +1,9 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { Status } from '@soramitsu-ui/ui'
-import type { AbiItem } from 'caver-js'
-import { abi as KIP7_ABI_RAW } from '@/core/kaikas/smartcontracts/kip-7.json'
+import { KIP7 as KIP7_ABI } from '@/core/kaikas/smartcontracts/abi'
 import invariant from 'tiny-invariant'
 import { useTask, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
 import { isNativeToken } from '@/core/kaikas'
-
-const KIP7_ABI = KIP7_ABI_RAW as AbiItem[]
 
 interface State {
   /**

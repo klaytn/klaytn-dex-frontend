@@ -5,6 +5,7 @@ import type { WETH9 } from '@/types/typechain/tokens/WKLAY.sol'
 import Caver, { type AbiItem, type Contract } from 'caver-js'
 import { type Klaytn, type Address } from './types'
 import { MAGIC_ROUTER_ADDR, MAGIC_FACTORY_ADDR, MAGIC_WETH_ADDR, MAGIC_GAS_PRICE } from './const'
+import { ROUTER, FACTORY, WETH } from './smartcontracts/abi'
 
 export default class Config {
   public static async connectKaikas(params?: ConnectParams): Promise<ConnectResult> {
@@ -28,16 +29,14 @@ export default class Config {
       weth: params?.addrs?.weth ?? MAGIC_WETH_ADDR,
     }
 
-    const { routerABI, factoryABI, wethABI } = await import('./config-connect-abi')
-
     return {
       status: 'connected',
       cfg: new Config({
         caver,
         contracts: {
-          router: new caver.klay.Contract(routerABI.abi as AbiItem[], cfgAddrs.router) as unknown as DexRouter,
-          factory: new caver.klay.Contract(factoryABI.abi as AbiItem[], cfgAddrs.factory) as unknown as DexFactory,
-          weth: new caver.klay.Contract(wethABI.abi as AbiItem[], cfgAddrs.weth) as unknown as WETH9,
+          router: new caver.klay.Contract(ROUTER, cfgAddrs.router) as unknown as DexRouter,
+          factory: new caver.klay.Contract(FACTORY, cfgAddrs.factory) as unknown as DexFactory,
+          weth: new caver.klay.Contract(WETH, cfgAddrs.weth) as unknown as WETH9,
         },
         addrs: cfgAddrs,
       }),

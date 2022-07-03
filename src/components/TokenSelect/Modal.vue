@@ -1,77 +1,104 @@
-<script lang="ts">
-import { mapActions, mapState } from 'pinia'
+<script lang="ts" setup>
 import { Status } from '@soramitsu-ui/ui'
-import kip7 from '@/utils/smartcontracts/kip-7.json'
+import { type Balance, isAddress, Token, Address } from '@/core/kaikas'
+import { useTask, useScope } from '@vue-kakuyaku/core'
+import { type KIP7 } from '@/types/typechain/tokens'
+import { KIP7 as KIP7_ABI } from '@/core/kaikas/smartcontracts/abi'
+import BigNumber from 'bignumber.js'
+import { fromWei } from 'web3-utils'
 
-export default {
-  name: 'TokenSelectModal',
-  emits: ['close', 'select'],
-  data() {
-    return {
-      searchValue: '',
-      importToken: null,
+const emit = defineEmits<(...args: [event: 'close'] | [event: 'select', value: Token]) => void>()
+
+const tokensStore = useTokensStore()
+const tokensList = $computed(() => tokensStore.state.tokensList)
+
+const kaikasStore = useKaikasStore()
+
+let search = $ref('')
+
+/**
+ * it is ref, thus it is possible to reset it immediately,
+ * not after debounce delay
+ */
+let searchAsAddress = $ref<null | Address>(null)
+debouncedWatch(
+  $$(search),
+  (value) => {
+    searchAsAddress = isAddress(value) ? value : null
+  },
+  { debounce: 500 },
+)
+
+const importTokenScope = useScope($$(searchAsAddress), (addr) => {
+  const createImportTokenTask = useTask<Token | null>(async () => {
+    const kaikas = kaikasStore.getKaikasAnyway()
+
+    const code = await kaikas.cfg.caver.klay.getCode(addr)
+    const doesExist = tokensList.find(({ address }) => address === addr)
+
+    if (code === '0x' || doesExist) {
+      return null
     }
-  },
-  computed: {
-    ...mapState(useTokensStore, ['tokensList']),
-    renderTokens() {
-      return this.tokensList.filter(
-        (token) => token.symbol.search(this.searchValue.toUpperCase()) !== -1 || token.address === this.searchValue,
-      )
-    },
-  },
-  watch: {
-    async searchValue(_new) {
-      const code = $kaikas.utils.isAddress(_new) && (await $kaikas.config.caver.klay.getCode(_new))
 
-      const isExists = this.tokensList.find(({ address }) => address === _new)
+    const contract = kaikas.cfg.createContract<KIP7>(addr, KIP7_ABI)
+    const symbol = await contract.methods.symbol().call()
+    const name = await contract.methods.name().call()
 
-      if (!$kaikas.isAddress(_new) || code === '0x' || isExists) {
-        this.importToken = null
-        return
-      }
-      try {
-        const contract = $kaikas.config.createContract(_new, kip7.abi)
-        const symbol = await contract.methods.symbol().call()
-        const name = await contract.methods.name().call()
+    // FIXME why the balance here is the balance of the user?
+    // compare with `Kaikas.createToken()` - it uses the token address
+    const balance = (await contract.methods.balanceOf(kaikas.selfAddress).call()) as Balance
 
-        const balance = await contract.methods.balanceOf($kaikas.config.address).call()
-        this.importToken = {
-          id: _new,
-          name,
-          symbol,
-          logo: '-',
-          balance,
-          slug: '-',
-          address: _new,
-        }
-      } catch (e) {
-        console.log(e)
-      }
-    },
-  },
-  methods: {
-    ...mapActions(useTokensStore, {
-      updateTokens: 'setTokens',
-    }),
-    getRenderBalance(balance) {
-      const value = $kaikas.bigNumber($kaikas.fromWei(balance))
-      return value.toFixed(4)
-    },
-    onSelect(t) {
-      if (Number(t.balance) <= 0) return
+    return {
+      address: addr,
+      name,
+      symbol,
+      balance,
+      // logo: '-',
+      // slug: '-',
+    }
+  })
 
-      this.$emit('select', t)
-    },
-    onAddToken() {
-      if (this.importToken) {
-        this.updateTokens([this.importToken, ...this.tokensList])
-        this.searchValue = ''
-        this.importToken = null
-        $notify({ status: Status.Success, description: 'Token added' })
-      }
-    },
-  },
+  createImportTokenTask.run()
+
+  return createImportTokenTask
+})
+
+const importToken = $computed<Token | null>(() => {
+  const state = importTokenScope.value?.setup.state
+  return state?.kind === 'ok' ? state.data : null
+})
+
+const renderTokens = $computed<Token[]>(() => {
+  const value = search
+  const valueUpper = value.toUpperCase()
+
+  return tokensStore.state.tokensList.filter((token) => token.symbol.includes(valueUpper) || token.address === value)
+})
+
+/**
+ * FIXME why slice? why 6 elems?
+ */
+const renderTokensSlice = $computed(() => renderTokens.slice(0, 6))
+
+function getRenderBalance(balance: Balance): string {
+  const value = new BigNumber(fromWei(balance))
+  return value.toFixed(4)
+}
+
+function onSelect(token: Token) {
+  if (Number(token.balance) <= 0) return
+  emit('select', token)
+}
+
+function onAddToken() {
+  if (importToken) {
+    tokensStore.state.tokensList.unshift(importToken)
+
+    search = ''
+    searchAsAddress = null
+
+    $notify({ status: Status.Success, description: 'Token added' })
+  }
 }
 </script>
 
@@ -80,14 +107,14 @@ export default {
     padding="20px 0"
     width="344"
     label="Select a token"
-    @close="$emit('close')"
+    @close="emit('close')"
   >
     <div class="row">
       <div class="token-select-modal">
         <div class="token-select-modal--input">
-          <p>Search name or paste adress</p>
+          <p>Search name or paste address</p>
           <input
-            v-model="searchValue"
+            v-model="search"
             type="text"
             placeholder="KLAY"
           >
@@ -97,7 +124,7 @@ export default {
 
     <div class="token-select-modal--recent row">
       <div
-        v-for="t in renderTokens.slice(0, 6)"
+        v-for="t in renderTokensSlice"
         :key="t.address"
         class="token-select-modal--tag"
         @click="onSelect(t)"

@@ -18,6 +18,8 @@ module.exports = {
 
     // make possible `/// <reference...`
     'spaced-comment': ['error', 'always', { markers: ['/'] }],
+
+    'no-unused-vars': 'warn',
   },
   overrides: [
     {

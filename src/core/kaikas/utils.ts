@@ -1,6 +1,4 @@
 import web3 from 'web3'
-import { type Unit } from 'web3-utils'
-import BN from 'bn.js'
 import BigNumber from 'bignumber.js'
 import { type Address, type Token } from './types'
 
@@ -19,10 +17,6 @@ export function isNativeToken(address: Address): boolean {
   return address === NATIVE_TOKEN
 }
 
-// export function toWei(token: BN, amount: Unit = 'ether'): BN {
-//   return web3.utils.toWei(token, amount)
-// }
-
 export function isAddress(raw: string): raw is Address {
   return web3.utils.isAddress(raw)
 }
@@ -31,10 +25,6 @@ export function parseAddress(raw: string): Address {
   if (isAddress(raw)) return raw
   throw new Error(`not a valid address: "${raw}"`)
 }
-
-// export function fromWei(amount: string | BN): string {
-//   return web3.utils.fromWei(amount)
-// }
 
 /**
  * FIXME what a weird conversion?

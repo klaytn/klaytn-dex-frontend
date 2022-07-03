@@ -1,14 +1,8 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { AbiItem } from 'caver-js'
-import { Address, Balance, isEmptyAddress, Kaikas, Token } from '@/core/kaikas'
+import { Address, Balance, isEmptyAddress, Token } from '@/core/kaikas'
 import type { DexPair } from '@/types/typechain/swap'
-import type { KIP7 } from '@/types/typechain/tokens'
-import { abi as KIP7_ABI_RAW } from '@/core/kaikas/smartcontracts/kip-7.json'
-import { abi as PAIR_ABI_RAW } from '@/core/kaikas/smartcontracts/pair.json'
+import { PAIR as PAIR_ABI } from '@/core/kaikas/smartcontracts/abi'
 import invariant from 'tiny-invariant'
-
-const KIP7_ABI = KIP7_ABI_RAW as AbiItem[]
-const PAIR_ABI = PAIR_ABI_RAW as AbiItem[]
 
 /**
  * What does it mean?
@@ -68,19 +62,6 @@ const selectedTokensFactory = (): SelectedTokens => ({
   tokenB: null,
 })
 
-async function createToken(kaikas: Kaikas, addr: Address): Promise<Token> {
-  const contract = kaikas.cfg.createContract<KIP7>(addr, KIP7_ABI)
-  return {
-    // id: addr,
-    address: addr,
-
-    // FIXME Promise.all
-    name: await contract.methods.name().call(),
-    symbol: await contract.methods.symbol().call(),
-    balance: (await contract.methods.balanceOf(addr).call()) as Balance,
-  }
-}
-
 /**
  * What is this store for?
  */
@@ -117,7 +98,7 @@ export const useTokensStore = defineStore('tokens', () => {
       from: addr,
     })) as Address
 
-    const [token0, token1] = await Promise.all([createToken(kaikas, token0Address), createToken(kaikas, token1Address)])
+    const [token0, token1] = await Promise.all([kaikas.createToken(token0Address), kaikas.createToken(token1Address)])
 
     const { pairBalance, userBalance } = await kaikas.tokens.getPairBalance(token0Address, token1Address)
 
@@ -153,7 +134,7 @@ export const useTokensStore = defineStore('tokens', () => {
     const balance = (await caver.klay.getBalance(selfAddr)) as Balance
     const klay = createKlayToken(balance)
 
-    const mockedTokens = await Promise.all(MOCKED_TOKENS.map((addr) => createToken(kaikas, addr)))
+    const mockedTokens = await Promise.all(MOCKED_TOKENS.map((addr) => kaikas.createToken(addr)))
 
     state.tokensList = [klay, ...mockedTokens]
   }
@@ -226,6 +207,7 @@ export const useTokensStore = defineStore('tokens', () => {
 
     selectedTokens: computed(() => state.selectedTokens),
     computedToken: computed(() => state.computedToken),
+    tokensList: computed(() => state.tokensList),
   }
 })
 

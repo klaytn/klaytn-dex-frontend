@@ -1,20 +1,15 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 import { Status } from '@soramitsu-ui/ui'
-import type { AbiItem } from 'caver-js'
 import { Address, Balance, isEmptyAddress, sortKlayPair, ValueEther, ValueWei, type Token } from '@/core/kaikas'
 import type { DexPair } from '@/types/typechain/swap'
 import type { KIP7 } from '@/types/typechain/tokens'
 import BigNumber from 'bignumber.js'
-import { abi as KIP7_ABI_RAW } from '@/core/kaikas/smartcontracts/kip-7.json'
-import { abi as PAIR_ABI_RAW } from '@/core/kaikas/smartcontracts/pair.json'
+import { KIP7 as KIP7_ABI, PAIR as PAIR_ABI } from '@/core/kaikas/smartcontracts/abi'
 import { AddLiquidityAmountParamsBase, deadlineFromMs, Deadline } from '@/core/kaikas/Liquidity'
 import { toWei } from 'web3-utils'
 import { MAGIC_GAS_PRICE } from '@/core/kaikas/const'
 import invariant from 'tiny-invariant'
-
-const KIP7_ABI = KIP7_ABI_RAW as AbiItem[]
-const PAIR_ABI = PAIR_ABI_RAW as AbiItem[]
 
 const BN_ONE = new BigNumber('1')
 

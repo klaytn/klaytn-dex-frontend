@@ -51,6 +51,8 @@ export type Address = Opaque<string, 'Address'>
  *
  * **upd**: from the context of `src/components/TokenInput/index.vue`, it seems to be a
  * Wei value, because it is passed into `fromWei` function
+ *
+ * **upd**: also see `src/components/TokenSelect/Modal.vue`
  */
 export type Balance = Opaque<string, 'Balance'>
 
