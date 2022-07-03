@@ -20,11 +20,15 @@ export default class Swap {
     return this.cfg.addrs.self
   }
 
-  public async getAmountOut(addressA: Address, addressB: Address, value: string) {
+  /**
+   * FIXME amount is what? `value` is what?
+   * FIXME returns `string[]` - is it a fixed two-elem tuple?
+   */
+  public async getAmountOut(addressA: Address, addressB: Address, value: string): Promise<string[]> {
     return await this.cfg.contracts.router.methods.getAmountsOut(value, [addressA, addressB]).call()
   }
 
-  public async getAmountIn(addressA: Address, addressB: Address, value: string) {
+  public async getAmountIn(addressA: Address, addressB: Address, value: string): Promise<string[]> {
     return await this.cfg.contracts.router.methods.getAmountsIn(value, [addressA, addressB]).call()
   }
 

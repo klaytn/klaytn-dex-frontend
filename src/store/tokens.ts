@@ -1,12 +1,11 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-
 import type { AbiItem } from 'caver-js'
 import { Address, Balance, isEmptyAddress, Kaikas, Token } from '@/core/kaikas'
 import type { DexPair } from '@/types/typechain/swap'
 import type { KIP7 } from '@/types/typechain/tokens'
-
 import { abi as KIP7_ABI_RAW } from '@/core/kaikas/smartcontracts/kip-7.json'
 import { abi as PAIR_ABI_RAW } from '@/core/kaikas/smartcontracts/pair.json'
+import invariant from 'tiny-invariant'
 
 const KIP7_ABI = KIP7_ABI_RAW as AbiItem[]
 const PAIR_ABI = PAIR_ABI_RAW as AbiItem[]
@@ -193,6 +192,24 @@ export const useTokensStore = defineStore('tokens', () => {
     }
   }
 
+  /**
+   * Fails if there are no selected tokens
+   */
+  function getSelectedTokensAnyway(): { tokenA: Token; tokenB: Token } {
+    const { tokenA, tokenB } = state.selectedTokens
+    invariant(tokenA && tokenB, 'No selected tokens')
+    return { tokenA, tokenB }
+  }
+
+  /**
+   * Fails if there are no selected tokens or pair address
+   */
+  function getSelectedTokensAndPairAnyway(): ReturnType<typeof getSelectedTokensAnyway> & { pairAddress: Address } {
+    const { pairAddress } = state.selectedTokens
+    invariant(pairAddress, 'No selected pair address')
+    return { pairAddress, ...getSelectedTokensAnyway() }
+  }
+
   return {
     state,
     getTokens,
@@ -203,6 +220,9 @@ export const useTokensStore = defineStore('tokens', () => {
     setCurrencyRate,
     setSelectedTokensByPair,
     checkEmptyPair,
+
+    getSelectedTokensAnyway,
+    getSelectedTokensAndPairAnyway,
   }
 })
 

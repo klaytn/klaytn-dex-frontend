@@ -13,7 +13,7 @@ specifiers:
   '@typescript-eslint/eslint-plugin': ^5.30.0
   '@typescript-eslint/parser': ^5.30.0
   '@vitejs/plugin-vue': ^2.3.3
-  '@vue-kakuyaku/core': ^0.1.0
+  '@vue-kakuyaku/core': ^0.1.1
   '@vue/apollo-option': ^4.0.0-alpha.18
   '@vue/test-utils': ^2.0.0
   '@vueuse/core': ^8.6.0
@@ -70,7 +70,7 @@ dependencies:
   '@soramitsu-ui/icons': 0.1.0
   '@soramitsu-ui/theme': 0.3.0
   '@soramitsu-ui/ui': 0.5.0
-  '@vue-kakuyaku/core': 0.1.0
+  '@vue-kakuyaku/core': 0.1.1
   '@vue/apollo-option': 4.0.0-alpha.18_dfamusr62newrbayvnuofk7pzi
   '@vueuse/core': 8.6.0_vue@3.2.37
   '@vueuse/head': 0.7.6_vue@3.2.37
@@ -2611,8 +2611,8 @@ packages:
       '@vue/reactivity': 3.2.37
     dev: true
 
-  /@vue-kakuyaku/core/0.1.0:
-    resolution: {integrity: sha512-ZNoxRQeskIKf/7T4qXd+bVEUQQGU72jov1rBFpBVfUjhHlRHmjERwIO0UNz7VrH4qTbS5XWqEzRKE0InwDY+Aw==}
+  /@vue-kakuyaku/core/0.1.1:
+    resolution: {integrity: sha512-cXgnNOrDWgeL3//n0r6FoEb5VhCY22V/vuVHdZtw1rjYmsQ3MKP6xTUNUSmgnCa/8vhV00cJsgZ3jTJXGqcjhg==}
     dependencies:
       '@vueuse/core': 8.7.5_vue@3.2.37
       vue: 3.2.37
