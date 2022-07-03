@@ -1,62 +1,73 @@
-<script lang="ts">
-import { mapActions, mapState } from 'pinia'
+<script lang="ts" setup>
 import { roundTo } from 'round-to'
-import web3 from 'web3'
-import { copyToClipboard } from '@/utils/common'
+import { fromWei } from 'web3-utils'
+import invariant from 'tiny-invariant'
+import { formatAddress, Token } from '@/core/kaikas'
+import BigNumber from 'bignumber.js'
 
-export default {
-  name: 'TokenInput',
-  props: {
-    tokenType: {
-      type: String,
-      required: true,
-    },
-    isLoading: {
-      type: Boolean,
-    },
-    isDisabled: {
-      type: Boolean,
-    },
+const props = withDefaults(
+  defineProps<{
+    tokenType: 'tokenA' | 'tokenB'
+    isLoading?: boolean
+    isDisabled?: boolean
+  }>(),
+  {
+    isLoading: false,
+    isDisabled: false,
   },
-  emits: ['input'],
-  computed: {
-    ...mapState(useTokensStore, ['selectedTokens']),
-    selected() {
-      return this.selectedTokens[this.tokenType]
-    },
-    renderBalance() {
-      return roundTo(Number(web3.utils.fromWei(this.selected.balance)), 5)
-    },
-    price() {
-      return '-'
-      // return this.selected?.price?.price
-      //   ? `$${roundTo(this.selected?.price?.price, 5)}`
-      //   : "Price loading";
-    },
-    value() {
-      if (!this.selected?.value) return null
+)
 
-      const bn = $kaikas.bigNumber($kaikas.fromWei(this.selected.value))
+const emit = defineEmits<(event: 'input', value: string) => void>()
 
-      return Number(bn.toFixed(4))
-    },
-    formattedAddress() {
-      return $kaikas.getFormattedAddress(this.selected.address)
-    },
-  },
-  methods: {
-    ...mapActions(useTokensStore, ['checkEmptyPair', 'setSelectedToken']),
-    ...mapActions(useSwapStore, ['setComputedToken']),
-    copyToClipboard,
-    async setToken(token) {
-      this.setSelectedToken({ token, type: this.tokenType })
-      await this.checkEmptyPair()
-    },
-    input(v) {
-      this.$emit('input', v)
-    },
-  },
+const tokensStore = useTokensStore()
+
+const selectedTokens = $computed(() => tokensStore.selectedTokens)
+
+const selected = $computed(() => {
+  const item = selectedTokens[props.tokenType]
+  invariant(item)
+  return item
+})
+
+const renderBalance = $computed(() => {
+  return roundTo(Number(fromWei(selected.balance)), 5)
+})
+
+/**
+ * FIXME what the hell is this value?
+ */
+const value = $computed(() => {
+  if (!selected.value) return null
+
+  const bn = new BigNumber(fromWei(selected.value))
+  return Number(bn.toFixed(4))
+})
+
+const price = $computed(() => {
+  return '-'
+  // return this.selected?.price?.price
+  //   ? `$${roundTo(this.selected?.price?.price, 5)}`
+  //   : "Price loading";
+})
+
+const formattedAddress = $computed(() => {
+  return formatAddress(selected.address)
+})
+
+async function setToken(token: Token) {
+  tokensStore.setSelectedToken({ token, type: props.tokenType })
+  await tokensStore.checkEmptyPair()
 }
+
+function input(value: string) {
+  emit('input', value)
+}
+
+function inputFromHtmlInput(e: Event) {
+  input((e.target as HTMLInputElement).value)
+}
+
+const clipboard = useClipboard()
 </script>
 
 <template>
@@ -71,7 +82,7 @@ export default {
         :value="!isDisabled ? value : null"
         placeholder="0"
         type="number"
-        @input="input($event.target.value)"
+        @input="inputFromHtmlInput"
       >
 
       <button
@@ -109,17 +120,21 @@ export default {
           <p>{{ selected.name }} {{ `(${selected.symbol})` }}</p>
           <span class="price">{{ price }}</span>
           <span class="percent">0.26%</span>
-          <a
+
+          <!-- FIXME `slug` field is always unset -->
+          <!-- Should it be removed at all? -->
+          <!-- <a
             :href="`https://coinmarketcap.com/currencies/${selected.slug}/`"
             class="link"
             target="_blank"
           >
             <span class="link-name">Coinmarketcap</span>
             <KlayIcon name="link" />
-          </a>
+          </a> -->
+
           <div
             class="address"
-            @click="copyToClipboard(selected.address)"
+            @click="clipboard.copy(selected.address)"
           >
             <span class="address-name">{{ formattedAddress }}</span>
             <KlayIcon name="copy" />

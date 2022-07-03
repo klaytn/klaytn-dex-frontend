@@ -50,7 +50,7 @@ export const useLiquidityStore = defineStore('liquidity', () => {
     },
   })
 
-  async function quoteForToken(value: ValueWei, whichToken: 'tokenA' | 'tokenB') {
+  async function quoteForToken(value: ValueWei<string>, whichToken: 'tokenA' | 'tokenB') {
     const kaikas = kaikasStore.getKaikasAnyway()
 
     try {

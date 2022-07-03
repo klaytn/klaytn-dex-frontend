@@ -27,7 +27,7 @@ export default class Tokens {
   public async getTokenQuote(
     addrA: Address,
     addrB: Address,
-    value: ValueWei,
+    value: ValueWei<string>,
     which: 'tokenA' | 'tokenB',
   ): Promise<ValueWei> {
     const pairContract = await this.createPairContract(addrA, addrB)
@@ -51,7 +51,7 @@ export default class Tokens {
   public async getKlayQuote(
     addrA: Address,
     addrB: Address,
-    value: ValueWei,
+    value: ValueWei<string>,
     sort: 'reversed' | 'not-reversed',
   ): Promise<ValueWei> {
     const pairContract = await this.createPairContract(addrA, addrB)

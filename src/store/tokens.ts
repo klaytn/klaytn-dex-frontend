@@ -223,6 +223,9 @@ export const useTokensStore = defineStore('tokens', () => {
 
     getSelectedTokensAnyway,
     getSelectedTokensAndPairAnyway,
+
+    selectedTokens: computed(() => state.selectedTokens),
+    computedToken: computed(() => state.computedToken),
   }
 })
 

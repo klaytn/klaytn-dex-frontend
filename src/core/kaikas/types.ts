@@ -48,6 +48,9 @@ export type Address = Opaque<string, 'Address'>
 
 /**
  * `BigNumber` (from `bignumber.js` package) as a string
+ *
+ * **upd**: from the context of `src/components/TokenInput/index.vue`, it seems to be a
+ * Wei value, because it is passed into `fromWei` function
  */
 export type Balance = Opaque<string, 'Balance'>
 

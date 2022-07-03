@@ -1,66 +1,54 @@
-<script lang="ts">
-import { mapActions, mapState } from 'pinia'
+<script lang="ts" setup>
+import { isNativeToken } from '@/core/kaikas'
+import { useTask } from '@vue-kakuyaku/core'
+import invariant from 'tiny-invariant'
 
-export default {
-  name: 'SwapModule',
-  data() {
-    return {
-      isSwapLoading: false,
-    }
-  },
-  computed: {
-    ...mapState(useSwapStore, ['pairNotExist', 'exchangeRateIntervalID', 'exchangeRateLoading']),
-    ...mapState(useTokensStore, ['selectedTokens', 'tokensList', 'computedToken']),
-    isLoading() {
-      return !this.tokensList?.length
-    },
-    isValidTokens() {
-      return (
-        !this.isSwapLoading &&
-        !this.selectedTokens.emptyPair &&
-        Number(this.selectedTokens.tokenA?.balance) >= 0 &&
-        Number(this.selectedTokens.tokenB?.balance) >= 0
-      )
-    },
-  },
-  beforeUnmount() {
-    this.refreshStore()
-    this.clearSelectedTokens()
-  },
-  methods: {
-    ...mapActions(useSwapStore, [
-      'swapExactTokensForTokens',
-      'swapTokensForExactTokens',
-      'swapForKlayTokens',
-      'refreshStore',
-      'setExchangeRateIntervalID',
-    ]),
-    ...mapActions(useTokensStore, ['clearSelectedTokens']),
-    async swapTokens() {
-      try {
-        this.isSwapLoading = true
-        const isWKLAY =
-          $kaikas.utils.isNativeToken(this.selectedTokens.tokenA.address) ||
-          $kaikas.utils.isNativeToken(this.selectedTokens.tokenB.address)
+const swapStore = useSwapStore()
+const tokensStore = useTokensStore()
 
-        if (isWKLAY) await this.swapForKlayTokens()
+const selectedTokens = $computed(() => tokensStore.state.selectedTokens)
+const computedToken = $computed(() => tokensStore.state.computedToken)
 
-        if (this.computedToken === 'tokenB' && !isWKLAY) await this.swapExactTokensForTokens()
+const pairNotExist = $computed(() => swapStore.state.pairNotExist)
+const exchangeRateLoading = $computed(() => swapStore.state.exchangeRateLoading)
 
-        if (this.computedToken === 'tokenA' && !isWKLAY) await this.swapTokensForExactTokens()
+const isLoading = $computed(() => !tokensStore.state.tokensList.length)
 
-        if (this.exchangeRateIntervalID) {
-          clearInterval(this.exchangeRateIntervalID)
-          this.setExchangeRateIntervalID(null)
-        }
-      } catch (e) {}
-      this.isSwapLoading = false
-    },
-    onRefresh() {
-      this.refreshStore()
-    },
-  },
+onBeforeUnmount(() => {
+  swapStore.$reset()
+  tokensStore.clearSelectedTokens()
+})
+
+function onRefreshClick() {
+  swapStore.$reset()
 }
+
+const swapTokensTask = useTask(async () => {
+  invariant(selectedTokens.tokenA && selectedTokens.tokenB)
+
+  const isWKLAY = isNativeToken(selectedTokens.tokenA.address) || isNativeToken(selectedTokens.tokenB.address)
+
+  if (isWKLAY) await swapStore.swapForKlayTokensTask.run()
+  else {
+    if (computedToken === 'tokenB') await swapStore.swapExactTokensForTokensTask.run()
+    if (computedToken === 'tokenA') await swapStore.swapTokensForExactTokensTask.run()
+  }
+
+  // FIXME unsafe way to set an interval
+  // if (this.exchangeRateIntervalID) {
+  //   clearInterval(this.exchangeRateIntervalID)
+  //   this.setExchangeRateIntervalID(null)
+  // }
+})
+const isSwapLoading = $computed(() => swapTokensTask.state.kind === 'pending')
+
+const isValidTokens = $computed(
+  () =>
+    !isSwapLoading &&
+    !tokensStore.state.selectedTokens.emptyPair &&
+    Number(selectedTokens.tokenA?.balance) >= 0 &&
+    Number(selectedTokens.tokenB?.balance) >= 0,
+)
 </script>
 
 <template>
@@ -77,7 +65,7 @@ export default {
       </button>
       <button
         class="head--btn head--btn-left"
-        @click="onRefresh"
+        @click="onRefreshClick()"
       >
         <KlayIcon name="refresh" />
       </button>
@@ -99,7 +87,7 @@ export default {
 
     <KlayButton
       :disabled="!isValidTokens"
-      @click="swapTokens"
+      @click="swapTokensTask.run()"
     >
       {{ isSwapLoading ? 'Wait' : 'Swap' }}
     </KlayButton>

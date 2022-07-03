@@ -9,9 +9,23 @@ import { isNativeToken } from '@/core/kaikas'
 const KIP7_ABI = KIP7_ABI_RAW as AbiItem[]
 
 interface State {
+  /**
+   * FIXME cannot find a place when this flag is changed
+   * @deprecated
+   */
   exchangeRateLoading: boolean
+  /**
+   * FIXME same as for `exchangeRateLoading`
+   * @deprecated
+   */
   pairNotExist: boolean
+
   slippagePercent: number
+
+  /**
+   * FIXME unsafe way to set an interval
+   * @deprecated
+   */
   exchangeRateIntervalID: ReturnType<typeof setInterval> | null
 }
 
