@@ -1,37 +1,34 @@
-<script lang="ts">
-import { mapActions, mapState } from 'pinia'
+<script lang="ts" setup>
+import { ValueEther, ValueWei } from '@/core/kaikas'
+import BigNumber from 'bignumber.js'
+import { storeToRefs } from 'pinia'
+import invariant from 'tiny-invariant'
+import { fromWei } from 'web3-utils'
 
-export default {
-  name: 'LiquidityModuleRemoveAmount',
-  data() {
-    return {
-      value: 9,
-    }
-  },
-  computed: {
-    ...mapState(useLiquidityStore, ['removeLiquidityPair']),
-    ...mapState(useTokensStore, ['selectedTokens']),
-  },
-  methods: {
-    ...mapActions(useLiquidityStore, ['removeLiquidity', 'calcRemoveLiquidityAmounts', 'setRmLiqValue']),
-    onDragEnd(v) {
-      this.value = v
-      const bnValue = $kaikas.utils.bigNumber(this.selectedTokens.userBalance)
+const liquidityStore = useLiquidityStore()
+const tokensStore = useTokensStore()
 
-      const value = bnValue.dividedBy(100).multipliedBy(v).toFixed(0)
-      const renderValue = $kaikas.utils.bigNumber($kaikas.utils.fromWei(value))
+const { selectedTokens } = $(storeToRefs(tokensStore))
+const { removeLiquidityPair } = $(storeToRefs(liquidityStore))
 
-      this.setRmLiqValue(renderValue.toFixed(5))
-      this.calcRemoveLiquidityAmounts(renderValue.toFixed(5))
-    },
-    getFormattedValue(_v) {
-      if (!_v) return '-'
+let valueWei = $ref(9)
 
-      const bn = $kaikas.bigNumber($kaikas.fromWei(_v))
+function onDragEnd(newValue: number) {
+  valueWei = newValue
 
-      return Number(bn.toFixed(4))
-    },
-  },
+  invariant(selectedTokens.userBalance)
+
+  const value = new BigNumber(selectedTokens.userBalance).dividedBy(100).multipliedBy(newValue).toFixed(0)
+  const renderValue = new BigNumber(fromWei(value)).toFixed(5) as ValueEther<string>
+
+  liquidityStore.setRmLiqValue(renderValue)
+  liquidityStore.calcRemoveLiquidityAmounts(renderValue)
+}
+
+function formatWeiValue(value: ValueWei<string>): string {
+  if (!value) return '-'
+  const bn = new BigNumber(fromWei(value))
+  return bn.toFixed(4)
 }
 </script>
 
@@ -39,11 +36,11 @@ export default {
   <div class="rl-amount">
     <div class="rl-amount--wrap-slide">
       <div class="rl-amount--title">
-        {{ value }}%
+        {{ valueWei }}%
       </div>
       <div class="rl-amount--slide">
         <KlaySlider
-          v-model="value"
+          v-model="valueWei"
           @drag-end="onDragEnd"
         />
       </div>
@@ -51,35 +48,35 @@ export default {
         <button
           type="button"
           class="rl-amount--tag"
-          @click="value = 10"
+          @click="valueWei = 10"
         >
           10%
         </button>
         <button
           type="button"
           class="rl-amount--tag"
-          @click="value = 25"
+          @click="valueWei = 25"
         >
           25%
         </button>
         <button
           type="button"
           class="rl-amount--tag"
-          @click="value = 50"
+          @click="valueWei = 50"
         >
           50%
         </button>
         <button
           type="button"
           class="rl-amount--tag"
-          @click="value = 75"
+          @click="valueWei = 75"
         >
           75%
         </button>
         <button
           type="button"
           class="rl-amount--tag"
-          @click="value = 100"
+          @click="valueWei = 100"
         >
           max
         </button>
@@ -92,38 +89,40 @@ export default {
       </div>
 
       <div
-        v-if="removeLiquidityPair.amount0"
+        v-if="removeLiquidityPair.amount0 && selectedTokens.tokenA"
         class="rl-amount--row"
       >
         <div>{{ selectedTokens.tokenA.symbol }}</div>
-        <div>{{ getFormattedValue(removeLiquidityPair.amount0) }}</div>
+        <div>{{ formatWeiValue(removeLiquidityPair.amount0) }}</div>
       </div>
 
       <div
-        v-if="removeLiquidityPair.amount1"
+        v-if="removeLiquidityPair.amount1 && selectedTokens.tokenB"
         class="rl-amount--row"
       >
         <div>{{ selectedTokens.tokenB.symbol }}</div>
-        <div>{{ getFormattedValue(removeLiquidityPair.amount1) }}</div>
+        <div>{{ formatWeiValue(removeLiquidityPair.amount1) }}</div>
       </div>
 
-      <div class="rl-amount--row">
-        <div>
-          {{ selectedTokens.tokenA.symbol }}
-          per
-          {{ selectedTokens.tokenB.symbol }}
+      <template v-if="selectedTokens.tokenA && selectedTokens.tokenB">
+        <div class="rl-amount--row">
+          <div>
+            {{ selectedTokens.tokenA.symbol }}
+            per
+            {{ selectedTokens.tokenB.symbol }}
+          </div>
+          <div>-</div>
         </div>
-        <div>-</div>
-      </div>
 
-      <div class="rl-amount--row">
-        <div>
-          {{ selectedTokens.tokenB.symbol }}
-          per
-          {{ selectedTokens.tokenA.symbol }}
+        <div class="rl-amount--row">
+          <div>
+            {{ selectedTokens.tokenB.symbol }}
+            per
+            {{ selectedTokens.tokenA.symbol }}
+          </div>
+          <div>-</div>
         </div>
-        <div>-</div>
-      </div>
+      </template>
     </div>
   </div>
 </template>

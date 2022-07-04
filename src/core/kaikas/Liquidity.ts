@@ -34,6 +34,7 @@ export function deadlineFromMs(ms: number): Deadline {
 export interface AddLiquidityAmountOutParams extends AddLiquidityAmountParamsBase {
   mode: 'out'
   // FIXME type stricter
+  // is it a wei value?
   amountAMin: BigNumber
 }
 

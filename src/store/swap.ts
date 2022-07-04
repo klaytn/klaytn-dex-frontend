@@ -98,7 +98,7 @@ export const useSwapStore = defineStore('swap', () => {
   const swapForKlayTokensTask = useTask(async () => {
     const kaikas = kaikasStore.getKaikasAnyway()
 
-    const { computedToken, selectedTokens } = tokensStore.state
+    const { computedToken, selectedTokens } = tokensStore
     invariant(computedToken)
 
     const selectedToken = selectedTokens[computedToken]
@@ -176,7 +176,8 @@ export const useSwapStore = defineStore('swap', () => {
   }
 
   return {
-    state,
+    ...toRefs(state),
+
     getAmount,
     swapExactTokensForTokensTask,
     swapForKlayTokensTask,

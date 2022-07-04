@@ -56,9 +56,11 @@ export type Address = Opaque<string, 'Address'>
  */
 export type Balance = Opaque<string, 'Balance'>
 
-export type ValueEther<T extends BN | string = BN | string> = Opaque<T, 'ether'>
+type AnyNumber = number | string | BN | BigNumber
 
-export type ValueWei<T extends BN | string | BigNumber = BN | string | BigNumber> = Opaque<T, 'wei'>
+export type ValueEther<T extends AnyNumber = AnyNumber> = Opaque<T, 'ether'>
+
+export type ValueWei<T extends AnyNumber = AnyNumber> = Opaque<T, 'wei'>
 
 /**
  * FIXME describe all internals

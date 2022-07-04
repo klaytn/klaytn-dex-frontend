@@ -1,7 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 import { Status } from '@soramitsu-ui/ui'
-import { Address, Balance, isEmptyAddress, sortKlayPair, ValueEther, ValueWei, type Token } from '@/core/kaikas'
+import { Address, Balance, isEmptyAddress, Kaikas, sortKlayPair, ValueEther, ValueWei, type Token } from '@/core/kaikas'
 import type { DexPair } from '@/types/typechain/swap'
 import type { KIP7 } from '@/types/typechain/tokens'
 import BigNumber from 'bignumber.js'
@@ -26,8 +26,8 @@ interface State {
     tokenA: Token | null
     tokenB: Token | null
     // FIXME amount in what?
-    amount0: string | null
-    amount1: string | null
+    amount0: ValueWei<string> | null
+    amount1: ValueWei<string> | null
   }
 }
 
@@ -49,7 +49,7 @@ export const useLiquidityStore = defineStore('liquidity', () => {
     const kaikas = kaikasStore.getKaikasAnyway()
 
     try {
-      const { selectedTokens, computedToken } = tokensStore.state
+      const { selectedTokens, computedToken } = tokensStore
       const { tokenA, tokenB } = selectedTokens
       invariant(tokenA && tokenB && computedToken, 'No selected tokens')
 
@@ -66,7 +66,7 @@ export const useLiquidityStore = defineStore('liquidity', () => {
   async function addLiquidityAmount(mode: 'in' | 'out') {
     const kaikas = kaikasStore.getKaikasAnyway()
 
-    const { tokenA, tokenB } = tokensStore.state.selectedTokens
+    const { tokenA, tokenB } = tokensStore.selectedTokens
     invariant(tokenA && tokenB)
 
     try {
@@ -144,7 +144,7 @@ export const useLiquidityStore = defineStore('liquidity', () => {
   async function addLiquidityETH() {
     const kaikas = kaikasStore.getKaikasAnyway()
 
-    const { tokenA, tokenB } = tokensStore.state.selectedTokens
+    const { tokenA, tokenB } = tokensStore.selectedTokens
     invariant(tokenA && tokenB)
 
     const sortedPair = sortKlayPair(tokenA, tokenB)
@@ -192,9 +192,8 @@ export const useLiquidityStore = defineStore('liquidity', () => {
     lpTokenValue: ValueEther<string>,
   ) {
     const kaikas = kaikasStore.getKaikasAnyway()
-    const selfAddr = kaikas.cfg.addrs.self
 
-    const { tokenA, tokenB, pairAddress } = tokensStore.state.selectedTokens
+    const { tokenA, tokenB, pairAddress } = tokensStore.selectedTokens
     invariant(tokenA && tokenB && pairAddress)
 
     const pairContract = kaikas.cfg.createContract<DexPair>(pairAddress, PAIR_ABI)
@@ -202,24 +201,19 @@ export const useLiquidityStore = defineStore('liquidity', () => {
     const totalSupply = new BigNumber(await pairContract.methods.totalSupply().call())
     const lpToken = new BigNumber(toWei(lpTokenValue, 'ether'))
 
-    const contract0 = kaikas.cfg.createContract<KIP7>(tokenA.address, KIP7_ABI)
-    const contract1 = kaikas.cfg.createContract<KIP7>(tokenB.address, KIP7_ABI)
-
-    const balance0 = await contract0.methods.balanceOf(pairAddress).call({
-      from: selfAddr,
-    })
-
-    const balance1 = await contract1.methods.balanceOf(pairAddress).call({
-      from: selfAddr,
-    })
-
-    const amount0 = lpToken.multipliedBy(balance0).dividedBy(totalSupply).minus(BN_ONE)
-    const amount1 = lpToken.multipliedBy(balance1).dividedBy(totalSupply).minus(BN_ONE)
+    const computeAmount = async (token: Address): Promise<ValueWei<string>> => {
+      const contract = kaikas.cfg.createContract<KIP7>(token, KIP7_ABI)
+      const balance = await contract.methods.balanceOf(pairAddress).call({
+        from: kaikas.selfAddress,
+      })
+      const amount = lpToken.multipliedBy(balance).dividedBy(totalSupply).minus(BN_ONE)
+      return amount.toFixed(0) as ValueWei<string>
+    }
 
     state.removeLiquidityPair = {
       ...state.removeLiquidityPair,
-      amount0: amount0.toFixed(0),
-      amount1: amount1.toFixed(0),
+      amount0: await computeAmount(tokenA.address),
+      amount1: await computeAmount(tokenB.address),
     }
   }
 
@@ -227,7 +221,7 @@ export const useLiquidityStore = defineStore('liquidity', () => {
     const kaikas = kaikasStore.getKaikasAnyway()
     const selfAddr = kaikas.cfg.addrs.self
 
-    const { tokenA, tokenB, pairAddress } = tokensStore.state.selectedTokens
+    const { tokenA, tokenB, pairAddress } = tokensStore.selectedTokens
     const { removeLiquidityPair } = state
     invariant(tokenA && tokenB && pairAddress)
 
@@ -315,7 +309,7 @@ export const useLiquidityStore = defineStore('liquidity', () => {
     const kaikas = kaikasStore.getKaikasAnyway()
     const selfAddr = kaikas.cfg.addrs.self
 
-    const { tokenA, tokenB, pairAddress } = tokensStore.state.selectedTokens
+    const { tokenA, tokenB, pairAddress } = tokensStore.selectedTokens
     invariant(tokenA && tokenB && pairAddress)
 
     //   address token, not klay
@@ -398,7 +392,8 @@ export const useLiquidityStore = defineStore('liquidity', () => {
   }
 
   return {
-    state,
+    ...toRefs(state),
+
     quoteForToken,
     addLiquidityAmount,
     addLiquidityETH,

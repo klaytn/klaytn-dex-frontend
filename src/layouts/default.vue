@@ -1,6 +1,7 @@
 <script setup lang="ts" name="DefaultLayout">
 import { formatAddress } from '@/core/kaikas'
 import { type HeaderMenuItem, RouteName } from '@/types'
+import { storeToRefs } from 'pinia'
 
 const { t } = useI18n()
 
@@ -32,11 +33,10 @@ const menu = computed<HeaderMenuItem[]>(() => {
 })
 
 const kaikasStore = useKaikasStore()
-const { address, isNotInstalled } = toRefs(kaikasStore)
+const { address, isNotInstalled } = storeToRefs(kaikasStore)
 
 const tokensStore = useTokensStore()
-const tokensList = computed(() => tokensStore.state.tokensList)
-const { getTokens: loadTokensList } = tokensStore
+const { tokensList } = storeToRefs(tokensStore)
 
 const formattedAddress = computed(() => {
   if (!address.value) return ''
@@ -47,7 +47,7 @@ async function connect() {
   await kaikasStore.connect()
 
   if (kaikasStore.status === 'connected') {
-    if (!tokensList.value.length) await loadTokensList()
+    if (!tokensList.value.length) await tokensStore.getTokens()
   }
 }
 

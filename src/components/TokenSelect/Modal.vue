@@ -6,11 +6,12 @@ import { type KIP7 } from '@/types/typechain/tokens'
 import { KIP7 as KIP7_ABI } from '@/core/kaikas/smartcontracts/abi'
 import BigNumber from 'bignumber.js'
 import { fromWei } from 'web3-utils'
+import { storeToRefs } from 'pinia'
 
 const emit = defineEmits<(...args: [event: 'close'] | [event: 'select', value: Token]) => void>()
 
 const tokensStore = useTokensStore()
-const tokensList = $computed(() => tokensStore.state.tokensList)
+const { tokensList } = $(storeToRefs(tokensStore))
 
 const kaikasStore = useKaikasStore()
 
@@ -72,7 +73,7 @@ const renderTokens = $computed<Token[]>(() => {
   const value = search
   const valueUpper = value.toUpperCase()
 
-  return tokensStore.state.tokensList.filter((token) => token.symbol.includes(valueUpper) || token.address === value)
+  return tokensList.filter((token) => token.symbol.includes(valueUpper) || token.address === value)
 })
 
 /**
@@ -92,7 +93,7 @@ function onSelect(token: Token) {
 
 function onAddToken() {
   if (importToken) {
-    tokensStore.state.tokensList.unshift(importToken)
+    tokensList.unshift(importToken)
 
     search = ''
     searchAsAddress = null

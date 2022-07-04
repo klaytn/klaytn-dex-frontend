@@ -192,7 +192,8 @@ export const useTokensStore = defineStore('tokens', () => {
   }
 
   return {
-    state,
+    ...toRefs(state),
+
     getTokens,
     clearSelectedTokens,
     setTokenValue,
@@ -204,10 +205,6 @@ export const useTokensStore = defineStore('tokens', () => {
 
     getSelectedTokensAnyway,
     getSelectedTokensAndPairAnyway,
-
-    selectedTokens: computed(() => state.selectedTokens),
-    computedToken: computed(() => state.computedToken),
-    tokensList: computed(() => state.tokensList),
   }
 })
 
