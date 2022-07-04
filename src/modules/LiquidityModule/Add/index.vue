@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 import { formatPercent, formatRate } from '@/utils/common'
+import Details from './Details.vue'
 
 const tokensStore = useTokensStore()
 
@@ -41,13 +42,12 @@ onBeforeUnmount(() => {
       @close="isOpen = false"
     />
 
-    <div
-      v-if="selectedTokens.tokenA?.value && selectedTokens.tokenB?.value"
-      class="liquidity--details"
-    >
-      <h3>Prices and pool share</h3>
+    <Details v-if="selectedTokens.tokenA?.value && selectedTokens.tokenB?.value">
+      <template #title>
+        Prices and pool share
+      </template>
 
-      <div class="liquidity--details--row">
+      <DetailsRow>
         <span>
           {{ selectedTokens.tokenA.symbol }} per
           {{ selectedTokens.tokenB.symbol }}
@@ -55,8 +55,8 @@ onBeforeUnmount(() => {
         <span>
           {{ formatRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
         </span>
-      </div>
-      <div class="liquidity--details--row">
+      </DetailsRow>
+      <DetailsRow>
         <span>
           {{ selectedTokens.tokenB.symbol }} per
           {{ selectedTokens.tokenA.symbol }}
@@ -64,14 +64,11 @@ onBeforeUnmount(() => {
         <span>
           {{ formatRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
         </span>
-      </div>
-      <div
-        v-if="selectedTokens.pairBalance && selectedTokens.userBalance"
-        class="liquidity--details--row"
-      >
+      </DetailsRow>
+      <DetailsRow v-if="selectedTokens.pairBalance && selectedTokens.userBalance">
         <span>Share of pool</span>
         <span>{{ formatPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}</span>
-      </div>
+      </DetailsRow>
       <!--      <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
       <!--        <span>You'll earn</span> -->
       <!--        <span>0.17%</span> -->
@@ -81,8 +78,6 @@ onBeforeUnmount(() => {
       <!--        <span>Transaction Fee</span> -->
       <!--        <span>0.074 KLAY ($0.013)</span> -->
       <!--      </div> -->
-    </div>
+    </Details>
   </div>
 </template>
-
-<style lang="scss" scoped src="./index.scss"></style>

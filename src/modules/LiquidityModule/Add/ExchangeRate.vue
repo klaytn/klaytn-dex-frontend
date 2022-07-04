@@ -61,7 +61,7 @@ const exchangeLoading = $computed(() => {
 
 <template>
   <div>
-    <div class="liquidity--input">
+    <div class="input">
       <TokenInput
         :is-loading="exchangeLoading === 'tokenA'"
         token-type="tokenA"
@@ -70,11 +70,11 @@ const exchangeLoading = $computed(() => {
       />
     </div>
 
-    <div class="liquidity--icon">
+    <div class="icon">
       <KlayIcon name="plus" />
     </div>
 
-    <div class="liquidity--input">
+    <div class="input">
       <TokenInput
         :is-loading="exchangeLoading === 'tokenB'"
         token-type="tokenB"
@@ -94,13 +94,14 @@ const exchangeLoading = $computed(() => {
 </template>
 
 <style lang="scss" scoped>
+.input:first-child {
+  margin-bottom: -8px;
+}
+
+// FIXME what?
 .liquidity {
   &--slippage {
     margin-top: 16px;
-  }
-
-  &--input:first-child {
-    margin-bottom: -8px;
   }
 
   & .error {
@@ -150,62 +151,32 @@ const exchangeLoading = $computed(() => {
       width: 36px;
     }
   }
+}
 
-  &--icon {
-    width: min-content;
-    margin: auto;
-    margin-bottom: -8px;
+.icon {
+  width: min-content;
+  margin: auto;
+  margin-bottom: -8px;
+}
+
+.warning-text {
+  margin-top: 16px;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 180%;
+  color: #2d2926;
+  margin-right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  & .svg-icon {
+    height: 20px;
   }
 
-  &--btn {
-    margin-top: 16px;
-  }
-
-  &--details {
-    border: 1px solid #dfe4ed;
-    border-radius: 8px;
-    padding: 16px;
-    text-align: left;
-    margin-top: 16px;
-
-    & h3 {
-      font-style: normal;
-      font-weight: 700;
-      font-size: 14px;
-      line-height: 17px;
-      color: $dark2;
-    }
-
-    &--row {
-      display: flex;
-      justify-content: space-between;
-      font-style: normal;
-      font-weight: 600;
-      font-size: 12px;
-      line-height: 230%;
-      color: $dark2;
-    }
-  }
-
-  .warning-text {
-    margin-top: 16px;
-    font-style: normal;
-    font-weight: 700;
-    font-size: 14px;
-    line-height: 180%;
-    color: #2d2926;
-    margin-right: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    & .svg-icon {
-      height: 20px;
-    }
-
-    & span {
-      margin-left: 5px;
-    }
+  & span {
+    margin-left: 5px;
   }
 }
 </style>

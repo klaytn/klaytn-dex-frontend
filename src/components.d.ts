@@ -16,6 +16,8 @@ declare module '@vue/runtime-core' {
     KlayTextField: typeof import('./common/KlayTextField.vue')['default']
     KlayWrap: typeof import('./common/KlayWrap.vue')['default']
     LiquidityModuleAdd: typeof import('./modules/LiquidityModule/Add/index.vue')['default']
+    LiquidityModuleAddDetails: typeof import('./modules/LiquidityModule/Add/Details.vue')['default']
+    LiquidityModuleAddDetailsRow: typeof import('./modules/LiquidityModule/Add/DetailsRow.vue')['default']
     LiquidityModuleAddExchangeRate: typeof import('./modules/LiquidityModule/Add/ExchangeRate.vue')['default']
     LiquidityModuleAddModal: typeof import('./modules/LiquidityModule/Add/Modal.vue')['default']
     LiquidityModuleRemove: typeof import('./modules/LiquidityModule/Remove/index.vue')['default']

@@ -2,9 +2,11 @@
 import { isNativeToken } from '@/core/kaikas'
 import { Status } from '@soramitsu-ui/ui'
 import { useTask, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
-import { mapActions, mapState, storeToRefs } from 'pinia'
+import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 import { formatPercent, formatRate } from '@/utils/common'
+import DetailsRow from './DetailsRow.vue'
+import Details from './Details.vue'
 
 const emit = defineEmits(['close'])
 
@@ -58,13 +60,10 @@ wheneverTaskSucceeds(addLiquidityTask, () => {
         <!--          <p>3.6747823</p> -->
         <!--        </div> -->
 
-        <div
-          v-if="selectedTokens.tokenA?.value && selectedTokens.tokenB?.value"
-          class="liquidity--details"
-        >
+        <Details v-if="selectedTokens.tokenA?.value && selectedTokens.tokenB?.value">
           <h3>Prices and pool share</h3>
 
-          <div class="liquidity--details--row">
+          <DetailsRow>
             <span>
               {{ selectedTokens.tokenA.symbol }} per
               {{ selectedTokens.tokenB.symbol }}
@@ -72,8 +71,8 @@ wheneverTaskSucceeds(addLiquidityTask, () => {
             <span>
               {{ formatRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
             </span>
-          </div>
-          <div class="liquidity--details--row">
+          </DetailsRow>
+          <DetailsRow>
             <span>
               {{ selectedTokens.tokenB.symbol }} per
               {{ selectedTokens.tokenA.symbol }}
@@ -81,16 +80,13 @@ wheneverTaskSucceeds(addLiquidityTask, () => {
             <span>
               {{ formatRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
             </span>
-          </div>
-          <div
-            v-if="selectedTokens.pairBalance && selectedTokens.userBalance"
-            class="liquidity--details--row"
-          >
+          </DetailsRow>
+          <DetailsRow v-if="selectedTokens.pairBalance && selectedTokens.userBalance">
             <span>Share of pool</span>
             <span>
               {{ formatPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}
             </span>
-          </div>
+          </DetailsRow>
           <!--          <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
           <!--            <span>You'll earn</span> -->
           <!--            <span>0.17%</span> -->
@@ -100,12 +96,12 @@ wheneverTaskSucceeds(addLiquidityTask, () => {
           <!--            <span>Transaction Fee</span> -->
           <!--            <span>0.074 KLAY ($0.013)</span> -->
           <!--          </div> -->
-        </div>
+        </Details>
 
         <KlayButton
           type="button"
           :disabled="isInProgress"
-          class="liquidity--btn"
+          class="btn"
           @click="addLiquidityTask.run()"
         >
           {{ isInProgress ? 'Wait' : 'Supply' }}
@@ -131,4 +127,60 @@ wheneverTaskSucceeds(addLiquidityTask, () => {
   </KlayModal>
 </template>
 
-<style lang="scss" scoped src="./index.scss"></style>
+<style lang="scss" scoped>
+.slippage {
+  margin-top: 16px;
+}
+
+.error {
+  text-align: center;
+  margin-top: 16px;
+  font-weight: 700;
+}
+
+.submitted {
+  padding-top: 98px;
+  padding-bottom: 138px;
+  text-align: center;
+
+  & p {
+    font-style: normal;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 180%;
+    color: $dark2;
+  }
+}
+
+.m-title {
+  color: $dark2;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 17px;
+  margin-bottom: 7px;
+}
+
+.m-content {
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.m-head {
+  display: flex;
+  align-items: center;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 30px;
+  line-height: 36px;
+  color: $dark2;
+
+  & img {
+    width: 36px;
+  }
+}
+
+.btn {
+  margin-top: 16px;
+}
+</style>
