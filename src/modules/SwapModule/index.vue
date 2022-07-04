@@ -2,17 +2,15 @@
 import { isNativeToken } from '@/core/kaikas'
 import { useTask } from '@vue-kakuyaku/core'
 import invariant from 'tiny-invariant'
+import { storeToRefs } from 'pinia'
+
+const tokensStore = useTokensStore()
+const { selectedTokens, computedToken, tokensList } = $(storeToRefs(tokensStore))
 
 const swapStore = useSwapStore()
-const tokensStore = useTokensStore()
+const { pairNotExist, exchangeRateLoading } = $(storeToRefs(swapStore))
 
-const selectedTokens = $computed(() => tokensStore.state.selectedTokens)
-const computedToken = $computed(() => tokensStore.state.computedToken)
-
-const pairNotExist = $computed(() => swapStore.state.pairNotExist)
-const exchangeRateLoading = $computed(() => swapStore.state.exchangeRateLoading)
-
-const isLoading = $computed(() => !tokensStore.state.tokensList.length)
+const isLoading = $computed(() => !tokensList.length)
 
 onBeforeUnmount(() => {
   swapStore.$reset()
@@ -45,7 +43,7 @@ const isSwapLoading = $computed(() => swapTokensTask.state.kind === 'pending')
 const isValidTokens = $computed(
   () =>
     !isSwapLoading &&
-    !tokensStore.state.selectedTokens.emptyPair &&
+    !selectedTokens.emptyPair &&
     Number(selectedTokens.tokenA?.balance) >= 0 &&
     Number(selectedTokens.tokenB?.balance) >= 0,
 )

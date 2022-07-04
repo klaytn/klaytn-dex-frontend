@@ -1,56 +1,62 @@
 <script setup lang="ts" name="SwapModuleExchangeRate">
-import debounce from 'debounce'
+import { useDanglingScope, useTask } from '@vue-kakuyaku/core'
+import { storeToRefs } from 'pinia'
+import { toWei } from 'web3-utils'
 
 const tokensStore = useTokensStore()
-const { selectedTokens } = toRefs(tokensStore)
-const { setSelectedToken, setComputedToken } = tokensStore
+const { selectedTokens } = $(storeToRefs(tokensStore))
 
-const { getAmountOut, getAmountIn } = useSwapStore()
+const swapStore = useSwapStore()
 
-const exchangeLoading = ref<'tokenA' | 'tokenB' | null>(null)
-
-const isNotValid = computed(() => {
-  return !selectedTokens.value.tokenA || !selectedTokens.value.tokenB || selectedTokens.value.emptyPair
+const isNotValid = $computed(() => {
+  return !selectedTokens.tokenA || !selectedTokens.tokenB || selectedTokens.emptyPair
 })
 
-const onInput = debounce(async (_v, tokenType: 'tokenA' | 'tokenB') => {
-  if (!_v || isNotValid.value) return
+const exchangeScope = useDanglingScope<{ exchangeToken: 'tokenA' | 'tokenB'; pending: boolean }>()
 
-  // if (this.exchangeRateIntervalID) {
-  //   clearInterval(this.exchangeRateIntervalID);
-  //   this.setExchangeRateIntervalID(null);
-  // }
+const onInputDebounced = useDebounceFn(
+  (
+    // FIXME is it ether value?
+    valueEther: string,
+    tokenType: 'tokenA' | 'tokenB',
+  ) => {
+    if (!valueEther || isNotValid) return
+    const valueWei = toWei(valueEther, 'ether')
 
-  const value = $kaikas.toWei(_v)
+    tokensStore.setSelectedToken({
+      token: {
+        ...selectedTokens[tokenType]!,
+        value: valueWei,
+      },
+      type: tokenType,
+    })
 
-  setSelectedToken({
-    token: {
-      ...selectedTokens.value[tokenType],
-      value,
-    },
-    type: tokenType,
-  })
+    const exchangeToken = tokenType === 'tokenA' ? 'tokenB' : 'tokenA'
 
-  setComputedToken(tokenType === 'tokenA' ? 'tokenB' : 'tokenA')
+    tokensStore.setComputedToken(exchangeToken)
 
-  if (tokenType === 'tokenA') {
-    exchangeLoading.value = 'tokenB'
-    await getAmountOut(value)
-    // this.setExchangeRateIntervalID(
-    //   setInterval(() => this.getAmountOut(value), 5000)
-    // );
-  }
+    exchangeScope.setup(() => {
+      const task = useTask(async () => {
+        if (tokenType === 'tokenA') {
+          await swapStore.getAmount(valueWei, 'out')
+        } else {
+          await swapStore.getAmount(valueWei, 'in')
+        }
+      })
 
-  if (tokenType === 'tokenB') {
-    exchangeLoading.value = 'tokenA'
-    await getAmountIn(value)
-    // this.setExchangeRateIntervalID(
-    //   setInterval(() => this.getAmountIn(value), 5000)
-    // );
-  }
+      task.run()
 
-  exchangeLoading.value = null
-}, 500)
+      return reactive({ exchangeToken, pending: computed(() => task.state.kind === 'pending') })
+    })
+  },
+  500,
+)
+
+const exchangeLoading = $computed(() => {
+  const scope = exchangeScope.scope.value?.setup
+  if (!scope?.pending) return null
+  return scope.exchangeToken
+})
 </script>
 
 <template>
@@ -59,7 +65,7 @@ const onInput = debounce(async (_v, tokenType: 'tokenA' | 'tokenB') => {
       :is-loading="exchangeLoading === 'tokenA'"
       token-type="tokenA"
       :is-disabled="isNotValid"
-      @input="(v) => onInput(v, 'tokenA')"
+      @input="(v: string) => onInputDebounced(v, 'tokenA')"
     />
     <button class="change-btn">
       <KlayIcon name="arrow-down" />
@@ -69,7 +75,7 @@ const onInput = debounce(async (_v, tokenType: 'tokenA' | 'tokenB') => {
         :is-loading="exchangeLoading === 'tokenB'"
         token-type="tokenB"
         :is-disabled="isNotValid"
-        @input="(v) => onInput(v, 'tokenB')"
+        @input="(v: string) => onInputDebounced(v, 'tokenB')"
       />
     </div>
 

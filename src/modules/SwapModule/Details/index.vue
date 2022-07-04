@@ -1,38 +1,18 @@
 <script setup lang="ts" name="SwapModuleDetails">
-import type BigNumber from 'bignumber.js'
+import { toRefs } from '@vueuse/core'
+import { formatRate, formatPercent } from '@/utils/common'
 
 const tokensStore = useTokensStore()
-const { selectedTokens } = toRefs(tokensStore)
-const { tokenA, tokenB, userBalance, pairBalance } = toRefs(selectedTokens.value)
+const { tokenA, tokenB, userBalance, pairBalance } = $(toRefs(toRef(tokensStore, 'selectedTokens')))
 
 const getRoute = computed(() => {
-  if (tokenA.value === null || tokenB.value === null) return ''
-
-  return `${tokenA.value.symbol} > ${tokenB.value.symbol}`
+  return tokenA && tokenB ? `${tokenA.symbol} > ${tokenB.symbol}` : ''
 })
-const isValid = computed(() => {
-  return tokenA.value?.value && tokenB.value?.value
-})
-
-function getFormattedRate(v1: BigNumber.Value, v2: BigNumber.Value) {
-  const bigNA = $kaikas.bigNumber(v1)
-  const bigNB = $kaikas.bigNumber(v2)
-
-  return bigNA.dividedBy(bigNB).toFixed(5)
-}
-
-function getFormattedPercent(v1: BigNumber.Value, v2: BigNumber.Value) {
-  const bigNA = $kaikas.bigNumber(v1)
-  const bigNB = $kaikas.bigNumber(v2)
-  const percent = bigNA.dividedToIntegerBy(100)
-
-  return `${bigNB.dividedBy(percent).toFixed(2)}%`
-}
 </script>
 
 <template>
   <div
-    v-if="isValid"
+    v-if="tokenA?.value && tokenB?.value"
     class="details--wrap"
   >
     <KlayCollapse>
@@ -43,7 +23,7 @@ function getFormattedPercent(v1: BigNumber.Value, v2: BigNumber.Value) {
       </template>
       <template #main>
         <div
-          v-if="tokenA && tokenB && pairBalance && userBalance && isValid"
+          v-if="pairBalance && userBalance"
           class="details"
         >
           <div class="details--row">
@@ -52,7 +32,7 @@ function getFormattedPercent(v1: BigNumber.Value, v2: BigNumber.Value) {
               {{ tokenB.symbol }}
             </span>
             <span>
-              {{ getFormattedRate(tokenA.value, tokenB.value) }}
+              {{ formatRate(tokenA.value, tokenB.value) }}
             </span>
           </div>
           <div class="details--row">
@@ -61,7 +41,7 @@ function getFormattedPercent(v1: BigNumber.Value, v2: BigNumber.Value) {
               {{ tokenA.symbol }}
             </span>
             <span>
-              {{ getFormattedRate(tokenB.value, tokenA.value) }}
+              {{ formatRate(tokenB.value, tokenA.value) }}
             </span>
           </div>
           <div
@@ -69,7 +49,7 @@ function getFormattedPercent(v1: BigNumber.Value, v2: BigNumber.Value) {
             class="details--row"
           >
             <span>Share of pool</span>
-            <span>{{ getFormattedPercent(pairBalance, userBalance) }}</span>
+            <span>{{ formatPercent(pairBalance, userBalance) }}</span>
           </div>
           <div class="details--row">
             <span>Route</span>

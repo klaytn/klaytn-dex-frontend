@@ -1,71 +1,43 @@
-<script lang="ts">
+<script lang="ts" setup>
+import { isNativeToken } from '@/core/kaikas'
 import { Status } from '@soramitsu-ui/ui'
+import { useTask, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
+import { mapActions, mapState, storeToRefs } from 'pinia'
+import invariant from 'tiny-invariant'
+import { formatPercent, formatRate } from '@/utils/common'
 
-import { mapActions, mapState } from 'pinia'
+const emit = defineEmits(['close'])
 
-export default {
-  name: 'LiquidityModuleAddModal',
-  emits: ['close'],
-  data() {
-    return {
-      status: 'initial',
-      error: false,
-    }
-  },
-  computed: {
-    ...mapState(useTokensStore, ['selectedTokens', 'computedToken']),
-    isValid() {
-      return this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
-    },
-  },
-  methods: {
-    ...mapActions(useLiquidityStore, ['addLiquidityAmountIn', 'addLiquidityAmountOut', 'addLiquidityETH']),
-    async handleAddLiquidity() {
-      try {
-        this.error = false
-        this.status = 'in_progress'
-        const isKlayToken =
-          $kaikas.utils.isNativeToken(this.selectedTokens.tokenA.address) ||
-          $kaikas.utils.isNativeToken(this.selectedTokens.tokenB.address)
+const tokensStore = useTokensStore()
+const { selectedTokens, computedToken } = $(storeToRefs(tokensStore))
 
-        if (isKlayToken) {
-          await this.addLiquidityETH()
-          this.status = 'submitted'
-          return
-        }
-        if (this.computedToken === 'tokenA') {
-          await this.addLiquidityAmountIn()
-          this.status = 'submitted'
-          return
-        }
+const liquidityStore = useLiquidityStore()
 
-        if (this.computedToken === 'tokenB') {
-          await this.addLiquidityAmountOut()
-          this.status = 'submitted'
-          return
-        }
-        this.status = 'submitted'
-        $notify({ status: Status.Success, description: 'Transaction Submitted' })
-      } catch (e) {
-        this.status = 'initial'
-        $notify({ status: Status.Error, description: 'Transaction Reverted' })
-      }
-    },
-    getFormattedRate(v1, v2) {
-      const bigNA = $kaikas.bigNumber(v1)
-      const bigNB = $kaikas.bigNumber(v2)
+const addLiquidityTask = useTask(async () => {
+  const { tokenA, tokenB } = selectedTokens
+  invariant(tokenA && tokenB)
 
-      return bigNA.dividedBy(bigNB).toFixed(5)
-    },
-    getFormattedPercent(v1, v2) {
-      const bigNA = $kaikas.bigNumber(v1)
-      const bigNB = $kaikas.bigNumber(v2)
-      const percent = bigNA.dividedToIntegerBy(100)
+  const isKlayToken = isNativeToken(tokenA.address) && isNativeToken(tokenB.address)
 
-      return `${bigNB.dividedBy(percent).toFixed(2)}%`
-    },
-  },
-}
+  if (isKlayToken) {
+    await liquidityStore.addLiquidityETH()
+  } else if (computedToken === 'tokenA') {
+    await liquidityStore.addLiquidityAmount('in')
+  } else if (computedToken === 'tokenB') {
+    await liquidityStore.addLiquidityAmount('out')
+  }
+})
+
+const isSubmitted = $computed(() => addLiquidityTask.state.kind === 'ok')
+const isInProgress = $computed(() => addLiquidityTask.state.kind === 'pending')
+
+wheneverTaskErrors(addLiquidityTask, () => {
+  $notify({ status: Status.Error, description: 'Transaction Reverted' })
+})
+
+wheneverTaskSucceeds(addLiquidityTask, () => {
+  $notify({ status: Status.Error, description: 'Transaction Reverted' })
+})
 </script>
 
 <template>
@@ -76,7 +48,7 @@ export default {
   >
     <div>
       <div
-        v-if="status === 'initial' || status === 'in_progress'"
+        v-if="!isSubmitted"
         class="m-content"
       >
         <!--        <p class="m-title">You will receive LP ETH-KLAY Tokens</p> -->
@@ -87,7 +59,7 @@ export default {
         <!--        </div> -->
 
         <div
-          v-if="isValid"
+          v-if="selectedTokens.tokenA?.value && selectedTokens.tokenB?.value"
           class="liquidity--details"
         >
           <h3>Prices and pool share</h3>
@@ -98,7 +70,7 @@ export default {
               {{ selectedTokens.tokenB.symbol }}
             </span>
             <span>
-              {{ getFormattedRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
+              {{ formatRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
             </span>
           </div>
           <div class="liquidity--details--row">
@@ -107,16 +79,16 @@ export default {
               {{ selectedTokens.tokenA.symbol }}
             </span>
             <span>
-              {{ getFormattedRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
+              {{ formatRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
             </span>
           </div>
           <div
-            v-if="selectedTokens.pairBalance"
+            v-if="selectedTokens.pairBalance && selectedTokens.userBalance"
             class="liquidity--details--row"
           >
             <span>Share of pool</span>
             <span>
-              {{ getFormattedPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}
+              {{ formatPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}
             </span>
           </div>
           <!--          <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
@@ -132,15 +104,16 @@ export default {
 
         <KlayButton
           type="button"
-          :disabled="status === 'in_progress'"
+          :disabled="isInProgress"
           class="liquidity--btn"
-          @click="handleAddLiquidity"
+          @click="addLiquidityTask.run()"
         >
-          {{ status === 'in_progress' ? 'Wait' : 'Supply' }}
+          {{ isInProgress ? 'Wait' : 'Supply' }}
         </KlayButton>
       </div>
+
       <div
-        v-else-if="status === 'submitted'"
+        v-else
         class="m-content"
       >
         <div class="submitted">
@@ -149,7 +122,7 @@ export default {
         </div>
         <KlayButton
           type="button"
-          @click="$emit('close')"
+          @click="emit('close')"
         >
           Close
         </KlayButton>

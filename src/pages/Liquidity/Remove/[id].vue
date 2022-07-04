@@ -1,21 +1,12 @@
-<script lang="ts">
-import { mapActions, mapState } from 'pinia'
+<script lang="ts" setup>
+import { parseAddress } from '@/core/kaikas'
+import { toRefs } from '@vueuse/core'
 
-export default {
-  name: 'LiquidityRemove',
-  computed: {
-    ...mapState(useTokensStore, ['selectedTokens']),
-    isValid() {
-      return this.selectedTokens?.tokenA && this.selectedTokens?.tokenB
-    },
-  },
-  beforeMount() {
-    this.setSelectedTokensByPair(this.$route.params.id)
-  },
-  methods: {
-    ...mapActions(useTokensStore, ['setSelectedTokensByPair']),
-  },
-}
+const tokensStore = useTokensStore()
+const { tokenA, tokenB } = $(toRefs(toRef(tokensStore, 'selectedTokens')))
+
+const route = useRoute()
+tokensStore.setSelectedTokensByPair(parseAddress(route.params.id as string))
 </script>
 
 <template>
@@ -26,15 +17,15 @@ export default {
         class="back"
       >
         <KlayIcon name="back-arrow" />
-        <span v-if="isValid">
+        <span v-if="tokenA && tokenB">
           Remove
-          {{ selectedTokens.tokenA.symbol }}-{{ selectedTokens.tokenB.symbol }}
+          {{ tokenA.symbol }}-{{ tokenB.symbol }}
           liquidity
         </span>
       </RouterLink>
     </template>
     <div class="add-liq">
-      <LiquidityModuleRemove v-if="isValid" />
+      <LiquidityModuleRemove v-if="tokenA && tokenB" />
       <div
         v-else
         class="loader-wrapper"

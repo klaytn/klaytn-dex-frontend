@@ -1,40 +1,22 @@
-<script lang="ts">
-import { mapActions, mapState } from 'pinia'
+<script lang="ts" setup>
+import { storeToRefs } from 'pinia'
+import { formatPercent, formatRate } from '@/utils/common'
 
-export default {
-  name: 'LiquidityModuleAdd',
-  data() {
-    return {
-      isOpen: false,
-    }
-  },
-  computed: {
-    ...mapState(useTokensStore, ['selectedTokens']),
-    ...mapState(useLiquidityStore, ['pairs']),
-    isValid() {
-      return this.selectedTokens?.tokenA?.value && this.selectedTokens?.tokenB?.value
-    },
-  },
-  beforeUnmount() {
-    this.clearSelectedTokens()
-  },
-  methods: {
-    ...mapActions(useTokensStore, ['clearSelectedTokens']),
-    getFormattedRate(v1, v2) {
-      const bigNA = $kaikas.bigNumber(v1)
-      const bigNB = $kaikas.bigNumber(v2)
+const tokensStore = useTokensStore()
 
-      return bigNA.dividedBy(bigNB).toFixed(5)
-    },
-    getFormattedPercent(v1, v2) {
-      const bigNA = $kaikas.bigNumber(v1)
-      const bigNB = $kaikas.bigNumber(v2)
-      const percent = bigNA.dividedToIntegerBy(100)
+const { selectedTokens } = $(storeToRefs(tokensStore))
 
-      return `${bigNB.dividedBy(percent).toFixed(2)}%`
-    },
-  },
-}
+// FIXME liquidity store does not have "pairs"
+// const liquidityStore = useLiquidityStore()
+// const { pairs } = storeToRefs(liquidityStore)
+
+const isOpen = $ref(false)
+
+const isValid = $computed(() => selectedTokens.tokenA?.value && selectedTokens.tokenB?.value)
+
+onBeforeUnmount(() => {
+  tokensStore.clearSelectedTokens()
+})
 </script>
 
 <template>
@@ -60,7 +42,7 @@ export default {
     />
 
     <div
-      v-if="isValid"
+      v-if="selectedTokens.tokenA?.value && selectedTokens.tokenB?.value"
       class="liquidity--details"
     >
       <h3>Prices and pool share</h3>
@@ -71,7 +53,7 @@ export default {
           {{ selectedTokens.tokenB.symbol }}
         </span>
         <span>
-          {{ getFormattedRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
+          {{ formatRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
         </span>
       </div>
       <div class="liquidity--details--row">
@@ -80,15 +62,15 @@ export default {
           {{ selectedTokens.tokenA.symbol }}
         </span>
         <span>
-          {{ getFormattedRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
+          {{ formatRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
         </span>
       </div>
       <div
-        v-if="selectedTokens.pairBalance"
+        v-if="selectedTokens.pairBalance && selectedTokens.userBalance"
         class="liquidity--details--row"
       >
         <span>Share of pool</span>
-        <span>{{ getFormattedPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}</span>
+        <span>{{ formatPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}</span>
       </div>
       <!--      <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
       <!--        <span>You'll earn</span> -->

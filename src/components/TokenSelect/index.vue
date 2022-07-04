@@ -1,38 +1,34 @@
-<script lang="ts">
-export default {
-  name: 'TokenSelect',
-  props: {
-    selectedToken: {
-      type: Object,
-      default: null,
-    },
-  },
-  emits: ['select'],
-  data() {
-    return {
-      modalOpen: false,
-    }
-  },
-  methods: {
-    onSelect(token) {
-      this.modalOpen = false
-      this.$emit('select', token)
-    },
-  },
+<script lang="ts" setup>
+import { Token } from '@/core/kaikas'
+
+const props = withDefaults(
+  defineProps<{
+    selectedToken?: null | Token
+  }>(),
+  { selectedToken: null },
+)
+
+const emit = defineEmits<(event: 'select', value: Token) => void>()
+
+let isModalOpen = $ref(false)
+
+function onSelect(token: Token) {
+  emit('select', token)
+  isModalOpen = false
 }
 </script>
 
 <template>
   <div class="select--wrap">
     <TokenSelectModal
-      v-if="modalOpen"
+      v-if="isModalOpen"
       @select="onSelect"
-      @close="modalOpen = false"
+      @close="isModalOpen = false"
     />
     <button
       v-if="!selectedToken"
       class="select-btn"
-      @click="modalOpen = true"
+      @click="isModalOpen = true"
     >
       <span>Select token</span>
       <KlayIcon name="collapse-arrow" />
@@ -44,7 +40,7 @@ export default {
     >
       <div
         class="select--head"
-        @click="modalOpen = true"
+        @click="isModalOpen = true"
       >
         <!--        <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo" /> -->
         <KlayIcon
