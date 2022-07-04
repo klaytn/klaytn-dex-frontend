@@ -1,51 +1,50 @@
-<script lang="ts">
+<script lang="ts" setup>
+import { ValueEther, ValueWei } from '@/core/kaikas'
+import { formatWeiValue, formatRate } from '@/utils/common'
 import debounce from 'debounce'
-import { mapActions, mapState } from 'pinia'
+import { mapActions, mapState, storeToRefs } from 'pinia'
+import invariant from 'tiny-invariant'
+import { fromWei } from 'web3-utils'
 
-export default {
-  name: 'LiquidityModuleRemoveDetailed',
-  data() {
-    return {
-      lpTokenValue: null,
-    }
-  },
-  computed: {
-    ...mapState(useTokensStore, ['selectedTokens']),
-    ...mapState(useLiquidityStore, ['removeLiquidityPair']),
-  },
-  beforeMount() {
-    this.lpTokenValue = this.removeLiquidityPair.lpTokenValue
-  },
-  methods: {
-    ...mapActions(useLiquidityStore, ['setRmLiqValue', 'calcRemoveLiquidityAmounts']),
-    setMax() {
-      const v = this.getFormattedValue(this.selectedTokens.userBalance)
-      this.onInput(v.toString())
-      this.lpTokenValue = v
-    },
-    onInput: debounce(async function (_v) {
-      this.setRmLiqValue(_v)
-      this.calcRemoveLiquidityAmounts(_v)
-    }, 500),
-    getFormattedRate(v1, v2) {
-      const bigNA = $kaikas.bigNumber(v1)
-      const bigNB = $kaikas.bigNumber(v2)
+const tokensStore = useTokensStore()
+const { selectedTokens } = $(storeToRefs(tokensStore))
 
-      return bigNA.dividedBy(bigNB).toFixed(5)
-    },
-    getFormattedValue(_v) {
-      if (!_v) return '-'
+const liquidityStore = useLiquidityStore()
+const { removeLiquidityPair } = $(storeToRefs(liquidityStore))
 
-      const bn = $kaikas.bigNumber($kaikas.fromWei(_v))
+let lpTokenValue = $ref<null | ValueEther<string>>(removeLiquidityPair.lpTokenValue)
 
-      return Number(bn.toFixed(4))
-    },
-  },
+const onInputDebounced = useDebounceFn((value: ValueEther<string>) => {
+  liquidityStore.setRmLiqValue(value)
+  liquidityStore.calcRemoveLiquidityAmounts(value)
+}, 500)
+
+function onInput(e: Event) {
+  onInputDebounced((e.target as HTMLInputElement).value as ValueEther<string>)
+}
+
+function setMax() {
+  invariant(selectedTokens.userBalance)
+  const valueEther = fromWei(selectedTokens.userBalance) as ValueEther<string>
+  onInputDebounced(valueEther)
+  lpTokenValue = valueEther
+}
+
+function formatAmount(value: string) {
+  return formatWeiValue(value as ValueWei<string>)
 }
 </script>
 
 <template>
-  <div class="detailed">
+  <div
+    v-if="
+      selectedTokens.tokenA?.value &&
+        selectedTokens.tokenB?.value &&
+        removeLiquidityPair.amount0 &&
+        removeLiquidityPair.amount1
+    "
+    class="detailed"
+  >
     <div class="detailed--input input-amount mt">
       <div class="input-amount--col">
         <input
@@ -53,7 +52,7 @@ export default {
           placeholder="0.345"
           type="number"
           class="input-amount--value"
-          @input="onInput($event.target.value)"
+          @input="onInput"
         >
         <div class="input-amount--price">
           $284.22
@@ -91,7 +90,7 @@ export default {
           type="text"
           class="input-amount--value"
         >
-          {{ getFormattedValue(removeLiquidityPair.amount0) }}
+          {{ formatAmount(removeLiquidityPair.amount0) }}
         </div>
         <div class="input-amount--price">
           $284.22
@@ -117,7 +116,7 @@ export default {
           type="text"
           class="input-amount--value"
         >
-          {{ getFormattedValue(removeLiquidityPair.amount1) }}
+          {{ formatAmount(removeLiquidityPair.amount1) }}
         </div>
         <div class="input-amount--price">
           $284.22
@@ -139,7 +138,7 @@ export default {
           {{ selectedTokens.tokenB.symbol }}
         </div>
         <div>
-          {{ getFormattedRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
+          {{ formatRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
           {{ selectedTokens.tokenA.symbol }}
         </div>
       </div>
@@ -149,7 +148,7 @@ export default {
           {{ selectedTokens.tokenA.symbol }}
         </div>
         <div>
-          {{ getFormattedRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
+          {{ formatRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
           {{ selectedTokens.tokenB.symbol }}
         </div>
       </div>

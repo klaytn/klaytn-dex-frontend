@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import { ValueEther, ValueWei } from '@/core/kaikas'
+import { ValueEther } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 import { fromWei } from 'web3-utils'
+import { formatWeiValue } from '@/utils/common'
 
 const liquidityStore = useLiquidityStore()
 const tokensStore = useTokensStore()
@@ -23,12 +24,6 @@ function onDragEnd(newValue: number) {
 
   liquidityStore.setRmLiqValue(renderValue)
   liquidityStore.calcRemoveLiquidityAmounts(renderValue)
-}
-
-function formatWeiValue(value: ValueWei<string>): string {
-  if (!value) return '-'
-  const bn = new BigNumber(fromWei(value))
-  return bn.toFixed(4)
 }
 </script>
 

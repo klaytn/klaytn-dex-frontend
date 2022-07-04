@@ -217,7 +217,7 @@ export const useLiquidityStore = defineStore('liquidity', () => {
     }
   }
 
-  async function removeLiquidity(state: State) {
+  async function removeLiquidity() {
     const kaikas = kaikasStore.getKaikasAnyway()
     const selfAddr = kaikas.cfg.addrs.self
 

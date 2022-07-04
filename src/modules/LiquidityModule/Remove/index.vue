@@ -1,56 +1,48 @@
-<script lang="ts">
-import { mapActions, mapState } from 'pinia'
+<script lang="ts" setup>
+import { storeToRefs } from 'pinia'
+import { formatWeiValue } from '@/utils/common'
 
-export default {
-  name: 'LiquidityModuleRemove',
-  data() {
-    return {
-      active: 'amount',
-    }
-  },
-  computed: {
-    ...mapState(useTokensStore, ['selectedTokens']),
-    ...mapState(useLiquidityStore, ['removeLiquidityPair']),
-  },
-  methods: {
-    ...mapActions(useLiquidityStore, ['removeLiquidity']),
-    getFormattedValue(_v) {
-      if (!_v) return '-'
+const tokensStore = useTokensStore()
+const { selectedTokens } = $(storeToRefs(tokensStore))
 
-      const bn = $kaikas.bigNumber($kaikas.fromWei(_v))
+const liquidityStore = useLiquidityStore()
+const { removeLiquidityPair } = $(storeToRefs(liquidityStore))
 
-      return Number(bn.toFixed(4))
-    },
-  },
+// TODO move out from setup
+const ACTIVE_VALUES = ['amount', 'detailed'] as const
+type Active = typeof ACTIVE_VALUES[number]
+function activeLabel(value: Active): string {
+  return value === 'amount' ? 'Amount' : 'Detailed'
 }
+
+const active = $ref<Active>('amount')
 </script>
 
 <template>
   <div class="rl--wrap">
     <div class="switch">
       <div
-        class="switch--item"
-        :class="{ 'switch--item-active': active === 'amount' }"
-        @click="active = 'amount'"
+        v-for="i in ACTIVE_VALUES"
+        :key="i"
+        :class="[
+          'switch--item',
+          {
+            'switch--item-active': active === i,
+          },
+        ]"
+        @click="active = i"
       >
-        Amount
-      </div>
-      <div
-        class="switch--item"
-        :class="{ 'switch--item-active': active === 'detailed' }"
-        @click="active = 'detailed'"
-      >
-        Detailed
+        {{ activeLabel(i) }}
       </div>
     </div>
 
     <LiquidityModuleRemoveAmount v-if="active === 'amount'" />
-    <LiquidityModuleRemoveDetailed v-if="active === 'detailed'" />
+    <LiquidityModuleRemoveDetailed v-else />
 
     <KlayButton
       type="button"
       class="mt"
-      @click="removeLiquidity"
+      @click="liquidityStore.removeLiquidity()"
     >
       Remove
     </KlayButton>
@@ -64,18 +56,21 @@ export default {
         </template>
         <template #main>
           <div
-            v-if="selectedTokens.tokenA && selectedTokens.tokenB"
+            v-if="selectedTokens.tokenA"
             class="rl--row"
           >
             <div>{{ selectedTokens.tokenA.symbol }}</div>
             <div>
-              {{ removeLiquidityPair.amount0 && getFormattedValue(removeLiquidityPair.amount0) }}
+              {{ removeLiquidityPair.amount0 && formatWeiValue(removeLiquidityPair.amount0) }}
             </div>
           </div>
-          <div class="rl--row">
+          <div
+            v-if="selectedTokens.tokenB"
+            class="rl--row"
+          >
             <div>{{ selectedTokens.tokenB.symbol }}</div>
             <div>
-              {{ removeLiquidityPair.amount1 && getFormattedValue(removeLiquidityPair.amount1) }}
+              {{ removeLiquidityPair.amount1 && formatWeiValue(removeLiquidityPair.amount1) }}
             </div>
           </div>
           <div
@@ -88,7 +83,10 @@ export default {
             </div>
             <div>-</div>
           </div>
-          <div class="rl--row">
+          <div
+            v-if="selectedTokens.tokenA && selectedTokens.tokenB"
+            class="rl--row"
+          >
             <div>
               {{ selectedTokens.tokenB.symbol }} per
               {{ selectedTokens.tokenA.symbol }}
