@@ -79,170 +79,36 @@ export default class Liquidity {
 
     const addLiquidityWithMode =
       paramsRaw.mode === 'in'
-        ? () =>
-            this.cfg.contracts.router.methods.addLiquidity(
-              params.tokenBAddress,
-              params.tokenAAddress,
-              params.tokenBValue,
-              params.tokenAValue,
-              params.amountBMin,
-              params.amountAMin,
-              params.userAddress,
-              params.deadline,
-            )
-        : () =>
-            this.cfg.contracts.router.methods.addLiquidity(
-              params.tokenAAddress,
-              params.tokenBAddress,
-              params.tokenAValue,
-              params.tokenBValue,
-              params.amountAMin,
-              params.amountBMin,
-              params.userAddress,
-              params.deadline,
-            )
+        ? this.cfg.contracts.router.methods.addLiquidity(
+            params.tokenBAddress,
+            params.tokenAAddress,
+            params.tokenBValue,
+            params.tokenAValue,
+            params.amountBMin,
+            params.amountAMin,
+            params.userAddress,
+            params.deadline,
+          )
+        : this.cfg.contracts.router.methods.addLiquidity(
+            params.tokenAAddress,
+            params.tokenBAddress,
+            params.tokenAValue,
+            params.tokenBValue,
+            params.amountAMin,
+            params.amountBMin,
+            params.userAddress,
+            params.deadline,
+          )
 
-    const lqGas = await addLiquidityWithMode().estimateGas()
+    const lqGas = await addLiquidityWithMode.estimateGas()
     const send = () =>
-      addLiquidityWithMode().send({
+      addLiquidityWithMode.send({
         from: this.cfg.addrs.self,
         gas: lqGas,
         gasPrice: MAGIC_GAS_PRICE,
       })
 
     return { gas: lqGas, send }
-  }
-
-  /**
-   * @deprecated see {@link addLiquidityAmountForExistingPair}
-   */
-  public async addLiquidityAmountOutForExistPair({
-    tokenBValue,
-    tokenAValue,
-    tokenAddressA,
-    tokenAddressB,
-    amountAMin,
-    deadLine,
-  }: {
-    tokenBValue: BigNumber
-    tokenAValue: BigNumber
-    tokenAddressA: Address
-    tokenAddressB: Address
-    amountAMin: BigNumber
-    deadLine: number
-  }) {
-    const params = {
-      tokenAAddress: tokenAddressA,
-      tokenBAddress: tokenAddressB,
-      tokenAValue: tokenAValue.toFixed(0),
-      tokenBValue: tokenBValue.toFixed(0),
-      amountAMin: amountAMin.toFixed(0),
-      amountBMin: tokenBValue.minus(tokenBValue.dividedToIntegerBy(100)).toFixed(0),
-      userAddress: this.cfg.addrs.self,
-      deadLine,
-    }
-
-    const lqGas = await this.cfg.contracts.router.methods
-      .addLiquidity(
-        params.tokenAAddress,
-        params.tokenBAddress,
-        params.tokenAValue,
-        params.tokenBValue,
-        params.amountAMin,
-        params.amountBMin,
-        params.userAddress,
-        params.deadLine,
-      )
-      .estimateGas()
-
-    const send = async () =>
-      await this.cfg.contracts.router.methods
-        .addLiquidity(
-          params.tokenAAddress,
-          params.tokenBAddress,
-          params.tokenAValue,
-          params.tokenBValue,
-          params.amountAMin,
-          params.amountBMin,
-          params.userAddress,
-          params.deadLine,
-        )
-        .send({
-          from: this.cfg.addrs.self,
-          gas: lqGas,
-          gasPrice: MAGIC_GAS_PRICE,
-        })
-
-    return {
-      gas: lqGas,
-      send,
-    }
-  }
-
-  /**
-   * @deprecated see {@link addLiquidityAmountForExistingPair}
-   */
-  public async addLiquidityAmountInForExistPair({
-    tokenBValue,
-    tokenAValue,
-    tokenAddressA,
-    tokenAddressB,
-    amountBMin,
-    deadLine,
-  }: {
-    tokenBValue: BigNumber
-    tokenAValue: BigNumber
-    tokenAddressA: Address
-    tokenAddressB: Address
-    amountBMin: BigNumber
-    deadLine: number
-  }) {
-    const params = {
-      tokenAAddress: tokenAddressA,
-      tokenBAddress: tokenAddressB,
-      tokenAValue: tokenAValue.toFixed(0),
-      tokenBValue: tokenBValue.toFixed(0),
-      amountAMin: tokenAValue.minus(tokenAValue.dividedToIntegerBy(100)).toFixed(0),
-      amountBMin: amountBMin.toFixed(0),
-      userAddress: this.cfg.addrs.self,
-      deadLine,
-    }
-
-    const lqGas = await this.cfg.contracts.router.methods
-      .addLiquidity(
-        params.tokenBAddress,
-        params.tokenAAddress,
-        params.tokenBValue,
-        params.tokenAValue,
-        params.amountBMin,
-        params.amountAMin,
-        params.userAddress,
-        params.deadLine,
-      )
-      .estimateGas()
-
-    const send = async () =>
-      await this.cfg.contracts.router.methods
-        .addLiquidity(
-          params.tokenBAddress,
-          params.tokenAAddress,
-          params.tokenBValue,
-          params.tokenAValue,
-          params.amountBMin,
-          params.amountAMin,
-          params.userAddress,
-          params.deadLine,
-        )
-        .send({
-          from: this.cfg.addrs.self,
-          gas: lqGas,
-          gasPrice: MAGIC_GAS_PRICE,
-        })
-
-    return {
-      gas: lqGas,
-      send,
-    }
   }
 
   public async addLiquidityKlayForExistsPair({
@@ -267,37 +133,28 @@ export default class Liquidity {
       deadline,
     }
 
-    const lqETHGas = await this.cfg.contracts.router.methods
-      .addLiquidityETH(
-        params.addressA,
-        params.tokenAValue,
-        params.amountAMin,
-        params.amountBMin,
-        params.address,
-        params.deadline,
-      )
-      .estimateGas({
-        from: this.cfg.addrs.self,
-        gasPrice: MAGIC_GAS_PRICE,
-        value: tokenBValue.toFixed(0),
-      })
+    const addLiquidity = this.cfg.contracts.router.methods.addLiquidityETH(
+      params.addressA,
+      params.tokenAValue,
+      params.amountAMin,
+      params.amountBMin,
+      params.address,
+      params.deadline,
+    )
+
+    const lqETHGas = await addLiquidity.estimateGas({
+      from: this.cfg.addrs.self,
+      gasPrice: MAGIC_GAS_PRICE,
+      value: tokenBValue.toFixed(0),
+    })
 
     const send = async () =>
-      await this.cfg.contracts.router.methods
-        .addLiquidityETH(
-          params.addressA,
-          params.tokenAValue,
-          params.amountAMin,
-          params.amountBMin,
-          params.address,
-          params.deadline,
-        )
-        .send({
-          from: this.cfg.addrs.self,
-          gasPrice: MAGIC_GAS_PRICE,
-          gas: lqETHGas,
-          value: tokenBValue.toFixed(0),
-        })
+      await addLiquidity.send({
+        from: this.cfg.addrs.self,
+        gasPrice: MAGIC_GAS_PRICE,
+        gas: lqETHGas,
+        value: tokenBValue.toFixed(0),
+      })
 
     return { gas: lqETHGas, send }
   }
@@ -326,37 +183,28 @@ export default class Liquidity {
       address: this.cfg.addrs.self,
     }
 
-    const lqETHGas = await this.cfg.contracts.router.methods
-      .addLiquidityETH(
-        params.addressA,
-        params.tokenAValue,
-        params.amountAMin,
-        params.amountBMin,
-        params.address,
-        params.deadline,
-      )
-      .estimateGas({
+    const addLiquidity = this.cfg.contracts.router.methods.addLiquidityETH(
+      params.addressA,
+      params.tokenAValue,
+      params.amountAMin,
+      params.amountBMin,
+      params.address,
+      params.deadline,
+    )
+
+    const lqETHGas = await addLiquidity.estimateGas({
+      from: this.cfg.addrs.self,
+      gasPrice: MAGIC_GAS_PRICE,
+      value: tokenBValue.toFixed(0),
+    })
+
+    const send = async () =>
+      await addLiquidity.send({
         from: this.cfg.addrs.self,
         gasPrice: MAGIC_GAS_PRICE,
         value: tokenBValue.toFixed(0),
+        gas: lqETHGas,
       })
-
-    const send = async () =>
-      await this.cfg.contracts.router.methods
-        .addLiquidityETH(
-          params.addressA,
-          params.tokenAValue,
-          params.amountAMin,
-          params.amountBMin,
-          params.address,
-          params.deadline,
-        )
-        .send({
-          from: this.cfg.addrs.self,
-          gasPrice: MAGIC_GAS_PRICE,
-          value: tokenBValue.toFixed(0),
-          gas: lqETHGas,
-        })
 
     return { gas: lqETHGas, send }
   }

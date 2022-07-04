@@ -18,7 +18,7 @@ export const useKaikasStore = defineStore('kaikas', () => {
 
     kaikasState.value = {
       status: 'connected',
-      kaikas: new Kaikas(cfgResult.cfg),
+      kaikas: markRaw(new Kaikas(cfgResult.cfg)),
     }
   }
 

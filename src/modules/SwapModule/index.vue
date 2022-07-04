@@ -13,12 +13,12 @@ const { pairNotExist, exchangeRateLoading } = $(storeToRefs(swapStore))
 const isLoading = $computed(() => !tokensList.length)
 
 onBeforeUnmount(() => {
-  swapStore.$reset()
+  swapStore.reset()
   tokensStore.clearSelectedTokens()
 })
 
 function onRefreshClick() {
-  swapStore.$reset()
+  swapStore.reset()
 }
 
 const swapTokensTask = useTask(async () => {

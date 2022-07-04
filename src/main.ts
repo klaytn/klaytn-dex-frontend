@@ -14,6 +14,6 @@ const routes = setupLayouts(generatedRoutes)
 const router = createRouter({ history: createWebHistory(), routes })
 app.use(router)
 
-Object.values(import.meta.globEager('./plugins/*.ts')).map((i) => i.install?.({ app, router, routes }))
+Object.values(import.meta.globEager('./plugins/*.ts')).forEach((i) => i.install?.({ app, router, routes }))
 
 app.mount('#app')

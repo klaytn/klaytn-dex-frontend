@@ -47,7 +47,13 @@ async function connect() {
   await kaikasStore.connect()
 
   if (kaikasStore.status === 'connected') {
-    if (!tokensList.value.length) await tokensStore.getTokens()
+    if (!tokensList.value.length) {
+      const result = await tokensStore.getTokensTask.run()
+
+      if (result.kind === 'err') {
+        console.error('Failed to get tokens:', result.error)
+      }
+    }
   }
 }
 

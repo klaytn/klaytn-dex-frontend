@@ -1,10 +1,8 @@
 <script lang="ts" setup>
-import { ValueEther, ValueWei } from '@/core/kaikas'
+import { ValueEther, ValueWei, fromWei } from '@/core/kaikas'
 import { formatWeiValue, formatRate } from '@/utils/common'
-import debounce from 'debounce'
-import { mapActions, mapState, storeToRefs } from 'pinia'
+import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
-import { fromWei } from 'web3-utils'
 
 const tokensStore = useTokensStore()
 const { selectedTokens } = $(storeToRefs(tokensStore))

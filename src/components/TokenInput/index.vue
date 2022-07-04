@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import { roundTo } from 'round-to'
-import { fromWei } from 'web3-utils'
 import invariant from 'tiny-invariant'
-import { formatAddress, Token } from '@/core/kaikas'
+import { formatAddress, Token, fromWei } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
 
 const props = withDefaults(

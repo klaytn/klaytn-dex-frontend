@@ -6,7 +6,7 @@ export interface Klaytn {
   /**
    * FIXME is it async? Does it return {@link Address}?
    */
-  enable: () => string[]
+  enable: () => Promise<Address[]>
 }
 
 export interface Token {
@@ -25,11 +25,11 @@ export interface Token {
   symbol: string
   balance: Balance
 
-  /**
-   * FIXME what is a price? Why it is `-`? Should be typed stricter
-   * maybe from CoinMarketCap too
-   */
-  price?: string
+  // /**
+  //  * FIXME what is a price? Why it is `-`? Should be typed stricter
+  //  * maybe from CoinMarketCap too
+  //  */
+  // price?: string
 
   // rudiment from CoinMarketCap integration
   // logo?: string
@@ -54,7 +54,7 @@ export type Address = Opaque<string, 'Address'>
  *
  * **upd**: also see `src/components/TokenSelect/Modal.vue`
  */
-export type Balance = Opaque<string, 'Balance'>
+export type Balance<T extends AnyNumber = string> = ValueWei<T>
 
 type AnyNumber = number | string | BN | BigNumber
 
@@ -62,23 +62,24 @@ export type ValueEther<T extends AnyNumber = AnyNumber> = Opaque<T, 'ether'>
 
 export type ValueWei<T extends AnyNumber = AnyNumber> = Opaque<T, 'wei'>
 
-/**
- * FIXME describe all internals
- */
-export interface Pair {
-  userBalance: Balance
-  pairBalance: Balance
-  symbol: string
-  name: string
-  reserves: {
-    _reserve0: string
-    _reserve1: string
-    _blockTimestampLast: string
-    0: string
-    1: string
-    2: string
-  }
-  address: Address
-  symbolA?: string | undefined
-  symbolB?: string | undefined
-}
+// /**
+//  * FIXME describe all internals
+//  *
+//  */
+// export interface Pair {
+//   userBalance: Balance
+//   pairBalance: Balance
+//   symbol: string
+//   name: string
+//   reserves: {
+//     _reserve0: string
+//     _reserve1: string
+//     _blockTimestampLast: string
+//     0: string
+//     1: string
+//     2: string
+//   }
+//   address: Address
+//   symbolA?: string | undefined
+//   symbolB?: string | undefined
+// }

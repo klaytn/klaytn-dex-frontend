@@ -3,11 +3,9 @@ import { Address, Balance, isEmptyAddress, Token } from '@/core/kaikas'
 import type { DexPair } from '@/types/typechain/swap'
 import { PAIR as PAIR_ABI } from '@/core/kaikas/smartcontracts/abi'
 import invariant from 'tiny-invariant'
+import { useTask, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
 
-/**
- * What does it mean?
- */
-const MOCKED_TOKENS = [
+const TOKENS_WHITELIST = [
   '0xb9920BD871e39C6EF46169c32e7AC4C698688881',
   '0x1CDcD477994e86A11E21C27ca907bEA266EA3A0a',
   '0x2486A551714F947C386Fe9c8b895C2A6b3275EC9',
@@ -20,13 +18,10 @@ const MOCKED_TOKENS = [
   '0x246C989333Fa3C3247C7171F6bca68062172992C',
 ] as Address[]
 
-function createKlayToken(klayBalance: Balance): Token {
-  return {
-    address: '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address,
-    symbol: 'KLAY',
-    name: 'Klaytn',
-    balance: klayBalance,
-  }
+const KLAY_TOKEN: Pick<Token, 'address' | 'symbol' | 'name'> = {
+  address: '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address,
+  symbol: 'KLAY',
+  name: 'Klaytn',
 }
 
 interface State {
@@ -112,32 +107,28 @@ export const useTokensStore = defineStore('tokens', () => {
     }
   }
 
-  function setCurrencyRate({ type }: { type: 'tokenB' | 'tokenA' }) {
-    const token = state.selectedTokens[type]
-    if (token === null) throw new Error('No selected tokens')
-
-    state.selectedTokens[type] = {
-      ...token,
-
-      // FIXME add type semantics
-      price: '-',
-    }
-  }
-
-  async function getTokens() {
+  const getTokensTask = useTask(async () => {
     const kaikas = kaikasStore.getKaikasAnyway()
-    const {
-      caver,
-      addrs: { self: selfAddr },
-    } = kaikas.cfg
 
-    const balance = (await caver.klay.getBalance(selfAddr)) as Balance
-    const klay = createKlayToken(balance)
+    const balance = (await kaikas.cfg.caver.klay.getBalance(kaikas.selfAddress)) as Balance
+    const klay: Token = { ...KLAY_TOKEN, balance }
 
-    const mockedTokens = await Promise.all(MOCKED_TOKENS.map((addr) => kaikas.createToken(addr)))
+    const mockedTokens = await Promise.all(
+      TOKENS_WHITELIST.map((addr) =>
+        // eslint-disable-next-line max-nested-callbacks
+        kaikas.createToken(addr).catch((err) => {
+          console.error('failed token:', addr)
+          throw err
+        }),
+      ),
+    )
 
-    state.tokensList = [klay, ...mockedTokens]
-  }
+    return [klay, ...mockedTokens]
+  })
+
+  wheneverTaskSucceeds(getTokensTask, (tokens) => {
+    state.tokensList = tokens
+  })
 
   function setSelectedToken({ type, token }: { type: 'tokenB' | 'tokenA'; token: Token }) {
     state.selectedTokens[type] = token
@@ -194,12 +185,11 @@ export const useTokensStore = defineStore('tokens', () => {
   return {
     ...toRefs(state),
 
-    getTokens,
+    getTokensTask,
     clearSelectedTokens,
     setTokenValue,
     setSelectedToken,
     setComputedToken,
-    setCurrencyRate,
     setSelectedTokensByPair,
     checkEmptyPair,
 

@@ -2,10 +2,9 @@
 // FIXME component is closely the same as `src/modules/SwapModule/ExchangeRate.vue`
 // remove code duplication
 
-import { ValueWei } from '@/core/kaikas'
+import { ValueWei, toWei } from '@/core/kaikas'
 import { useDanglingScope, useTask } from '@vue-kakuyaku/core'
 import { storeToRefs } from 'pinia'
-import { toWei } from 'web3-utils'
 
 const tokensStore = useTokensStore()
 const { selectedTokens } = $(storeToRefs(tokensStore))

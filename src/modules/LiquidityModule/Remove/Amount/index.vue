@@ -1,9 +1,8 @@
 <script lang="ts" setup>
-import { ValueEther } from '@/core/kaikas'
+import { ValueEther, fromWei } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
-import { fromWei } from 'web3-utils'
 import { formatWeiValue } from '@/utils/common'
 
 const liquidityStore = useLiquidityStore()

@@ -41,6 +41,10 @@ export const useSwapStore = defineStore('swap', () => {
 
   const state = reactive(stateFactory())
 
+  function reset() {
+    Object.assign(state, stateFactory())
+  }
+
   async function getAmount(value: string, mode: 'in' | 'out') {
     const kaikas = kaikasStore.getKaikasAnyway()
     const { tokenA, tokenB } = tokensStore.getSelectedTokensAnyway()
@@ -177,6 +181,7 @@ export const useSwapStore = defineStore('swap', () => {
 
   return {
     ...toRefs(state),
+    reset,
 
     getAmount,
     swapExactTokensForTokensTask,

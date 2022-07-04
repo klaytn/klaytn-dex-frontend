@@ -1,6 +1,5 @@
-import { ValueWei } from '@/core/kaikas'
+import { ValueWei, fromWei } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
-import { fromWei } from 'web3-utils'
 
 // FIXME v1 & v2 values comes from `Token.value`. What type is it?
 

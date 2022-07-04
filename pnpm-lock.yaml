@@ -64,7 +64,6 @@ specifiers:
   vue-router: ^4.0.15
   vue-tsc: ^0.36.0
   web3: ^1.7.3
-  web3-utils: ^1.7.4
 
 dependencies:
   '@apollo/client': 3.6.9_graphql@16.5.0
@@ -94,7 +93,6 @@ dependencies:
   vue-i18n: 9.1.10_vue@3.2.37
   vue-router: 4.0.16_vue@3.2.37
   web3: 1.7.3
-  web3-utils: 1.7.4
 
 devDependencies:
   '@iconify-json/carbon': 1.1.5
@@ -9902,19 +9900,6 @@ packages:
     engines: {node: '>=8.0.0'}
     dependencies:
       bn.js: 4.12.0
-      ethereum-bloom-filters: 1.0.10
-      ethereumjs-util: 7.1.5
-      ethjs-unit: 0.1.6
-      number-to-bn: 1.7.0
-      randombytes: 2.1.0
-      utf8: 3.0.0
-    dev: false
-
-  /web3-utils/1.7.4:
-    resolution: {integrity: sha512-acBdm6Evd0TEZRnChM/MCvGsMwYKmSh7OaUfNf5OKG0CIeGWD/6gqLOWIwmwSnre/2WrA1nKGId5uW2e5EfluA==}
-    engines: {node: '>=8.0.0'}
-    dependencies:
-      bn.js: 5.2.1
       ethereum-bloom-filters: 1.0.10
       ethereumjs-util: 7.1.5
       ethjs-unit: 0.1.6

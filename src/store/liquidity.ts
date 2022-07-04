@@ -1,13 +1,12 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 import { Status } from '@soramitsu-ui/ui'
-import { Address, Balance, isEmptyAddress, Kaikas, sortKlayPair, ValueEther, ValueWei, type Token } from '@/core/kaikas'
+import { Address, Balance, isEmptyAddress, sortKlayPair, ValueEther, ValueWei, type Token, toWei } from '@/core/kaikas'
 import type { DexPair } from '@/types/typechain/swap'
 import type { KIP7 } from '@/types/typechain/tokens'
 import BigNumber from 'bignumber.js'
 import { KIP7 as KIP7_ABI, PAIR as PAIR_ABI } from '@/core/kaikas/smartcontracts/abi'
 import { AddLiquidityAmountParamsBase, deadlineFromMs, Deadline } from '@/core/kaikas/Liquidity'
-import { toWei } from 'web3-utils'
 import { MAGIC_GAS_PRICE } from '@/core/kaikas/const'
 import invariant from 'tiny-invariant'
 

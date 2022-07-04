@@ -1,5 +1,4 @@
 import web3 from 'web3'
-import BigNumber from 'bignumber.js'
 import { type Address, type Token } from './types'
 import { NATIVE_TOKEN } from './const'
 
@@ -25,12 +24,7 @@ export function parseAddress(raw: string): Address {
   throw new Error(`not a valid address: "${raw}"`)
 }
 
-/**
- * FIXME what a weird conversion?
- */
-export function bigNumber(amount: BigNumber.Value) {
-  return new BigNumber(amount)
-}
+export const { fromWei, toWei } = web3.utils
 
 export function sortKlayPair(tokenA: Token, tokenB: Token) {
   if (isNativeToken(tokenA.address)) return [tokenB, tokenA]

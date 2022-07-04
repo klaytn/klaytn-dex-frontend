@@ -1,7 +1,7 @@
 <script setup lang="ts" name="SwapModuleExchangeRate">
 import { useDanglingScope, useTask } from '@vue-kakuyaku/core'
 import { storeToRefs } from 'pinia'
-import { toWei } from 'web3-utils'
+import { toWei } from '@/core/kaikas'
 
 const tokensStore = useTokensStore()
 const { selectedTokens } = $(storeToRefs(tokensStore))

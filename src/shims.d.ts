@@ -7,6 +7,9 @@ import { type Klaytn } from '@/core/kaikas'
 declare global {
   interface Window {
     // extend the window
+    /**
+     * @deprecated
+     */
     $notify: (params: ShowNotificationParams) => ShowNotificationReturn
     caver?: Caver
     klaytn?: Klaytn

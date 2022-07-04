@@ -29,14 +29,14 @@ export default class Kaikas {
   public async createToken(addr: Address): Promise<Token> {
     const contract = this.cfg.createContract<KIP7>(addr, KIP7_ABI)
 
-    return {
-      // id: addr,
-      address: addr,
+    console.log({ contract, addr })
 
-      // FIXME Promise.all
-      name: await contract.methods.name().call(),
-      symbol: await contract.methods.symbol().call(),
-      balance: (await contract.methods.balanceOf(addr).call()) as Balance,
-    }
+    const [name, symbol, balance] = await Promise.all([
+      contract.methods.name().call(),
+      contract.methods.symbol().call(),
+      contract.methods.balanceOf(addr).call() as Promise<Balance>,
+    ])
+
+    return { address: addr, name, symbol, balance }
   }
 }

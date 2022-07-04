@@ -3,7 +3,7 @@
   "packageManager": "pnpm@7.1.6",
   "scripts": {
     "build": "vite build",
-    "dev": "vite --port 3333 --open",
+    "dev": "vite --port 3333",
     "lint": "eslint --ext=js,ts,vue .",
     "format:base": "prettier-eslint \"**/*.{js,ts,vue,json}\"",
     "format:check": "pnpm run format:base --list-different",
@@ -42,8 +42,7 @@
     "vue-demi": "^0.13.1",
     "vue-i18n": "^9.1.10",
     "vue-router": "^4.0.15",
-    "web3": "^1.7.3",
-    "web3-utils": "^1.7.4"
+    "web3": "^1.7.3"
   },
   "devDependencies": {
     "@iconify-json/carbon": "^1.1.5",

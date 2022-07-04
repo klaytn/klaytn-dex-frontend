@@ -34,18 +34,22 @@ export default class Swap {
 
   public async swapExactTokensForTokens({ addressA, addressB, valueA, valueB }: SwapProps) {
     const deadLine = Math.floor(Date.now() / 1000 + 300)
-    const swapGas = await this.cfg.contracts.router.methods
-      .swapExactTokensForTokens(valueA, valueB, [addressA, addressB], this.addr, deadLine)
-      .estimateGas()
+    const contract = this.cfg.contracts.router.methods.swapExactTokensForTokens(
+      valueA,
+      valueB,
+      [addressA, addressB],
+      this.addr,
+      deadLine,
+    )
+
+    const swapGas = await contract.estimateGas()
 
     const send = async () =>
-      await this.cfg.contracts.router.methods
-        .swapExactTokensForTokens(valueA, valueB, [addressA, addressB], this.addr, deadLine)
-        .send({
-          from: this.addr,
-          gas: swapGas,
-          gasPrice: MAGIC_GAS_PRICE,
-        })
+      await contract.send({
+        from: this.addr,
+        gas: swapGas,
+        gasPrice: MAGIC_GAS_PRICE,
+      })
 
     return {
       swapGas,
@@ -55,18 +59,22 @@ export default class Swap {
 
   public async swapTokensForExactTokens({ addressA, addressB, valueA, valueB }: SwapProps) {
     const deadLine = Math.floor(Date.now() / 1000 + 300)
-    const swapGas = await this.cfg.contracts.router.methods
-      .swapTokensForExactTokens(valueB, valueA, [addressA, addressB], this.addr, deadLine)
-      .estimateGas()
+    const contract = this.cfg.contracts.router.methods.swapTokensForExactTokens(
+      valueB,
+      valueA,
+      [addressA, addressB],
+      this.addr,
+      deadLine,
+    )
+
+    const swapGas = await contract.estimateGas()
 
     const send = async () =>
-      await this.cfg.contracts.router.methods
-        .swapTokensForExactTokens(valueB, valueA, [addressA, addressB], this.addr, deadLine)
-        .send({
-          from: this.addr,
-          gas: swapGas,
-          gasPrice: MAGIC_GAS_PRICE,
-        })
+      await contract.send({
+        from: this.addr,
+        gas: swapGas,
+        gasPrice: MAGIC_GAS_PRICE,
+      })
 
     return { swapGas, send }
   }
@@ -94,24 +102,26 @@ export default class Swap {
 
   public async swapExactETHForTokens({ addressA, addressB, valueA, valueB }: SwapProps) {
     const deadLine = Math.floor(Date.now() / 1000 + 300)
+    const contract = this.cfg.contracts.router.methods.swapExactETHForTokens(
+      valueA,
+      [addressB, addressA],
+      this.addr,
+      deadLine,
+    )
 
-    const swapGas = await this.cfg.contracts.router.methods
-      .swapExactETHForTokens(valueA, [addressB, addressA], this.addr, deadLine)
-      .estimateGas({
-        value: valueB,
-        from: this.addr,
-        gasPrice: MAGIC_GAS_PRICE,
-      })
+    const swapGas = await contract.estimateGas({
+      value: valueB,
+      from: this.addr,
+      gasPrice: MAGIC_GAS_PRICE,
+    })
 
     const send = async () =>
-      await this.cfg.contracts.router.methods
-        .swapExactETHForTokens(valueA, [addressB, addressA], this.addr, deadLine)
-        .send({
-          value: valueB,
-          from: this.addr,
-          gas: swapGas,
-          gasPrice: MAGIC_GAS_PRICE,
-        })
+      await contract.send({
+        value: valueB,
+        from: this.addr,
+        gas: swapGas,
+        gasPrice: MAGIC_GAS_PRICE,
+      })
     return { gas: swapGas, send }
   }
 
@@ -127,16 +137,16 @@ export default class Swap {
     amountIn: string
   }) {
     const deadLine = Math.floor(Date.now() / 1000 + 300)
-    const swapGas = await this.cfg.contracts.router.methods
-      .swapETHForExactTokens(amountOut, [to, from], this.addr, deadLine)
-      .estimateGas({
-        value: amountIn,
-        from: this.addr,
-        gasPrice: MAGIC_GAS_PRICE,
-      })
+    const contract = this.cfg.contracts.router.methods.swapETHForExactTokens(amountOut, [to, from], this.addr, deadLine)
+
+    const swapGas = await contract.estimateGas({
+      value: amountIn,
+      from: this.addr,
+      gasPrice: MAGIC_GAS_PRICE,
+    })
 
     const send = async () =>
-      await this.cfg.contracts.router.methods.swapETHForExactTokens(amountOut, [to, from], this.addr, deadLine).send({
+      await contract.send({
         value: amountIn,
         gas: swapGas,
         from: this.addr,
@@ -158,20 +168,24 @@ export default class Swap {
     to: string
   }) {
     const deadLine = Math.floor(Date.now() / 1000 + 300)
-    const swapGas = await this.cfg.contracts.router.methods
-      .swapTokensForExactETH(amountOut, amountInMax, [from, to], this.addr, deadLine)
-      .estimateGas({
+    const contract = this.cfg.contracts.router.methods.swapTokensForExactETH(
+      amountOut,
+      amountInMax,
+      [from, to],
+      this.addr,
+      deadLine,
+    )
+
+    const swapGas = await contract.estimateGas({
+      from: this.addr,
+      gasPrice: MAGIC_GAS_PRICE,
+    })
+    const send = async () =>
+      await contract.send({
         from: this.addr,
+        gas: swapGas,
         gasPrice: MAGIC_GAS_PRICE,
       })
-    const send = async () =>
-      await this.cfg.contracts.router.methods
-        .swapTokensForExactETH(amountOut, amountInMax, [from, to], this.addr, deadLine)
-        .send({
-          from: this.addr,
-          gas: swapGas,
-          gasPrice: MAGIC_GAS_PRICE,
-        })
 
     return { send, swapGas }
   }

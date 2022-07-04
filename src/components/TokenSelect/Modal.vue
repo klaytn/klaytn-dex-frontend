@@ -1,11 +1,10 @@
 <script lang="ts" setup>
 import { Status } from '@soramitsu-ui/ui'
-import { type Balance, isAddress, Token, Address } from '@/core/kaikas'
+import { type Balance, isAddress, Token, Address, fromWei } from '@/core/kaikas'
 import { useTask, useScope } from '@vue-kakuyaku/core'
 import { type KIP7 } from '@/types/typechain/tokens'
 import { KIP7 as KIP7_ABI } from '@/core/kaikas/smartcontracts/abi'
 import BigNumber from 'bignumber.js'
-import { fromWei } from 'web3-utils'
 import { storeToRefs } from 'pinia'
 
 const emit = defineEmits<(...args: [event: 'close'] | [event: 'select', value: Token]) => void>()

@@ -1,4 +1,4 @@
-import type BigNumber from 'bignumber.js'
+import BigNumber from 'bignumber.js'
 import * as utils from './utils'
 import type { DexFactory, DexRouter } from '@/types/typechain/swap'
 import type { WETH9 } from '@/types/typechain/tokens/WKLAY.sol'
@@ -15,11 +15,9 @@ export default class Config {
       return { status: 'kaikas-not-installed' }
     }
 
-    const klaytnAddrs =
-      // FIXME remove await?
-      await klaytn.enable()
+    const klaytnAddrs = await klaytn.enable()
 
-    const selfAddr = klaytnAddrs[0] as Address
+    const selfAddr = klaytnAddrs[0]
     caver.klay.defaultAccount = selfAddr
 
     const cfgAddrs: Config['addrs'] = {
@@ -75,8 +73,8 @@ export default class Config {
       from: this.addrs.self,
     })
 
-    const amount = utils.bigNumber(amountValue)
-    const allowance = utils.bigNumber(allowanceValue)
+    const amount = new BigNumber(amountValue)
+    const allowance = new BigNumber(allowanceValue)
 
     if (amount.isLessThanOrEqualTo(allowance)) return amountValue
 
