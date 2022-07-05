@@ -1,13 +1,46 @@
+<script setup lang="ts" name="TradeWrap" />
+
+<template>
+  <div class="wrap">
+    <div class="head">
+      <slot name="head">
+        <RouterLink
+          to="/swap"
+          class="head--btn"
+          active-class="head--btn-active"
+        >
+          Swap
+        </RouterLink>
+        <RouterLink
+          to="/liquidity"
+          class="head--btn"
+          active-class="head--btn-active"
+        >
+          Liquidity
+        </RouterLink>
+      </slot>
+      <button class="head--btn head--btn-left">
+        <KlayIcon name="refresh" />
+      </button>
+      <button class="head--btn">
+        <KlayIcon name="filters" />
+      </button>
+    </div>
+    <slot />
+  </div>
+</template>
+
+<style lang="scss" scoped>
 @import '@/styles/vars.sass';
 
 .wrap {
   background: linear-gradient(0deg, #ffffff, #ffffff),
-    linear-gradient(
+  linear-gradient(
       180deg,
       rgba(255, 255, 255, 0.7) 0%,
       rgba(255, 255, 255, 0) 100%
-    ),
-    rgba(255, 255, 255, 0.6);
+  ),
+  rgba(255, 255, 255, 0.6);
   box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05);
   padding: 19px 16px;
   border-radius: 20px;
@@ -33,7 +66,7 @@
     font-weight: 700;
     font-size: 18px;
     line-height: 150%;
-    color: $gray2;
+    color: $gray3;
     margin-right: 18px;
     cursor: pointer;
 
@@ -52,38 +85,14 @@
 }
 
 .change-btn {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin: auto;
-  margin-top: -8px;
+  margin-top: -10px;
 }
 
 .margin-block {
-  margin: -8px 0;
-}
-
-.warning-text {
-  margin-top: 16px;
-  font-style: normal;
-  font-weight: 700;
-  font-size: 14px;
-  line-height: 180%;
-  color: #2D2926;
-  margin-right: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  & .svg-icon {
-    height: 20px;
-  }
-
-  & span {
-    margin-left: 5px;
-  }
+  margin: -10px 0;
 }
 
 .slippage {
   margin: 20px 0;
 }
+</style>

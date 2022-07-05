@@ -37,6 +37,8 @@ const vBem = useBemClass()
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars.sass';
+
 .klay-modal {
   position: fixed;
   top: 0;

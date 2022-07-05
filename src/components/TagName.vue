@@ -14,6 +14,8 @@ const { label } = defineProps<{
 </template>
 
 <style lang="scss" scoped>
+@import '@/styles/vars.sass';
+
 .tag-name {
   display: flex;
   align-items: center;

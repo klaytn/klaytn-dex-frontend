@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import type Caver from 'caver-js'
 import type { AbiItem, Contract } from 'caver-js'
 
@@ -70,21 +71,22 @@ export class Config {
     return new this.caver.klay.Contract(abi, address) as unknown as T
   }
 
-  async approveAmount(address: Address, abi: AbiItem[], amount: BigNumber.Value) {
+  async approveAmount(address: Address, abi: AbiItem[], amount: BigNumber.Value, contractAddress = this.routerAddress) {
     const contract = this.createContract<Contract>(address, abi)
 
-    const allowance = await contract.methods.allowance(this.address, this.routerAddress).call({
+    const allowance = await contract.methods.allowance(this.address, contractAddress).call({
       from: this.address,
     })
+    console.log(allowance)
 
     const amountValue = utils.bigNumber(amount)
     const allowanceValue = utils.bigNumber(allowance)
 
     if (amountValue.isLessThanOrEqualTo(allowanceValue)) return amount
 
-    const gas = await contract.methods.approve(this.routerAddress, amount).estimateGas()
+    const gas = await contract.methods.approve(contractAddress, amount).estimateGas()
 
-    return await contract.methods.approve(this.routerAddress, amount).send({
+    return await contract.methods.approve(contractAddress, amount).send({
       from: this.address,
       gas,
       gasPrice: 250000000000,

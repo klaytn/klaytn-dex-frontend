@@ -36,6 +36,8 @@ const vBem = useBemClass()
 </template>
 
 <style scoped lang="sass">
+@import '@/styles/vars.sass'
+
 .header-menu
   display: flex
   align-items: center

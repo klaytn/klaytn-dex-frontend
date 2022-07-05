@@ -19,7 +19,7 @@ export default {
 </script>
 
 <template>
-  <KlayWrap>
+  <TradeWrap>
     <template #head>
       <RouterLink
         to="/liquidity"
@@ -42,10 +42,11 @@ export default {
         <KlayLoader />
       </div>
     </div>
-  </KlayWrap>
+  </TradeWrap>
 </template>
 
 <style lang="scss" scoped>
+@import '@/styles/vars.sass';
 .loader-wrapper {
   margin: 20px auto;
   width: min-content;

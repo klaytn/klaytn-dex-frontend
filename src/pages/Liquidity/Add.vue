@@ -5,7 +5,7 @@ name: LiquidityAdd
 <script setup lang="ts" name="LiquidityAdd" />
 
 <template>
-  <KlayWrap>
+  <TradeWrap>
     <template #head>
       <RouterLink
         to="/liquidity"
@@ -18,10 +18,12 @@ name: LiquidityAdd
     <div class="add-liq">
       <LiquidityModuleAdd />
     </div>
-  </KlayWrap>
+  </TradeWrap>
 </template>
 
 <style lang="scss" scoped>
+@import '@/styles/vars.sass';
+
 .back {
   font-weight: 700;
   font-size: 18px;

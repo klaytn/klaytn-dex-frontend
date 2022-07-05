@@ -1,7 +1,20 @@
 defaultLayout:
-  links:
+  menu:
     assets: Assets
     trade: Trade
     earn: Earn
     voting: Voting
     charts: Charts
+
+earnWrap:
+  menu:
+    farms: Farms
+    pools: Pools
+
+farmsPage:
+  stats:
+    earned: Earned
+    APR: APR
+    liquidity: Liquidity
+    volume24H: Volume 24H
+    volume7D: Volume 7D

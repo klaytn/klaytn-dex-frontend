@@ -14,5 +14,4 @@ const apolloProvider = createApolloProvider({
 
 export const install: Plugin = ({ app }) => {
   app.use(apolloProvider)
-  app.use(apolloClient)
 }

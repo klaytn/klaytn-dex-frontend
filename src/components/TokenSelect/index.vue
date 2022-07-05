@@ -60,6 +60,8 @@ export default {
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars.sass';
+
 .select {
   width: 100px;
   height: 40px;

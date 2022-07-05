@@ -5,6 +5,8 @@
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars.sass';
+
 .loader {
   border: 6px solid $white;
   border-radius: 50%;

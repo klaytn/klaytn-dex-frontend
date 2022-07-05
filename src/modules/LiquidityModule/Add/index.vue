@@ -42,7 +42,7 @@ export default {
     <LiquidityModuleAddExchangeRate />
 
     <div class="liquidity--slippage">
-      <KlaySlippage />
+      <Slippage />
     </div>
 
     <KlayButton

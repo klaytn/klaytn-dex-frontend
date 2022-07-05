@@ -90,11 +90,11 @@ export default {
     </div>
   </div>
 
-  <KlayWrap v-else>
+  <TradeWrap v-else>
     <SwapModuleExchangeRate />
 
     <div class="slippage">
-      <KlaySlippage />
+      <Slippage />
     </div>
 
     <KlayButton
@@ -113,7 +113,7 @@ export default {
     <div v-if="pairNotExist">
       Pair doesn't exist
     </div>
-  </KlayWrap>
+  </TradeWrap>
 </template>
 
 <style lang="scss" scoped src="./index.scss" />

@@ -168,6 +168,8 @@ export default {
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars.sass';
+
 .row {
   padding: 0 17px;
 }
@@ -175,7 +177,7 @@ export default {
 .token-select-modal {
   margin-top: 17px;
   width: 100%;
-  background: $gray3;
+  background: $gray6;
   border-radius: 8px;
   padding: 10px 16px;
 

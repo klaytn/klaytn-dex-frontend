@@ -109,7 +109,7 @@ export default {
 </script>
 
 <template>
-  <KlayWrap>
+  <TradeWrap>
     <p class="liquidity--title">
       Add liquidity to receive LP tokens
     </p>
@@ -223,10 +223,12 @@ export default {
         </KlayCollapse>
       </div>
     </div>
-  </KlayWrap>
+  </TradeWrap>
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars.sass';
+
 .ma {
   width: min-content;
   margin: 20px auto;

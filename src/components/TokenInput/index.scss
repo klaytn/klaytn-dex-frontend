@@ -1,3 +1,5 @@
+@import '@/styles/vars.sass';
+
 .token {
   &-loading {
     opacity: 0.4;
@@ -8,7 +10,7 @@
   }
 
   &-input {
-    background: $gray3;
+    background: $gray6;
     padding: 16px 16px;
     border-radius: 8px;
   }

@@ -1,9 +1,10 @@
 <script setup lang="ts" name="SwapModuleDetails">
+import { toRefs } from '@vueuse/core'
 import type BigNumber from 'bignumber.js'
 
 const tokensStore = useTokensStore()
 const { selectedTokens } = toRefs(tokensStore)
-const { tokenA, tokenB, userBalance, pairBalance } = toRefs(selectedTokens.value)
+const { tokenA, tokenB, userBalance, pairBalance } = toRefs(selectedTokens)
 
 const getRoute = computed(() => {
   if (tokenA.value === null || tokenB.value === null) return ''
@@ -11,7 +12,7 @@ const getRoute = computed(() => {
   return `${tokenA.value.symbol} > ${tokenB.value.symbol}`
 })
 const isValid = computed(() => {
-  return tokenA.value?.value && tokenB.value?.value
+  return tokenA.value && tokenB.value
 })
 
 function getFormattedRate(v1: BigNumber.Value, v2: BigNumber.Value) {

@@ -11,25 +11,12 @@ import VueI18n from '@intlify/vite-plugin-vue-i18n'
 import Inspect from 'vite-plugin-inspect'
 import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
-import SvgLoader from 'vite-svg-loader'
+import SvgLoader from '@soramitsu-ui/vite-plugin-svg'
 import VueSetupExtend from 'vite-plugin-vue-setup-extend'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
 export default defineConfig({
-  css: {
-    preprocessorOptions: {
-      scss: {
-        additionalData:
-          "@use '@soramitsu-ui/ui/styles'; @use '@soramitsu-ui/theme/fonts/Sora'; @use '@soramitsu-ui/theme/sass' as theme; @import '@/styles/vars.sass';",
-      },
-      sass: {
-        additionalData:
-          "@use '@soramitsu-ui/ui/styles'\n@use '@soramitsu-ui/theme/fonts/Sora'\n@use '@soramitsu-ui/theme/sass' as theme\n@import '@/styles/vars.sass'\n",
-      },
-    },
-  },
-
   resolve: {
     alias: {
       '@/': `${path.resolve(__dirname, 'src')}/`,

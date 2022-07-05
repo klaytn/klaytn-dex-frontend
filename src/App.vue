@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { ApolloClients } from '@vue/apollo-composable'
 import { SNotificationsProvider } from '@soramitsu-ui/ui'
+
+import { apolloExchangeClient, apolloFarmingClient } from '@/utils/apollo'
 
 // https://github.com/vueuse/head
 // you can use this to manipulate the document head in any components,
@@ -14,6 +17,11 @@ useHead({
       href: '/favicon.svg',
     },
   ],
+})
+
+provide(ApolloClients, {
+  exchange: apolloExchangeClient,
+  farming: apolloFarmingClient,
 })
 </script>
 

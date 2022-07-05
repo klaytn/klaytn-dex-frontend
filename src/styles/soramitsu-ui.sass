@@ -1,3 +1,9 @@
+@use '@soramitsu-ui/ui/styles'
+@use '@soramitsu-ui/theme/fonts/Sora'
+@use '@soramitsu-ui/theme/sass' as theme
+
+@import '@/styles/vars.sass'
+
 @include theme.typography-preset-default
 
 :root
@@ -5,4 +11,34 @@
 
 .s-modal
   &__modal
-    background: white
+    background: $white
+
+.s-button
+  border-radius: 8px
+  &_type_primary
+    background-color: $blue
+    &:hover
+      background-color: $blue-light1
+    &:active
+      background-color: $blue-dark
+  &_type_primary.s-button_disabled
+    background: $gray4
+  &_type_secondary
+    background: $white
+    box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.15)
+    color: $blue
+  &_size_lg
+    border-radius: 16px
+
+.s-text-field
+  &__input-wrapper
+    background: $gray6
+    border-radius: 8px
+    border: 1px solid transparent
+    transition: 250ms ease border-color
+  &:hover &__input-wrapper:not(:focus-within)
+    background: $gray6
+    border: 1px solid $blue-light3
+  &__input-wrapper:focus-within
+    background: $blue-light4
+    border: 1px solid $blue-light3

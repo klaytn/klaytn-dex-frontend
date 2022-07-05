@@ -5,6 +5,10 @@ import { setupLayouts } from 'virtual:generated-layouts'
 import App from './App.vue'
 import generatedRoutes from '~pages'
 
+window.$notify = () => {
+  throw new Error("Notifications haven't been initialized yet")
+}
+
 import './styles/soramitsu-ui.sass'
 import './styles/main.sass'
 

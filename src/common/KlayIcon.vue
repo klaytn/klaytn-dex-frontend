@@ -1,10 +1,11 @@
 <script setup lang="ts" name="KlayIcon">
-const { name, char } = defineProps<{
+const props = defineProps<{
   name: string
   char?: string
 }>()
+const { name, char } = toRefs(props)
 
-const CurrentIcon = defineAsyncComponent(() => import(`../assets/icons/${name}.svg?component`))
+const CurrentIcon = defineAsyncComponent(() => import(`../assets/icons/${name.value}.svg`))
 </script>
 
 <template>
@@ -14,24 +15,27 @@ const CurrentIcon = defineAsyncComponent(() => import(`../assets/icons/${name}.s
   >
     {{ char }}
   </div>
-  <!-- eslint-disable vue/no-v-html -->
   <CurrentIcon
     v-else
     class="svg-icon"
   />
-  <!-- eslint-enable -->
 </template>
 
 <style lang="scss" scoped>
+@import '@/styles/vars.sass';
+
 .char {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 24px;
   height: 24px;
-  background: $gray5;
+  background: #DFE4ED;
   border-radius: 50%;
   font-weight: 700;
   text-align: center;
-  padding-top: 6px;
   font-size: 12px;
-  border: 1px solid $gray4;
+  border: 2px solid $white;
+  box-sizing: content-box;
 }
 </style>

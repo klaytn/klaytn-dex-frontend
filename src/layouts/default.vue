@@ -6,25 +6,25 @@ const { t } = useI18n()
 const menu = computed<HeaderMenuItem[]>(() => {
   return [
     {
-      label: t('defaultLayout.links.assets'),
+      label: t('defaultLayout.menu.assets'),
       routeName: RouteName.Assets,
     },
     {
-      label: t('defaultLayout.links.trade'),
+      label: t('defaultLayout.menu.trade'),
       routeName: RouteName.Swap,
       activeWith: [RouteName.Liquidity, RouteName.LiquidityAdd, RouteName.LiquidityRemove],
     },
     {
-      label: t('defaultLayout.links.earn'),
+      label: t('defaultLayout.menu.earn'),
       routeName: RouteName.Farms,
       activeWith: [RouteName.Pools],
     },
     {
-      label: t('defaultLayout.links.voting'),
+      label: t('defaultLayout.menu.voting'),
       routeName: RouteName.Voting,
     },
     {
-      label: t('defaultLayout.links.charts'),
+      label: t('defaultLayout.menu.charts'),
       routeName: RouteName.Charts,
     },
   ]
@@ -139,6 +139,8 @@ onMounted(connect)
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars.sass';
+
 .layout {
   padding: 40px 82px;
 
