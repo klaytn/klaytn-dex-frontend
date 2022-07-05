@@ -29,8 +29,6 @@ export default class Kaikas {
   public async createToken(addr: Address): Promise<Token> {
     const contract = this.cfg.createContract<KIP7>(addr, KIP7_ABI)
 
-    console.log({ contract, addr })
-
     const [name, symbol, balance] = await Promise.all([
       contract.methods.name().call(),
       contract.methods.symbol().call(),

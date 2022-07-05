@@ -1,11 +1,11 @@
 import BigNumber from 'bignumber.js'
-import * as utils from './utils'
-import type { DexFactory, DexRouter } from '@/types/typechain/swap'
+import type { DexFactory, DexPair, DexRouter } from '@/types/typechain/swap'
 import type { WETH9 } from '@/types/typechain/tokens/WKLAY.sol'
-import Caver, { type AbiItem, type Contract } from 'caver-js'
-import { type Klaytn, type Address } from './types'
+import Caver, { type AbiItem } from 'caver-js'
+import { type Klaytn, type Address, ValueWei } from './types'
 import { MAGIC_ROUTER_ADDR, MAGIC_FACTORY_ADDR, MAGIC_WETH_ADDR, MAGIC_GAS_PRICE } from './const'
-import { ROUTER, FACTORY, WETH } from './smartcontracts/abi'
+import { ROUTER, FACTORY, WETH, KIP7 as KIP7_ABI } from './smartcontracts/abi'
+import { KIP7 } from '@/types/typechain/tokens'
 
 export default class Config {
   public static async connectKaikas(params?: ConnectParams): Promise<ConnectResult> {
@@ -44,8 +44,6 @@ export default class Config {
   public readonly addrs!: Readonly<{
     self: Address
     router: Address
-
-    // FIXME are they needed?
     factory: Address
     weth: Address
   }>
@@ -66,24 +64,28 @@ export default class Config {
     return new this.caver.klay.Contract(abi, addr) as unknown as T
   }
 
-  public async approveAmount(addr: Address, abi: AbiItem[], amountValue: BigNumber.Value) {
-    const contract = this.createContract<Contract>(addr, abi)
+  /**
+   * Uses KIP7 by default
+   */
+  public async approveAmount(addr: Address, amountStr: ValueWei<string>): Promise<void> {
+    const contract = this.createContract<KIP7>(addr, KIP7_ABI)
+    await this.approveAmountWithExistingContract(contract, amountStr)
+  }
 
-    const allowanceValue = await contract.methods.allowance(this.addrs.self, this.addrs.router).call({
+  public async approveAmountWithExistingContract(contract: KIP7 | DexPair, amountStr: ValueWei<string>): Promise<void> {
+    const allowanceStr = await contract.methods.allowance(this.addrs.self, this.addrs.router).call({
       from: this.addrs.self,
     })
 
-    const amount = new BigNumber(amountValue)
-    const allowance = new BigNumber(allowanceValue)
+    const amountBn = new BigNumber(amountStr)
+    const allowanceBn = new BigNumber(allowanceStr)
 
-    if (amount.isLessThanOrEqualTo(allowance)) return amountValue
+    if (amountBn.isLessThanOrEqualTo(allowanceBn)) return
 
-    /**
-     * FIXME untyped method
-     */
-    const gas = await contract.methods.approve(this.addrs.router, amountValue).estimateGas()
+    const approveMethod = contract.methods.approve(this.addrs.router, amountStr)
 
-    return await contract.methods.approve(this.addrs.router, amountValue).send({
+    const gas = await approveMethod.estimateGas()
+    await approveMethod.send({
       from: this.addrs.self,
       gas,
       gasPrice: MAGIC_GAS_PRICE,

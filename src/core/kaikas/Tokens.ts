@@ -85,9 +85,7 @@ export default class Tokens {
   }
 
   private async createPairContract(addrA: Address, addrB: Address): Promise<DexPair> {
-    const pairAddr = (await this.factoryContract.methods.getPair(addrA, addrB).call({
-      from: this.selfAddr,
-    })) as Address
+    const pairAddr = await this.getPairAddress(addrA, addrB)
 
     if (isEmptyAddress(pairAddr)) throw new Error('EMPTY_ADDRESS')
 

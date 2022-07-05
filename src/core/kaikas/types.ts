@@ -3,9 +3,6 @@ import BN from 'bn.js'
 import { Opaque } from 'type-fest'
 
 export interface Klaytn {
-  /**
-   * FIXME is it async? Does it return {@link Address}?
-   */
   enable: () => Promise<Address[]>
 }
 
@@ -16,6 +13,8 @@ export interface Token {
   /**
    * FIXME describe. What is the difference between `value` and `balance`?
    * Is it ether value?
+   *
+   * TODO should be removed from here completely
    */
   value?: string
 
@@ -58,9 +57,20 @@ export type Balance<T extends AnyNumber = string> = ValueWei<T>
 
 type AnyNumber = number | string | BN | BigNumber
 
-export type ValueEther<T extends AnyNumber = AnyNumber> = Opaque<T, 'ether'>
+export type ValueEther<T extends AnyNumber = AnyNumber> = Opaque<T, 'ValueEther'>
 
-export type ValueWei<T extends AnyNumber = AnyNumber> = Opaque<T, 'wei'>
+export type ValueWei<T extends AnyNumber = AnyNumber> = Opaque<T, 'ValueWei'>
+
+/**
+ * FIXME in liquidity store it is usually computed as:
+ *
+ * ```ts
+ * Math.floor(Date.now() / 1000 + 300)
+ * ```
+ *
+ * So... it seems to be a unix epoch time in seconds
+ */
+export type Deadline = Opaque<number, 'Deadline'>
 
 // /**
 //  * FIXME describe all internals

@@ -1,20 +1,26 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 import { Status } from '@soramitsu-ui/ui'
-import { Address, Balance, isEmptyAddress, sortKlayPair, ValueEther, ValueWei, type Token, toWei } from '@/core/kaikas'
+import {
+  Address,
+  Balance,
+  isEmptyAddress,
+  sortKlayPair,
+  ValueEther,
+  ValueWei,
+  type Token,
+  toWei,
+  deadlineFiveMinutesFromNow,
+} from '@/core/kaikas'
 import type { DexPair } from '@/types/typechain/swap'
 import type { KIP7 } from '@/types/typechain/tokens'
 import BigNumber from 'bignumber.js'
 import { KIP7 as KIP7_ABI, PAIR as PAIR_ABI } from '@/core/kaikas/smartcontracts/abi'
-import { AddLiquidityAmountParamsBase, deadlineFromMs, Deadline } from '@/core/kaikas/Liquidity'
+import { AddLiquidityAmountPropsBase } from '@/core/kaikas/Liquidity'
 import { MAGIC_GAS_PRICE } from '@/core/kaikas/const'
 import invariant from 'tiny-invariant'
 
 const BN_ONE = new BigNumber('1')
-
-function computeFiveMinutesDeadline(): Deadline {
-  return deadlineFromMs(Date.now() + 300_000)
-}
 
 interface State {
   // unused
@@ -66,14 +72,13 @@ export const useLiquidityStore = defineStore('liquidity', () => {
     const kaikas = kaikasStore.getKaikasAnyway()
 
     const { tokenA, tokenB } = tokensStore.selectedTokens
-    invariant(tokenA && tokenB)
+    invariant(tokenA?.value && tokenB?.value)
 
     try {
-      // FIXME token.value
-      const tokenAValue = new BigNumber(tokenA.value!)
-      const tokenBValue = new BigNumber(tokenB.value!)
+      const tokenAValue = new BigNumber(tokenA.value)
+      const tokenBValue = new BigNumber(tokenB.value)
 
-      const deadline = computeFiveMinutesDeadline()
+      const deadline = deadlineFiveMinutesFromNow()
       const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100))
       const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100))
 
@@ -88,7 +93,7 @@ export const useLiquidityStore = defineStore('liquidity', () => {
       })) as Address
 
       if (!isEmptyAddress(pairAddress)) {
-        const baseParams: AddLiquidityAmountParamsBase = {
+        const baseParams: AddLiquidityAmountPropsBase = {
           tokenAValue,
           tokenBValue,
           tokenAddressA: tokenA.address,
@@ -150,7 +155,7 @@ export const useLiquidityStore = defineStore('liquidity', () => {
     const tokenAValue = new BigNumber(sortedPair[0].value!) // FIXME `.value!`
     const tokenBValue = new BigNumber(sortedPair[1].value!) // KLAY
 
-    const deadline = computeFiveMinutesDeadline()
+    const deadline = deadlineFiveMinutesFromNow()
     const amountAMin = tokenAValue.minus(tokenAValue.dividedToIntegerBy(100))
     const amountBMin = tokenBValue.minus(tokenBValue.dividedToIntegerBy(100))
 
@@ -164,7 +169,7 @@ export const useLiquidityStore = defineStore('liquidity', () => {
       })) as Address
 
     if (isEmptyAddress(pairAddress)) {
-      const { send } = await kaikas.liquidity.addLiquidityKlayForExistsPair({
+      const { send } = await kaikas.liquidity.addLiquidityKlayForExistingPair({
         addressA: sortedPair[0].address,
         tokenAValue,
         tokenBValue,

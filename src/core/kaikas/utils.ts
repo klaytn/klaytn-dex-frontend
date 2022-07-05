@@ -1,5 +1,5 @@
 import web3 from 'web3'
-import { type Address, type Token } from './types'
+import { type Address, type Token, type Deadline } from './types'
 import { NATIVE_TOKEN } from './const'
 
 export function formatAddress(address: Address): string {
@@ -30,6 +30,10 @@ export function sortKlayPair(tokenA: Token, tokenB: Token) {
   if (isNativeToken(tokenA.address)) return [tokenB, tokenA]
 
   return [tokenA, tokenB]
+}
+
+export function deadlineFiveMinutesFromNow(): Deadline {
+  return (~~(Date.now() / 1000) + 300) as Deadline
 }
 
 if (import.meta.vitest) {

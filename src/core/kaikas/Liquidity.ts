@@ -1,47 +1,57 @@
 import Config from './Config'
-import { type Address } from './types'
+import { type ValueWei, type Address, type Deadline } from './types'
 import BigNumber from 'bignumber.js'
+import BN from 'bn.js'
 import { MAGIC_GAS_PRICE } from './const'
-import { TransactionReceipt } from 'web3-core'
-import { Opaque } from 'type-fest'
+
+type WeiNumStrBn = ValueWei<number | string | BN>
+
+export interface TokenAddrAndValue {
+  addr: Address
+  value: WeiNumStrBn
+}
 
 /**
  * FIXME type bignumbers & deadline
  */
-export interface AddLiquidityAmountParamsBase {
-  tokenAValue: BigNumber
-  tokenBValue: BigNumber
-  tokenAddressA: Address
-  tokenAddressB: Address
+export interface AddLiquidityAmountPropsBase {
+  tokenA: TokenAddrAndValue
+  tokenB: TokenAddrAndValue
   deadline: Deadline
 }
 
-/**
- * FIXME in liquidity store it is usually computed as:
- *
- * ```ts
- * Math.floor(Date.now() / 1000 + 300)
- * ```
- *
- * So... it seems to be a unix epoch time in seconds
- */
-export type Deadline = Opaque<number, 'LiquidityDeadline'>
-
-export function deadlineFromMs(ms: number): Deadline {
-  return ~~(ms / 1000) as Deadline
-}
-
-export interface AddLiquidityAmountOutParams extends AddLiquidityAmountParamsBase {
+export interface AddLiquidityAmountOutProps extends AddLiquidityAmountPropsBase {
   mode: 'out'
-  // FIXME type stricter
-  // is it a wei value?
-  amountAMin: BigNumber
+  amountAMin: WeiNumStrBn
 }
 
-export interface AddLiquidityAmountInParams extends AddLiquidityAmountParamsBase {
+export interface AddLiquidityAmountInProps extends AddLiquidityAmountPropsBase {
   mode: 'in'
-  // FIXME type stricter
-  amountBMin: BigNumber
+  amountBMin: WeiNumStrBn
+}
+
+type AddLiquidityAmountProps = AddLiquidityAmountOutProps | AddLiquidityAmountInProps
+
+export interface AddLiquidityResult {
+  gas: ValueWei<number>
+  send: () => Promise<unknown>
+}
+
+/**
+ * FIXME why is this needed?
+ */
+function computeAmountByTokenValue(tokenValue: WeiNumStrBn): ValueWei<string> {
+  return new BN(tokenValue).divn(100).toString() as ValueWei<string>
+}
+
+if (import.meta.vitest) {
+  const { describe, test, expect } = import.meta.vitest
+
+  describe('computing amount by token value', () => {
+    test('when token value is 1423, amount is 14', () => {
+      expect(computeAmountByTokenValue(1423 as WeiNumStrBn)).toEqual('14')
+    })
+  })
 }
 
 export default class Liquidity {
@@ -51,67 +61,58 @@ export default class Liquidity {
     this.cfg = cfg
   }
 
-  public async addLiquidityAmountForExistingPair(
-    paramsRaw: AddLiquidityAmountInParams | AddLiquidityAmountOutParams,
-  ): Promise<{
-    // FIXME type gas
-    gas: number
-    send: () => Promise<TransactionReceipt>
-  }> {
-    const params = {
-      tokenAAddress: paramsRaw.tokenAddressA,
-      tokenBAddress: paramsRaw.tokenAddressB,
-      tokenAValue: paramsRaw.tokenAValue.toFixed(0),
-      tokenBValue: paramsRaw.tokenBValue.toFixed(0),
-
-      // FIXME why division by 100
-      amountAMin:
-        paramsRaw.mode === 'in'
-          ? paramsRaw.tokenAValue.minus(paramsRaw.tokenAValue.dividedToIntegerBy(100)).toFixed(0)
-          : paramsRaw.amountAMin.toFixed(0),
-      amountBMin:
-        paramsRaw.mode === 'out'
-          ? paramsRaw.tokenBValue.minus(paramsRaw.tokenBValue.dividedToIntegerBy(100)).toFixed(0)
-          : paramsRaw.amountBMin.toFixed(0),
-      userAddress: this.cfg.addrs.self,
-      deadline: paramsRaw.deadline,
+  public async addLiquidityAmountForExistingPair(props: AddLiquidityAmountProps): Promise<AddLiquidityResult> {
+    interface NormalizedProps {
+      tokenAAddr: Address
+      tokenBAddr: Address
+      tokenAValue: WeiNumStrBn
+      tokenBValue: WeiNumStrBn
+      amountAMin: WeiNumStrBn
+      amountBMin: WeiNumStrBn
     }
 
-    const addLiquidityWithMode =
-      paramsRaw.mode === 'in'
-        ? this.cfg.contracts.router.methods.addLiquidity(
-            params.tokenBAddress,
-            params.tokenAAddress,
-            params.tokenBValue,
-            params.tokenAValue,
-            params.amountBMin,
-            params.amountAMin,
-            params.userAddress,
-            params.deadline,
-          )
-        : this.cfg.contracts.router.methods.addLiquidity(
-            params.tokenAAddress,
-            params.tokenBAddress,
-            params.tokenAValue,
-            params.tokenBValue,
-            params.amountAMin,
-            params.amountBMin,
-            params.userAddress,
-            params.deadline,
-          )
+    const normalized: NormalizedProps =
+      props.mode === 'out'
+        ? {
+            tokenAAddr: props.tokenA.addr,
+            tokenBAddr: props.tokenB.addr,
+            tokenAValue: props.tokenA.value,
+            tokenBValue: props.tokenB.value,
+            amountAMin: props.amountAMin,
+            amountBMin: computeAmountByTokenValue(props.tokenB.value),
+          }
+        : {
+            tokenAAddr: props.tokenB.addr,
+            tokenBAddr: props.tokenA.addr,
+            tokenAValue: props.tokenB.value,
+            tokenBValue: props.tokenA.value,
+            amountAMin: computeAmountByTokenValue(props.tokenA.value),
+            amountBMin: props.amountBMin,
+          }
 
-    const lqGas = await addLiquidityWithMode.estimateGas()
+    const addLiquidityMethod = this.cfg.contracts.router.methods.addLiquidity(
+      normalized.tokenBAddr,
+      normalized.tokenAAddr,
+      normalized.tokenBValue,
+      normalized.tokenAValue,
+      normalized.amountBMin,
+      normalized.amountAMin,
+      this.cfg.addrs.self,
+      props.deadline,
+    )
+
+    const lqGas = await addLiquidityMethod.estimateGas()
     const send = () =>
-      addLiquidityWithMode.send({
+      addLiquidityMethod.send({
         from: this.cfg.addrs.self,
         gas: lqGas,
         gasPrice: MAGIC_GAS_PRICE,
       })
 
-    return { gas: lqGas, send }
+    return { gas: lqGas as ValueWei<number>, send }
   }
 
-  public async addLiquidityKlayForExistsPair({
+  public async addLiquidityKlayForExistingPair({
     tokenAValue,
     tokenBValue,
     addressA,
@@ -133,7 +134,7 @@ export default class Liquidity {
       deadline,
     }
 
-    const addLiquidity = this.cfg.contracts.router.methods.addLiquidityETH(
+    const addLiquidityMethod = this.cfg.contracts.router.methods.addLiquidityETH(
       params.addressA,
       params.tokenAValue,
       params.amountAMin,
@@ -142,14 +143,14 @@ export default class Liquidity {
       params.deadline,
     )
 
-    const lqETHGas = await addLiquidity.estimateGas({
+    const lqETHGas = await addLiquidityMethod.estimateGas({
       from: this.cfg.addrs.self,
       gasPrice: MAGIC_GAS_PRICE,
       value: tokenBValue.toFixed(0),
     })
 
     const send = async () =>
-      await addLiquidity.send({
+      await addLiquidityMethod.send({
         from: this.cfg.addrs.self,
         gasPrice: MAGIC_GAS_PRICE,
         gas: lqETHGas,
@@ -183,7 +184,7 @@ export default class Liquidity {
       address: this.cfg.addrs.self,
     }
 
-    const addLiquidity = this.cfg.contracts.router.methods.addLiquidityETH(
+    const addLiquidityMethod = this.cfg.contracts.router.methods.addLiquidityETH(
       params.addressA,
       params.tokenAValue,
       params.amountAMin,
@@ -192,14 +193,14 @@ export default class Liquidity {
       params.deadline,
     )
 
-    const lqETHGas = await addLiquidity.estimateGas({
+    const lqETHGas = await addLiquidityMethod.estimateGas({
       from: this.cfg.addrs.self,
       gasPrice: MAGIC_GAS_PRICE,
       value: tokenBValue.toFixed(0),
     })
 
     const send = async () =>
-      await addLiquidity.send({
+      await addLiquidityMethod.send({
         from: this.cfg.addrs.self,
         gasPrice: MAGIC_GAS_PRICE,
         value: tokenBValue.toFixed(0),

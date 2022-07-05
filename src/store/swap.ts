@@ -3,7 +3,7 @@ import { Status } from '@soramitsu-ui/ui'
 import { KIP7 as KIP7_ABI } from '@/core/kaikas/smartcontracts/abi'
 import invariant from 'tiny-invariant'
 import { useTask, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
-import { isNativeToken } from '@/core/kaikas'
+import { isNativeToken, ValueWei } from '@/core/kaikas'
 
 interface State {
   /**
@@ -45,14 +45,14 @@ export const useSwapStore = defineStore('swap', () => {
     Object.assign(state, stateFactory())
   }
 
-  async function getAmount(value: string, mode: 'in' | 'out') {
+  async function getAmount(value: ValueWei<string>, mode: 'in' | 'out') {
     const kaikas = kaikasStore.getKaikasAnyway()
     const { tokenA, tokenB } = tokensStore.getSelectedTokensAnyway()
 
     const amounts =
       mode === 'out'
-        ? await kaikas.swap.getAmountOut(tokenA.address, tokenB.address, value)
-        : await kaikas.swap.getAmountIn(tokenA.address, tokenB.address, value)
+        ? await kaikas.swap.getAmountsOut(tokenA.address, tokenB.address, value)
+        : await kaikas.swap.getAmountsIn(tokenA.address, tokenB.address, value)
 
     const { pairBalance, userBalance } = await kaikas.tokens.getPairBalance(tokenA.address, tokenB.address)
 
