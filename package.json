@@ -20,7 +20,7 @@
     "@soramitsu-ui/icons": "^0.1.0",
     "@soramitsu-ui/theme": "^0.3.0",
     "@soramitsu-ui/ui": "^0.6.1",
-    "@soramitsu-ui/vite-plugin-svg": "link:../soramitsu-js-ui-library/packages/vite-plugin-svg",
+    "@soramitsu-ui/vite-plugin-svg": "^0.1.0",
     "@vue/apollo-composable": "^4.0.0-alpha.18",
     "@vue/apollo-option": "^4.0.0-alpha.18",
     "@vueuse/core": "^8.6.0",
