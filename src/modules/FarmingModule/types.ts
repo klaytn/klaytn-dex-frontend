@@ -1,12 +1,13 @@
-export interface Pool {
-  id: string
-  pair: string
-}
+import { Address } from '@/types'
+import BigNumber from 'bignumber.js'
 
 export interface Farming {
   id: string
   poolCount: number
-  pools: Pool[]
+  pools: {
+    id: string
+    pair: string
+  }[]
 }
 
 export interface FarmingsQueryResult {
@@ -42,23 +43,15 @@ export interface LiquidityPositionsQueryResult {
   }
 }
 
-export interface FilledPool {
-  id: string
-  pair: {
-    id: string
-    name: string
-    icons: string[]
-    dayData: { volumeUSD: string }[]
-    reserveUSD: string
-  },
-  stats: {
-    earned: string,
-    APR: string,
-    liquidity: string,
-    volume24H: string,
-    volume7D: string,
-  },
-  userInfo: UserInfo,
-  liquidityPosition: LiquidityPosition,
-  isStaked: boolean
+export interface Pool {
+  id: Address
+  name: string
+  pairId: Address
+  staked: BigNumber
+  earned: BigNumber
+  balance: BigNumber
+  annualPercentageRate: BigNumber
+  liquidity: BigNumber
+  volume24H: BigNumber
+  volume7D: BigNumber
 }

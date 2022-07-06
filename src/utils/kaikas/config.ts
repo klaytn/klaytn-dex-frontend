@@ -10,6 +10,7 @@ import wethABI from '@/utils/smartcontracts/weth.json'
 import type { DexFactory, DexRouter } from '@/types/typechain/swap'
 import type { WETH9 } from '@/types/typechain/tokens/WKLAY.sol'
 import { type Address, KaikasStatus } from '@/types'
+import { KIP7 } from '@/types/typechain/tokens'
 
 export class Config {
   address: Address | null = null
@@ -71,13 +72,18 @@ export class Config {
     return new this.caver.klay.Contract(abi, address) as unknown as T
   }
 
-  async approveAmount(address: Address, abi: AbiItem[], amount: BigNumber.Value, contractAddress = this.routerAddress) {
-    const contract = this.createContract<Contract>(address, abi)
+  async getAllowance(address: Address, abi: AbiItem[], contractAddress = this.routerAddress) {
+    const contract = this.createContract<KIP7>(address, abi)
 
-    const allowance = await contract.methods.allowance(this.address, contractAddress).call({
+    return await contract.methods.allowance(this.address, contractAddress).call({
       from: this.address,
     })
-    console.log(allowance)
+  }
+
+  async approveAmount(address: Address, abi: AbiItem[], amount: BigNumber.Value, contractAddress = this.routerAddress) {
+    const contract = this.createContract<KIP7>(address, abi)
+
+    const allowance = await this.getAllowance(address, abi, contractAddress)
 
     const amountValue = utils.bigNumber(amount)
     const allowanceValue = utils.bigNumber(allowance)

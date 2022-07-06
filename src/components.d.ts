@@ -6,7 +6,10 @@ import '@vue/runtime-core'
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     EarnWrap: typeof import('./components/EarnWrap.vue')['default']
-    FarmingModuleModal: typeof import('./modules/FarmingModule/Modal.vue')['default']
+    FarmingModule: typeof import('./modules/FarmingModule/index.vue')['default']
+    FarmingModulePool: typeof import('./modules/FarmingModule/Pool.vue')['default']
+    FarmingModuleStakeModal: typeof import('./modules/FarmingModule/StakeModal.vue')['default']
+    FarmingModuleUnstakeModal: typeof import('./modules/FarmingModule/UnstakeModal.vue')['default']
     HeaderMenu: typeof import('./components/HeaderMenu.vue')['default']
     KlayAccordionItem: typeof import('./common/KlayAccordionItem.vue')['default']
     KlayButton: typeof import('./common/KlayButton.vue')['default']

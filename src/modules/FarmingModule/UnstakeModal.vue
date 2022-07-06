@@ -1,70 +1,74 @@
-<script setup lang="ts" name="FarmingModuleModal">
+<script setup lang="ts" name="FarmingModuleUnstakeModal">
 import { STextField, SButton, Status } from '@soramitsu-ui/ui'
 
 import farmingAbi from '@/utils/smartcontracts/farming.json'
 import { Farming } from '@/types/typechain/farming'
 import { AbiItem } from 'caver-js'
-import { FilledPool, LiquidityPosition } from '@/pages/farms/types'
-import kip7 from '@/utils/smartcontracts/kip-7.json'
+import {
+  Pool,
+  LiquidityPosition
+} from './types'
+import {
+  farmingContractAddress, formattedBigIntDecimals
+} from './const'
 import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
   
 const { caver } = window
-
 const config = useConfigWithConnectedKaikas()
-
 const vBem = useBemClass()
 
 const props = defineProps<{
-  pool: FilledPool
-  liquidityPosition: LiquidityPosition
+  pool: Pool
 }>()
+const { pool } = toRefs(props)
 const emit = defineEmits(['close'])
-
-const farmingContractAddress = '0x32bE07FB9dBf294c2e92715F562f7aBA02b7443A'
-
-const FarmingContract = $kaikas.config.createContract<Farming>(farmingContractAddress, farmingAbi.abi as AbiItem[])
 
 const value = ref('0')
 
-const lpBalance = computed(() => {
-  return Number(Number(props.liquidityPosition.liquidityTokenBalance).toFixed(6))
+const iconChars = computed(() => {
+  return pool.value.name.split('-').map(tokenName => tokenName[0])
 })
 
-const staked = computed(() => {
-  return props.pool.userInfo.amount
+const formattedStaked = computed(() => {
+  return $kaikas.bigNumber(pool.value.staked.toFixed(formattedBigIntDecimals))
+})
+
+const notEnough = computed(() => {
+  return $kaikas.bigNumber(value.value).comparedTo(pool.value.staked) === 1
+})
+
+const lessThenZero = computed(() => {
+  return $kaikas.bigNumber(value.value).comparedTo(0) === -1
+})
+
+const disabled = computed(() => {
+  return notEnough.value || lessThenZero.value
 })
 
 function setMax() {
-  value.value = props.liquidityPosition.liquidityTokenBalance
+  value.value = `${pool.value.staked}`
 }
 
-const label = computed(() => {
-  if (Number(staked.value) === 0) {
-    return 'Stake LP tokens'
-  } else {
-    return 'Stake additional LP tokens'
-  }
-})
+const FarmingContract = $kaikas.config.createContract<Farming>(farmingContractAddress, farmingAbi.abi as AbiItem[])
 
 async function confirm() {
   try {
     const gasPrice = await caver.klay.getGasPrice()
-    await config.approveAmount(props.pool.pair.id, kip7.abi as AbiItem[], value.value, farmingContractAddress)
-    const deposit = FarmingContract.methods.deposit(props.pool.id, Number(value.value) * Math.pow(10, 18))
-    const estimateGas = await deposit.estimateGas({
+    const withdraw = FarmingContract.methods.withdraw(props.pool.id, $kaikas.utils.toWei(value.value))
+    const estimateGas = await withdraw.estimateGas({
       from: config.address,
       gasPrice,
     })
-    await deposit.send({
+    await withdraw.send({
       from: config.address,
       gas: estimateGas,
       gasPrice
     })
-    $notify({ status: Status.Success, description: `${value.value} LP tokens were succesfully staked` })
+    $notify({ status: Status.Success, description: `${value.value} LP tokens were unstaked` })
     emit('close')
   } catch (e) {
     console.error(e)
-    $notify({ status: Status.Error, description: 'Stake LP tokens error' })
+    $notify({ status: Status.Error, description: 'Unstake LP tokens error' })
     throw new Error('Error')
   }
 }
@@ -74,7 +78,7 @@ async function confirm() {
   <KlayModal
     padding="20px 0"
     width="420"
-    :label="label"
+    label="Unstake LP tokens"
     @close="emit('close')"
   >
     <div v-bem="'content'">
@@ -95,7 +99,7 @@ async function confirm() {
             </SButton>
             <div v-bem="'pair-icons'">
               <KlayIcon
-                v-for="(char, index) in pool.pair.iconChars"
+                v-for="(char, index) in iconChars"
                 :key="index"
                 v-bem="'pair-icon'"
                 :char="char"
@@ -103,11 +107,11 @@ async function confirm() {
               />
             </div>
             <div v-bem="'pair-name'">
-              {{ pool.pair.name }}
+              {{ pool.name }}
             </div>
           </div>
-          <div v-bem="'balance'">
-            Balance: {{ lpBalance }}
+          <div v-bem="'staked'">
+            Staked: {{ formattedStaked }}
           </div>
         </div>
       </div>
@@ -116,6 +120,7 @@ async function confirm() {
           v-bem="'confirm'"
           type="primary"
           size="lg"
+          :disabled="disabled"
           @click="confirm"
         >
           Confirm
@@ -128,7 +133,7 @@ async function confirm() {
 <style lang="sass">
 @import '@/styles/vars.sass'
 
-.farming-module-modal
+.farming-module-unstake-modal
   &__content
     display: flex
     flex-direction: column
@@ -171,7 +176,7 @@ async function confirm() {
       margin-left: 8px
       font-size: 14px
       font-weight: 600
-  &__balance
+  &__staked
     position: absolute
     right: 16px
     bottom: 8px

@@ -14,7 +14,7 @@ earnWrap:
 farmsPage:
   stats:
     earned: Earned
-    APR: APR
+    annualPercentageRate: APR
     liquidity: Liquidity
     volume24H: Volume 24H
     volume7D: Volume 7D

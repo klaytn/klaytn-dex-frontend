@@ -1,9 +1,9 @@
-<script setup lang="ts" name="Swap"></script>
+<route lang="yaml">
+name: Swap
+</route>
+
+<script setup lang="ts" name="Swap" />
 
 <template>
   <SwapModule />
 </template>
-
-<route lang="yaml">
-name: Swap
-</route>
