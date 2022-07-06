@@ -242,7 +242,6 @@ function handleUnstaked() {
           v-for="pool in pools"
           :key="pool.id"
           :pool="pool"
-          :liquidity-positions="liquidityPositions"
           @staked="handleStaked"
           @unstaked="handleUnstaked"
         />
