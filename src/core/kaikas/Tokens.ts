@@ -1,8 +1,8 @@
 import { isEmptyAddress } from './utils'
 import { type DexPair } from '@/types/typechain/swap'
-import { type AbiItem } from 'caver-js'
-import { Balance, ValueWei, type Address } from './types'
+import { type Balance, type ValueWei, type Address } from './types'
 import Config from './Config'
+import { PAIR } from './smartcontracts/abi'
 
 export default class Tokens {
   private readonly cfg: Config
@@ -89,9 +89,6 @@ export default class Tokens {
 
     if (isEmptyAddress(pairAddr)) throw new Error('EMPTY_ADDRESS')
 
-    // FIXME where and when to import it?
-    const pair = await import('./smartcontracts/pair.json')
-
-    return this.cfg.createContract(pairAddr, pair.abi as AbiItem[]) as unknown as DexPair
+    return this.cfg.createContract(pairAddr, PAIR) as unknown as DexPair
   }
 }

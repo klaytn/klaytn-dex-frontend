@@ -7,8 +7,8 @@ export interface Klaytn {
 }
 
 export interface Token {
-  name: string
   address: Address
+  name: string
 
   /**
    * FIXME describe. What is the difference between `value` and `balance`?
@@ -16,13 +16,20 @@ export interface Token {
    *
    * TODO should be removed from here completely
    */
-  value?: string
+  // value?: string
 
   /**
    * FIXME describe
    */
   symbol: string
-  balance: Balance
+
+  decimals: number
+
+  /**
+   * TODO should be removed from here too
+   * it is a temporary value, but `Token` seems to be generally static
+   */
+  // balance: Balance
 
   // /**
   //  * FIXME what is a price? Why it is `-`? Should be typed stricter

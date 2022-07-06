@@ -1,5 +1,4 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-
 import { Status } from '@soramitsu-ui/ui'
 import {
   Address,
@@ -408,4 +407,4 @@ export const useLiquidityStore = defineStore('liquidity', () => {
   }
 })
 
-if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useLiquidityStore, import.meta.hot))
+import.meta.hot?.accept(acceptHMRUpdate(useLiquidityStore, import.meta.hot))

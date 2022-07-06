@@ -48,4 +48,4 @@ export const useKaikasStore = defineStore('kaikas', () => {
   }
 })
 
-if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useKaikasStore, import.meta.hot))
+import.meta.hot?.accept(acceptHMRUpdate(useKaikasStore, import.meta.hot))

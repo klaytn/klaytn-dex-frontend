@@ -36,7 +36,7 @@ const kaikasStore = useKaikasStore()
 const { address, isNotInstalled } = storeToRefs(kaikasStore)
 
 const tokensStore = useTokensStore()
-const { tokensList } = storeToRefs(tokensStore)
+const { tokens } = storeToRefs(tokensStore)
 
 const formattedAddress = computed(() => {
   if (!address.value) return ''
@@ -47,12 +47,8 @@ async function connect() {
   await kaikasStore.connect()
 
   if (kaikasStore.status === 'connected') {
-    if (!tokensList.value.length) {
-      const result = await tokensStore.getTokensTask.run()
-
-      if (result.kind === 'err') {
-        console.error('Failed to get tokens:', result.error)
-      }
+    if (!tokens.value) {
+      tokensStore.getWhitelistAndImportedTokens()
     }
   }
 }
@@ -139,7 +135,7 @@ onMounted(connect)
     <div v-else-if="!address">
       <h1>Please connect Kaikas</h1>
     </div>
-    <RouterView v-else />
+    <!-- <RouterView v-else /> -->
   </main>
 </template>
 

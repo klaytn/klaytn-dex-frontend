@@ -1,3 +1,113 @@
+<script lang="ts" setup>
+import invariant from 'tiny-invariant'
+import { formatAddress, Token, Address, ValueWei, tokenRawToWei, tokenWeiToRaw } from '@/core/kaikas'
+import { roundTo } from 'round-to'
+
+const props = withDefaults(
+  defineProps<{
+    token: Address
+    modelValue: ValueWei<string>
+    isLoading?: boolean
+    isDisabled?: boolean
+  }>(),
+  {
+    isLoading: false,
+    isDisabled: false,
+  },
+)
+
+const emit = defineEmits<{
+  (event: 'update:modelValue', value: ValueWei<string>): void
+  (event: 'update:token', value: Address): void
+}>()
+
+const addrFormatted = $computed(() => {
+  return formatAddress(props.token)
+})
+
+const tokensStore = useTokensStore()
+const tokenData = $computed<null | Token>(() => tokensStore.tokens?.find((x) => x.address === props.token) ?? null)
+const balance = $computed<null | ValueWei<string>>(() => tokensStore.userBalanceMap?.get(props.token) ?? null)
+const balanceFormatted = $computed(() => {
+  if (!balance || !tokenData) return '-'
+  return roundTo(Number(tokenWeiToRaw(tokenData, props.modelValue)), 5)
+})
+
+function tokenDataAnyway(): Token {
+  const token = tokenData
+  invariant(token)
+
+  return token
+}
+
+const model = $computed<string>({
+  get: () => {
+    return tokenWeiToRaw(tokenDataAnyway(), props.modelValue)
+  },
+  set: (raw) => {
+    emit('update:modelValue', tokenRawToWei(tokenDataAnyway(), raw))
+  },
+})
+
+const tokenModel = useVModel(props, 'token', emit)
+
+const clipboard = useClipboard()
+</script>
+
+<template>
+  <div
+    v-if="tokenData"
+    class="token-input"
+    :class="{ 'token-loading': isLoading }"
+  >
+    <div class="token-value">
+      <input
+        v-model="model"
+        :disabled="isDisabled"
+        placeholder="0"
+        type="number"
+      >
+
+      <button
+        v-if="balance"
+        @click="model = balance"
+      >
+        MAX
+      </button>
+      <div class="token-select-wrap">
+        <TokenSelect v-model="tokenModel" />
+      </div>
+    </div>
+    <div class="token-meta">
+      <div class="row">
+        <KlayTextField
+          :title="balance"
+          class="price"
+        >
+          Balance: {{ balanceFormatted }}
+        </KlayTextField>
+
+        <KlayIcon name="important" />
+
+        <div class="token-info">
+          <p>{{ tokenData.name }} {{ `(${tokenData.symbol})` }}</p>
+          <span class="price"> - </span>
+          <span class="percent">0.26%</span>
+
+          <div
+            class="address"
+            @click="clipboard.copy(token)"
+          >
+            <span class="address-name">{{ addrFormatted }}</span>
+            <KlayIcon name="copy" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
 .token {
   &-loading {
     opacity: 0.4;
@@ -90,7 +200,7 @@
 
     &:after {
       display: block;
-      content: "";
+      content: '';
       width: 0;
       height: 0;
       border-left: 6px solid transparent;
@@ -183,3 +293,4 @@
     }
   }
 }
+</style>

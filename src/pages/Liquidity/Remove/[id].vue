@@ -2,11 +2,11 @@
 import { parseAddress } from '@/core/kaikas'
 import { toRefs } from '@vueuse/core'
 
-const tokensStore = useTokensStore()
-const { tokenA, tokenB } = $(toRefs(toRef(tokensStore, 'selectedTokens')))
+const selectionStore = useTokensSelectionStore()
+const { tokenA, tokenB } = $(toRefs(toRef(selectionStore, 'selectionResolvedTokens')))
 
 const route = useRoute()
-tokensStore.setSelectedTokensByPair(parseAddress(route.params.id as string))
+selectionStore.computeSelectionByPair(parseAddress(route.params.id as string))
 </script>
 
 <template>

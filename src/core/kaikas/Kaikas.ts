@@ -26,15 +26,27 @@ export default class Kaikas {
     return this.cfg.addrs.self
   }
 
-  public async createToken(addr: Address): Promise<Token> {
+  public async getToken(addr: Address): Promise<Token> {
     const contract = this.cfg.createContract<KIP7>(addr, KIP7_ABI)
-
-    const [name, symbol, balance] = await Promise.all([
+    const [name, symbol, decimals] = await Promise.all([
       contract.methods.name().call(),
       contract.methods.symbol().call(),
-      contract.methods.balanceOf(addr).call() as Promise<Balance>,
+      contract.methods
+        .decimals()
+        .call()
+        .then((x) => Number(x)),
     ])
+    return { address: addr, name, symbol, decimals }
+  }
 
-    return { address: addr, name, symbol, balance }
+  public async getTokenBalance(addr: Address): Promise<Balance> {
+    const contract = this.cfg.createContract<KIP7>(addr, KIP7_ABI)
+    const balance = (await contract.methods.balanceOf(this.selfAddress).call()) as Balance
+    return balance
+  }
+
+  public async isSmartContract(addr: Address): Promise<boolean> {
+    const code = await this.cfg.caver.klay.getCode(addr)
+    return code !== '0x'
   }
 }

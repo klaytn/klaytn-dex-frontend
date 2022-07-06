@@ -1,20 +1,25 @@
 <script lang="ts" setup>
 import { Status } from '@soramitsu-ui/ui'
-import { type Balance, isAddress, Token, Address, fromWei } from '@/core/kaikas'
+import { Balance, isAddress, Token, Address, tokenWeiToRaw } from '@/core/kaikas'
 import { useTask, useScope } from '@vue-kakuyaku/core'
-import { type KIP7 } from '@/types/typechain/tokens'
-import { KIP7 as KIP7_ABI } from '@/core/kaikas/smartcontracts/abi'
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
+import invariant from 'tiny-invariant'
 
-const emit = defineEmits<(...args: [event: 'close'] | [event: 'select', value: Token]) => void>()
+const emit = defineEmits(['close', 'select'])
 
 const tokensStore = useTokensStore()
-const { tokensList } = $(storeToRefs(tokensStore))
-
 const kaikasStore = useKaikasStore()
 
+const { tokensWithBalance: tokens } = $(storeToRefs(tokensStore))
+
 let search = $ref('')
+
+const tokensFilteredBySearch = $computed(() => {
+  const value = search
+  const valueUpper = value.toUpperCase()
+  return tokens?.filter((token) => token.symbol.includes(valueUpper) || token.address === value) ?? []
+})
 
 /**
  * it is ref, thus it is possible to reset it immediately,
@@ -29,76 +34,59 @@ debouncedWatch(
   { debounce: 500 },
 )
 
-const importTokenScope = useScope($$(searchAsAddress), (addr) => {
-  const createImportTokenTask = useTask<Token | null>(async () => {
-    const kaikas = kaikasStore.getKaikasAnyway()
-
-    const code = await kaikas.cfg.caver.klay.getCode(addr)
-    const doesExist = tokensList.find(({ address }) => address === addr)
-
-    if (code === '0x' || doesExist) {
-      return null
-    }
-
-    const contract = kaikas.cfg.createContract<KIP7>(addr, KIP7_ABI)
-    const symbol = await contract.methods.symbol().call()
-    const name = await contract.methods.name().call()
-
-    // FIXME why the balance here is the balance of the user?
-    // compare with `Kaikas.createToken()` - it uses the token address
-    const balance = (await contract.methods.balanceOf(kaikas.selfAddress).call()) as Balance
-
-    return {
-      address: addr,
-      name,
-      symbol,
-      balance,
-      // logo: '-',
-      // slug: '-',
-    }
-  })
-
-  createImportTokenTask.run()
-
-  return createImportTokenTask
+const searchAsAddressSmartcontractCheckScope = useScope($$(searchAsAddress), (addr) => {
+  const task = useTask(() => kaikasStore.getKaikasAnyway().isSmartContract(addr))
+  task.run()
+  return task
 })
 
-const importToken = $computed<Token | null>(() => {
-  const state = importTokenScope.value?.setup.state
+const tokenToImportScope = useScope(
+  computed<false | Address>(() => {
+    const addr = searchAsAddress
+    const addrSmartcontractCheckState = searchAsAddressSmartcontractCheckScope.value?.setup.state
+    if (
+      addr &&
+      addrSmartcontractCheckState?.kind === 'ok' &&
+      addrSmartcontractCheckState.data &&
+      !tokensStore.tryFindToken(addr)
+    )
+      return addr
+    return false
+  }),
+  (addr) => {
+    const task = useTask<Token | null>(() => kaikasStore.getKaikasAnyway().getToken(addr))
+    task.run()
+    return task
+  },
+)
+
+const tokenToImport = $computed<Token | null>(() => {
+  const state = tokenToImportScope.value?.setup.state
   return state?.kind === 'ok' ? state.data : null
 })
 
-const renderTokens = $computed<Token[]>(() => {
-  const value = search
-  const valueUpper = value.toUpperCase()
-
-  return tokensList.filter((token) => token.symbol.includes(valueUpper) || token.address === value)
-})
-
-/**
- * FIXME why slice? why 6 elems?
- */
-const renderTokensSlice = $computed(() => renderTokens.slice(0, 6))
-
-function getRenderBalance(balance: Balance): string {
-  const value = new BigNumber(fromWei(balance))
-  return value.toFixed(4)
+function isBalancePositive(balance: Balance): boolean {
+  return new BigNumber(balance).isGreaterThan(0)
 }
 
-function onSelect(token: Token) {
-  if (Number(token.balance) <= 0) return
+function formatBalance(balance: Balance, decimals: number): string {
+  const raw = tokenWeiToRaw({ decimals }, balance)
+  return new BigNumber(raw).toFixed(4)
+}
+
+function selectToken(token: Address) {
+  const balance = tokensStore.userBalanceMap?.get(token)
+  invariant(balance, 'Balance should be loaded before selection')
+  invariant(isBalancePositive(balance), 'Balance should be greater than 0')
   emit('select', token)
 }
 
-function onAddToken() {
-  if (importToken) {
-    tokensList.unshift(importToken)
-
-    search = ''
-    searchAsAddress = null
-
-    $notify({ status: Status.Success, description: 'Token added' })
-  }
+function doImport() {
+  invariant(tokenToImport)
+  tokensStore.importToken(tokenToImport)
+  search = ''
+  searchAsAddress = null
+  $notify({ status: Status.Success, description: 'Token added' })
 }
 </script>
 
@@ -124,10 +112,10 @@ function onAddToken() {
 
     <div class="token-select-modal--recent row">
       <div
-        v-for="t in renderTokensSlice"
+        v-for="t in tokensFilteredBySearch.slice(0, 6)"
         :key="t.address"
         class="token-select-modal--tag"
-        @click="onSelect(t)"
+        @click="selectToken(t.address)"
       >
         <TagName
           :key="t.symbol"
@@ -144,19 +132,19 @@ function onAddToken() {
 
     <div class="token-select-modal--list">
       <div
-        v-if="importToken"
+        v-if="tokenToImport"
         class="token-select-modal--item"
-        @click="onAddToken"
+        @click="doImport()"
       >
         <KlayIcon
-          :char="importToken.symbol[0]"
+          :char="tokenToImport.symbol[0]"
           name="empty-token"
         />
         <div class="info">
           <p class="token">
-            {{ importToken.symbol }}
+            {{ tokenToImport.symbol }}
           </p>
-          <span class="token-name">{{ importToken.name }}</span>
+          <span class="token-name">{{ tokenToImport.name }}</span>
         </div>
         <button
           type="button"
@@ -167,11 +155,11 @@ function onAddToken() {
       </div>
 
       <div
-        v-for="t in renderTokens"
+        v-for="t in tokensFilteredBySearch"
         :key="t.address"
         class="token-select-modal--item"
-        :class="{ 'token-select-modal--item-disabled': Number(t.balance) <= 0 }"
-        @click="onSelect(t)"
+        :class="{ 'token-select-modal--item-disabled': t.balance && !isBalancePositive(t.balance) }"
+        @click="selectToken(t.address)"
       >
         <KlayIcon
           :char="t.symbol[0]"
@@ -184,10 +172,10 @@ function onAddToken() {
           <span class="token-name">{{ t.name.toLowerCase() }}</span>
         </div>
         <KlayTextField
-          :title="`${t.balance} ${t.symbol}`"
+          :title="`${t.balance ?? '-'} ${t.symbol}`"
           class="token-count"
         >
-          {{ getRenderBalance(t.balance) }} {{ t.symbol }}
+          {{ t.balance ? formatBalance(t.balance, t.decimals) : '-' }} {{ t.symbol }}
         </KlayTextField>
       </div>
     </div>

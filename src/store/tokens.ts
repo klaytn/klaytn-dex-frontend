@@ -1,201 +1,117 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { Address, Balance, isEmptyAddress, Token } from '@/core/kaikas'
-import type { DexPair } from '@/types/typechain/swap'
-import { PAIR as PAIR_ABI } from '@/core/kaikas/smartcontracts/abi'
+import { Address, Balance, Token, ValueWei } from '@/core/kaikas'
+import { useTask } from '@vue-kakuyaku/core'
+import { WHITELIST_TOKENS } from '@/core/kaikas/const'
 import invariant from 'tiny-invariant'
-import { useTask, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
 
-const TOKENS_WHITELIST = [
-  '0xb9920BD871e39C6EF46169c32e7AC4C698688881',
-  '0x1CDcD477994e86A11E21C27ca907bEA266EA3A0a',
-  '0x2486A551714F947C386Fe9c8b895C2A6b3275EC9',
-  '0xAFea7569B745EaE7AB22cF17c3B237c3350407A1',
-  '0xC20A9eB22de0C6920619aDe93A11283C2a07273e',
-  '0xce77229fF8451f5791ef4Cc2a841735Ed4edc3cA',
-  '0xFbcb69f52D6A08C156c543Dd4Dc0521F5F545755',
-  '0x7cB550723972d7F29b047D6e71b62DcCcAF93992',
-  '0xcdBD333BDBB99bC80D77B10CCF74285a97150E5d',
-  '0x246C989333Fa3C3247C7171F6bca68062172992C',
-] as Address[]
-
-const KLAY_TOKEN: Pick<Token, 'address' | 'symbol' | 'name'> = {
-  address: '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address,
-  symbol: 'KLAY',
-  name: 'Klaytn',
+export interface TokenWithOptionBalance extends Token {
+  balance: null | ValueWei<string>
 }
 
-interface State {
-  tokensList: Token[]
-  /**
-   * FIXME what does it mean?
-   */
-  computedToken: 'tokenB' | 'tokenA' | null
-  selectedTokens: SelectedTokens
+function listItemsFromMapOrNull<K, V>(keys: K[], map: Map<K, V>): null | V[] {
+  const fromMap: V[] = []
+
+  for (const key of keys) {
+    const value = map.get(key)
+    if (!value) return null
+    fromMap.push(value)
+  }
+
+  return fromMap
 }
 
-interface SelectedTokens {
-  emptyPair: boolean
-  pairAddress: Address | null
-  pairBalance: string | null
-  userBalance: string | null
-  tokenA: Token | null
-  tokenB: Token | null
-}
-
-const stateFactory = (): State => ({
-  tokensList: [],
-  computedToken: null,
-  selectedTokens: selectedTokensFactory(),
-})
-
-const selectedTokensFactory = (): SelectedTokens => ({
-  emptyPair: false,
-  pairAddress: null,
-  pairBalance: null,
-  userBalance: null,
-  tokenA: null,
-  tokenB: null,
-})
-
-/**
- * What is this store for?
- */
 export const useTokensStore = defineStore('tokens', () => {
   const kaikasStore = useKaikasStore()
 
-  const state = reactive(stateFactory())
+  const importedTokensAddrs = useLocalStorage<Address[]>('klaytn-dex-imported-tokens', [])
+  const importedTokensMap = ref(new Map<Address, Token>())
 
-  async function checkEmptyPair() {
-    const { tokenA, tokenB } = state.selectedTokens
-    if (!tokenA || !tokenB) return
+  const importedTokensOrdered = computed<null | Token[]>(() => {
+    return listItemsFromMapOrNull(importedTokensAddrs.value, importedTokensMap.value)
+  })
 
+  const getImportedTokensTask = useTask(async () => {
     const kaikas = kaikasStore.getKaikasAnyway()
 
-    const pairAddress = await kaikas.tokens.getPairAddress(tokenA.address, tokenB.address)
-    if (isEmptyAddress(pairAddress)) {
-      state.selectedTokens.emptyPair = true
-      return
-    }
-
-    state.selectedTokens.emptyPair = false
-  }
-
-  async function setSelectedTokensByPair(pairAddress: Address) {
-    const kaikas = kaikasStore.getKaikasAnyway()
-    const addr = kaikas.cfg.addrs.self
-
-    const pairContract = kaikas.cfg.createContract<DexPair>(pairAddress, PAIR_ABI)
-
-    const token0Address = (await pairContract.methods.token0().call({
-      from: addr,
-    })) as Address
-    const token1Address = (await pairContract.methods.token1().call({
-      from: addr,
-    })) as Address
-
-    const [token0, token1] = await Promise.all([kaikas.createToken(token0Address), kaikas.createToken(token1Address)])
-
-    const { pairBalance, userBalance } = await kaikas.tokens.getPairBalance(token0Address, token1Address)
-
-    state.selectedTokens = {
-      tokenA: token0,
-      tokenB: token1,
-      pairBalance,
-      userBalance,
-      emptyPair: false,
-      pairAddress,
-    }
-  }
-
-  const getTokensTask = useTask(async () => {
-    const kaikas = kaikasStore.getKaikasAnyway()
-
-    const balance = (await kaikas.cfg.caver.klay.getBalance(kaikas.selfAddress)) as Balance
-    const klay: Token = { ...KLAY_TOKEN, balance }
-
-    const mockedTokens = await Promise.all(
-      TOKENS_WHITELIST.map((addr) =>
-        // eslint-disable-next-line max-nested-callbacks
-        kaikas.createToken(addr).catch((err) => {
-          console.error('failed token:', addr)
-          throw err
-        }),
-      ),
+    const pairs = await Promise.all(
+      importedTokensAddrs.value.map(async (addr) => {
+        const token = await kaikas.getToken(addr)
+        return [addr, token] as [Address, Token]
+      }),
     )
 
-    return [klay, ...mockedTokens]
+    importedTokensMap.value = new Map(pairs)
   })
 
-  wheneverTaskSucceeds(getTokensTask, (tokens) => {
-    state.tokensList = tokens
+  /**
+   * Saves new imported token
+   */
+  function importToken(token: Token): void {
+    importedTokensAddrs.value.unshift(token.address)
+    importedTokensMap.value.set(token.address, token)
+  }
+
+  useTaskLog(getImportedTokensTask, 'imported-tokens')
+
+  function getImportedTokens() {
+    getImportedTokensTask.run()
+  }
+
+  const tokens = computed<null | Token[]>(() => {
+    const imported = importedTokensOrdered.value
+    if (!imported) return null
+
+    return [...imported, ...WHITELIST_TOKENS]
   })
 
-  function setSelectedToken({ type, token }: { type: 'tokenB' | 'tokenA'; token: Token }) {
-    state.selectedTokens[type] = token
+  function tryFindToken(addr: Address): null | Token {
+    return tokens.value?.find((x) => x.address === addr) ?? null
   }
 
-  function setComputedToken(token: 'tokenB' | 'tokenA' | null) {
-    state.computedToken = token
+  const getUserBalanceTask = useTask<Map<Address, Balance>>(async () => {
+    const kaikas = kaikasStore.getKaikasAnyway()
+    invariant(tokens.value)
+
+    const entries = await Promise.all(
+      tokens.value.map(async ({ address }) => {
+        const balance = await kaikas.getTokenBalance(address)
+        return [address, balance] as [Address, Balance]
+      }),
+    )
+
+    return new Map(entries)
+  })
+  useTaskLog(getUserBalanceTask, 'user-balance')
+  const userBalanceMap = computed(() => {
+    const state = getUserBalanceTask.state
+    return state.kind === 'ok' ? state.data : null
+  })
+
+  function getUserBalance() {
+    getUserBalanceTask.run()
   }
 
-  function clearSelectedTokens() {
-    state.selectedTokens = selectedTokensFactory()
-  }
-
-  function setTokenValue({
-    type,
-    value,
-    pairBalance,
-    userBalance,
-  }: {
-    type: 'tokenB' | 'tokenA'
-    value: any
-    pairBalance: string | null
-    userBalance: string | null
-  }) {
-    state.selectedTokens = {
-      ...state.selectedTokens,
-      pairBalance,
-      userBalance,
-      [type]: {
-        ...state.selectedTokens[type],
-        value,
-      },
-    }
-  }
-
-  /**
-   * Fails if there are no selected tokens
-   */
-  function getSelectedTokensAnyway(): { tokenA: Token; tokenB: Token } {
-    const { tokenA, tokenB } = state.selectedTokens
-    invariant(tokenA && tokenB, 'No selected tokens')
-    return { tokenA, tokenB }
-  }
-
-  /**
-   * Fails if there are no selected tokens or pair address
-   */
-  function getSelectedTokensAndPairAnyway(): ReturnType<typeof getSelectedTokensAnyway> & { pairAddress: Address } {
-    const { pairAddress } = state.selectedTokens
-    invariant(pairAddress, 'No selected pair address')
-    return { pairAddress, ...getSelectedTokensAnyway() }
-  }
+  const tokensWithBalance = computed<null | TokenWithOptionBalance[]>(() => {
+    const balanceMap = userBalanceMap.value
+    return (
+      tokens.value?.map<TokenWithOptionBalance>((x) => ({
+        ...x,
+        balance: balanceMap?.get(x.address) ?? null,
+      })) ?? null
+    )
+  })
 
   return {
-    ...toRefs(state),
+    tokens,
+    tryFindToken,
 
-    getTokensTask,
-    clearSelectedTokens,
-    setTokenValue,
-    setSelectedToken,
-    setComputedToken,
-    setSelectedTokensByPair,
-    checkEmptyPair,
+    getWhitelistAndImportedTokens: getImportedTokens,
+    importToken,
 
-    getSelectedTokensAnyway,
-    getSelectedTokensAndPairAnyway,
+    getUserBalance,
+    userBalanceMap,
+    tokensWithBalance,
   }
 })
 
-if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useTokensStore, import.meta.hot))
+import.meta.hot?.accept(acceptHMRUpdate(useTokensStore, import.meta.hot))

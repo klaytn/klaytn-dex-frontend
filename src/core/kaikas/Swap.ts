@@ -18,19 +18,19 @@ export interface SwapPropsBase extends AddrsPair {
 
 export type AmountValue = ValueWei<string | number | BN>
 
-export interface SwapExactFor<A extends string, B extends string> {
+export interface SwapExactAForB<A extends string, B extends string> {
   mode: `exact-${A}-for-${B}`
   amountIn: AmountValue
   amountOutMin: AmountValue
 }
 
-export interface SwapForExact<A extends string, B extends string> {
+export interface SwapAForExactB<A extends string, B extends string> {
   mode: `${A}-for-exact-${B}`
   amountOut: AmountValue
   amountInMax: AmountValue
 }
 
-export type SwapExactForAndForExact<A extends string, B extends string> = SwapForExact<A, B> | SwapExactFor<A, B>
+export type SwapExactForAndForExact<A extends string, B extends string> = SwapAForExactB<A, B> | SwapExactAForB<A, B>
 
 export type SwapProps = SwapPropsBase &
   (
@@ -127,8 +127,7 @@ export default class Swap {
         const swapMethod = routerMethods.swapExactTokensForETH(
           props.amountIn,
           props.amountOutMin,
-          // FIXME B -> A?
-          [props.addressB, props.addressA],
+          [props.addressA, props.addressB],
           this.addr,
           deadline,
         )
@@ -148,8 +147,7 @@ export default class Swap {
       case 'exact-eth-for-tokens': {
         const swapMethod = routerMethods.swapExactETHForTokens(
           props.amountOutMin,
-          // FIXME B -> A?
-          [props.addressB, props.addressA],
+          [props.addressA, props.addressB],
           this.addr,
           deadline,
         )
@@ -172,13 +170,11 @@ export default class Swap {
       case 'eth-for-exact-tokens': {
         const swapMethod = routerMethods.swapETHForExactTokens(
           props.amountOut,
-          // FIXME B -> A?
-          [props.addressB, props.addressA],
+          [props.addressA, props.addressB],
           this.addr,
           deadline,
         )
         gas = await swapMethod.estimateGas({
-          // FIXME originally it was just `amountIn`
           value: props.amountInMax,
           from: this.addr,
           gasPrice: MAGIC_GAS_PRICE,
@@ -197,7 +193,6 @@ export default class Swap {
         const swapMethod = routerMethods.swapTokensForExactETH(
           props.amountOut,
           props.amountInMax,
-          // FIXME B -> A?
           [props.addressA, props.addressB],
           this.addr,
           deadline,
