@@ -5,8 +5,7 @@ import farmingAbi from '@/utils/smartcontracts/farming.json'
 import { Farming } from '@/types/typechain/farming'
 import { AbiItem } from 'caver-js'
 import {
-  Pool,
-  LiquidityPosition
+  Pool
 } from './types'
 import {
   farmingContractAddress, formattedBigIntDecimals
@@ -21,7 +20,7 @@ const props = defineProps<{
   pool: Pool
 }>()
 const { pool } = toRefs(props)
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'success'])
 
 const value = ref('0')
 
@@ -73,7 +72,7 @@ async function confirm() {
       gasPrice
     })
     $notify({ status: Status.Success, description: `${value.value} LP tokens were staked` })
-    emit('close')
+    emit('success')
   } catch (e) {
     console.error(e)
     $notify({ status: Status.Error, description: 'Stake LP tokens error' })

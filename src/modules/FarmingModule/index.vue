@@ -223,6 +223,13 @@ const pools = computed<Pool[] | null>(() => {
 
   return pools
 })
+
+function handleStaked() {
+  fetchUserInfo()
+}
+function handleUnstaked() {
+  fetchUserInfo()
+}
 </script>
 
 <template>
@@ -236,6 +243,8 @@ const pools = computed<Pool[] | null>(() => {
           :key="pool.id"
           :pool="pool"
           :liquidity-positions="liquidityPositions"
+          @staked="handleStaked"
+          @unstaked="handleUnstaked"
         />
       </div>
       <div

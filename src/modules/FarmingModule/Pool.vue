@@ -28,6 +28,7 @@ const props = defineProps<{
   pool: Pool
 }>()
 const { pool } = toRefs(props)
+const emit = defineEmits(['staked', 'unstaked', 'withdrawn'])
 
 const expanded = ref(false)
 const enabled = ref(false)
@@ -118,6 +119,11 @@ async function enable() {
   }
 }
 
+watch(expanded, (value) => {
+  if (value)
+    checkEnabled()
+})
+
 const loading = computed(() => {
   return checkEnabledInProgress.value
 })
@@ -134,6 +140,7 @@ function unstake() {
 
 async function withdraw() {
   try {
+    const earned = pool.value.earned
     const gasPrice = await caver.klay.getGasPrice()
     const withdraw = FarmingContract.methods.withdraw(props.pool.id, 0)
     const estimateGas = await withdraw.estimateGas({
@@ -145,7 +152,8 @@ async function withdraw() {
       gas: estimateGas,
       gasPrice
     })
-    $notify({ status: Status.Success, description: `${pool.value.earned} DEX tokens were withdrawn` })
+    emit('withdrawn')
+    $notify({ status: Status.Success, description: `${earned} DEX tokens were withdrawn` })
   } catch (e) {
     console.error(e)
     $notify({ status: Status.Error, description: 'Withdraw DEX tokens error' })
@@ -153,10 +161,23 @@ async function withdraw() {
   }
 }
 
-watch(expanded, (value) => {
-  if (value)
-    checkEnabled()
-})
+async function handleSuccessStake() {
+  stakeModalOpen.value = false
+  emit('staked')
+}
+
+async function handleSuccessUnstake() {
+  unstakeModalOpen.value = false
+  emit('unstaked')
+}
+
+async function handleStakeModalClose() {
+  stakeModalOpen.value = false
+}
+
+async function handleUnstakeModalClose() {
+  unstakeModalOpen.value = false
+}
 </script>
 
 <template>
@@ -280,13 +301,15 @@ watch(expanded, (value) => {
   <FarmingModuleStakeModal
     v-if="stakeModalOpen"
     :pool="pool"
-    @close="stakeModalOpen = false"
+    @close="handleStakeModalClose"
+    @success="handleSuccessStake"
   />
 
   <FarmingModuleUnstakeModal
     v-if="unstakeModalOpen"
     :pool="pool"
-    @close="unstakeModalOpen = false"
+    @close="handleUnstakeModalClose"
+    @success="handleSuccessUnstake"
   />
 </template>
 
