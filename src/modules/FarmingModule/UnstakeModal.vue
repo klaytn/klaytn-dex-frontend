@@ -8,7 +8,8 @@ import {
   Pool
 } from './types'
 import {
-  farmingContractAddress, formattedBigIntDecimals
+  farmingContractAddress,
+  formattedBigIntDecimals
 } from './const'
 import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
 
@@ -20,7 +21,10 @@ const props = defineProps<{
   pool: Pool
 }>()
 const { pool } = toRefs(props)
-const emit = defineEmits(['close', 'success'])
+const emit = defineEmits<{
+  (e: 'close'): void
+  (e: 'success', value: string): void
+}>()
 
 const value = ref('0')
 
@@ -52,8 +56,9 @@ const FarmingContract = $kaikas.config.createContract<Farming>(farmingContractAd
 
 async function confirm() {
   try {
+    const amount = value.value
     const gasPrice = await caver.klay.getGasPrice()
-    const withdraw = FarmingContract.methods.withdraw(props.pool.id, $kaikas.utils.toWei(value.value))
+    const withdraw = FarmingContract.methods.withdraw(props.pool.id, $kaikas.utils.toWei(amount))
     const estimateGas = await withdraw.estimateGas({
       from: config.address,
       gasPrice,
@@ -63,8 +68,8 @@ async function confirm() {
       gas: estimateGas,
       gasPrice
     })
-    $notify({ status: Status.Success, description: `${value.value} LP tokens were unstaked` })
-    emit('success')
+    $notify({ status: Status.Success, description: `${amount} LP tokens were unstaked` })
+    emit('success', amount)
   } catch (e) {
     console.error(e)
     $notify({ status: Status.Error, description: 'Unstake LP tokens error' })

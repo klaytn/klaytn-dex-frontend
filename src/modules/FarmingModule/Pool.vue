@@ -5,7 +5,6 @@ import { RouteName } from '@/types'
 import farmingAbi from '@/utils/smartcontracts/farming.json'
 
 import {
-  Pair,
   Pool
 } from './types'
 import {
@@ -28,7 +27,10 @@ const props = defineProps<{
   pool: Pool
 }>()
 const { pool } = toRefs(props)
-const emit = defineEmits(['staked', 'unstaked', 'withdrawn'])
+const emit = defineEmits<{
+  (e: 'staked' | 'unstaked', value: string): void
+  (e: 'withdrawn'): void
+}>()
 
 const expanded = ref(false)
 const enabled = ref(false)
@@ -75,7 +77,7 @@ const stats = computed(() => {
   }
 })
 
-function goToLiquidityAddPage (pairId: Pair['id']) {
+function goToLiquidityAddPage (pairId: Pool['pairId']) {
   router.push({ name: RouteName.LiquidityAdd, params: { id: pairId } })
 }
 
@@ -161,14 +163,14 @@ async function withdraw() {
   }
 }
 
-async function handleSuccessStake() {
+async function handleSuccessStake(amount: string) {
   stakeModalOpen.value = false
-  emit('staked')
+  emit('staked', amount)
 }
 
-async function handleSuccessUnstake() {
+async function handleSuccessUnstake(amount: string) {
   unstakeModalOpen.value = false
-  emit('unstaked')
+  emit('unstaked', amount)
 }
 
 async function handleStakeModalClose() {

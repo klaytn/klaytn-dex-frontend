@@ -1,45 +1,40 @@
 import { Address } from '@/types'
 import BigNumber from 'bignumber.js'
 
-export interface Farming {
-  id: string
-  poolCount: number
-  pools: {
+export interface FarmingsQueryResult {
+  farmings: {
     id: string
-    pair: string
+    poolCount: number
+    pools: {
+      id: string
+      pair: string
+      users: {
+        pool: {
+          id: string
+          totalTokensStaked: string
+        }
+      }[]
+    }[]
   }[]
 }
 
-export interface FarmingsQueryResult {
-  farmings: Farming[]
-}
-
-export interface Pair {
-  id: string
-  name: string
-  dayData: { volumeUSD: string }[]
-  reserveUSD: string
-}
-
 export interface PairsQueryResult {
-  pairs: Pair[]
-}
-
-export interface UserInfo {
-  amount: string
-  rewardDebt: string
-}
-
-export interface LiquidityPosition {
-  liquidityTokenBalance: string
-  pair: {
+  pairs: {
     id: string
-  }
+    name: string
+    dayData: { volumeUSD: string }[]
+    reserveUSD: string
+  }[]
 }
 
 export interface LiquidityPositionsQueryResult {
   user: {
-    liquidityPositions: LiquidityPosition[]
+    liquidityPositions: {
+      liquidityTokenBalance: string
+      pair: {
+        id: string
+      }
+    }[]
   }
 }
 
