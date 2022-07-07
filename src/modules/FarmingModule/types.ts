@@ -11,8 +11,8 @@ export interface FarmingsQueryResult {
       users: {
         pool: {
           id: string
-          totalTokensStaked: string
         }
+        amount: string
       }[]
     }[]
   }[]
@@ -49,4 +49,9 @@ export interface Pool {
   liquidity: BigNumber
   volume24H: BigNumber
   volume7D: BigNumber
+}
+
+export enum ModalOperation {
+  Stake = 'stake',
+  Unstake = 'unstake',
 }

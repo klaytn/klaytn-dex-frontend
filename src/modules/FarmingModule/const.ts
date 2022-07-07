@@ -17,8 +17,8 @@ export const farmingsQuery = gql`query FarmingsQuery($first: Int! $skip: Int! $u
       users(where: {address: $userId}) {
         pool {
           id
-          totalTokensStaked
         }
+        amount
       }
     }
   }

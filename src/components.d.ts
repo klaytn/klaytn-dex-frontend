@@ -8,7 +8,7 @@ declare module '@vue/runtime-core' {
     EarnWrap: typeof import('./components/EarnWrap.vue')['default']
     FarmingModule: typeof import('./modules/FarmingModule/index.vue')['default']
     FarmingModulePool: typeof import('./modules/FarmingModule/Pool.vue')['default']
-    FarmingModuleStakeModal: typeof import('./modules/FarmingModule/StakeModal.vue')['default']
+    FarmingModuleStakeModal: typeof import('./modules/FarmingModule/Modal.vue')['default']
     FarmingModuleUnstakeModal: typeof import('./modules/FarmingModule/UnstakeModal.vue')['default']
     HeaderMenu: typeof import('./components/HeaderMenu.vue')['default']
     KlayAccordionItem: typeof import('./common/KlayAccordionItem.vue')['default']

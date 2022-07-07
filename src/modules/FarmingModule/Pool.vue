@@ -5,6 +5,7 @@ import { RouteName } from '@/types'
 import farmingAbi from '@/utils/smartcontracts/farming.json'
 
 import {
+ModalOperation,
   Pool
 } from './types'
 import {
@@ -36,8 +37,7 @@ const expanded = ref(false)
 const enabled = ref(false)
 const checkEnabledInProgress = ref(false)
 const checkEnabledCompleted = ref(false)
-const stakeModalOpen = ref(false)
-const unstakeModalOpen = ref(false)
+const modalOperation = ref<ModalOperation | null>(null)
 
 const iconChars = computed(() => {
   return pool.value.name.split('-').map(tokenName => tokenName[0])
@@ -133,11 +133,11 @@ const loading = computed(() => {
 const FarmingContract = $kaikas.config.createContract<Farming>(farmingContractAddress, farmingAbi.abi as AbiItem[])
 
 function stake() {
-  stakeModalOpen.value = true
+  modalOperation.value = ModalOperation.Stake
 }
 
 function unstake() {
-  unstakeModalOpen.value = true
+  modalOperation.value = ModalOperation.Unstake
 }
 
 async function withdraw() {
@@ -163,22 +163,18 @@ async function withdraw() {
   }
 }
 
-async function handleSuccessStake(amount: string) {
-  stakeModalOpen.value = false
+async function handleStaked(amount: string) {
+  modalOperation.value = null
   emit('staked', amount)
 }
 
-async function handleSuccessUnstake(amount: string) {
-  unstakeModalOpen.value = false
+async function handleUnstaked(amount: string) {
+  modalOperation.value = null
   emit('unstaked', amount)
 }
 
-async function handleStakeModalClose() {
-  stakeModalOpen.value = false
-}
-
-async function handleUnstakeModalClose() {
-  unstakeModalOpen.value = false
+async function handleModalClose() {
+  modalOperation.value = null
 }
 </script>
 
@@ -300,18 +296,13 @@ async function handleUnstakeModalClose() {
     </div>
   </KlayAccordionItem>
 
-  <FarmingModuleStakeModal
-    v-if="stakeModalOpen"
+  <FarmingModuleModal
+    v-if="modalOperation"
     :pool="pool"
-    @close="handleStakeModalClose"
-    @success="handleSuccessStake"
-  />
-
-  <FarmingModuleUnstakeModal
-    v-if="unstakeModalOpen"
-    :pool="pool"
-    @close="handleUnstakeModalClose"
-    @success="handleSuccessUnstake"
+    :operation="modalOperation"
+    @close="handleModalClose"
+    @staked="handleStaked"
+    @unstaked="handleUnstaked"
   />
 </template>
 

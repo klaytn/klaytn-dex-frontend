@@ -187,7 +187,7 @@ const pools = computed<Pool[] | null>(() => {
 
     const pairId = pair.id
     const name = pair.name
-    const staked = $kaikas.bigNumber($kaikas.fromWei(pool.users[0]?.pool.totalTokensStaked ?? '0'))
+    const staked = $kaikas.bigNumber($kaikas.fromWei(pool.users[0]?.amount ?? '0'))
     const liquidityPosition = liquidityPositions.value?.find(position => position.pair.id === pairId) ?? null
     const balance = $kaikas.bigNumber(liquidityPosition?.liquidityTokenBalance ?? 0)
     const annualPercentageRate = $kaikas.bigNumber(0)
@@ -222,11 +222,11 @@ function updateStaked(poolId: Pool['id'], diff: BigNumber) {
 
   const diffInWei = $kaikas.bigNumber($kaikas.utils.toWei(diff.toString()))
   const farmingsQueryResult = JSON.parse(JSON.stringify(FarmingsQuery.result.value)) as FarmingsQueryResult
-  const pool = farmingsQueryResult.farmings[0].pools.find(pool => pool.id === poolId)?.users[0]?.pool ?? null
-  if (!pool)
+  const user = farmingsQueryResult.farmings[0].pools.find(pool => pool.id === poolId)?.users[0] ?? null
+  if (!user)
     return
 
-  pool.totalTokensStaked = `${$kaikas.bigNumber(pool.totalTokensStaked).plus(diffInWei)}`
+  user.amount = `${$kaikas.bigNumber(user.amount).plus(diffInWei)}`
   FarmingsQuery.result.value = farmingsQueryResult
 }
 
