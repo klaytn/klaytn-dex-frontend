@@ -149,7 +149,9 @@ const LiquidityPositionsQuery = useQuery<LiquidityPositionsQueryResult>(
 )
 
 const liquidityPositions = computed(() => {
-  return LiquidityPositionsQuery.result.value?.user.liquidityPositions
+  if (!LiquidityPositionsQuery.result.value)
+    return null
+  return LiquidityPositionsQuery.result.value.user?.liquidityPositions ?? []
 })
 
 function handleFarmingQueryResult() {
