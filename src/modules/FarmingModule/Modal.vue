@@ -87,11 +87,14 @@ async function stake() {
       from: config.address,
       gasPrice,
     })
-    await deposit.send({
+    const receipt = await deposit.send({
       from: config.address,
       gas: estimateGas,
       gasPrice
     })
+    if (receipt.status === false)
+      throw new Error('Transaction error')
+
     $notify({ status: Status.Success, description: `${amount} LP tokens were staked` })
     emit('staked', amount)
   } catch (e) {
