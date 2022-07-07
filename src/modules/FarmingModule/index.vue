@@ -42,7 +42,7 @@ const FarmingsQuery = useQuery<FarmingsQueryResult>(
 )
 
 const farming = computed(() => {
-  return FarmingsQuery.result.value?.farmings[0] ?? null
+  return FarmingsQuery.result.value?.farming ?? null
 })
 
 function fetchRewards() {
@@ -99,21 +99,19 @@ function viewMore() {
       // No new pools
       if (!fetchMoreResult) return previousResult
 
-      const previousFarming = previousResult.farmings[0]
-      const newFarming = fetchMoreResult.farmings[0]
+      const previousFarming = previousResult.farming
+      const newFarming = fetchMoreResult.farming
 
       fetchMorePairs(newFarming.pools.map(pool => pool.pair))
 
       // Concat previous pools with new pools
-      return { farmings: [
-        {
-          ...newFarming,
-          pools: [
-            ...previousFarming.pools,
-            ...newFarming.pools,
-          ],
-        }
-      ]}
+      return { farming: {
+        ...newFarming,
+        pools: [
+          ...previousFarming.pools,
+          ...newFarming.pools,
+        ],
+      }}
     },
   })
 }
@@ -222,7 +220,7 @@ function updateStaked(poolId: Pool['id'], diff: BigNumber) {
 
   const diffInWei = $kaikas.bigNumber($kaikas.utils.toWei(diff.toString()))
   const farmingsQueryResult = JSON.parse(JSON.stringify(FarmingsQuery.result.value)) as FarmingsQueryResult
-  const user = farmingsQueryResult.farmings[0].pools.find(pool => pool.id === poolId)?.users[0] ?? null
+  const user = farmingsQueryResult.farming.pools.find(pool => pool.id === poolId)?.users[0] ?? null
   if (!user)
     return
 

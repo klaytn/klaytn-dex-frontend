@@ -2,7 +2,7 @@ import { Address } from '@/types'
 import BigNumber from 'bignumber.js'
 
 export interface FarmingsQueryResult {
-  farmings: {
+  farming: {
     id: string
     poolCount: number
     pools: {
@@ -15,7 +15,7 @@ export interface FarmingsQueryResult {
         amount: string
       }[]
     }[]
-  }[]
+  }
 }
 
 export interface PairsQueryResult {
