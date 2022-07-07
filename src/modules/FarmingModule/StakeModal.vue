@@ -1,9 +1,7 @@
 <script setup lang="ts" name="FarmingModuleStakeModal">
 import { STextField, SButton, Status } from '@soramitsu-ui/ui'
-
-import farmingAbi from '@/utils/smartcontracts/farming.json'
-import { Farming } from '@/types/typechain/farming'
 import { AbiItem } from 'caver-js'
+
 import {
   Pool
 } from './types'
@@ -11,6 +9,9 @@ import {
   farmingContractAddress,
   formattedBigIntDecimals
 } from './const'
+
+import { Farming } from '@/types/typechain/farming'
+import farmingAbi from '@/utils/smartcontracts/farming.json'
 import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
   
 const { caver } = window

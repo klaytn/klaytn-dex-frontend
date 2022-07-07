@@ -1,9 +1,7 @@
 <script setup lang="ts" name="FarmingModuleUnstakeModal">
 import { STextField, SButton, Status } from '@soramitsu-ui/ui'
-
-import farmingAbi from '@/utils/smartcontracts/farming.json'
-import { Farming } from '@/types/typechain/farming'
 import { AbiItem } from 'caver-js'
+
 import {
   Pool
 } from './types'
@@ -11,6 +9,9 @@ import {
   farmingContractAddress,
   formattedBigIntDecimals
 } from './const'
+
+import { Farming } from '@/types/typechain/farming'
+import farmingAbi from '@/utils/smartcontracts/farming.json'
 import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
 
 const { caver } = window
@@ -27,6 +28,7 @@ const emit = defineEmits<{
 }>()
 
 const value = ref('0')
+const loading = ref(false)
 
 const iconChars = computed(() => {
   return pool.value.name.split('-').map(tokenName => tokenName[0])
@@ -56,6 +58,7 @@ const FarmingContract = $kaikas.config.createContract<Farming>(farmingContractAd
 
 async function confirm() {
   try {
+    loading.value = true
     const amount = value.value
     const gasPrice = await caver.klay.getGasPrice()
     const withdraw = FarmingContract.methods.withdraw(props.pool.id, $kaikas.utils.toWei(amount))
@@ -70,6 +73,7 @@ async function confirm() {
     })
     $notify({ status: Status.Success, description: `${amount} LP tokens were unstaked` })
     emit('success', amount)
+    loading.value = true
   } catch (e) {
     console.error(e)
     $notify({ status: Status.Error, description: 'Unstake LP tokens error' })

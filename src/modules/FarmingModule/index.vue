@@ -220,17 +220,36 @@ function updateStaked(poolId: Pool['id'], diff: BigNumber) {
   if (!FarmingsQuery.result.value)
     return
 
+  const diffInWei = $kaikas.bigNumber($kaikas.utils.toWei(diff.toString()))
   const farmingsQueryResult = JSON.parse(JSON.stringify(FarmingsQuery.result.value)) as FarmingsQueryResult
-  const pool = farmingsQueryResult.farmings[0].pools[0].users[0].pool
-  pool.totalTokensStaked = `${$kaikas.bigNumber(pool.totalTokensStaked).plus(diff)}`
+  const pool = farmingsQueryResult.farmings[0].pools.find(pool => pool.id === poolId)?.users[0]?.pool ?? null
+  if (!pool)
+    return
+
+  pool.totalTokensStaked = `${$kaikas.bigNumber(pool.totalTokensStaked).plus(diffInWei)}`
   FarmingsQuery.result.value = farmingsQueryResult
 }
 
-function handleStaked(poolId: Pool['id'], amount: string) {
-  updateStaked(poolId, $kaikas.bigNumber($kaikas.utils.toWei(amount)))
+function updateBalance(pairId: Pool['pairId'], diff: BigNumber) {
+  if (!LiquidityPositionsQuery.result.value)
+    return
+
+  const liquidityPositionsQueryResult = JSON.parse(JSON.stringify(LiquidityPositionsQuery.result.value)) as LiquidityPositionsQueryResult
+  const liquidityPosition = liquidityPositionsQueryResult.user.liquidityPositions.find(liquidityPosition => liquidityPosition.pair.id === pairId) ?? null
+  if (!liquidityPosition)
+    return
+
+  liquidityPosition.liquidityTokenBalance = `${$kaikas.bigNumber(liquidityPosition.liquidityTokenBalance).plus(diff)}`
+  LiquidityPositionsQuery.result.value = liquidityPositionsQueryResult
 }
-function handleUnstaked(poolId: Pool['id'], amount: string) {
-  updateStaked(poolId, $kaikas.bigNumber(0).minus($kaikas.bigNumber($kaikas.utils.toWei(amount))))
+
+function handleStaked(pool: Pool, amount: string) {
+  updateStaked(pool.id, $kaikas.bigNumber(amount))
+  updateBalance(pool.pairId, $kaikas.bigNumber(0).minus(amount))
+}
+function handleUnstaked(pool: Pool, amount: string) {
+  updateStaked(pool.id, $kaikas.bigNumber(0).minus(amount))
+  updateBalance(pool.pairId, $kaikas.bigNumber(amount))
 }
 </script>
 
@@ -244,8 +263,8 @@ function handleUnstaked(poolId: Pool['id'], amount: string) {
           v-for="pool in pools"
           :key="pool.id"
           :pool="pool"
-          @staked="(value: string) => handleStaked(pool.id, value)"
-          @unstaked="(value: string) => handleUnstaked(pool.id, value)"
+          @staked="(value: string) => handleStaked(pool, value)"
+          @unstaked="(value: string) => handleUnstaked(pool, value)"
         />
       </div>
       <div
