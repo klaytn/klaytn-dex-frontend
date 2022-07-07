@@ -8,6 +8,7 @@ export interface FarmingsQueryResult {
     pools: {
       id: string
       pair: string
+      bonusMultiplier: string
       users: {
         amount: string
       }[]
@@ -19,7 +20,6 @@ export interface PairsQueryResult {
   pairs: {
     id: string
     name: string
-    dayData: { volumeUSD: string }[]
     reserveUSD: string
   }[]
 }
@@ -44,8 +44,7 @@ export interface Pool {
   balance: BigNumber
   annualPercentageRate: BigNumber
   liquidity: BigNumber
-  volume24H: BigNumber
-  volume7D: BigNumber
+  multiplier: BigNumber
 }
 
 export enum ModalOperation {

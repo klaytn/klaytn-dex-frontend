@@ -192,12 +192,7 @@ const pools = computed<Pool[] | null>(() => {
     const balance = $kaikas.bigNumber(liquidityPosition?.liquidityTokenBalance ?? 0)
     const annualPercentageRate = $kaikas.bigNumber(0)
     const liquidity = $kaikas.bigNumber(pair.reserveUSD)
-    const volume24H = $kaikas.bigNumber(pair.dayData[0].volumeUSD)
-    const volumeUSD = pair.dayData.map(data => $kaikas.bigNumber(data.volumeUSD))
-    let volume7D = $kaikas.bigNumber(0)
-    volumeUSD.forEach(dayVolume => {
-      volume7D = volume7D.plus(dayVolume)
-    })
+    const multiplier = $kaikas.bigNumber(pool.bonusMultiplier)
 
     pools.push({
       id,
@@ -208,8 +203,7 @@ const pools = computed<Pool[] | null>(() => {
       balance,
       annualPercentageRate,
       liquidity,
-      volume24H,
-      volume7D
+      multiplier
     })
   })
 

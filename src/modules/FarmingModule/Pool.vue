@@ -59,12 +59,8 @@ const formattedLiquidity = computed(() => {
   return '$' + $kaikas.bigNumber(pool.value.liquidity.toFixed(formattedBigIntDecimals))
 })
 
-const formattedVolume24H = computed(() => {
-  return '$' + $kaikas.bigNumber(pool.value.volume24H.toFixed(formattedBigIntDecimals))
-})
-
-const formattedVolume7D = computed(() => {
-  return '$' + $kaikas.bigNumber(pool.value.volume7D.toFixed(formattedBigIntDecimals))
+const formattedMultiplier = computed(() => {
+  return 'x' + $kaikas.bigNumber(pool.value.multiplier.toFixed(formattedBigIntDecimals))
 })
 
 const stats = computed(() => {
@@ -72,8 +68,7 @@ const stats = computed(() => {
     earned: formattedEarned.value,
     annualPercentageRate: formattedAnnualPercentageRate.value,
     liquidity: formattedLiquidity.value,
-    volume24H: formattedVolume24H.value,
-    volume7D: formattedVolume7D.value,
+    multiplier: formattedMultiplier.value,
   }
 })
 
@@ -181,7 +176,7 @@ async function handleModalClose() {
 <template>
   <KlayAccordionItem
     v-model="expanded"
-    v-bem
+    v-bem="{ enabled }"
   >
     <template #title>
       <div v-bem="'head'">
@@ -318,7 +313,7 @@ async function handleModalClose() {
   &__icon:last-child
     margin-left: -9px
   &__name
-    width: 130px
+    width: 180px
     margin-left: 8px
     font-size: 16px
   &__stats-item
@@ -339,6 +334,7 @@ async function handleModalClose() {
   &__first-row
     display: flex
     align-items: center
+  &--enabled &__first-row
     margin-top: 24px
   &__staked-input, &__earned-input
     width: 388px
