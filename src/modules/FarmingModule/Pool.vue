@@ -230,6 +230,9 @@ async function handleModalClose() {
             :value="formattedStaked"
             :disabled="true"
           />
+          <div v-bem="'staked-input-label'">
+            Staked LP Tokes
+          </div>
           <div v-bem="'staked-input-buttons'">
             <SButton
               v-bem="'unstake'"
@@ -254,6 +257,9 @@ async function handleModalClose() {
             :value="formattedEarned"
             :disabled="true"
           />
+          <div v-bem="'earned-input-label'">
+            Earned  DEX Tokens
+          </div>
           <div v-bem="'earned-input-buttons'">
             <SButton
               v-bem="'withdraw'"
@@ -276,6 +282,16 @@ async function handleModalClose() {
           :href="`https://baobab.klaytnfinder.io/account/${farmingContractAddress}`"
         >
           View Contract
+          <KlayIcon
+            v-bem="'link-icon'"
+            name="link"
+          />
+        </a>
+        <a
+          v-bem="'link'"
+          :href="`https://baobab.klaytnfinder.io/account/${pool.pairId}?tabId=tokenBalance`"
+        >
+          See Pair Info
           <KlayIcon
             v-bem="'link-icon'"
             name="link"
@@ -347,11 +363,16 @@ async function handleModalClose() {
         font-size: 30px
         font-weight: 600
         line-height: 39px
+    &-label
+      position: absolute
+      bottom: 80px
+      font-size: 12px
+      line-height: 14px
     &-buttons
       position: absolute
       right: 16px
       top: 16px
-  &__earned-input
+  &__earned-input-wrapper
     margin-left: 24px
   &__unstake, &__stake-additional
     margin-left: 8px
@@ -367,6 +388,8 @@ async function handleModalClose() {
     display: flex
     align-items: center
     font-size: 12px
+    & + &
+      margin-left: 20px
     &-icon
       margin-left: 5px
       color: $gray3
