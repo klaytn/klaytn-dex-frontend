@@ -9,9 +9,6 @@ export interface FarmingsQueryResult {
       id: string
       pair: string
       users: {
-        pool: {
-          id: string
-        }
         amount: string
       }[]
     }[]

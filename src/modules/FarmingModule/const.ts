@@ -15,9 +15,6 @@ export const farmingsQuery = gql`query FarmingsQuery($first: Int! $skip: Int! $u
       id
       pair
       users(where: {address: $userId}) {
-        pool {
-          id
-        }
         amount
       }
     }
