@@ -56,7 +56,7 @@ const formattedAnnualPercentageRate = computed(() => {
 })
 
 const formattedLiquidity = computed(() => {
-  return '$' + $kaikas.bigNumber(pool.value.liquidity.toFixed(formattedBigIntDecimals))
+  return '$' + $kaikas.bigNumber(pool.value.liquidity.toFixed(0))
 })
 
 const formattedMultiplier = computed(() => {
