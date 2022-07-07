@@ -71,13 +71,13 @@ export default class Swap {
     return this.cfg.contracts.router.methods
   }
 
-  public async getAmounts(props: GetAmountsProps): Promise<ValueWei<string>[]> {
+  public async getAmounts(props: GetAmountsProps): Promise<[ValueWei<string>, ValueWei<string>]> {
     const path = [props.addressA, props.addressB]
     const amounts = await (props.mode === 'in'
       ? this.routerMethods.getAmountsIn(props.amountOut, path)
       : this.routerMethods.getAmountsOut(props.amountIn, path)
     ).call()
-    return amounts as ValueWei<string>[]
+    return amounts as [ValueWei<string>, ValueWei<string>]
   }
 
   public async swap(props: SwapProps): Promise<SwapResult> {

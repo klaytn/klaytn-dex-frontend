@@ -1,40 +1,58 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { useTask } from '@vue-kakuyaku/core'
-import { Address, isNativeToken, Kaikas, tokenRawToWei, ValueWei } from '@/core/kaikas'
+import {
+  Task,
+  useScope,
+  useTask,
+  useStaleIfErrorState,
+  useDanglingScope,
+  wheneverTaskSucceeds,
+} from '@vue-kakuyaku/core'
+import { Address, isEmptyAddress, isNativeToken, Kaikas, tokenRawToWei, ValueWei } from '@/core/kaikas'
 import { SwapExactAForB, SwapAForExactB, SwapProps } from '@/core/kaikas/Swap'
 import { Except } from 'type-fest'
+import { MaybeRef } from '@vueuse/core'
+import { Ref } from 'vue'
 
-type TokenType = 'tokenA' | 'tokenB'
+export type TokenType = 'tokenA' | 'tokenB'
 
 function mirrorTokenType(type: TokenType): TokenType {
   return type === 'tokenA' ? 'tokenB' : 'tokenA'
 }
 
-async function getAmountOfOtherToken(props: {
+type TokensPair<T> = Record<TokenType, T>
+
+function buildPair<T>(fn: (type: TokenType) => T): TokensPair<T> {
+  return {
+    tokenA: fn('tokenA'),
+    tokenB: fn('tokenB'),
+  }
+}
+
+interface GetAmountOfOtherTokenProps extends TokensPair<Address> {
   kaikas: Kaikas
   exact: { type: TokenType; value: ValueWei<string> }
-  tokenA: Address
-  tokenB: Address
-}): Promise<ValueWei<string>> {
+}
+
+async function getAmountOfOtherToken(props: GetAmountOfOtherTokenProps): Promise<ValueWei<string>> {
   const addrsPair = { addressA: props.tokenA, addressB: props.tokenB }
 
   if (props.exact.type === 'tokenA') {
-    const [, amount] = await props.kaikas.swap.getAmounts({
+    const [, amountOut] = await props.kaikas.swap.getAmounts({
       mode: 'out',
       amountIn: props.exact.value,
       ...addrsPair,
     })
 
-    return amount
+    return amountOut
   } else {
-    const [amount] = await props.kaikas.swap.getAmounts({
+    const [amountIn] = await props.kaikas.swap.getAmounts({
       mode: 'in',
       amountOut: props.exact.value,
       ...addrsPair,
     })
 
-    return amount
+    return amountIn
   }
 }
 
@@ -139,12 +157,167 @@ if (import.meta.vitest) {
   })
 }
 
-export const useSwapStore = defineStore('swap', () => {
+function usePairAddress(
+  tokenA: MaybeRef<Address | null | undefined>,
+  tokenB: MaybeRef<Address | null | undefined>,
+): Ref<null | Task<{ pair: Address; isEmpty: boolean }>> {
   const kaikasStore = useKaikasStore()
 
-  const selection = reactive<Record<TokenType, TokenInputData | null>>({
+  const key = computed<null | string>(() => {
+    const a = unref(tokenA) ?? null
+    const b = unref(tokenB) ?? null
+    return a && b && `${a}-${b}`
+  })
+
+  const scope = useScope<Task<{ pair: Address; isEmpty: boolean }>, string>(key, () => {
+    const kaikas = kaikasStore.getKaikasAnyway()
+    const a = unref(tokenA)!
+    const b = unref(tokenB)!
+
+    const task = useTask(async () => {
+      const pair = await kaikas.tokens.getPairAddress(a, b)
+      const isEmpty = isEmptyAddress(pair)
+      return { pair, isEmpty }
+    })
+
+    task.run()
+
+    return task
+  })
+
+  return computed(() => scope.value?.setup ?? null)
+}
+
+function useGetAmount({
+  selection,
+  exactToken,
+}: {
+  selection: TokensPair<TokenInputData | null>
+  exactToken: Ref<null | TokenType>
+}) {
+  const kaikasStore = useKaikasStore()
+
+  const scope = useDanglingScope<{ isPending: Ref<boolean> }>()
+
+  type ComputedGetAmountProps = Except<GetAmountOfOtherTokenProps, 'kaikas'> & { key: string }
+
+  const computedProps = computed<ComputedGetAmountProps | null>(() => {
+    const { tokenA, tokenB } = selection
+    const exact = exactToken.value
+    if (!tokenA || !tokenB || !exact) return null
+
+    const exactValue = selection[exact]!.inputWei
+
+    const key = `${tokenA.addr}-${tokenB.addr}-${exact}-${exactValue}`
+
+    return {
+      key,
+      tokenA: tokenA.addr,
+      tokenB: tokenB.addr,
+      exact: {
+        type: exact,
+        value: exactValue,
+      },
+    }
+  })
+
+  watch(
+    () => computedProps.value?.key,
+    (key) => {
+      scope.dispose()
+      if (key) {
+        const { key, ...props } = computedProps.value!
+        taskSetupDebounced(props)
+      }
+    },
+    { immediate: true },
+  )
+
+  const taskSetupDebounced = useDebounceFn((props: Except<GetAmountOfOtherTokenProps, 'kaikas'>) => {
+    const kaikas = kaikasStore.getKaikasAnyway()
+
+    scope.setup(() => {
+      const task = useTask(async () => {
+        const amount = await getAmountOfOtherToken({
+          kaikas,
+          ...props,
+        })
+
+        return { amount }
+      })
+
+      task.run()
+
+      wheneverTaskSucceeds(task, ({ amount }) => {
+        selection[mirrorTokenType(props.exact.type)]!.inputWei = amount
+      })
+
+      const isPending = computed<boolean>(() => task.state.kind === 'pending')
+
+      return { isPending }
+    })
+  }, 700)
+
+  const getAmountPendingState = computed<null | TokenType>(() => {
+    if (scope.scope.value?.setup.isPending.value) return exactToken.value!
+    return null
+  })
+
+  return { pendingState: getAmountPendingState }
+}
+
+export const useSwapStore = defineStore('swap', () => {
+  const kaikasStore = useKaikasStore()
+  const tokensStore = useTokensStore()
+
+  const selection = reactive<TokensPair<TokenInputData | null>>({
     tokenA: null,
     tokenB: null,
+  })
+
+  const selectionAddrs = buildPair((type) => computed(() => selection[type]?.addr))
+
+  const selectionTokens = buildPair((type) =>
+    computed(() => {
+      const addr = selection[type]?.addr
+      return addr ? tokensStore.tryFindToken(addr) ?? null : null
+    }),
+  )
+
+  const pairAddress = usePairAddress(selectionAddrs.tokenA, selectionAddrs.tokenB)
+  const isPairAddressEmpty = computed<'empty' | 'non-empty' | 'unknown'>(() => {
+    const state = pairAddress.value?.state
+    if (state?.kind === 'ok') {
+      return state.data.isEmpty ? 'empty' : 'non-empty'
+    }
+    return 'unknown'
+  })
+
+  const selectionBalance = buildPair((type) =>
+    computed(() => {
+      const addr = selection[type]?.addr
+      if (!addr) return null
+      return tokensStore.userBalanceMap?.get(addr) ?? null
+    }),
+  )
+
+  const areSelectedTokensValidToSwap = computed<boolean>(() => {
+    const { tokenA, tokenB } = selection
+    if (!tokenA || !tokenB) return false
+
+    const areTokensTheSame = tokenA.addr === tokenB.addr
+    if (areTokensTheSame) return false
+
+    // checking for both 1) it is loaded and 2) it is not empty
+    if (isPairAddressEmpty.value !== 'non-empty') return false
+
+    const {
+      tokenA: { value: balanceA },
+      tokenB: { value: balanceB },
+    } = selectionBalance
+    if (!(balanceA?.isGreaterThanOrEqualTo(0) && balanceB?.isGreaterThanOrEqualTo(0))) return false
+
+    return true
   })
 
   const exactToken = ref<null | TokenType>(null)
@@ -159,26 +332,7 @@ export const useSwapStore = defineStore('swap', () => {
     return { tokenA, tokenB, exactToken: exact }
   }
 
-  const getAmountTask = useTask(async () => {
-    const kaikas = kaikasStore.getKaikasAnyway()
-    const { tokenA, tokenB, exactToken } = getSelectionAndExactTokenAnyway()
-
-    const amount = await getAmountOfOtherToken({
-      kaikas,
-      exact: {
-        type: exactToken,
-        value: selection[exactToken]!.inputWei,
-      },
-      tokenA: tokenA.addr,
-      tokenB: tokenB.addr,
-    })
-
-    selection[mirrorTokenType(exactToken)]!.inputWei = amount
-  })
-
-  function getAmount() {
-    getAmountTask.run()
-  }
+  const { pendingState: getAmountPendingState } = useGetAmount({ selection, exactToken })
 
   const swapTask = useTask(async () => {
     const kaikas = kaikasStore.getKaikasAnyway()
@@ -194,12 +348,14 @@ export const useSwapStore = defineStore('swap', () => {
     await send()
 
     // 3. Re-fetch balances
-    // TODO
+    tokensStore.getUserBalance()
   })
 
   function swap() {
     swapTask.run()
   }
+
+  const swapState = useStaleIfErrorState(swapTask)
 
   function setToken(type: TokenType, addr: Address) {
     selection[type] = { addr, inputWei: '0' as ValueWei<string> }
@@ -217,8 +373,14 @@ export const useSwapStore = defineStore('swap', () => {
   }
 
   return {
+    selection,
+    selectionTokens,
+    isEmptyPairAddress: isPairAddressEmpty,
+    areSelectedTokensValidToSwap,
+
     swap,
-    getAmount,
+    swapState,
+    getAmountPendingState,
 
     setToken,
     setTokenValue,

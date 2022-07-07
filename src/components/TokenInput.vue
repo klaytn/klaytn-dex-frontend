@@ -2,6 +2,7 @@
 import invariant from 'tiny-invariant'
 import { formatAddress, Token, Address, ValueWei, tokenRawToWei, tokenWeiToRaw } from '@/core/kaikas'
 import { roundTo } from 'round-to'
+import BigNumber from 'bignumber.js'
 
 const props = withDefaults(
   defineProps<{
@@ -27,7 +28,7 @@ const addrFormatted = $computed(() => {
 
 const tokensStore = useTokensStore()
 const tokenData = $computed<null | Token>(() => tokensStore.tokens?.find((x) => x.address === props.token) ?? null)
-const balance = $computed<null | ValueWei<string>>(() => tokensStore.userBalanceMap?.get(props.token) ?? null)
+const balance = $computed<null | ValueWei<BigNumber>>(() => tokensStore.userBalanceMap?.get(props.token) ?? null)
 const balanceFormatted = $computed(() => {
   if (!balance || !tokenData) return '-'
   return roundTo(Number(tokenWeiToRaw(tokenData, props.modelValue)), 5)
@@ -70,7 +71,7 @@ const clipboard = useClipboard()
 
       <button
         v-if="balance"
-        @click="model = balance"
+        @click="model = balance!.toString()"
       >
         MAX
       </button>

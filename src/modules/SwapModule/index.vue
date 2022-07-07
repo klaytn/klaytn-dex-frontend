@@ -1,57 +1,24 @@
 <script lang="ts" setup>
-import { isNativeToken } from '@/core/kaikas'
-import { useTask } from '@vue-kakuyaku/core'
-import invariant from 'tiny-invariant'
 import { storeToRefs } from 'pinia'
 
 const tokensStore = useTokensStore()
-const { selectedTokens, computedToken, tokensList } = $(storeToRefs(tokensStore))
+const { areImportedTokensLoaded } = $(storeToRefs(tokensStore))
 
 const swapStore = useSwapStore()
-const { pairNotExist, exchangeRateLoading } = $(storeToRefs(swapStore))
-
-const isLoading = $computed(() => !tokensList.length)
+const { areSelectedTokensValidToSwap, isEmptyPairAddress, swapState } = $(storeToRefs(swapStore))
 
 onBeforeUnmount(() => {
   swapStore.reset()
-  tokensStore.clearSelectedTokens()
 })
 
-function onRefreshClick() {
+function refresh() {
   swapStore.reset()
 }
-
-const swapTokensTask = useTask(async () => {
-  invariant(selectedTokens.tokenA && selectedTokens.tokenB)
-
-  const isWKLAY = isNativeToken(selectedTokens.tokenA.address) || isNativeToken(selectedTokens.tokenB.address)
-
-  if (isWKLAY) await swapStore.swapForKlayTokensTask.run()
-  else {
-    if (computedToken === 'tokenB') await swapStore.swapExactTokensForTokensTask.run()
-    if (computedToken === 'tokenA') await swapStore.swapTokensForExactTokensTask.run()
-  }
-
-  // FIXME unsafe way to set an interval
-  // if (this.exchangeRateIntervalID) {
-  //   clearInterval(this.exchangeRateIntervalID)
-  //   this.setExchangeRateIntervalID(null)
-  // }
-})
-const isSwapLoading = $computed(() => swapTokensTask.state.kind === 'pending')
-
-const isValidTokens = $computed(
-  () =>
-    !isSwapLoading &&
-    !selectedTokens.emptyPair &&
-    Number(selectedTokens.tokenA?.balance) >= 0 &&
-    Number(selectedTokens.tokenB?.balance) >= 0,
-)
 </script>
 
 <template>
   <div
-    v-if="isLoading"
+    v-if="areImportedTokensLoaded"
     class="wrap"
   >
     <div class="head">
@@ -63,7 +30,7 @@ const isValidTokens = $computed(
       </button>
       <button
         class="head--btn head--btn-left"
-        @click="onRefreshClick()"
+        @click="refresh()"
       >
         <KlayIcon name="refresh" />
       </button>
@@ -84,19 +51,19 @@ const isValidTokens = $computed(
     </div>
 
     <KlayButton
-      :disabled="!isValidTokens"
-      @click="swapTokensTask.run()"
+      :disabled="!areSelectedTokensValidToSwap"
+      @click="swapStore.swap"
     >
-      {{ isSwapLoading ? 'Wait' : 'Swap' }}
+      {{ swapState.pending ? 'Wait' : 'Swap' }}
     </KlayButton>
 
     <SwapModuleDetails />
 
-    <div v-if="exchangeRateLoading">
+    <!-- <div v-if="exchangeRateLoading">
       Exchange rate loading
-    </div>
+    </div> -->
 
-    <div v-if="pairNotExist">
+    <div v-if="isEmptyPairAddress === 'empty'">
       Pair doesn't exist
     </div>
   </KlayWrap>

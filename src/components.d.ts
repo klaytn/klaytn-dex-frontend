@@ -30,7 +30,7 @@ declare module '@vue/runtime-core' {
     SwapModuleDetails: typeof import('./modules/SwapModule/Details/index.vue')['default']
     SwapModuleExchangeRate: typeof import('./modules/SwapModule/ExchangeRate.vue')['default']
     TagName: typeof import('./components/TagName.vue')['default']
-    TokenInput: typeof import('./components/TokenInput/index.vue')['default']
+    TokenInput: typeof import('./components/TokenInput.vue')['default']
     TokenSelect: typeof import('./components/TokenSelect/index.vue')['default']
     TokenSelectModal: typeof import('./components/TokenSelect/Modal.vue')['default']
     Tutorial: typeof import('./components/Tutorial.vue')['default']

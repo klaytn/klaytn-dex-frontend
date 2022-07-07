@@ -1,86 +1,65 @@
 <script setup lang="ts" name="SwapModuleExchangeRate">
-import { useDanglingScope, useTask } from '@vue-kakuyaku/core'
 import { storeToRefs } from 'pinia'
-import { toWei } from '@/core/kaikas'
-
-const tokensStore = useTokensStore()
-const { selectedTokens } = $(storeToRefs(tokensStore))
+import { tokenRawToWei, tokenWeiToRaw } from '@/core/kaikas'
+import { TokenType } from '@/store/swap'
 
 const swapStore = useSwapStore()
+const { areSelectedTokensValidToSwap: isValid, getAmountPendingState, isEmptyPairAddress } = $(storeToRefs(swapStore))
 
-const isNotValid = $computed(() => {
-  return !selectedTokens.tokenA || !selectedTokens.tokenB || selectedTokens.emptyPair
+const useTokenModel = (type: TokenType) => ({
+  wei: computed({
+    get: () => {
+      const token = swapStore.selectionTokens[type]
+      const wei = swapStore.selection[type]?.inputWei
+      if (!token || !wei) return null
+      const raw = tokenWeiToRaw(token, wei)
+      return raw
+    },
+    set: (raw) => {
+      if (!raw) return
+      const token = swapStore.selectionTokens[type]
+      if (!token) return
+      const wei = tokenRawToWei(token, raw)
+      swapStore.setTokenValue(type, wei)
+    },
+  }),
+  addr: computed({
+    get: () => swapStore.selection[type]?.addr,
+    set: (addr) => {
+      if (!addr) return
+      swapStore.setToken(type, addr)
+    },
+  }),
 })
 
-const exchangeScope = useDanglingScope<{ exchangeToken: 'tokenA' | 'tokenB'; pending: boolean }>()
-
-const onInputDebounced = useDebounceFn(
-  (
-    // FIXME is it ether value?
-    valueEther: string,
-    tokenType: 'tokenA' | 'tokenB',
-  ) => {
-    if (!valueEther || isNotValid) return
-    const valueWei = toWei(valueEther, 'ether')
-
-    tokensStore.setSelectedToken({
-      token: {
-        ...selectedTokens[tokenType]!,
-        value: valueWei,
-      },
-      type: tokenType,
-    })
-
-    const exchangeToken = tokenType === 'tokenA' ? 'tokenB' : 'tokenA'
-
-    tokensStore.setComputedToken(exchangeToken)
-
-    exchangeScope.setup(() => {
-      const task = useTask(async () => {
-        if (tokenType === 'tokenA') {
-          await swapStore.getAmount(valueWei, 'out')
-        } else {
-          await swapStore.getAmount(valueWei, 'in')
-        }
-      })
-
-      task.run()
-
-      return reactive({ exchangeToken, pending: computed(() => task.state.kind === 'pending') })
-    })
-  },
-  500,
-)
-
-const exchangeLoading = $computed(() => {
-  const scope = exchangeScope.scope.value?.setup
-  if (!scope?.pending) return null
-  return scope.exchangeToken
+const models = reactive({
+  tokenA: useTokenModel('tokenA'),
+  tokenB: useTokenModel('tokenB'),
 })
 </script>
 
 <template>
   <div>
     <TokenInput
-      :is-loading="exchangeLoading === 'tokenA'"
-      token-type="tokenA"
-      :is-disabled="isNotValid"
-      @input="(v: string) => onInputDebounced(v, 'tokenA')"
+      v-model="models.tokenA.wei"
+      v-model:token="models.tokenA.addr"
+      :is-loading="getAmountPendingState === 'tokenA'"
+      :is-disabled="!isValid"
     />
     <button class="change-btn">
       <KlayIcon name="arrow-down" />
     </button>
     <div class="margin-block">
       <TokenInput
-        :is-loading="exchangeLoading === 'tokenB'"
-        token-type="tokenB"
-        :is-disabled="isNotValid"
-        @input="(v: string) => onInputDebounced(v, 'tokenB')"
+        v-model="models.tokenB.wei"
+        v-model:token="models.tokenB.addr"
+        :is-loading="getAmountPendingState === 'tokenB'"
+        :is-disabled="!isValid"
       />
     </div>
 
     <div
-      v-if="selectedTokens.emptyPair"
+      v-if="isEmptyPairAddress"
       class="warning-text"
     >
       <KlayIcon name="important" />

@@ -1,11 +1,12 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { Address, Balance, Token, ValueWei } from '@/core/kaikas'
-import { useTask } from '@vue-kakuyaku/core'
+import { Address, Balance, Token } from '@/core/kaikas'
+import { useStaleIfErrorState, useTask } from '@vue-kakuyaku/core'
 import { WHITELIST_TOKENS } from '@/core/kaikas/const'
 import invariant from 'tiny-invariant'
+import BigNumber from 'bignumber.js'
 
 export interface TokenWithOptionBalance extends Token {
-  balance: null | ValueWei<string>
+  balance: null | Balance<BigNumber>
 }
 
 function listItemsFromMapOrNull<K, V>(keys: K[], map: Map<K, V>): null | V[] {
@@ -43,6 +44,9 @@ export const useTokensStore = defineStore('tokens', () => {
     importedTokensMap.value = new Map(pairs)
   })
 
+  const getImportedTokensState = useStaleIfErrorState(getImportedTokensTask)
+  const areImportedTokensLoaded = computed(() => getImportedTokensTask.state.kind === 'ok')
+
   /**
    * Saves new imported token
    */
@@ -68,14 +72,14 @@ export const useTokensStore = defineStore('tokens', () => {
     return tokens.value?.find((x) => x.address === addr) ?? null
   }
 
-  const getUserBalanceTask = useTask<Map<Address, Balance>>(async () => {
+  const getUserBalanceTask = useTask<Map<Address, Balance<BigNumber>>>(async () => {
     const kaikas = kaikasStore.getKaikasAnyway()
     invariant(tokens.value)
 
     const entries = await Promise.all(
       tokens.value.map(async ({ address }) => {
         const balance = await kaikas.getTokenBalance(address)
-        return [address, balance] as [Address, Balance]
+        return [address, new BigNumber(balance)] as [Address, Balance<BigNumber>]
       }),
     )
 
@@ -105,7 +109,10 @@ export const useTokensStore = defineStore('tokens', () => {
     tokens,
     tryFindToken,
 
-    getWhitelistAndImportedTokens: getImportedTokens,
+    getImportedTokens,
+    getImportedTokensState,
+    areImportedTokensLoaded,
+
     importToken,
 
     getUserBalance,
