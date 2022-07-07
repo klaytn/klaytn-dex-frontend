@@ -292,7 +292,6 @@ function handleUnstaked(pool: Pool, amount: string) {
 
 <style lang="sass">
 .farming-module
-  max-width: 1190px
   &__list
     margin: 0 -16px
   &__footer

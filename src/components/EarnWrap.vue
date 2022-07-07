@@ -39,7 +39,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
   border-radius: 20px
   overflow: visible
   margin: auto
-  max-width: 420px
+  max-width: 1190px
   width: 100%
 
   &__head
