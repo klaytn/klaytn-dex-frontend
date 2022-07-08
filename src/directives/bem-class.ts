@@ -66,11 +66,13 @@ export function useBemClass() {
       const newClassList = getBemClasses(value, block)
       if (oldClassList) {
         oldClassList.forEach((item) => {
-          if (!newClassList.has(item))
+          if (!newClassList.has(item)) {
+            console.log(newClassList, item)
             el.classList.remove(item)
+          }
         })
         newClassList.forEach((item) => {
-          if (!oldClassList.has(item)) {
+          if (!el.classList.contains(item)) {
             el.classList.add(item)
           }
         })
