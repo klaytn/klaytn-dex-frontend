@@ -97,6 +97,13 @@ const pairs = computed(() => {
   return PairsQuery.result.value?.pairs ?? null
 })
 
+const showViewMore = computed(() => {
+  if (!farming.value)
+    return false
+
+  return farming.value?.poolCount > (pageOffset.value + pageSize) && !loading.value
+})
+
 function viewMore() {
   if (farming.value === null)
     return
@@ -288,11 +295,11 @@ function handleUnstaked(pool: Pool, amount: string) {
         />
       </div>
       <div
-        v-if="farming?.poolCount > (pageOffset + pageSize) && !loading"
-        v-bem="'footer'"
+        v-if="showViewMore"
+        v-bem="'view-more'"
       >
         <SButton
-          v-bem="'view-more'"
+          v-bem="'view-more-button'"
           size="sm"
           type="primary"
           @click="viewMore"
@@ -314,7 +321,7 @@ function handleUnstaked(pool: Pool, amount: string) {
 .farming-module
   &__list
     margin: 0 -16px
-  &__footer
+  &__view-more
     display: flex
     justify-content: center
     width: 100%
