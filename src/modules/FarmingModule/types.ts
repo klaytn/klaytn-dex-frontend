@@ -12,6 +12,7 @@ export interface FarmingsQueryResult {
       bonusMultiplier: string
       totalTokensStaked: string
       allocPoint: string
+      bonusEndBlock: string
       users: {
         amount: string
       }[]

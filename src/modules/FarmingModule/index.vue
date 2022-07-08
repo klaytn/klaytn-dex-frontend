@@ -20,6 +20,7 @@ import { Farming } from '@/types/typechain/farming'
 import farmingAbi from '@/utils/smartcontracts/farming.json'
 import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
 
+const { caver } = window
 const config = useConfigWithConnectedKaikas()
 
 const vBem = useBemClass()
@@ -28,6 +29,8 @@ const pageSize = 3
 const pageOffset = ref(0)
 const pairsQueryEnabled = ref(false)
 const rewards = ref<Record<Pool['id'], string>>({})
+const currentBlock = ref<number | null>(null)
+
 
 const FarmingContract = config.createContract<Farming>(farmingContractAddress, farmingAbi.abi as AbiItem[])
 
@@ -43,6 +46,17 @@ const FarmingsQuery = useQuery<FarmingsQueryResult>(
 
 const farming = computed(() => {
   return FarmingsQuery.result.value?.farming ?? null
+})
+
+async function fetchCurrentBlock() {
+  currentBlock.value = await caver.klay.getBlockNumber()
+}
+
+fetchCurrentBlock()
+const currentBlockIntervalId = setInterval(fetchCurrentBlock, 60 * 1000)
+
+onBeforeUnmount(() => {
+  clearInterval(currentBlockIntervalId)
 })
 
 function fetchRewards() {
@@ -182,23 +196,29 @@ const pools = computed<Pool[] | null>(() => {
     const reward = rewards.value[pool.id]
     const earned = reward !== undefined ? $kaikas.bigNumber(rewards.value[pool.id]) : null
 
-    if (pair === null || earned === null || farming.value === null)
+    if (pair === null || earned === null || farming.value === null || currentBlock.value === null)
       return
 
     const pairId = pair.id
     const name = pair.name
+
     const staked = $kaikas.bigNumber($kaikas.fromWei(pool.users[0]?.amount ?? '0'))
+  
     const liquidityPosition = liquidityPositions.value?.find(position => position.pair.id === pairId) ?? null
     const balance = $kaikas.bigNumber(liquidityPosition?.liquidityTokenBalance ?? 0)
+
     const annualPercentageRate = $kaikas.bigNumber(0)
+
     const reserveUSD = $kaikas.bigNumber(pair.reserveUSD)
     const totalSupply = $kaikas.bigNumber(pair.totalSupply)
     const totalTokensStaked = $kaikas.bigNumber($kaikas.utils.fromWei(pool.totalTokensStaked))
     const liquidity = reserveUSD.dividedBy(totalSupply).multipliedBy(totalTokensStaked)
+
+    const bonusEndBlock = Number(pool.bonusEndBlock)
     const allocPoint = $kaikas.bigNumber(pool.allocPoint)
     const totalAllocPoint = $kaikas.bigNumber(farming.value.totalAllocPoint)
     const bonusMultiplier = $kaikas.bigNumber(pool.bonusMultiplier)
-    const multiplier = allocPoint.dividedBy(totalAllocPoint).multipliedBy(bonusMultiplier)
+    const multiplier = allocPoint.dividedBy(totalAllocPoint).multipliedBy(currentBlock.value < bonusEndBlock ? bonusMultiplier : 1)
 
     pools.push({
       id,

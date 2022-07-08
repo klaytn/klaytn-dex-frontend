@@ -18,6 +18,7 @@ export const farmingsQuery = gql`query FarmingsQuery($first: Int! $skip: Int! $u
       bonusMultiplier
       totalTokensStaked
       allocPoint
+      bonusEndBlock
       users(where: {address: $userId}) {
         amount
       }
