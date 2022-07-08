@@ -38,7 +38,7 @@ export function deadlineFiveMinutesFromNow(): Deadline {
 }
 
 export function tokenRawToWei({ decimals }: Pick<Token, 'decimals'>, valueRaw: string): ValueWei<string> {
-  return new BigNumber(valueRaw).multipliedBy(new BigNumber(10).pow(decimals)).toString() as ValueWei<string>
+  return new BigNumber(valueRaw ?? 0).multipliedBy(new BigNumber(10).pow(decimals)).toString() as ValueWei<string>
 }
 
 export function tokenWeiToRaw({ decimals }: Pick<Token, 'decimals'>, wei: ValueWei<string>): string {

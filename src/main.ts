@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import 'uno.css'
 
 import { setupLayouts } from 'virtual:generated-layouts'
 import App from './App.vue'

@@ -1,36 +1,26 @@
-<script setup lang="ts" name="KlayLoader" />
+<script setup lang="ts" name="KlayLoader">
+import { SSpinner } from '@soramitsu-ui/ui'
+
+const props = withDefaults(
+  defineProps<{
+    size?: string | number
+    width?: string | number
+  }>(),
+  {
+    size: 36,
+  },
+)
+</script>
 
 <template>
-  <div class="loader" />
+  <SSpinner
+    class="klay-loader"
+    v-bind="{ size, width }"
+  />
 </template>
 
 <style scoped lang="scss">
-.loader {
-  border: 6px solid $white;
-  border-radius: 50%;
-  border-top: 6px solid $blue;
-  width: 40px;
-  height: 40px;
-  -webkit-animation: spin 2s linear infinite; /* Safari */
-  animation: spin 2s linear infinite;
-}
-
-/* Safari */
-@-webkit-keyframes spin {
-  0% {
-    -webkit-transform: rotate(0deg);
-  }
-  100% {
-    -webkit-transform: rotate(360deg);
-  }
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.klay-loader {
+  color: $blue;
 }
 </style>

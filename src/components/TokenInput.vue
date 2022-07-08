@@ -1,13 +1,14 @@
 <script lang="ts" setup>
-import invariant from 'tiny-invariant'
 import { formatAddress, Token, Address, ValueWei, tokenRawToWei, tokenWeiToRaw } from '@/core/kaikas'
 import { roundTo } from 'round-to'
 import BigNumber from 'bignumber.js'
+import { storeToRefs } from 'pinia'
+import invariant from 'tiny-invariant'
 
 const props = withDefaults(
   defineProps<{
-    token: Address
-    modelValue: ValueWei<string>
+    token?: Address
+    modelValue?: ValueWei<string>
     isLoading?: boolean
     isDisabled?: boolean
   }>(),
@@ -17,51 +18,55 @@ const props = withDefaults(
   },
 )
 
-const emit = defineEmits<{
-  (event: 'update:modelValue', value: ValueWei<string>): void
-  (event: 'update:token', value: Address): void
-}>()
+const emit = defineEmits(['update:modelValue', 'update:token'])
 
 const addrFormatted = $computed(() => {
-  return formatAddress(props.token)
+  return props.token && formatAddress(props.token)
 })
+
+const kaikasStore = useKaikasStore()
+const { isConnected: isKaikasConnected } = $(storeToRefs(kaikasStore))
 
 const tokensStore = useTokensStore()
-const tokenData = $computed<null | Token>(() => tokensStore.tokens?.find((x) => x.address === props.token) ?? null)
-const balance = $computed<null | ValueWei<BigNumber>>(() => tokensStore.userBalanceMap?.get(props.token) ?? null)
+
+const tokenData = $computed<null | Token>(
+  () => (props.token && tokensStore.tokens?.find((x) => x.address === props.token)) ?? null,
+)
+const balance = $computed<null | ValueWei<BigNumber>>(
+  () => (props.token && tokensStore.userBalanceMap?.get(props.token)) ?? null,
+)
 const balanceFormatted = $computed(() => {
   if (!balance || !tokenData) return '-'
-  return roundTo(Number(tokenWeiToRaw(tokenData, props.modelValue)), 5)
+  return tokenWeiToRaw(tokenData, balance.toString() as ValueWei<string>)
 })
-
-function tokenDataAnyway(): Token {
-  const token = tokenData
-  invariant(token)
-
-  return token
-}
 
 const model = $computed<string>({
   get: () => {
-    return tokenWeiToRaw(tokenDataAnyway(), props.modelValue)
+    if (!tokenData) return ''
+    return tokenWeiToRaw(tokenData, props.modelValue ?? ('0' as ValueWei<string>))
   },
   set: (raw) => {
-    emit('update:modelValue', tokenRawToWei(tokenDataAnyway(), raw))
+    if (!tokenData) return
+    emit('update:modelValue', tokenRawToWei(tokenData, raw))
   },
 })
 
 const tokenModel = useVModel(props, 'token', emit)
 
-const clipboard = useClipboard()
+function setToMax() {
+  invariant(balance)
+  emit('update:modelValue', balance.toString())
+}
+
+// const clipboard = useClipboard()
 </script>
 
 <template>
   <div
-    v-if="tokenData"
-    class="token-input"
-    :class="{ 'token-loading': isLoading }"
+    class="root"
+    :class="{ 'root--loading': isLoading }"
   >
-    <div class="token-value">
+    <div class="flex items-center border-2 border-red-300">
       <input
         v-model="model"
         :disabled="isDisabled"
@@ -71,47 +76,89 @@ const clipboard = useClipboard()
 
       <button
         v-if="balance"
-        @click="model = balance!.toString()"
+        class="max"
+        @click="setToMax()"
       >
         MAX
       </button>
-      <div class="token-select-wrap">
-        <TokenSelect v-model="tokenModel" />
+
+      <div class="select-wrap">
+        <TokenSelect v-model:token="tokenModel" />
       </div>
     </div>
-    <div class="token-meta">
-      <div class="row">
-        <KlayTextField
-          :title="balance"
-          class="price"
-        >
-          Balance: {{ balanceFormatted }}
-        </KlayTextField>
 
+    <div class="flex">
+      <div class="flex-1" />
+
+      <KlayTextField
+        :title="balance"
+        class="price flex space-x-2"
+      >
+        <span>
+          <template v-if="isKaikasConnected"> Balance: {{ balanceFormatted }} </template>
+          <template v-else> Balance: Connect Wallet </template>
+        </span>
         <KlayIcon name="important" />
+      </KlayTextField>
 
-        <div class="token-info">
+      <!-- <div
+          v-if="tokenData"
+          class="token-info"
+        >
           <p>{{ tokenData.name }} {{ `(${tokenData.symbol})` }}</p>
           <span class="price"> - </span>
           <span class="percent">0.26%</span>
 
           <div
             class="address"
-            @click="clipboard.copy(token)"
+            @click="clipboard.copy(token!)"
           >
             <span class="address-name">{{ addrFormatted }}</span>
             <KlayIcon name="copy" />
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
+.root {
+  background: $gray3;
+  padding: 16px 16px;
+  border-radius: 8px;
+
+  &--loading {
+    opacity: 0.4;
+  }
+}
+
+input {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 30px;
+  line-height: 130%;
+  color: $dark2;
+  background: transparent;
+  border: none;
+  max-width: 212px;
+  flex: 1;
+}
+
+button.max {
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 16px;
+  background: $blue;
+  border-radius: 8px;
+  color: $white;
+  padding: 4px 8px;
+  margin-left: 8px;
+  cursor: pointer;
+}
+
 .token {
   &-loading {
-    opacity: 0.4;
   }
 
   &-select-wrap {

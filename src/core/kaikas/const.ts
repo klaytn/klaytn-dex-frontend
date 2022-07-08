@@ -15,11 +15,13 @@ export const MAGIC_WETH_ADDR = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as A
  */
 export const MAGIC_GAS_PRICE = 250000000000
 
-export const WHITELIST_TOKENS = [
+export const WHITELIST_TOKENS = Object.freeze([
   {
     address: NATIVE_TOKEN,
-    name: 'Wrapped KLAY',
-    symbol: 'WKLAY',
+    // name: 'Wrapped KLAY',
+    // symbol: 'WKLAY',
+    name: 'KLAY',
+    symbol: 'KLAY',
     decimals: 18,
   },
   {
@@ -82,4 +84,4 @@ export const WHITELIST_TOKENS = [
     symbol: 'IO',
     decimals: 18,
   },
-] as Token[]
+] as Token[])

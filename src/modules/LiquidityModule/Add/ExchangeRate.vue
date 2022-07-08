@@ -20,6 +20,7 @@ const exchangeScope = useDanglingScope<{ exchangeToken: 'tokenA' | 'tokenB'; pen
 const onInputDebounced = useDebounceFn(
   (
     // FIXME is it ether value?
+    // TODO consider token decimals
     valueEther: string,
     tokenType: 'tokenA' | 'tokenB',
   ) => {

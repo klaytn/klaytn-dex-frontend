@@ -1,19 +1,23 @@
 <script lang="ts" setup>
-import { Token } from '@/core/kaikas'
+import { Address } from '@/core/kaikas'
 
 const props = withDefaults(
   defineProps<{
-    selectedToken?: null | Token
+    token?: null | Address
   }>(),
-  { selectedToken: null },
+  { token: null },
 )
 
-const emit = defineEmits<(event: 'select', value: Token) => void>()
+const emit = defineEmits(['update:token'])
 
+const tokensStore = useTokensStore()
+const tokenData = $computed(() => props.token && tokensStore.tryFindToken(props.token))
+
+let model = $(useVModel(props, 'token', emit))
 let isModalOpen = $ref(false)
 
-function onSelect(token: Token) {
-  emit('select', token)
+function onSelect(token: Address) {
+  model = token
   isModalOpen = false
 }
 </script>
@@ -21,12 +25,12 @@ function onSelect(token: Token) {
 <template>
   <div class="select--wrap">
     <TokenSelectModal
-      v-if="isModalOpen"
+      v-model:open="isModalOpen"
       @select="onSelect"
-      @close="isModalOpen = false"
     />
+
     <button
-      v-if="!selectedToken"
+      v-if="!token"
       class="select-btn"
       @click="isModalOpen = true"
     >
@@ -35,21 +39,22 @@ function onSelect(token: Token) {
     </button>
 
     <div
-      v-if="selectedToken"
+      v-else
       class="select"
     >
       <div
         class="select--head"
         @click="isModalOpen = true"
       >
-        <!--        <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo" /> -->
-        <KlayIcon
-          :char="selectedToken.symbol[0]"
-          name="empty-token"
-        />
-        <span v-if="selectedToken">
-          {{ selectedToken.symbol }}
-        </span>
+        <template v-if="tokenData">
+          <KlayIcon
+            :char="tokenData.symbol[0]"
+            name="empty-token"
+          />
+          <span>
+            {{ tokenData.symbol }}
+          </span>
+        </template>
       </div>
     </div>
   </div>

@@ -10,7 +10,7 @@ declare module '@vue/runtime-core' {
     KlayCollapse: typeof import('./common/KlayCollapse.vue')['default']
     KlayIcon: typeof import('./common/KlayIcon.vue')['default']
     KlayLoader: typeof import('./common/KlayLoader.vue')['default']
-    KlayModal: typeof import('./common/KlayModal.vue')['default']
+    KlayModalCard: typeof import('./common/KlayModalCard.vue')['default']
     KlaySlider: typeof import('./common/KlaySlider/index.vue')['default']
     KlaySlippage: typeof import('./common/KlaySlippage.vue')['default']
     KlayTextField: typeof import('./common/KlayTextField.vue')['default']

@@ -18,7 +18,7 @@ function refresh() {
 
 <template>
   <div
-    v-if="areImportedTokensLoaded"
+    v-if="!areImportedTokensLoaded"
     class="wrap"
   >
     <div class="head">
@@ -46,9 +46,9 @@ function refresh() {
   <KlayWrap v-else>
     <SwapModuleExchangeRate />
 
-    <div class="slippage">
+    <!-- <div class="slippage">
       <KlaySlippage />
-    </div>
+    </div> -->
 
     <KlayButton
       :disabled="!areSelectedTokensValidToSwap"

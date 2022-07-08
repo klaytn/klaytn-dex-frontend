@@ -32,6 +32,7 @@ export const useKaikasStore = defineStore('kaikas', () => {
   const kaikas = computed(() => (kaikasState.value?.status === 'connected' ? kaikasState.value.kaikas : null))
   const address = computed(() => kaikas.value?.cfg.addrs.self)
   const isNotInstalled = computed(() => status.value === 'not-installed')
+  const isConnected = computed(() => status.value === 'connected')
 
   function getKaikasAnyway(): Kaikas {
     if (status.value === 'connected') return kaikas.value!
@@ -43,6 +44,7 @@ export const useKaikasStore = defineStore('kaikas', () => {
     address,
     status,
     isNotInstalled,
+    isConnected,
     connect,
     getKaikasAnyway,
   }

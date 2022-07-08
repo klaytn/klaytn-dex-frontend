@@ -20,9 +20,9 @@ function mirrorTokenType(type: TokenType): TokenType {
   return type === 'tokenA' ? 'tokenB' : 'tokenA'
 }
 
-type TokensPair<T> = Record<TokenType, T>
+export type TokensPair<T> = Record<TokenType, T>
 
-function buildPair<T>(fn: (type: TokenType) => T): TokensPair<T> {
+export function buildPair<T>(fn: (type: TokenType) => T): TokensPair<T> {
   return {
     tokenA: fn('tokenA'),
     tokenB: fn('tokenB'),
@@ -181,6 +181,8 @@ function usePairAddress(
     })
 
     task.run()
+
+    useTaskLog(task, 'pair-addr')
 
     return task
   })

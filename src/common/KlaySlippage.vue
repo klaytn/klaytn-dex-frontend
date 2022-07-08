@@ -1,18 +1,23 @@
 <script setup lang="ts" name="KlaySlippage">
-const swapStore = useSwapStore()
+// const swapStore = useSwapStore()
 
-let slippagePercentInStore = $computed({
-  get: () => swapStore.slippagePercent,
+const props = defineProps<{
+  modelValue: number
+}>()
+
+const emit = defineEmits(['update:modelValue'])
+
+let slippageModel = $computed({
+  get: () => props.modelValue,
   set: (value) => {
-    // FIXME move this check into the store?
-    if (value > 0 && value <= 10) swapStore.setSlippage(value)
+    if (value > 0 && value <= 10) emit('update:modelValue', value)
   },
 })
 
-const renderPercent = $computed(() => `${slippagePercentInStore}%`)
+const renderPercent = $computed(() => `${slippageModel}%`)
 
 function select(value: number) {
-  slippagePercentInStore = value
+  slippageModel = value
 }
 </script>
 
@@ -56,7 +61,7 @@ function select(value: number) {
             3%
           </button>
           <input
-            v-model.number="slippagePercentInStore"
+            v-model.number="slippageModel"
             class="input"
             type="text"
             :placeholder="renderPercent"

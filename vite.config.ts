@@ -13,6 +13,7 @@ import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
 import SvgLoader from 'vite-svg-loader'
 import VueSetupExtend from 'vite-plugin-vue-setup-extend'
+import UnoCSS from 'unocss/vite'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
@@ -50,6 +51,8 @@ export default defineConfig({
 
     VueSetupExtend(),
 
+    UnoCSS(),
+
     SvgLoader(),
 
     // https://github.com/hannoeru/vite-plugin-pages
@@ -76,8 +79,8 @@ export default defineConfig({
       dirs: ['src/composables', 'src/store'],
       vueTemplate: true,
       eslintrc: {
-        enabled: true
-      }
+        enabled: true,
+      },
     }),
 
     // https://github.com/antfu/unplugin-vue-components
