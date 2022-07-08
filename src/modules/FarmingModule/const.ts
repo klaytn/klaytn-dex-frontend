@@ -7,7 +7,7 @@ export const formattedBigIntDecimals = 6
 
 export const farmingContractAddress = '0x32bE07FB9dBf294c2e92715F562f7aBA02b7443A'
 
-export const farmingsQuery = gql`query FarmingsQuery($first: Int! $skip: Int! $userId: String!) {
+export const farmingQuery = gql`query FarmingQuery($first: Int! $skip: Int! $userId: String!) {
   farming(id: "${farmingContractAddress}") {
     id
     poolCount

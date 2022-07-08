@@ -1,7 +1,7 @@
 import { Address } from '@/types'
 import BigNumber from 'bignumber.js'
 
-export interface FarmingsQueryResult {
+export interface FarmingQueryResult {
   farming: {
     id: string
     poolCount: number

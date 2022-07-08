@@ -1,16 +1,16 @@
 <script setup lang="ts" name="FarmingModule">
-import { useQuery } from '@vue/apollo-composable'
+import { useQuery, useSubscription } from '@vue/apollo-composable'
 import { SButton } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
 
 import {
-  FarmingsQueryResult,
+  FarmingQueryResult,
   Pool,
   PairsQueryResult,
   LiquidityPositionsQueryResult,
 } from './types'
 import {
-  farmingsQuery,
+  farmingQuery,
   pairsQuery,
   farmingContractAddress,
   liquidityPositionsQuery,
@@ -34,8 +34,8 @@ const currentBlock = ref<number | null>(null)
 
 const FarmingContract = config.createContract<Farming>(farmingContractAddress, farmingAbi.abi as AbiItem[])
 
-const FarmingsQuery = useQuery<FarmingsQueryResult>(
-  farmingsQuery,
+const FarmingQuery = useQuery<FarmingQueryResult>(
+  farmingQuery,
   {
     first: pageSize,
     skip: pageOffset.value,
@@ -45,7 +45,7 @@ const FarmingsQuery = useQuery<FarmingsQueryResult>(
 )
 
 const farming = computed(() => {
-  return FarmingsQuery.result.value?.farming ?? null
+  return FarmingQuery.result.value?.farming ?? null
 })
 
 async function fetchCurrentBlock() {
@@ -110,7 +110,7 @@ function viewMore() {
 
   pageOffset.value = farming.value.pools.length
 
-  FarmingsQuery.fetchMore({
+  FarmingQuery.fetchMore({
     variables: {
       first: pageSize,
       skip: pageOffset.value,
@@ -160,7 +160,7 @@ const rewardsFetched = computed(() => {
 })
 
 const loading = computed(() => {
-  return FarmingsQuery.loading.value || PairsQuery.loading.value || !rewardsFetched.value
+  return FarmingQuery.loading.value || PairsQuery.loading.value || !rewardsFetched.value
 })
 
 const LiquidityPositionsQuery = useQuery<LiquidityPositionsQueryResult>(
@@ -184,10 +184,10 @@ function handleFarmingQueryResult() {
 }
 
 // Workaround for cached results: https://github.com/vuejs/apollo/issues/1154
-if (FarmingsQuery.result.value)
+if (FarmingQuery.result.value)
   handleFarmingQueryResult()
 
-FarmingsQuery.onResult(async () => {
+FarmingQuery.onResult(async () => {
   handleFarmingQueryResult()
 })
 
@@ -244,12 +244,12 @@ const pools = computed<Pool[] | null>(() => {
 })
 
 function updateStaked(poolId: Pool['id'], diff: BigNumber) {
-  if (!FarmingsQuery.result.value)
+  if (!FarmingQuery.result.value)
     return
 
   const diffInWei = $kaikas.bigNumber($kaikas.utils.toWei(diff.toString()))
-  const farmingsQueryResult = JSON.parse(JSON.stringify(FarmingsQuery.result.value)) as FarmingsQueryResult
-  const pool = farmingsQueryResult.farming.pools.find(pool => pool.id === poolId)
+  const farmingQueryResult = JSON.parse(JSON.stringify(FarmingQuery.result.value)) as FarmingQueryResult
+  const pool = farmingQueryResult.farming.pools.find(pool => pool.id === poolId)
   if (!pool)
     return
   
@@ -260,7 +260,7 @@ function updateStaked(poolId: Pool['id'], diff: BigNumber) {
     return
 
   user.amount = $kaikas.bigNumber(user.amount).plus(diffInWei).toFixed(0)
-  FarmingsQuery.result.value = farmingsQueryResult
+  FarmingQuery.result.value = farmingQueryResult
 }
 
 function updateBalance(pairId: Pool['pairId'], diff: BigNumber) {
