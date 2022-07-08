@@ -249,11 +249,17 @@ function updateStaked(poolId: Pool['id'], diff: BigNumber) {
 
   const diffInWei = $kaikas.bigNumber($kaikas.utils.toWei(diff.toString()))
   const farmingsQueryResult = JSON.parse(JSON.stringify(FarmingsQuery.result.value)) as FarmingsQueryResult
-  const user = farmingsQueryResult.farming.pools.find(pool => pool.id === poolId)?.users[0] ?? null
+  const pool = farmingsQueryResult.farming.pools.find(pool => pool.id === poolId)
+  if (!pool)
+    return
+  
+  pool.totalTokensStaked = $kaikas.bigNumber(pool.totalTokensStaked).plus(diffInWei).toFixed(0)
+
+  const user = pool.users[0] ?? null
   if (!user)
     return
 
-  user.amount = `${$kaikas.bigNumber(user.amount).plus(diffInWei)}`
+  user.amount = $kaikas.bigNumber(user.amount).plus(diffInWei).toFixed(0)
   FarmingsQuery.result.value = farmingsQueryResult
 }
 

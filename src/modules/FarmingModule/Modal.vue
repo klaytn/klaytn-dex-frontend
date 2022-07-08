@@ -3,7 +3,7 @@ import { STextField, SButton, Status } from '@soramitsu-ui/ui'
 import { AbiItem } from 'caver-js'
 
 import {
-ModalOperation,
+  ModalOperation,
   Pool
 } from './types'
 import {
