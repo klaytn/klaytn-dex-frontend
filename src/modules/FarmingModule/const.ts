@@ -11,10 +11,13 @@ export const farmingsQuery = gql`query FarmingsQuery($first: Int! $skip: Int! $u
   farming(id: "${farmingContractAddress}") {
     id
     poolCount
+    totalAllocPoint
     pools(first: $first skip: $skip) {
       id
       pair
       bonusMultiplier
+      totalTokensStaked
+      allocPoint
       users(where: {address: $userId}) {
         amount
       }
@@ -28,10 +31,8 @@ export const pairsQuery = gql`query PairsQuery($pairIds: [String]!) {
   ) {
     id
     name
-    dayData(first: 7, orderBy: timestamp, orderDirection: desc) {
-      volumeUSD
-    }
     reserveUSD
+    totalSupply
   }
 }`
 

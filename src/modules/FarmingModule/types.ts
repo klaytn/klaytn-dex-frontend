@@ -5,10 +5,13 @@ export interface FarmingsQueryResult {
   farming: {
     id: string
     poolCount: number
+    totalAllocPoint: string
     pools: {
       id: string
       pair: string
       bonusMultiplier: string
+      totalTokensStaked: string
+      allocPoint: string
       users: {
         amount: string
       }[]
@@ -21,6 +24,7 @@ export interface PairsQueryResult {
     id: string
     name: string
     reserveUSD: string
+    totalSupply: string
   }[]
 }
 

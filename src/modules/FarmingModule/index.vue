@@ -182,7 +182,7 @@ const pools = computed<Pool[] | null>(() => {
     const reward = rewards.value[pool.id]
     const earned = reward !== undefined ? $kaikas.bigNumber(rewards.value[pool.id]) : null
 
-    if (pair === null || earned === null)
+    if (pair === null || earned === null || farming.value === null)
       return
 
     const pairId = pair.id
@@ -191,8 +191,14 @@ const pools = computed<Pool[] | null>(() => {
     const liquidityPosition = liquidityPositions.value?.find(position => position.pair.id === pairId) ?? null
     const balance = $kaikas.bigNumber(liquidityPosition?.liquidityTokenBalance ?? 0)
     const annualPercentageRate = $kaikas.bigNumber(0)
-    const liquidity = $kaikas.bigNumber(pair.reserveUSD)
-    const multiplier = $kaikas.bigNumber(pool.bonusMultiplier)
+    const reserveUSD = $kaikas.bigNumber(pair.reserveUSD)
+    const totalSupply = $kaikas.bigNumber(pair.totalSupply)
+    const totalTokensStaked = $kaikas.bigNumber($kaikas.utils.fromWei(pool.totalTokensStaked))
+    const liquidity = reserveUSD.dividedBy(totalSupply).multipliedBy(totalTokensStaked)
+    const allocPoint = $kaikas.bigNumber(pool.allocPoint)
+    const totalAllocPoint = $kaikas.bigNumber(farming.value.totalAllocPoint)
+    const bonusMultiplier = $kaikas.bigNumber(pool.bonusMultiplier)
+    const multiplier = allocPoint.dividedBy(totalAllocPoint).multipliedBy(bonusMultiplier)
 
     pools.push({
       id,
