@@ -1,22 +1,47 @@
 <script setup lang="ts" name="KlayModal">
-const { label = '', width = '300' } = defineProps<{
-  label: string
-  width: string
+import { SModal } from '@soramitsu-ui/ui'
+
+const props = withDefaults(
+  defineProps<{
+    modelValue: boolean
+    label?: string
+    width?: string
+    bodyPadding?: string
+  }>(),
+  {
+    label: '',
+    width: '300',
+    bodyPadding: '13px 16px 16px'
+  },
+)
+const { label, width } = toRefs(props)
+
+const emit = defineEmits<{
+  (event: 'close'): void
+  (event: 'update:modelValue', value: boolean): void
 }>()
 
-defineEmits(['close'])
+const model = ref(props.modelValue)
+watch(
+  () => props.modelValue,
+  (origin) => {
+    model.value = origin
+  },
+)
+watch(model, (dep) => {
+  if (dep !== props.modelValue) {
+    emit('update:modelValue', dep)
+  }
+})
 
 const vBem = useBemClass()
+
 </script>
 
 <template>
-  <div v-bem>
+  <SModal v-model:show="model">
     <div
-      v-bem="'close-layer'"
-      @click="$emit('close')"
-    />
-    <div
-      v-bem="'body'"
+      v-bem
       :style="{
         width: `${width}px`,
       }"
@@ -26,68 +51,48 @@ const vBem = useBemClass()
         <button
           v-bem="'close'"
           type="button"
-          @click="$emit('close')"
+          @click="model = false"
         >
           <KlayIcon name="close" />
         </button>
       </div>
-      <slot />
+      <div
+        v-bem="'body'"
+        :style="{ padding: bodyPadding }"
+      >
+        <slot />
+      </div>
     </div>
-  </div>
+  </SModal>
 </template>
 
-<style scoped lang="scss">
-@import '@/styles/vars.sass';
+<style lang="sass">
+@import '@/styles/vars.sass'
 
-.klay-modal {
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
+.s-modal__modal
+  background: transparent
 
-  &__close-layer {
-    position: absolute;
-    background: rgba(68, 73, 85, 0.3);
-    top: 0;
-    right: 0;
-    left: 0;
-    bottom: 0;
-    z-index: 998;
-    cursor: pointer;
-  }
+.klay-modal
+  text-align: left
+  background: $white
+  border-radius: 20px
+  max-height: 90vh
+  overflow: auto
+  border-radius: 20px
 
-  &__body {
-    text-align: left;
-    background: $white;
-    border-radius: 20px;
-    z-index: 999;
-    max-height: 90vh;
-    overflow: auto;
-  }
+  &__head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    height: 65px
+    width: 100%
+    padding: 0 16px
+    & h3
+      font-style: normal
+      font-weight: 700
+      font-size: 18px
+      line-height: 150%
 
-  &__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: 20px 17px;
-    padding-bottom: 0;
-    & h3 {
-      font-style: normal;
-      font-weight: 700;
-      font-size: 18px;
-      line-height: 150%;
-    }
-  }
-
-  &__close {
-    cursor: pointer;
-  }
-}
+  &__close
+    cursor: pointer
 </style>

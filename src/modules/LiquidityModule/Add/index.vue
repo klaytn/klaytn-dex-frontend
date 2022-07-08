@@ -55,7 +55,7 @@ export default {
     </KlayButton>
 
     <LiquidityModuleAddModal
-      v-if="isOpen"
+      v-model="isOpen"
       @close="isOpen = false"
     />
 

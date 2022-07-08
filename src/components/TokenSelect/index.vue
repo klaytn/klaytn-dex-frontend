@@ -25,7 +25,7 @@ export default {
 <template>
   <div class="select--wrap">
     <TokenSelectModal
-      v-if="modalOpen"
+      v-model="modalOpen"
       @select="onSelect"
       @close="modalOpen = false"
     />

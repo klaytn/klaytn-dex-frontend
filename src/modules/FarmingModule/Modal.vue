@@ -149,61 +149,59 @@ async function confirm() {
     :label="label"
     @close="emit('close')"
   >
-    <div v-bem="'content'">
-      <div v-bem="'row'">
-        <div v-bem="'input-wrapper'">
-          <STextField
-            v-model="value"
-            v-bem="'input'"
-          />
-          <div v-bem="'info'">
-            <SButton
-              v-bem="'max'"
-              type="primary"
-              size="xs"
-              @click="setMax"
-            >
-              MAX
-            </SButton>
-            <div v-bem="'pair-icons'">
-              <KlayIcon
-                v-for="(char, index) in iconChars"
-                :key="index"
-                v-bem="'pair-icon'"
-                :char="char"
-                name="empty-token"
-              />
-            </div>
-            <div v-bem="'pair-name'">
-              {{ pool.name }}
-            </div>
-          </div>
-          <div
-            v-if="operation === ModalOperation.Stake"
-            v-bem="'balance'"
+    <div v-bem="'row'">
+      <div v-bem="'input-wrapper'">
+        <STextField
+          v-model="value"
+          v-bem="'input'"
+        />
+        <div v-bem="'info'">
+          <SButton
+            v-bem="'max'"
+            type="primary"
+            size="xs"
+            @click="setMax"
           >
-            Balance: {{ formattedBalance }}
+            MAX
+          </SButton>
+          <div v-bem="'pair-icons'">
+            <KlayIcon
+              v-for="(char, index) in iconChars"
+              :key="index"
+              v-bem="'pair-icon'"
+              :char="char"
+              name="empty-token"
+            />
           </div>
-          <div
-            v-if="operation === ModalOperation.Unstake"
-            v-bem="'staked'"
-          >
-            Staked: {{ formattedStaked }}
+          <div v-bem="'pair-name'">
+            {{ pool.name }}
           </div>
         </div>
-      </div>
-      <div v-bem="'row'">
-        <SButton
-          v-bem="'confirm'"
-          type="primary"
-          size="lg"
-          :disabled="disabled"
-          :loading="loading"
-          @click="confirm"
+        <div
+          v-if="operation === ModalOperation.Stake"
+          v-bem="'balance'"
         >
-          Confirm
-        </SButton>
+          Balance: {{ formattedBalance }}
+        </div>
+        <div
+          v-if="operation === ModalOperation.Unstake"
+          v-bem="'staked'"
+        >
+          Staked: {{ formattedStaked }}
+        </div>
       </div>
+    </div>
+    <div v-bem="'row'">
+      <SButton
+        v-bem="'confirm'"
+        type="primary"
+        size="lg"
+        :disabled="disabled"
+        :loading="loading"
+        @click="confirm"
+      >
+        Confirm
+      </SButton>
     </div>
   </KlayModal>
 </template>
@@ -212,12 +210,9 @@ async function confirm() {
 @import '@/styles/vars.sass'
 
 .farming-module-stake-modal
-  &__content
-    display: flex
-    flex-direction: column
-    margin: 8px 16px
   &__row
-    margin: 8px 0
+    & + &
+      margin-top: 16px
   &__input
     &-wrapper
       position: relative

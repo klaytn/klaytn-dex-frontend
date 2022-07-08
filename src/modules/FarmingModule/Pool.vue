@@ -39,6 +39,16 @@ const checkEnabledInProgress = ref(false)
 const checkEnabledCompleted = ref(false)
 const modalOperation = ref<ModalOperation | null>(null)
 
+const modelOpen = computed({
+  get() {
+    return !!modalOperation.value
+  },
+  set(value) {
+    if (!value)
+      modalOperation.value = null
+  }
+})
+
 const iconChars = computed(() => {
   return pool.value.name.split('-').map(tokenName => tokenName[0])
 })
@@ -308,10 +318,10 @@ async function handleModalClose() {
   </KlayAccordionItem>
 
   <FarmingModuleModal
-    v-if="modalOperation"
+    v-model="modelOpen"
     :pool="pool"
     :operation="modalOperation"
-    @close="handleModalClose"
+    @update:mode="handleModalClose"
     @staked="handleStaked"
     @unstaked="handleUnstaked"
   />

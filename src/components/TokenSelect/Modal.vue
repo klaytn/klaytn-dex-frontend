@@ -77,7 +77,7 @@ export default {
 
 <template>
   <KlayModal
-    padding="20px 0"
+    body-padding="0"
     width="344"
     label="Select a token"
     @close="$emit('close')"
@@ -175,14 +175,13 @@ export default {
 }
 
 .token-select-modal {
-  margin-top: 17px;
   width: 100%;
   background: $gray6;
   border-radius: 8px;
   padding: 10px 16px;
 
   & p {
-    color: $gray4;
+    color: $gray2;
     font-weight: 500;
     font-size: 12px;
     line-height: 180%;
@@ -258,7 +257,7 @@ export default {
       font-weight: 500;
       font-size: 12px;
       line-height: 180%;
-      color: $gray4;
+      color: $gray2;
     }
 
     & .token-logo {
