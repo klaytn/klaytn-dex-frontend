@@ -93,6 +93,8 @@ onMounted(connect)
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars';
+
 .layout {
   padding: 40px 82px;
 

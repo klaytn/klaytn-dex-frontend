@@ -31,6 +31,8 @@ const api = useModalApi()
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars';
+
 .card {
   text-align: left;
   background: $white;

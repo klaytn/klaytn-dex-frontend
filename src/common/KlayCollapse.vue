@@ -24,6 +24,8 @@ const isOpen = ref(false)
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars';
+
 .collapse {
   border: 1px solid $gray3;
   box-sizing: border-box;

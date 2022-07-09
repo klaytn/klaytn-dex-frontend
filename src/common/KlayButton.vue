@@ -15,6 +15,8 @@ const { loading = false } = defineProps<{
 </template>
 
 <style lang="scss" scoped>
+@import '@/styles/vars';
+
 .btn {
   background: $blue;
   border: none;

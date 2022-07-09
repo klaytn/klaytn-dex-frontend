@@ -20,6 +20,8 @@ const props = withDefaults(
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars';
+
 .klay-loader {
   color: $blue;
 }

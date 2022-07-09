@@ -1,7 +1,10 @@
+@import '@/styles/vars';
+
 .details {
   margin-top: 8px;
 
-  &--title, h3 {
+  &--title,
+  h3 {
     font-style: normal;
     font-weight: 700;
     font-size: 14px;

@@ -18,19 +18,6 @@ import UnoCSS from 'unocss/vite'
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
 export default defineConfig({
-  css: {
-    preprocessorOptions: {
-      scss: {
-        additionalData:
-          "@use '@soramitsu-ui/ui/styles'; @use '@soramitsu-ui/theme/fonts/Sora'; @use '@soramitsu-ui/theme/sass' as theme; @import '@/styles/vars.sass';",
-      },
-      sass: {
-        additionalData:
-          "@use '@soramitsu-ui/ui/styles'\n@use '@soramitsu-ui/theme/fonts/Sora'\n@use '@soramitsu-ui/theme/sass' as theme\n@import '@/styles/vars.sass'\n",
-      },
-    },
-  },
-
   resolve: {
     alias: {
       '@/': `${path.resolve(__dirname, 'src')}/`,

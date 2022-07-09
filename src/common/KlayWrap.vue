@@ -32,6 +32,8 @@
 </template>
 
 <style lang="scss" scoped>
+@import '@/styles/vars';
+
 .wrap {
   background: linear-gradient(0deg, #ffffff, #ffffff),
     linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%), rgba(255, 255, 255, 0.6);

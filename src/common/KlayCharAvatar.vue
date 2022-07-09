@@ -1,33 +1,21 @@
 <script setup lang="ts" name="KlayIcon">
-// TODO remove component?
-
 const props = defineProps<{
-  name: string
-  char?: string
+  content: string
 }>()
 
-const CurrentIcon = defineAsyncComponent(() => import(`../assets/icons/${props.name}.svg?component`))
+const firstCapital = computed(() => props.content?.slice(0, 1).toUpperCase())
 </script>
 
 <template>
-  <div
-    v-if="char"
-    class="char"
-  >
-    {{ char }}
+  <div>
+    {{ firstCapital }}
   </div>
-  <!-- eslint-disable vue/no-v-html -->
-  <CurrentIcon
-    v-else
-    class="svg-icon"
-  />
-  <!-- eslint-enable -->
 </template>
 
 <style lang="scss" scoped>
 @import '@/styles/vars';
 
-.char {
+div {
   width: 24px;
   height: 24px;
   background: $gray5;

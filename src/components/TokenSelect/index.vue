@@ -61,14 +61,7 @@ function onSelect(token: Address) {
 </template>
 
 <style scoped lang="scss">
-.select {
-  width: 100px;
-  height: 40px;
-  background: $white;
-  border-radius: 8px;
-  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.07);
-  margin-left: 8px;
-  position: relative;
+@import '@/styles/vars';
 
   &::after {
     display: none !important;
