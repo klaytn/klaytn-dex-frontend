@@ -31,7 +31,7 @@ const vBem = useBemClass()
 const pageSize = 3
 const pageOffset = ref(0)
 const pairsQueryEnabled = ref(false)
-const rewards = ref<Record<Pool['id'], string>>({})
+const rewards = ref<Record<Pool['id'], string | undefined>>({})
 const currentBlock = ref<number | null>(null)
 const viewMoreLoading = ref(false)
 const fetchMorePairsLoading = ref(false)
@@ -231,11 +231,11 @@ const pools = computed<Pool[] | null>(() => {
     const id = pool.id
     const pair = pairs.value.find(pair => pair.id === pool.pair)
 
-    const reward = rewards.value[pool.id]
-    const earned = $kaikas.bigNumber(reward !== undefined ? rewards.value[pool.id] : '0')
-
     if (!pair)
       return
+
+    const reward = rewards.value[pool.id]
+    const earned = $kaikas.bigNumber(reward ? reward : '0')
 
     const pairId = pair.id
     const name = pair.name
