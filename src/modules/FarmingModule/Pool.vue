@@ -237,7 +237,7 @@ async function handleModalClose() {
         >
           <STextField
             v-bem="'staked-input'"
-            :value="formattedStaked"
+            :model-value="formattedStaked"
             :disabled="true"
           />
           <div v-bem="'staked-input-label'">
@@ -264,7 +264,7 @@ async function handleModalClose() {
         >
           <STextField
             v-bem="'earned-input'"
-            :value="formattedEarned"
+            :model-value="formattedEarned"
             :disabled="true"
           />
           <div v-bem="'earned-input-label'">
