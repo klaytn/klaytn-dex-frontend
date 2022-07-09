@@ -1,5 +1,5 @@
 <script setup lang="ts" name="FarmingModule">
-import { useQuery, useSubscription } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import { SButton } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
 
@@ -14,6 +14,9 @@ import {
   pairsQuery,
   farmingContractAddress,
   liquidityPositionsQuery,
+  refetchFarmingInterval,
+  refetchCurrentBlockInterval,
+  refetchRewardsInterval
 } from './const'
 import { AbiItem } from 'caver-js'
 import { Farming } from '@/types/typechain/farming'
@@ -30,7 +33,9 @@ const pageOffset = ref(0)
 const pairsQueryEnabled = ref(false)
 const rewards = ref<Record<Pool['id'], string>>({})
 const currentBlock = ref<number | null>(null)
-
+const farmingFirstResultFetched = ref(false)
+const viewMoreLoading = ref(false)
+const fetchMorePairsLoading = ref(false)
 
 const FarmingContract = config.createContract<Farming>(farmingContractAddress, farmingAbi.abi as AbiItem[])
 
@@ -38,11 +43,30 @@ const FarmingQuery = useQuery<FarmingQueryResult>(
   farmingQuery,
   {
     first: pageSize,
-    skip: pageOffset.value,
+    skip: 0,
     userId: config.address
   },
-  { clientId: 'farming' }
+  {
+    clientId: 'farming'
+  }
 )
+
+function refetchFarming() {
+  if (!FarmingQuery.result.value)
+    return
+
+  FarmingQuery.refetch({
+    first: FarmingQuery.result.value.farming.pools.length,
+    skip: 0,
+    userId: config.address
+  })
+}
+
+const farmingIntervalId = setInterval(refetchFarming, refetchFarmingInterval * 1000)
+
+onBeforeUnmount(() => {
+  clearInterval(farmingIntervalId)
+})
 
 const farming = computed(() => {
   return FarmingQuery.result.value?.farming ?? null
@@ -53,7 +77,7 @@ async function fetchCurrentBlock() {
 }
 
 fetchCurrentBlock()
-const currentBlockIntervalId = setInterval(fetchCurrentBlock, 60 * 1000)
+const currentBlockIntervalId = setInterval(fetchCurrentBlock, refetchCurrentBlockInterval * 1000)
 
 onBeforeUnmount(() => {
   clearInterval(currentBlockIntervalId)
@@ -70,7 +94,7 @@ function fetchRewards() {
   })
 }
 
-const rewardsIntervalId = setInterval(fetchRewards, 1000)
+const rewardsIntervalId = setInterval(fetchRewards, refetchRewardsInterval * 1000)
 
 onBeforeUnmount(() => {
   clearInterval(rewardsIntervalId)
@@ -101,16 +125,18 @@ const showViewMore = computed(() => {
   if (!farming.value)
     return false
 
-  return farming.value?.poolCount > (pageOffset.value + pageSize) && !loading.value
+  return farming.value?.poolCount > (pageOffset.value + pageSize) && pools.value !== null && pools.value.length !== 0
 })
 
-function viewMore() {
+async function viewMore() {
   if (farming.value === null)
     return
 
   pageOffset.value = farming.value.pools.length
 
-  FarmingQuery.fetchMore({
+  viewMoreLoading.value = true
+
+  await FarmingQuery.fetchMore({
     variables: {
       first: pageSize,
       skip: pageOffset.value,
@@ -135,10 +161,14 @@ function viewMore() {
       }}
     },
   })
+
+  viewMoreLoading.value = false
 }
 
-function fetchMorePairs(pairIds: Pool['pairId'][]) {
-  PairsQuery.fetchMore({
+async function fetchMorePairs(pairIds: Pool['pairId'][]) {
+  fetchMorePairsLoading.value = true
+
+  await PairsQuery.fetchMore({
     variables: {
       pairIds
     },
@@ -153,6 +183,8 @@ function fetchMorePairs(pairIds: Pool['pairId'][]) {
       ]}
     },
   })
+
+  fetchMorePairsLoading.value = false
 }
 
 const rewardsFetched = computed(() => {
@@ -160,7 +192,7 @@ const rewardsFetched = computed(() => {
 })
 
 const loading = computed(() => {
-  return FarmingQuery.loading.value || PairsQuery.loading.value || !rewardsFetched.value
+  return !farmingFirstResultFetched.value || viewMoreLoading.value || fetchMorePairsLoading.value || !rewardsFetched.value
 })
 
 const LiquidityPositionsQuery = useQuery<LiquidityPositionsQueryResult>(
@@ -176,6 +208,8 @@ const liquidityPositions = computed(() => {
 })
 
 function handleFarmingQueryResult() {
+  if (!farmingFirstResultFetched.value)
+    farmingFirstResultFetched.value = true
   if (!pairsQueryEnabled.value) {
     pairsQueryEnabled.value = true
     pairsQueryVariables.value.pairIds = poolPairIds.value
@@ -201,7 +235,7 @@ const pools = computed<Pool[] | null>(() => {
     const id = pool.id
     const pair = pairs.value?.find(pair => pair.id === pool.pair) ?? null
     const reward = rewards.value[pool.id]
-    const earned = reward !== undefined ? $kaikas.bigNumber(rewards.value[pool.id]) : null
+    const earned = $kaikas.bigNumber(reward !== undefined ? rewards.value[pool.id] : '0')
 
     if (pair === null || earned === null || farming.value === null || currentBlock.value === null)
       return
@@ -308,6 +342,7 @@ function handleUnstaked(pool: Pool, amount: string) {
           v-bem="'view-more-button'"
           size="sm"
           type="primary"
+          :loading="loading"
           @click="viewMore"
         >
           View more
@@ -315,7 +350,7 @@ function handleUnstaked(pool: Pool, amount: string) {
       </div>
     </template>
     <div
-      v-if="loading"
+      v-if="loading && !showViewMore"
       v-bem="'loader'"
     >
       <KlayLoader />
