@@ -13,6 +13,7 @@ import { SwapExactAForB, SwapAForExactB, SwapProps } from '@/core/kaikas/Swap'
 import { Except } from 'type-fest'
 import { MaybeRef } from '@vueuse/core'
 import { Ref } from 'vue'
+import BigNumber from 'bignumber.js'
 
 export type TokenType = 'tokenA' | 'tokenB'
 
@@ -31,16 +32,18 @@ export function buildPair<T>(fn: (type: TokenType) => T): TokensPair<T> {
 
 interface GetAmountOfOtherTokenProps extends TokensPair<Address> {
   kaikas: Kaikas
-  exact: { type: TokenType; value: ValueWei<string> }
+  exact: { type: TokenType; value: ValueWei<BigNumber> }
 }
 
 async function getAmountOfOtherToken(props: GetAmountOfOtherTokenProps): Promise<ValueWei<string>> {
   const addrsPair = { addressA: props.tokenA, addressB: props.tokenB }
 
+  const exactValue = props.exact.value.toFixed(0) as ValueWei<string>
+
   if (props.exact.type === 'tokenA') {
     const [, amountOut] = await props.kaikas.swap.getAmounts({
       mode: 'out',
-      amountIn: props.exact.value,
+      amountIn: exactValue,
       ...addrsPair,
     })
 
@@ -48,7 +51,7 @@ async function getAmountOfOtherToken(props: GetAmountOfOtherTokenProps): Promise
   } else {
     const [amountIn] = await props.kaikas.swap.getAmounts({
       mode: 'in',
-      amountOut: props.exact.value,
+      amountOut: exactValue,
       ...addrsPair,
     })
 
@@ -208,9 +211,9 @@ function useGetAmount({
     const exact = exactToken.value
     if (!tokenA || !tokenB || !exact) return null
 
-    const exactValue = selection[exact]!.inputWei
+    const exactValue = new BigNumber(selection[exact]!.inputWei) as ValueWei<BigNumber>
 
-    const key = `${tokenA.addr}-${tokenB.addr}-${exact}-${exactValue}`
+    const key = `${tokenA.addr}-${tokenB.addr}-${exact}-${exactValue.toFixed(0)}`
 
     return {
       key,
@@ -223,20 +226,14 @@ function useGetAmount({
     }
   })
 
-  watch(
-    () => computedProps.value?.key,
-    (key) => {
-      scope.dispose()
-      if (key) {
-        const { key, ...props } = computedProps.value!
-        taskSetupDebounced(props)
-      }
-    },
-    { immediate: true },
-  )
+  watchEffect(() => {
+    console.log('computed props', { ...computedProps.value })
+  })
 
   const taskSetupDebounced = useDebounceFn((props: Except<GetAmountOfOtherTokenProps, 'kaikas'>) => {
     const kaikas = kaikasStore.getKaikasAnyway()
+
+    console.log('setting up a task')
 
     scope.setup(() => {
       const task = useTask(async () => {
@@ -249,6 +246,7 @@ function useGetAmount({
       })
 
       task.run()
+      useTaskLog(task, `get-amounts`)
 
       wheneverTaskSucceeds(task, ({ amount }) => {
         selection[mirrorTokenType(props.exact.type)]!.inputWei = amount
@@ -259,6 +257,19 @@ function useGetAmount({
       return { isPending }
     })
   }, 700)
+
+  watch(
+    () => computedProps.value?.key,
+    (key) => {
+      console.log('watch', { key })
+      scope.dispose()
+      if (key) {
+        const { key, ...props } = computedProps.value!
+        taskSetupDebounced(props)
+      }
+    },
+    { immediate: true },
+  )
 
   const getAmountPendingState = computed<null | TokenType>(() => {
     if (scope.scope.value?.setup.isPending.value) return exactToken.value!

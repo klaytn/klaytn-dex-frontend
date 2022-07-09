@@ -23,65 +23,60 @@ function onSelect(token: Address) {
 </script>
 
 <template>
-  <div class="select--wrap">
-    <TokenSelectModal
-      v-model:open="isModalOpen"
-      @select="onSelect"
-    />
+  <TokenSelectModal
+    v-model:open="isModalOpen"
+    @select="onSelect"
+  />
 
-    <button
-      v-if="!token"
-      class="select-btn"
+  <button
+    v-if="!token"
+    class="btn-empty flex items-center justify-center space-x-2"
+    @click="isModalOpen = true"
+  >
+    <span>Select Token</span>
+    <KlayIcon name="collapse-arrow" />
+  </button>
+
+  <button
+    v-else
+    class="btn-filled"
+  >
+    <div
+      class="btn-filled__content"
       @click="isModalOpen = true"
     >
-      <span>Select token</span>
-      <KlayIcon name="collapse-arrow" />
-    </button>
-
-    <div
-      v-else
-      class="select"
-    >
-      <div
-        class="select--head"
-        @click="isModalOpen = true"
-      >
-        <template v-if="tokenData">
-          <KlayIcon
-            :char="tokenData.symbol[0]"
-            name="empty-token"
-          />
-          <span>
-            {{ tokenData.symbol }}
-          </span>
-        </template>
-      </div>
+      <template v-if="tokenData">
+        <KlayIcon
+          :char="tokenData.symbol[0]"
+          name="empty-token"
+        />
+        <span>
+          {{ tokenData.symbol }}
+        </span>
+      </template>
     </div>
-  </div>
+  </button>
 </template>
 
 <style scoped lang="scss">
 @import '@/styles/vars';
 
-  &::after {
-    display: none !important;
-  }
+.btn-empty {
+  background: $blue;
+  color: $white;
+  border-radius: 8px;
+  padding: 12px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
 
-  &-btn {
-    background: $blue;
-    color: $white;
-    width: 130px;
-    text-align: center;
-    border-radius: 8px;
-    padding: 12px 12px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+.btn-filled {
+  height: 40px;
+  background: $white;
+  border-radius: 8px;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.07);
 
-  &--head {
+  &__content {
     width: 100%;
     display: flex;
     height: 100%;
@@ -111,10 +106,6 @@ function onSelect(token: Address) {
       color: $dark2;
       margin-left: 8px;
     }
-  }
-
-  & .wrap {
-    margin-top: 17px;
   }
 }
 </style>

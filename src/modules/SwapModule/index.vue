@@ -17,55 +17,27 @@ function refresh() {
 </script>
 
 <template>
-  <div
-    v-if="!areImportedTokensLoaded"
-    class="wrap"
-  >
-    <div class="head">
-      <button class="head--btn head--btn-active">
-        Swap
-      </button>
-      <button class="head--btn">
-        Liquidity
-      </button>
-      <button
-        class="head--btn head--btn-left"
-        @click="refresh()"
-      >
-        <KlayIcon name="refresh" />
-      </button>
-      <button class="head--btn">
-        <KlayIcon name="filters" />
-      </button>
-    </div>
-    <div class="load">
+  <KlayWrap>
+    <template v-if="!areImportedTokensLoaded">
       <KlayLoader />
-    </div>
-  </div>
+    </template>
 
-  <KlayWrap v-else>
-    <SwapModuleExchangeRate />
+    <template v-else>
+      <SwapModuleExchangeRate />
 
-    <!-- <div class="slippage">
-      <KlaySlippage />
-    </div> -->
+      <KlayButton
+        :disabled="!areSelectedTokensValidToSwap"
+        @click="swapStore.swap"
+      >
+        {{ swapState.pending ? 'Wait' : 'Swap' }}
+      </KlayButton>
 
-    <KlayButton
-      :disabled="!areSelectedTokensValidToSwap"
-      @click="swapStore.swap"
-    >
-      {{ swapState.pending ? 'Wait' : 'Swap' }}
-    </KlayButton>
+      <SwapModuleDetails />
 
-    <SwapModuleDetails />
-
-    <!-- <div v-if="exchangeRateLoading">
-      Exchange rate loading
-    </div> -->
-
-    <div v-if="isEmptyPairAddress === 'empty'">
-      Pair doesn't exist
-    </div>
+      <div v-if="isEmptyPairAddress === 'empty'">
+        Pair doesn't exist
+      </div>
+    </template>
   </KlayWrap>
 </template>
 

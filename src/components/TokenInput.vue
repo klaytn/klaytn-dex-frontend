@@ -1,9 +1,11 @@
 <script lang="ts" setup>
 import { formatAddress, Token, Address, ValueWei, tokenRawToWei, tokenWeiToRaw } from '@/core/kaikas'
-import { roundTo } from 'round-to'
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
+import IconInfo from '@/assets/icons/important.svg'
+import { useScope } from '@vue-kakuyaku/core'
+import { ComputedRef } from 'vue'
 
 const props = withDefaults(
   defineProps<{
@@ -20,6 +22,8 @@ const props = withDefaults(
 
 const emit = defineEmits(['update:modelValue', 'update:token'])
 
+let modelWei = $toRef(props, 'modelValue')
+
 const addrFormatted = $computed(() => {
   return props.token && formatAddress(props.token)
 })
@@ -32,11 +36,24 @@ const tokensStore = useTokensStore()
 const tokenData = $computed<null | Token>(
   () => (props.token && tokensStore.tokens?.find((x) => x.address === props.token)) ?? null,
 )
+
+const scope = useScope(
+  computed(() => !!tokenData),
+  () => {
+    const tokenDataForSure = $($$(tokenData) as ComputedRef<Token>)
+
+    const valueModel = useWei(
+      $$(modelWei),
+      computed(() => tokenDataForSure.decimals),
+    )
+  },
+)
+
 const balance = $computed<null | ValueWei<BigNumber>>(
   () => (props.token && tokensStore.userBalanceMap?.get(props.token)) ?? null,
 )
 const balanceFormatted = $computed(() => {
-  if (!balance || !tokenData) return '-'
+  if (!balance || !tokenData) return '—'
   return tokenWeiToRaw(tokenData, balance.toString() as ValueWei<string>)
 })
 
@@ -47,6 +64,8 @@ const model = $computed<string>({
   },
   set: (raw) => {
     if (!tokenData) return
+    const num = Number(raw)
+    if (Number.isNaN(num)) return
     emit('update:modelValue', tokenRawToWei(tokenData, raw))
   },
 })
@@ -63,15 +82,14 @@ function setToMax() {
 
 <template>
   <div
-    class="root"
+    class="root space-y-2"
     :class="{ 'root--loading': isLoading }"
   >
-    <div class="flex items-center border-2 border-red-300">
+    <div class="flex items-center space-x-2">
       <input
         v-model="model"
         :disabled="isDisabled"
         placeholder="0"
-        type="number"
       >
 
       <button
@@ -92,13 +110,13 @@ function setToMax() {
 
       <KlayTextField
         :title="balance"
-        class="price flex space-x-2"
+        class="balance flex space-x-2"
       >
         <span>
           <template v-if="isKaikasConnected"> Balance: {{ balanceFormatted }} </template>
           <template v-else> Balance: Connect Wallet </template>
         </span>
-        <KlayIcon name="important" />
+        <IconInfo class="m-0" />
       </KlayTextField>
 
       <!-- <div
@@ -123,6 +141,8 @@ function setToMax() {
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars';
+
 .root {
   background: $gray3;
   padding: 16px 16px;
@@ -141,7 +161,7 @@ input {
   color: $dark2;
   background: transparent;
   border: none;
-  max-width: 212px;
+  min-width: 0;
   flex: 1;
 }
 
@@ -153,8 +173,16 @@ button.max {
   border-radius: 8px;
   color: $white;
   padding: 4px 8px;
-  margin-left: 8px;
   cursor: pointer;
+}
+
+.balance {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 15px;
+  color: $gray4;
+  max-width: 200px;
 }
 
 .token {

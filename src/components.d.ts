@@ -7,6 +7,7 @@ declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     HeaderMenu: typeof import('./components/HeaderMenu.vue')['default']
     KlayButton: typeof import('./common/KlayButton.vue')['default']
+    KlayCharAvatar: typeof import('./common/KlayCharAvatar.vue')['default']
     KlayCollapse: typeof import('./common/KlayCollapse.vue')['default']
     KlayIcon: typeof import('./common/KlayIcon.vue')['default']
     KlayLoader: typeof import('./common/KlayLoader.vue')['default']

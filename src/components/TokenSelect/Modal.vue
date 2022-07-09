@@ -200,6 +200,8 @@ function doImport() {
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars';
+
 p {
   color: $gray4;
   font-weight: 500;

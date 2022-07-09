@@ -38,7 +38,11 @@ export function deadlineFiveMinutesFromNow(): Deadline {
 }
 
 export function tokenRawToWei({ decimals }: Pick<Token, 'decimals'>, valueRaw: string): ValueWei<string> {
-  return new BigNumber(valueRaw ?? 0).multipliedBy(new BigNumber(10).pow(decimals)).toString() as ValueWei<string>
+  const result = new BigNumber(valueRaw ?? 0)
+    .multipliedBy(new BigNumber(10).pow(decimals))
+    .toFixed(0) as ValueWei<string>
+  console.log({ decimals, valueRaw, result })
+  return result
 }
 
 export function tokenWeiToRaw({ decimals }: Pick<Token, 'decimals'>, wei: ValueWei<string>): string {
@@ -67,8 +71,12 @@ if (import.meta.vitest) {
   })
 
   describe('Token Wei <-> Raw', () => {
-    test('raw to wei', () => {
+    test('raw with decimals to wei', () => {
       expect(tokenRawToWei({ decimals: 18 }, '123.42')).toEqual(123420000000000000000n.toString())
+    })
+
+    test('raw with decimals to wei', () => {
+      expect(tokenRawToWei({ decimals: 18 }, '4123')).toEqual((4123n * 10n ** 18n).toString())
     })
 
     test('wei to raw', () => {

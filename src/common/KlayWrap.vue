@@ -1,4 +1,8 @@
-<script setup lang="ts" name="KlayWrap" />
+<script setup lang="ts" name="KlayWrap">
+// FIXME it's not a common component, it is kind of a layout
+import IconRefresh from '@/assets/icons/refresh.svg'
+import IconFilters from '@/assets/icons/filters.svg'
+</script>
 
 <template>
   <div class="wrap">
@@ -6,24 +10,26 @@
       <slot name="head">
         <RouterLink
           to="/swap"
-          class="head--btn"
-          active-class="head--btn-active"
+          class="head__btn"
+          active-class="head__btn--active"
         >
           Swap
         </RouterLink>
+
         <RouterLink
           to="/liquidity"
-          class="head--btn"
-          active-class="head--btn-active"
+          class="head__btn"
+          active-class="head__btn--active"
         >
           Liquidity
         </RouterLink>
       </slot>
-      <button class="head--btn head--btn-left">
-        <KlayIcon name="refresh" />
+
+      <button class="head__btn head__btn--left">
+        <IconRefresh />
       </button>
-      <button class="head--btn">
-        <KlayIcon name="filters" />
+      <button class="head__btn">
+        <IconFilters />
       </button>
     </div>
 
@@ -46,18 +52,13 @@
   width: 100%;
 }
 
-.load {
-  width: min-content;
-  margin: auto;
-}
-
 .head {
   display: flex;
   align-items: center;
   justify-content: flex-start;
   margin-bottom: 18px;
 
-  &--btn {
+  &__btn {
     font-style: normal;
     font-weight: 700;
     font-size: 18px;
@@ -66,7 +67,7 @@
     margin-right: 18px;
     cursor: pointer;
 
-    &-left {
+    &--left {
       margin-left: auto;
     }
 
@@ -74,21 +75,9 @@
       margin-right: 0;
     }
 
-    &-active {
+    &--active {
       color: $dark;
     }
   }
-}
-
-.change-btn {
-  margin-top: -10px;
-}
-
-.margin-block {
-  margin: -10px 0;
-}
-
-.slippage {
-  margin: 20px 0;
 }
 </style>
