@@ -8,6 +8,7 @@ import {
   Pool,
   PairsQueryResult,
   LiquidityPositionsQueryResult,
+  Rewards
 } from './types'
 import {
   farmingQuery,
@@ -15,8 +16,7 @@ import {
   farmingContractAddress,
   liquidityPositionsQuery,
   refetchFarmingInterval,
-  refetchCurrentBlockInterval,
-  refetchRewardsInterval
+  refetchCurrentBlockInterval
 } from './const'
 import { AbiItem } from 'caver-js'
 import { Farming } from '@/types/typechain/farming'
@@ -31,7 +31,7 @@ const vBem = useBemClass()
 const pageSize = 3
 const pageOffset = ref(0)
 const pairsQueryEnabled = ref(false)
-const rewards = ref<Record<Pool['id'], string | undefined>>({})
+const rewards = ref<Rewards>({})
 const currentBlock = ref<number | null>(null)
 const viewMoreLoading = ref(false)
 const fetchMorePairsLoading = ref(false)
@@ -82,22 +82,23 @@ onBeforeUnmount(() => {
   clearInterval(currentBlockIntervalId)
 })
 
-function fetchRewards() {
-  farming.value?.pools.forEach(async pool => {
+async function fetchRewards() {
+  if (!farming.value)
+    throw new Error('There is no farming for an unknown reason')
+
+  const newRewards: Rewards = {}
+  const promises = farming.value?.pools.map(async pool => {
     const reward = await FarmingContract.methods.pendingPtn(
       pool.id,
       config.address,
     ).call()
 
-    rewards.value[pool.id] = $kaikas.utils.fromWei(reward)
+    newRewards[pool.id] = $kaikas.utils.fromWei(reward)
   })
+  await Promise.all(promises)
+
+  rewards.value = newRewards
 }
-
-const rewardsIntervalId = setInterval(fetchRewards, refetchRewardsInterval * 1000)
-
-onBeforeUnmount(() => {
-  clearInterval(rewardsIntervalId)
-})
 
 const poolPairIds = computed(() => {
   return farming.value?.pools.map(pool => pool.pair) ?? []
@@ -186,8 +187,12 @@ async function fetchMorePairs(pairIds: Pool['pairId'][]) {
   fetchMorePairsLoading.value = false
 }
 
+const rewardsFetched = computed(() => {
+  return farming.value?.pools?.every(pool => rewards.value[pool.id] !== undefined) ?? false
+})
+
 const loading = computed(() => {
-  return pools.value === null || viewMoreLoading.value || fetchMorePairsLoading.value
+  return pools.value === null || viewMoreLoading.value || fetchMorePairsLoading.value || !rewardsFetched.value
 })
 
 const LiquidityPositionsQuery = useQuery<LiquidityPositionsQueryResult>(
@@ -206,8 +211,9 @@ function handleFarmingQueryResult() {
   if (!pairsQueryEnabled.value) {
     pairsQueryEnabled.value = true
     pairsQueryVariables.value.pairIds = poolPairIds.value
-  }
-  fetchRewards()
+    fetchRewards()
+  } else
+    fetchRewards(true)
 }
 
 // Workaround for cached results: https://github.com/vuejs/apollo/issues/1154
@@ -229,13 +235,13 @@ const pools = computed<Pool[] | null>(() => {
       return
 
     const id = pool.id
-    const pair = pairs.value.find(pair => pair.id === pool.pair)
-
-    if (!pair)
-      return
+    const pair = pairs.value.find(pair => pair.id === pool.pair) ?? null
 
     const reward = rewards.value[pool.id]
-    const earned = $kaikas.bigNumber(reward ? reward : '0')
+    const earned = reward ? $kaikas.bigNumber(reward) : null
+
+    if (pair === null || earned === null)
+      return 
 
     const pairId = pair.id
     const name = pair.name

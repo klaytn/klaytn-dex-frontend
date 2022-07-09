@@ -9,8 +9,6 @@ export const formattedBigIntDecimals = 6
 export const refetchFarmingInterval = 10
 // Defines the update interval of the current block in seconds
 export const refetchCurrentBlockInterval = 60
-// Defines the update interval of the earned list in seconds
-export const refetchRewardsInterval = 10
 
 export const farmingContractAddress = '0x32bE07FB9dBf294c2e92715F562f7aBA02b7443A'
 

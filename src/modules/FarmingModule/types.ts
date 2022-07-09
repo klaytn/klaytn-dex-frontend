@@ -52,6 +52,8 @@ export interface Pool {
   multiplier: BigNumber
 }
 
+export type Rewards = Record<Pool['id'], string | undefined>
+
 export enum ModalOperation {
   Stake = 'stake',
   Unstake = 'unstake',
