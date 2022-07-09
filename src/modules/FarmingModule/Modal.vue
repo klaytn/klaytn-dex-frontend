@@ -144,7 +144,6 @@ async function confirm() {
 
 <template>
   <KlayModal
-    padding="20px 0"
     width="420"
     :label="label"
     @close="emit('close')"
