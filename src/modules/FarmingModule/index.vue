@@ -235,7 +235,7 @@ const pools = computed<Pool[] | null>(() => {
     const earned = $kaikas.bigNumber(reward !== undefined ? rewards.value[pool.id] : '0')
 
     if (!pair)
-      throw Error('There is no pair for an unknown reason')
+      return
 
     const pairId = pair.id
     const name = pair.name
