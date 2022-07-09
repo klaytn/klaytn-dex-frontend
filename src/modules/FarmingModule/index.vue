@@ -187,12 +187,8 @@ async function fetchMorePairs(pairIds: Pool['pairId'][]) {
   fetchMorePairsLoading.value = false
 }
 
-const rewardsFetched = computed(() => {
-  return farming.value?.pools?.every(pool => rewards.value[pool.id] !== undefined) ?? false
-})
-
 const loading = computed(() => {
-  return !farmingFirstResultFetched.value || viewMoreLoading.value || fetchMorePairsLoading.value || !rewardsFetched.value
+  return !farmingFirstResultFetched.value || viewMoreLoading.value || fetchMorePairsLoading.value
 })
 
 const LiquidityPositionsQuery = useQuery<LiquidityPositionsQueryResult>(
