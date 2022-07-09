@@ -33,7 +33,6 @@ const pageOffset = ref(0)
 const pairsQueryEnabled = ref(false)
 const rewards = ref<Record<Pool['id'], string>>({})
 const currentBlock = ref<number | null>(null)
-const farmingFirstResultFetched = ref(false)
 const viewMoreLoading = ref(false)
 const fetchMorePairsLoading = ref(false)
 
@@ -188,7 +187,8 @@ async function fetchMorePairs(pairIds: Pool['pairId'][]) {
 }
 
 const loading = computed(() => {
-  return !farmingFirstResultFetched.value || viewMoreLoading.value || fetchMorePairsLoading.value
+  console.log('loading', pools.value?.length)
+  return pools.value === null || viewMoreLoading.value || fetchMorePairsLoading.value
 })
 
 const LiquidityPositionsQuery = useQuery<LiquidityPositionsQueryResult>(
@@ -204,8 +204,6 @@ const liquidityPositions = computed(() => {
 })
 
 function handleFarmingQueryResult() {
-  if (!farmingFirstResultFetched.value)
-    farmingFirstResultFetched.value = true
   if (!pairsQueryEnabled.value) {
     pairsQueryEnabled.value = true
     pairsQueryVariables.value.pairIds = poolPairIds.value
@@ -217,24 +215,25 @@ function handleFarmingQueryResult() {
 if (FarmingQuery.result.value)
   handleFarmingQueryResult()
 
-FarmingQuery.onResult(async () => {
+FarmingQuery.onResult(() => {
   handleFarmingQueryResult()
 })
 
 const pools = computed<Pool[] | null>(() => {
-  if (farming.value === null)
+  if (farming.value === null || pairs.value === null || currentBlock.value === null)
     return null
 
   const pools = [] as Pool[]
 
   farming.value.pools.forEach(pool => {
     const id = pool.id
-    const pair = pairs.value?.find(pair => pair.id === pool.pair) ?? null
+    const pair = pairs.value?.find(pair => pair.id === pool.pair)
+
     const reward = rewards.value[pool.id]
     const earned = $kaikas.bigNumber(reward !== undefined ? rewards.value[pool.id] : '0')
 
-    if (pair === null || earned === null || farming.value === null || currentBlock.value === null)
-      return
+    if (!pair)
+      throw Error('There is no pair for an unknown reason')
 
     const pairId = pair.id
     const name = pair.name
@@ -269,6 +268,8 @@ const pools = computed<Pool[] | null>(() => {
       multiplier
     })
   })
+
+  console.log(pools.length)
 
   return pools
 })
