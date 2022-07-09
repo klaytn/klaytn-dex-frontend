@@ -187,7 +187,6 @@ async function fetchMorePairs(pairIds: Pool['pairId'][]) {
 }
 
 const loading = computed(() => {
-  console.log('loading', pools.value?.length)
   return pools.value === null || viewMoreLoading.value || fetchMorePairsLoading.value
 })
 
@@ -226,8 +225,11 @@ const pools = computed<Pool[] | null>(() => {
   const pools = [] as Pool[]
 
   farming.value.pools.forEach(pool => {
+    if (farming.value === null || pairs.value === null || currentBlock.value === null)
+      return
+
     const id = pool.id
-    const pair = pairs.value?.find(pair => pair.id === pool.pair)
+    const pair = pairs.value.find(pair => pair.id === pool.pair)
 
     const reward = rewards.value[pool.id]
     const earned = $kaikas.bigNumber(reward !== undefined ? rewards.value[pool.id] : '0')
@@ -268,8 +270,6 @@ const pools = computed<Pool[] | null>(() => {
       multiplier
     })
   })
-
-  console.log(pools.length)
 
   return pools
 })
