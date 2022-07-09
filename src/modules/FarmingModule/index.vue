@@ -211,9 +211,8 @@ function handleFarmingQueryResult() {
   if (!pairsQueryEnabled.value) {
     pairsQueryEnabled.value = true
     pairsQueryVariables.value.pairIds = poolPairIds.value
-    fetchRewards()
-  } else
-    fetchRewards(true)
+  }
+  fetchRewards()
 }
 
 // Workaround for cached results: https://github.com/vuejs/apollo/issues/1154
