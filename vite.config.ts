@@ -45,6 +45,19 @@ export default defineConfig({
             alias: '/',
           }
         }
+        if (route.path === '/earn') {
+          const { path, ...rest } = route
+          return {
+            ...rest
+          }
+        }
+        if (['farms', 'pools'].includes(route.path)) {
+          const { path, ...rest } = route
+          return {
+            path: '/' + path,
+            ...rest
+          }
+        }
         return route
       },
     }),

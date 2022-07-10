@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import type Caver from 'caver-js'
-import type { AbiItem, Contract } from 'caver-js'
+import type { AbiItem, Contract, decodeParameters } from 'caver-js'
 
 import type BigNumber from 'bignumber.js'
 import utils from './utils'

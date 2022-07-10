@@ -152,7 +152,7 @@ onMounted(connect)
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 82px;
+    margin-bottom: 32px;
 
     & .col {
       width: 33.33%;

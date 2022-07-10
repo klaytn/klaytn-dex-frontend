@@ -7,12 +7,13 @@ const vBem = useBemClass()
 </script>
 
 <template>
-  <EarnWrap v-bem>
-    <center>Page in the process of implementation</center>
-  </EarnWrap>
+  <div v-bem>
+    Page in the process of implementation
+  </div>
 </template>
 
 <style lang="sass">
 .pools
   max-width: 1190px
+  text-align: center
 </style>

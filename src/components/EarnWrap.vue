@@ -2,6 +2,11 @@
 const { t } = useI18n()
 const vBem = useBemClass()
 
+const props = defineProps<{
+  stakedOnly: boolean,
+  sort: Sort
+}>()
+
 const menuActiveClass = 'earn-wrap__head-button--active'
 </script>
 
@@ -33,20 +38,23 @@ const menuActiveClass = 'earn-wrap__head-button--active'
 @import '@/styles/vars.sass'
 
 .earn-wrap
-  background: linear-gradient(0deg, #ffffff, #ffffff), linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%), rgba(255, 255, 255, 0.6)
-  box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05)
-  padding: 19px 16px
+  display: flex
+  flex-direction: column
   border-radius: 20px
   overflow: visible
   margin: auto
   max-width: 1190px
   width: 100%
+  min-height: calc(100vh - 204px)
+  background: linear-gradient(0deg, #ffffff, #ffffff), linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%), rgba(255, 255, 255, 0.6)
+  box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05)
 
   &__head
     display: flex
     align-items: center
     justify-content: flex-start
-    margin-bottom: 18px
+    height: 74px
+    padding: 0 30px
 
     &-button
       font-style: normal

@@ -13,6 +13,7 @@ export interface FarmingQueryResult {
       totalTokensStaked: string
       allocPoint: string
       bonusEndBlock: string
+      createdAtBlock: string
       users: {
         amount: string
       }[]
@@ -50,11 +51,21 @@ export interface Pool {
   annualPercentageRate: BigNumber
   liquidity: BigNumber
   multiplier: BigNumber
+  createdAtBlock: Number
 }
+
+export type PoolWithoutReward = Omit<Pool, 'earned'>
 
 export type Rewards = Record<Pool['id'], string | undefined>
 
 export enum ModalOperation {
   Stake = 'stake',
   Unstake = 'unstake',
+}
+
+export enum Sorting {
+  Default = 'default',
+  Liquidity = 'liquidity',
+  APR = 'apr',
+  Multiplier = 'multiplier'
 }
