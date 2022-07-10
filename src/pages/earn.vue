@@ -2,16 +2,10 @@
 name: Earn
 </route>
 
-<script setup lang="ts" name="Earn">
-
-const data = ref({
-  stakedOnly: false
-})
-
-</script>
+<script setup lang="ts" name="Earn" />
 
 <template>
   <EarnWrap>
-    <router-view v-bind="data" />
+    <router-view />
   </EarnWrap>
 </template>

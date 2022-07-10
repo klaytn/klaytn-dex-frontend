@@ -51,10 +51,8 @@ export interface Pool {
   annualPercentageRate: BigNumber
   liquidity: BigNumber
   multiplier: BigNumber
-  createdAtBlock: Number
+  createdAtBlock: number
 }
-
-export type PoolWithoutReward = Omit<Pool, 'earned'>
 
 export type Rewards = Record<Pool['id'], string | undefined>
 
@@ -66,6 +64,8 @@ export enum ModalOperation {
 export enum Sorting {
   Default = 'default',
   Liquidity = 'liquidity',
-  APR = 'apr',
-  Multiplier = 'multiplier'
+  AnnualPercentageRate = 'annualPercentageRate',
+  Multiplier = 'multiplier',
+  Earned = 'earned',
+  Latest = 'latest'
 }
