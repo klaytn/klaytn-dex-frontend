@@ -11,7 +11,6 @@
     "EffectScope": true,
     "asyncComputed": true,
     "autoResetRef": true,
-    "buildPair": true,
     "computed": true,
     "computedAsync": true,
     "computedEager": true,

@@ -5,6 +5,7 @@ import Tokens from './Tokens'
 import { Address, Balance, Token } from './types'
 import { KIP7 as KIP7_ABI } from './smartcontracts/abi'
 import type { KIP7 } from '@/types/typechain/tokens'
+import { isNativeToken } from './utils'
 
 export default class Kaikas {
   public readonly cfg: Config
@@ -40,6 +41,13 @@ export default class Kaikas {
   }
 
   public async getTokenBalance(addr: Address): Promise<Balance> {
+    if (isNativeToken(addr)) {
+      // we can't get KLAY balance via KIP7 contract, because it returns a balance of WKLAY,
+      // which is not correct
+      const balance = (await this.cfg.caver.rpc.klay.getBalance(this.selfAddress)) as Balance
+      return balance
+    }
+
     const contract = this.cfg.createContract<KIP7>(addr, KIP7_ABI)
     const balance = (await contract.methods.balanceOf(this.selfAddress).call()) as Balance
     return balance

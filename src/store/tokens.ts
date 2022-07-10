@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { Address, Balance, Token } from '@/core/kaikas'
+import { Address, asWei, Balance, Token } from '@/core/kaikas'
 import { useStaleIfErrorState, useTask } from '@vue-kakuyaku/core'
 import { WHITELIST_TOKENS } from '@/core/kaikas/const'
 import invariant from 'tiny-invariant'
@@ -25,7 +25,6 @@ export const useTokensStore = defineStore('tokens', () => {
   const kaikasStore = useKaikasStore()
 
   const importedTokensAddrs = useLocalStorage<Address[]>('klaytn-dex-imported-tokens', [])
-  const importedTokensMap = ref(new Map<Address, Token>())
 
   const importedTokensOrdered = computed<null | Token[]>(() => {
     return listItemsFromMapOrNull(importedTokensAddrs.value, importedTokensMap.value)
@@ -41,11 +40,14 @@ export const useTokensStore = defineStore('tokens', () => {
       }),
     )
 
-    importedTokensMap.value = new Map(pairs)
+    return new Map(pairs)
   })
 
-  const getImportedTokensState = useStaleIfErrorState(getImportedTokensTask)
+  const getImportedTokensTaskState = useStaleIfErrorState(getImportedTokensTask)
   const areImportedTokensLoaded = computed(() => getImportedTokensTask.state.kind === 'ok')
+  const importedTokensMap = computed<Map<Address, Token>>(() => {
+    return getImportedTokensTaskState.result?.some ?? new Map()
+  })
 
   /**
    * Saves new imported token
@@ -72,23 +74,25 @@ export const useTokensStore = defineStore('tokens', () => {
     return tokens.value?.find((x) => x.address === addr) ?? null
   }
 
-  const getUserBalanceTask = useTask<Map<Address, Balance<BigNumber>>>(async () => {
+  const getUserBalanceTask = useTask<Map<Address, Balance<string>>>(async () => {
     const kaikas = kaikasStore.getKaikasAnyway()
     invariant(tokens.value)
 
     const entries = await Promise.all(
       tokens.value.map(async ({ address }) => {
         const balance = await kaikas.getTokenBalance(address)
-        return [address, new BigNumber(balance)] as [Address, Balance<BigNumber>]
+        return [address, balance] as [Address, Balance<string>]
       }),
     )
 
     return new Map(entries)
   })
   useTaskLog(getUserBalanceTask, 'user-balance')
-  const userBalanceMap = computed(() => {
-    const state = getUserBalanceTask.state
-    return state.kind === 'ok' ? state.data : null
+  const userBalanceTaskState = useStaleIfErrorState(getUserBalanceTask)
+  const userBalanceMap = computed<null | Map<Address, Balance<BigNumber>>>(() => {
+    const data = userBalanceTaskState.result?.some
+    if (data) return new Map([...data].map(([addr, balance]) => [addr, asWei(new BigNumber(balance))]))
+    return null
   })
 
   function getUserBalance() {
@@ -98,26 +102,29 @@ export const useTokensStore = defineStore('tokens', () => {
   const tokensWithBalance = computed<null | TokenWithOptionBalance[]>(() => {
     const balanceMap = userBalanceMap.value
     return (
-      tokens.value?.map<TokenWithOptionBalance>((x) => ({
-        ...x,
-        balance: balanceMap?.get(x.address) ?? null,
-      })) ?? null
+      tokens.value?.map<TokenWithOptionBalance>((x) => {
+        return {
+          ...x,
+          balance: balanceMap?.get(x.address) ?? null,
+        }
+      }) ?? null
     )
   })
+
+  const isDataLoading = computed(() => userBalanceTaskState.pending || getImportedTokensTaskState.pending)
 
   return {
     tokens,
     tryFindToken,
 
+    isDataLoading,
     getImportedTokens,
-    getImportedTokensState,
     areImportedTokensLoaded,
-
-    importToken,
-
     getUserBalance,
     userBalanceMap,
     tokensWithBalance,
+
+    importToken,
   }
 })
 

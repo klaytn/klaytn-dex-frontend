@@ -62,7 +62,7 @@ export type Address = Opaque<string, 'Address'>
  */
 export type Balance<T extends AnyNumber = string> = ValueWei<T>
 
-type AnyNumber = number | string | BN | BigNumber
+export type AnyNumber = number | string | BN | BigNumber
 
 export type ValueEther<T extends AnyNumber = AnyNumber> = Opaque<T, 'ValueEther'>
 

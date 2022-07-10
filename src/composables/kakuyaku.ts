@@ -1,9 +1,10 @@
 import { Task } from '@vue-kakuyaku/core'
+import Debug from 'debug'
 
 export function useTaskLog(task: Task<unknown>, name: string) {
-  const prefix = `[task: ${name}]`
+  const debug = Debug('kakuyaku').extend(name)
 
   watchEffect(() => {
-    console.log(`${prefix} state:`, { ...task.state })
+    debug('state: %o', { ...task.state })
   })
 }

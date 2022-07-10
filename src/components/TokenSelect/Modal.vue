@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Status, SModal } from '@soramitsu-ui/ui'
+import { Status, SModal, STextField } from '@soramitsu-ui/ui'
 import { Balance, isAddress, Token, Address, tokenWeiToRaw } from '@/core/kaikas'
 import { useTask, useScope } from '@vue-kakuyaku/core'
 import BigNumber from 'bignumber.js'
@@ -88,9 +88,9 @@ function resetSearch() {
 }
 
 function selectToken(token: Address) {
-  const balance = tokensStore.userBalanceMap?.get(token)
-  invariant(balance, 'Balance should be loaded before selection')
-  invariant(isBalancePositive(balance), 'Balance should be greater than 0')
+  // const balance = tokensStore.userBalanceMap?.get(token)
+  // invariant(balance, 'Balance should be loaded before selection')
+  // invariant(isBalancePositive(balance), 'Balance should be greater than 0')
   emit('select', token)
 }
 
@@ -110,16 +110,11 @@ function doImport() {
       class="flex flex-col min-h-0 pt-5 h-90vh"
     >
       <div class="flex-1 pt-4 h-full min-h-0 flex flex-col">
-        <div class="p-x-[17px]">
-          <div class="search-input">
-            <p>Search name or paste address</p>
-            <input
-              v-model="search"
-              type="text"
-              placeholder="KLAY"
-            >
-          </div>
-        </div>
+        <STextField
+          v-model="search"
+          class="mx-[17px]"
+          label="Search name or paste address"
+        />
 
         <div class="p-x-[17px] recent">
           <div
@@ -172,7 +167,6 @@ function doImport() {
 
             <div
               class="list-item"
-              :class="{ 'list-item_disabled': t.balance && !isBalancePositive(t.balance) }"
               @click="selectToken(t.address)"
             >
               <KlayIcon
@@ -207,26 +201,6 @@ p {
   font-weight: 500;
   font-size: 12px;
   line-height: 180%;
-}
-
-input {
-  font-style: normal;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 180%;
-  color: $dark;
-  background: none;
-  border: none;
-  width: 100%;
-}
-
-.search-input {
-  /* Auto layout */
-  padding: 16px 16px 12px;
-  gap: 8px;
-
-  background: #eceff5;
-  border-radius: 8px;
 }
 
 .recent {

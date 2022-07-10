@@ -1,8 +1,11 @@
+// enable debug
+localStorage.debug = '*'
+
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 import 'uno.css'
-import './styles/soramitsu-ui.sass'
+import './styles/soramitsu-ui.scss'
 import './styles/main.sass'
 
 import { setupLayouts } from 'virtual:generated-layouts'

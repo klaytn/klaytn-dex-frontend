@@ -5,92 +5,49 @@ const tokensStore = useTokensStore()
 const { areImportedTokensLoaded } = $(storeToRefs(tokensStore))
 
 const swapStore = useSwapStore()
-const { areSelectedTokensValidToSwap, isEmptyPairAddress, swapState } = $(storeToRefs(swapStore))
+const { isValid, validationMessage, swapState, gotAmountFor } = $(storeToRefs(swapStore))
+
+const swapButtonLabel = $computed(() => {
+  if (isValid) return 'Swap'
+  return validationMessage
+})
 
 onBeforeUnmount(() => {
   swapStore.reset()
 })
 
-function refresh() {
-  swapStore.reset()
-}
+const isSwapDisabled = $computed(() => {
+  return !isValid || !gotAmountFor
+})
 </script>
 
 <template>
   <KlayWrap>
-    <template v-if="!areImportedTokensLoaded">
+    <div
+      v-if="!areImportedTokensLoaded"
+      class="p-8 flex items-center justify-center"
+    >
       <KlayLoader />
-    </template>
+    </div>
 
-    <template v-else>
+    <div
+      v-else
+      class="space-y-4"
+    >
       <SwapModuleExchangeRate />
 
       <KlayButton
-        :disabled="!areSelectedTokensValidToSwap"
+        class="w-full"
+        size="lg"
+        :type="isSwapDisabled ? 'secondary' : 'primary'"
+        :disabled="isSwapDisabled"
+        :loading="swapState.pending"
         @click="swapStore.swap"
       >
-        {{ swapState.pending ? 'Wait' : 'Swap' }}
+        {{ swapButtonLabel }}
       </KlayButton>
 
       <SwapModuleDetails />
-
-      <div v-if="isEmptyPairAddress === 'empty'">
-        Pair doesn't exist
-      </div>
-    </template>
+    </div>
   </KlayWrap>
 </template>
-
-<style lang="scss" scoped>
-@import '@/styles/vars';
-
-.wrap {
-  background: linear-gradient(0deg, #ffffff, #ffffff),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%), rgba(255, 255, 255, 0.6);
-  box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05);
-  padding: 19px 16px;
-  border-radius: 20px;
-  overflow: visible;
-  margin: auto;
-  max-width: 420px;
-  width: 100%;
-}
-
-.load {
-  width: min-content;
-  margin: auto;
-}
-
-.head {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 18px;
-
-  &--btn {
-    font-style: normal;
-    font-weight: 700;
-    font-size: 18px;
-    line-height: 150%;
-    color: $gray2;
-    margin-right: 18px;
-    cursor: pointer;
-
-    &-left {
-      margin-left: auto;
-    }
-
-    &:last-child {
-      margin-right: 0;
-    }
-
-    &-active {
-      color: $dark;
-    }
-  }
-}
-
-.slippage {
-  margin: 20px 0;
-}
-</style>

@@ -1,5 +1,5 @@
 import web3 from 'web3'
-import { type Address, type Token, type Deadline, ValueWei } from './types'
+import { type Address, type Token, type Deadline, ValueWei, AnyNumber } from './types'
 import { NATIVE_TOKEN } from './const'
 import BigNumber from 'bignumber.js'
 
@@ -27,6 +27,10 @@ export function parseAddress(raw: string): Address {
 
 export const { fromWei, toWei } = web3.utils
 
+export function asWei<T extends AnyNumber>(value: T): ValueWei<T> {
+  return value as ValueWei<T>
+}
+
 export function sortKlayPair(tokenA: Token, tokenB: Token) {
   if (isNativeToken(tokenA.address)) return [tokenB, tokenA]
 
@@ -41,7 +45,6 @@ export function tokenRawToWei({ decimals }: Pick<Token, 'decimals'>, valueRaw: s
   const result = new BigNumber(valueRaw ?? 0)
     .multipliedBy(new BigNumber(10).pow(decimals))
     .toFixed(0) as ValueWei<string>
-  console.log({ decimals, valueRaw, result })
   return result
 }
 

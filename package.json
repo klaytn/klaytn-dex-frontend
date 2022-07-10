@@ -30,6 +30,7 @@
     "bulma": "^0.9.4",
     "caver-js": "^1.8.2",
     "debounce": "^1.2.1",
+    "debug": "^4.3.4",
     "graphql": "^16.5.0",
     "graphql-tag": "^2.12.6",
     "nprogress": "^0.2.0",
@@ -80,7 +81,7 @@
     "vite-plugin-vue-layouts": "^0.6.0",
     "vite-plugin-vue-setup-extend": "^0.4.0",
     "vite-svg-loader": "^3.3.0",
-    "vitest": "^0.13.1",
+    "vitest": "^0.18.0",
     "vue-tsc": "^0.36.0"
   }
 }

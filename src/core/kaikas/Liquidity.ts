@@ -11,9 +11,6 @@ export interface TokenAddrAndValue {
   value: WeiNumStrBn
 }
 
-/**
- * FIXME type bignumbers & deadline
- */
 export interface AddLiquidityAmountPropsBase {
   tokenA: TokenAddrAndValue
   tokenB: TokenAddrAndValue

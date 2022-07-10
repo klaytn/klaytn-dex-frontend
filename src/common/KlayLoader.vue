@@ -5,16 +5,18 @@ const props = withDefaults(
   defineProps<{
     size?: string | number
     width?: string | number
+    color?: 'blue' | 'gray'
   }>(),
   {
     size: 36,
+    color: 'blue',
   },
 )
 </script>
 
 <template>
   <SSpinner
-    class="klay-loader"
+    :class="`color-${color}`"
     v-bind="{ size, width }"
   />
 </template>
@@ -22,7 +24,11 @@ const props = withDefaults(
 <style scoped lang="scss">
 @import '@/styles/vars';
 
-.klay-loader {
+.color-blue {
   color: $blue;
+}
+
+.color-gray {
+  color: $gray2;
 }
 </style>
