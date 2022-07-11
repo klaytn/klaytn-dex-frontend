@@ -346,14 +346,18 @@ async function handleModalClose() {
     display: flex
     flex-direction: column
     flex: 1
+    margin-bottom: 12px
     &-label
       font-weight: 500
       font-size: 12px
+      line-height: 14px
       color: $gray2
     &-value
       display: flex
       align-items: center
       font-size: 16px
+      line-height: 19px
+      margin-top: 4px
     &-calculator
       margin-left: 5px
       fill: $gray3

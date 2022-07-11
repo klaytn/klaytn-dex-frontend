@@ -179,17 +179,25 @@ async function handleModalClose() {
     <template #title>
       <div v-bem="'head'">
         <div v-bem="'icons'">
-          <!-- <KlayIcon
-            v-for="(symbol, index) in tokenSymbols"
-            :key="index"
+          <KlayIcon
             v-bem="'icon'"
-            :symbol="symbol"
-            name="empty-token"
-          /> -->
+            :symbol="pool.rewardToken.symbol"
+            :lightness="65"
+          />
+          <KlayIcon
+            v-bem="'icon'"
+            :symbol="pool.stakeToken.symbol"
+            :lightness="75"
+          />
         </div>
-        <!-- <div v-bem="'name'">
-          {{ pool.name }}
-        </div> -->
+        <div v-bem="'title'">
+          <span v-bem="'title-stake'">
+            Stake {{ pool.stakeToken.symbol }}
+          </span>
+          <span v-bem="'title-earn'">
+            Earn {{ pool.rewardToken.symbol }}
+          </span>
+        </div>
         <div
           v-for="(value, label) in stats"
           :key="label"
@@ -327,24 +335,49 @@ async function handleModalClose() {
     align-items: center
   &__icons
     display: flex
-  &__icon:last-child
-    margin-left: -9px
-  &__name
+    align-items: flex-end
+  &__icon
+    &:first-child
+      width: 36px
+      height: 36px
+    &:last-child
+      width: 20px
+      height: 20px
+      margin-left: -8px
+  &__title
+    display: flex
+    flex-direction: column
     width: 180px
     margin-left: 8px
+    margin-bottom: 12px
     font-size: 16px
+    &-stake
+      font-weight: 500
+      font-size: 12px
+      line-height: 14px
+      color: $gray2
+    &-earn
+      display: flex
+      align-items: center
+      font-size: 16px
+      line-height: 19px
+      margin-top: 4px
   &__stats-item
     display: flex
     flex-direction: column
     flex: 1
+    margin-bottom: 12px
     &-label
       font-weight: 500
       font-size: 12px
+      line-height: 14px
       color: $gray2
     &-value
       display: flex
       align-items: center
       font-size: 16px
+      line-height: 19px
+      margin-top: 4px
     &-calculator
       margin-left: 5px
       fill: $gray3
