@@ -165,6 +165,7 @@
     "useKaikasStore": true,
     "useKeyModifier": true,
     "useLastChanged": true,
+    "useLiquidityPairsStore": true,
     "useLiquidityStore": true,
     "useLocalStorage": true,
     "useMagicKeys": true,

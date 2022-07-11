@@ -44,6 +44,7 @@ export default defineConfig({
 
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({
+      routeStyle: 'nuxt',
       extensions: ['vue', 'md'],
       extendRoute(route) {
         if (route.path === '/swap') {

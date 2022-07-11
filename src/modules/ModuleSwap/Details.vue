@@ -66,4 +66,34 @@ const getRoute = computed(() => {
   </div>
 </template>
 
-<style scoped lang="scss" src="./index.scss"></style>
+<style scoped lang="scss">
+@import '@/styles/vars';
+
+.details {
+  margin-top: 8px;
+
+  &--title,
+  h3 {
+    font-style: normal;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 17px;
+    color: $dark2;
+    padding: 3px 0;
+  }
+
+  &--wrap {
+    margin-top: 16px;
+  }
+
+  &--row {
+    display: flex;
+    justify-content: space-between;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 230%;
+    color: $dark2;
+  }
+}
+</style>

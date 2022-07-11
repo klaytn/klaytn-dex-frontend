@@ -70,6 +70,7 @@ export const useTokensStore = defineStore('tokens', () => {
     return [...imported, ...WHITELIST_TOKENS]
   })
 
+  // TODO find in map, not in a list
   function tryFindToken(addr: Address): null | Token {
     return tokens.value?.find((x) => x.address === addr) ?? null
   }
@@ -112,6 +113,7 @@ export const useTokensStore = defineStore('tokens', () => {
   })
 
   const isDataLoading = computed(() => userBalanceTaskState.pending || getImportedTokensTaskState.pending)
+  const doesDataExist = computed(() => areImportedTokensLoaded.value && userBalanceMap.value)
 
   return {
     tokens,
@@ -123,6 +125,7 @@ export const useTokensStore = defineStore('tokens', () => {
     getUserBalance,
     userBalanceMap,
     tokensWithBalance,
+    doesDataExist,
 
     importToken,
   }

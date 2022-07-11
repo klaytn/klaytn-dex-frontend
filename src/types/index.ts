@@ -13,6 +13,7 @@ export type Plugin = (ctx: AppContext) => void
 
 export const RouteName = {
   Assets: 'Assets',
+  Trade: 'Trade',
   Swap: 'Swap',
   Liquidity: 'Liquidity',
   LiquidityAdd: 'LiquidityAdd',
@@ -31,55 +32,3 @@ export interface HeaderMenuItem {
   routeName: RouteName
   activeWith?: RouteName[]
 }
-
-// export interface Klaytn {
-//   enable: () => string[]
-// }
-
-// export interface Token {
-//   address: Address
-//   value: string
-//   name: string
-//   price?: string
-//   symbol: string
-//   balance: string
-// }
-
-// export type Address = Opaque<string, 'Address'>
-
-// export interface AddressPair {
-//   a: Address
-//   b: Address
-// }
-
-// export enum KaikasStatus {
-//   Initial = 'INITIAL',
-//   NotInstalled = 'NOT_INSTALLED',
-//   ShouldConnect = 'SHOULD_CONNECT',
-//   Connected = 'CONNECTED',
-// }
-
-// export enum LiquidityStatus {
-//   Initial = 'initial',
-//   Pending = 'pending',
-//   Success = 'success',
-//   Error = 'error',
-// }
-
-// export interface Pair {
-//   userBalance: string
-//   pairBalance: string
-//   symbol: string
-//   name: string
-//   reserves: {
-//     _reserve0: string
-//     _reserve1: string
-//     _blockTimestampLast: string
-//     0: string
-//     1: string
-//     2: string
-//   }
-//   address: Address
-//   symbolA?: string | undefined
-//   symbolB?: string | undefined
-// }

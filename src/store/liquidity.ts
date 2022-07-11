@@ -18,6 +18,10 @@ import { KIP7 as KIP7_ABI, PAIR as PAIR_ABI } from '@/core/kaikas/smartcontracts
 import { AddLiquidityAmountPropsBase } from '@/core/kaikas/Liquidity'
 import { MAGIC_GAS_PRICE } from '@/core/kaikas/const'
 import invariant from 'tiny-invariant'
+import { Opaque } from 'type-fest'
+import { useQuery } from '@vue/apollo-composable'
+import { gql } from '@apollo/client/core'
+import { useDanglingScope } from '@vue-kakuyaku/core'
 
 const BN_ONE = new BigNumber('1')
 
@@ -34,6 +38,120 @@ interface State {
     amount1: ValueWei<string> | null
   }
 }
+
+export type LiquidityPairValueRaw = Opaque<string, 'ValueRaw'>
+
+export interface LiquidityPairsResult {
+  user: null | {
+    liquidityPositions: Array<LiquidityPairsPosition>
+  }
+}
+
+export interface LiquidityPairsPosition {
+  liquidityTokenBalance: LiquidityPairValueRaw
+  pair: LiquidityPairsPositionItem
+}
+
+export interface LiquidityPairsPositionItem {
+  name: string
+  reserve0: LiquidityPairValueRaw
+  reserve1: LiquidityPairValueRaw
+  mints: Array<{ amount0: LiquidityPairValueRaw; amount1: LiquidityPairValueRaw }>
+  token0: { id: Address }
+  token1: { id: Address }
+  reserveKLAY: LiquidityPairValueRaw
+  reserveUSD: LiquidityPairValueRaw
+  volumeUSD: LiquidityPairValueRaw
+}
+
+export const useLiquidityPairsStore = defineStore('liquidity-pairs', () => {
+  const kaikasStore = useKaikasStore()
+
+  // we cannot initialize the Apollo query within the store
+  // thus, we have to init it in the component and then inject it here
+  // type GetUserPairsQuery = UseQueryReturn<LiquidityPairsResult, OperationVariables>
+  const queryScope = useDanglingScope<{
+    isLoading: boolean
+    isUserEmpty: boolean
+    result: undefined | LiquidityPairsResult
+  }>()
+
+  /**
+   * Should be used during component setup. Does cleanup automatically.
+   */
+  function setupQueryInTheComponent() {
+    queryScope.setup(() => {
+      const { loading: isLoading, result } = useQuery<LiquidityPairsResult>(
+        gql`
+          query GetUserPairs($id: String!) {
+            user(id: $id) {
+              liquidityPositions {
+                liquidityTokenBalance
+                pair {
+                  name
+                  reserve0
+                  reserve1
+                  mints {
+                    amount0
+                    amount1
+                  }
+                  token0 {
+                    id
+                    name
+                    symbol
+                  }
+                  token1 {
+                    id
+                    name
+                    symbol
+                  }
+                  reserveKLAY
+                  reserveUSD
+                  token1Price
+                  totalSupply
+                  volumeUSD
+                }
+              }
+            }
+          }
+        `,
+        () => ({
+          id: kaikasStore.address,
+        }),
+        () => ({
+          enabled: !!kaikasStore.address,
+        }),
+      )
+
+      const isUserEmpty = computed(() => {
+        return result.value?.user === null
+      })
+
+      return reactive({
+        isUserEmpty,
+        isLoading,
+        result,
+      })
+    })
+
+    onScopeDispose(() => {
+      queryScope.dispose()
+    })
+  }
+
+  const query = computed(() => queryScope.scope.value?.setup ?? null)
+  const queryAnyway = computed(() => {
+    const q = query.value
+    invariant(q)
+    return q
+  })
+
+  return {
+    query,
+    queryAnyway,
+    setupQueryInTheComponent,
+  }
+})
 
 export const useLiquidityStore = defineStore('liquidity', () => {
   const kaikasStore = useKaikasStore()

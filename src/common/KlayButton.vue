@@ -5,5 +5,9 @@ import { SButton } from '@soramitsu-ui/ui'
 <template>
   <SButton v-bind="$attrs">
     <slot />
+
+    <template #icon>
+      <slot name="icon" />
+    </template>
   </SButton>
 </template>

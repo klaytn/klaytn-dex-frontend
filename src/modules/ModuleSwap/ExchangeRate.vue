@@ -1,6 +1,6 @@
 <script setup lang="ts" name="SwapModuleExchangeRate">
 import { storeToRefs } from 'pinia'
-import { buildPair, mirrorTokenType, TokenType } from '@/utils/pair'
+import { buildPair } from '@/utils/pair'
 import IconArrowDown from '@/assets/icons/arrow-down.svg'
 
 const swapStore = useSwapStore()
