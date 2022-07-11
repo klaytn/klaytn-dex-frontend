@@ -180,13 +180,11 @@ async function confirm() {
           v-bem="'input'"
         />
         <div v-bem="'info'">
-          <div v-bem="'pair-icons'">
-            <KlayIcon
-              v-bem="'pair-icon'"
-              :char="pool.stakeToken.symbol[0]"
-              name="empty-token"
-            />
-          </div>
+          <KlayIcon
+            v-bem="'pair-icon'"
+            :char="pool.stakeToken.symbol[0]"
+            name="empty-token"
+          />
           <div v-bem="'pair-name'">
             {{ pool.stakeToken.symbol }}
           </div>
@@ -279,11 +277,6 @@ async function confirm() {
     height: 39px
     top: 16px
     right: 16px
-    &-icons
-      display: flex
-      margin-left: 8px
-    &-icon:last-child
-      margin-left: -9px
     &-name
       margin-left: 8px
       font-size: 14px
