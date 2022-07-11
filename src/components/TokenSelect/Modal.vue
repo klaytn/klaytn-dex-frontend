@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Status, SModal, STextField } from '@soramitsu-ui/ui'
+import { Status, SModal } from '@soramitsu-ui/ui'
 import { Balance, isAddress, Token, Address, tokenWeiToRaw } from '@/core/kaikas'
 import { useTask, useScope } from '@vue-kakuyaku/core'
 import BigNumber from 'bignumber.js'
@@ -110,7 +110,7 @@ function doImport() {
       class="flex flex-col min-h-0 pt-5 h-90vh"
     >
       <div class="flex-1 pt-4 h-full min-h-0 flex flex-col">
-        <STextField
+        <KlayTextField
           v-model="search"
           class="mx-[17px]"
           label="Search name or paste address"

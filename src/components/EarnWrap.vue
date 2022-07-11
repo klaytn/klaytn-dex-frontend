@@ -1,5 +1,5 @@
 <script setup lang="ts" name="EarnWrap">
-import { SSwitch, SSelect, STextField } from '@soramitsu-ui/ui'
+import { SSwitch, SSelect } from '@soramitsu-ui/ui'
 
 import { Sorting } from '@/modules/FarmingModule/types'
 
@@ -50,7 +50,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
         :options="sortingOptions"
         size="lg"
       />
-      <STextField
+      <KlayTextField
         v-model="searchQuery"
         v-bem="'search'"
         label="Search"
@@ -61,7 +61,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
             name="search"
           />
         </template>
-      </STextField>
+      </KlayTextField>
     </div>
     <slot />
   </div>

@@ -147,7 +147,7 @@ function setToMax() {
 @import '@/styles/vars';
 
 .root {
-  background: $gray3;
+  background: $gray6;
   padding: 16px 16px;
   border-radius: 8px;
 

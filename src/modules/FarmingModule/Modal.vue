@@ -1,5 +1,5 @@
 <script setup lang="ts" name="FarmingModuleStakeModal">
-import { STextField, Status } from '@soramitsu-ui/ui'
+import { Status } from '@soramitsu-ui/ui'
 import { AbiItem } from 'caver-js'
 
 import { ModalOperation, Pool } from './types'
@@ -143,7 +143,7 @@ async function confirm() {
   >
     <div v-bem="'row'">
       <div v-bem="'input-wrapper'">
-        <STextField
+        <KlayTextField
           v-model="value"
           v-bem="'input'"
         />

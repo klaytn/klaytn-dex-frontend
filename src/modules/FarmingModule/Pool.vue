@@ -1,5 +1,5 @@
 <script setup lang="ts" name="FarmingModulePool">
-import { STextField, Status } from '@soramitsu-ui/ui'
+import { Status } from '@soramitsu-ui/ui'
 
 import { RouteName } from '@/types'
 import farmingAbi from '@/utils/smartcontracts/farming.json'
@@ -217,7 +217,7 @@ async function handleModalClose() {
           v-if="enabled"
           v-bem="'staked-input-wrapper'"
         >
-          <STextField
+          <KlayTextField
             v-bem="'staked-input'"
             :model-value="formattedStaked"
             :disabled="true"
@@ -244,7 +244,7 @@ async function handleModalClose() {
           v-if="enabled"
           v-bem="'earned-input-wrapper'"
         >
-          <STextField
+          <KlayTextField
             v-bem="'earned-input'"
             :model-value="formattedEarned"
             :disabled="true"

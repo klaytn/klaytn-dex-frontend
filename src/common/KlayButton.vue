@@ -1,9 +1,9 @@
 <script setup lang="ts" name="KlayButton">
-import { KlayButton } from '@soramitsu-ui/ui'
+import { SButton } from '@soramitsu-ui/ui'
 </script>
 
 <template>
-  <KlayButton
+  <SButton
     class="klay-button"
     v-bind="$attrs"
   >
@@ -12,7 +12,7 @@ import { KlayButton } from '@soramitsu-ui/ui'
     <template #icon>
       <slot name="icon" />
     </template>
-  </KlayButton>
+  </SButton>
 </template>
 
 <style lang="scss">
