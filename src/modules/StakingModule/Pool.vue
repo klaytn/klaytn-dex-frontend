@@ -148,10 +148,10 @@ async function withdraw() {
       gasPrice
     })
     emit('withdrawn')
-    $notify({ status: Status.Success, description: `${earned} DEX tokens were withdrawn` })
+    $notify({ status: Status.Success, description: `${earned} ${pool.value.rewardToken.symbol} tokens were withdrawn` })
   } catch (e) {
     console.error(e)
-    $notify({ status: Status.Error, description: 'Withdraw DEX tokens error' })
+    $notify({ status: Status.Error, description: `Withdraw ${pool.value.rewardToken.symbol} tokens error` })
     throw new Error('Error')
   }
 }

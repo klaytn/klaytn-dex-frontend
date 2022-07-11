@@ -120,11 +120,11 @@ async function stake() {
     if (receipt.status === false)
       throw new Error('Transaction error')
 
-    $notify({ status: Status.Success, description: `${amount} LP tokens were staked` })
+    $notify({ status: Status.Success, description: `${amount} ${pool.value.stakeToken.symbol} tokens were staked` })
     emit('staked', amount)
   } catch (e) {
     console.error(e)
-    $notify({ status: Status.Error, description: 'Stake LP tokens error' })
+    $notify({ status: Status.Error, description: `Stake ${pool.value.stakeToken.symbol} tokens error` })
     throw new Error('Error')
   } finally {
     loading.value = false
@@ -146,11 +146,11 @@ async function unstake() {
       gas: estimateGas,
       gasPrice
     })
-    $notify({ status: Status.Success, description: `${amount} LP tokens were unstaked` })
+    $notify({ status: Status.Success, description: `${amount} ${pool.value.stakeToken.symbol} tokens were unstaked` })
     emit('unstaked', amount)
   } catch (e) {
     console.error(e)
-    $notify({ status: Status.Error, description: 'Unstake LP tokens error' })
+    $notify({ status: Status.Error, description: `Unstake ${pool.value.stakeToken.symbol} tokens error` })
     throw new Error('Error')
   } finally {
     loading.value = false
