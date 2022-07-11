@@ -67,5 +67,5 @@ export enum Sorting {
   AnnualPercentageRate = 'annualPercentageRate',
   Multiplier = 'multiplier',
   Earned = 'earned',
-  Latest = 'latest'
+  Latest = 'latest',
 }

@@ -55,14 +55,14 @@ export default defineConfig({
         if (route.path === '/earn') {
           const { path, ...rest } = route
           return {
-            ...rest
+            ...rest,
           }
         }
         if (['farms', 'pools'].includes(route.path)) {
           const { path, ...rest } = route
           return {
             path: '/' + path,
-            ...rest
+            ...rest,
           }
         }
         return route

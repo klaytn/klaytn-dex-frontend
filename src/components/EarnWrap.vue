@@ -10,9 +10,9 @@ const farmingStore = useFarmingStore()
 const { stakedOnly, searchQuery, sorting } = toRefs(farmingStore)
 
 const sortingOptions = computed(() => {
-  return Object.values(Sorting).map(option => ({
+  return Object.values(Sorting).map((option) => ({
     value: option,
-    label: t(`earnWrap.sorting.options.${option}`)
+    label: t(`earnWrap.sorting.options.${option}`),
   }))
 })
 

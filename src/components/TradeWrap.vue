@@ -35,12 +35,7 @@
 
 .wrap {
   background: linear-gradient(0deg, #ffffff, #ffffff),
-  linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.7) 0%,
-      rgba(255, 255, 255, 0) 100%
-  ),
-  rgba(255, 255, 255, 0.6);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%), rgba(255, 255, 255, 0.6);
   box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05);
   padding: 19px 16px;
   border-radius: 20px;

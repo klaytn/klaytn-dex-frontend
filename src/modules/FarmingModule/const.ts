@@ -36,24 +36,26 @@ export const farmingQuery = gql`query FarmingQuery($userId: String!) {
   }
 }`
 
-export const pairsQuery = gql`query PairsQuery($pairIds: [String]!) {
-  pairs(
-    where: { id_in: $pairIds }
-  ) {
-    id
-    name
-    reserveUSD
-    totalSupply
+export const pairsQuery = gql`
+  query PairsQuery($pairIds: [String]!) {
+    pairs(where: { id_in: $pairIds }) {
+      id
+      name
+      reserveUSD
+      totalSupply
+    }
   }
-}`
+`
 
-export const liquidityPositionsQuery = gql`query LiquidityPositionsQuery($userId: String!) {
-  user(id: $userId) {
-    liquidityPositions {
-      liquidityTokenBalance
-      pair {
-        id
+export const liquidityPositionsQuery = gql`
+  query LiquidityPositionsQuery($userId: String!) {
+    user(id: $userId) {
+      liquidityPositions {
+        liquidityTokenBalance
+        pair {
+          id
+        }
       }
     }
   }
-}`
+`

@@ -8,8 +8,7 @@ const { setSlippage } = swapStore
 const renderPercent = computed(() => `${slippagePercent.value}%`)
 
 function input(value: number) {
-  if (value > 0 && value <= 10)
-    setSlippage(value)
+  if (value > 0 && value <= 10) setSlippage(value)
 }
 
 function select(value: number) {
@@ -33,16 +32,28 @@ function select(value: number) {
 
       <template #main>
         <div class="slippage--body">
-          <button class="percent" @click="select(0.1)">
+          <button
+            class="percent"
+            @click="select(0.1)"
+          >
             0.1%
           </button>
-          <button class="percent" @click="select(0.5)">
+          <button
+            class="percent"
+            @click="select(0.5)"
+          >
             0.5%
           </button>
-          <button class="percent" @click="select(1)">
+          <button
+            class="percent"
+            @click="select(1)"
+          >
             1%
           </button>
-          <button class="percent" @click="select(3)">
+          <button
+            class="percent"
+            @click="select(3)"
+          >
             3%
           </button>
           <input

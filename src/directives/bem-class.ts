@@ -13,8 +13,7 @@ function toSnakeCase(value: string) {
 
 function getBlockName() {
   const context = getCurrentInstance()
-  if (context === null)
-    throw new Error('Component context is null')
+  if (context === null) throw new Error('Component context is null')
 
   const componentName = (context.vnode.type as any).name as string
   const block = toSnakeCase(componentName)
@@ -54,8 +53,7 @@ export function useBemClass() {
   return {
     mounted(el: HTMLElement, { value }: { value: Props }) {
       const classList = getBemClasses(value, block)
-      if (!el.bemClassList)
-        el.bemClassList = {}
+      if (!el.bemClassList) el.bemClassList = {}
       el.bemClassList[block] = classList
       classList.forEach((item) => {
         el.classList.add(item)
@@ -82,8 +80,7 @@ export function useBemClass() {
         })
       }
 
-      if (!el.bemClassList)
-        el.bemClassList = {}
+      if (!el.bemClassList) el.bemClassList = {}
       el.bemClassList[block] = newClassList
     },
   }
