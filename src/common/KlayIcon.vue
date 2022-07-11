@@ -1,9 +1,18 @@
 <script setup lang="ts" name="KlayIcon">
-const props = defineProps<{
-  name: string
-  symbol?: string
-}>()
-const { name, symbol } = toRefs(props)
+const props = withDefaults(
+  defineProps<{
+    name: string
+    symbol?: string
+    saturation?: number
+    lightness?: number
+  }>(),
+  {
+    symbol: '',
+    saturation: 80,
+    lightness: 70
+  },
+)
+const { name, symbol, saturation, lightness } = toRefs(props)
 
 const char = computed(() => {
   return symbol?.value?.[0] ?? ''
@@ -25,7 +34,7 @@ const CurrentIcon = defineAsyncComponent(() => import(`../assets/icons/${name.va
   <div
     v-if="symbol"
     class="char"
-    :style="{ background: hslGenerator(symbol, 80, 70) }"
+    :style="{ background: hslGenerator(symbol, saturation, lightness) }"
   >
     {{ char }}
   </div>
