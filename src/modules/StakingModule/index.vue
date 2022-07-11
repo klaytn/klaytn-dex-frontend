@@ -163,7 +163,8 @@ const pools = computed<Pool[] | null>(() => {
 
     const createdAtBlock = Number(pool.createdAtBlock)
 
-    const totalStaked = $kaikas.bigNumber($kaikas.fromWei(pool.totalTokensStaked)) // TODO: finish
+    const totalTokensStaked = $kaikas.bigNumber(pool.totalTokensStaked).multipliedBy($kaikas.bigNumber(0.1).exponentiatedBy(pool.stakeToken.decimals))
+    const totalStaked = totalTokensStaked // TODO: finish
 
     const endsIn = Number(pool.lastRewardBlock) - blockNumber.value
 

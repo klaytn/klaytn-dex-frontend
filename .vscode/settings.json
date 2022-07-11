@@ -29,7 +29,8 @@
     "unstaked",
     "Pausable",
     "multicall",
-    "Initializable"
+    "Initializable",
+    "exponentiated"
   ],
   "i18n-ally.sourceLanguage": "en",
   "i18n-ally.keystyle": "nested",

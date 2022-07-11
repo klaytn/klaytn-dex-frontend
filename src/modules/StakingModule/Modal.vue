@@ -15,6 +15,7 @@ import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
 import BigNumber from 'bignumber.js'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
+import { KIP7 } from '@/types/typechain/tokens'
   
 const { caver } = window
 const config = useConfigWithConnectedKaikas()
@@ -44,7 +45,7 @@ watch(model, (dep) => {
   }
 })
 
-const PoolContract = $kaikas.config.createContract<StakingInitializable>(pool.value.id, stakingAbi.abi as AbiItem[])
+const PoolContract = config.createContract<StakingInitializable>(pool.value.id, stakingAbi.abi as AbiItem[])
 
 const value = ref('0')
 const balance = ref<BigNumber | null>(null)
@@ -52,9 +53,9 @@ const loading = ref(false)
 
 watch(model, async () => {
   if (model.value) {
-    const contract = $kaikas.config.createContract(_new, kip7.abi as AbiItem[])
-    const balance = await contract.methods.balanceOf($kaikas.config.address).call()
-    console.log(await PoolContract.methods.userInfo(config.address).call())
+    const contract = config.createContract<KIP7>(pool.value.stakeToken.id, kip7.abi as AbiItem[])
+    const balanceInWei = await contract.methods.balanceOf(config.address).call()
+    balance.value = $kaikas.bigNumber(balanceInWei).multipliedBy($kaikas.bigNumber(0.1).exponentiatedBy(pool.value.stakeToken.decimals))
   }
 })
 

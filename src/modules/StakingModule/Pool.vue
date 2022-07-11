@@ -64,7 +64,7 @@ const formattedAnnualPercentageRate = computed(() => {
 })
 
 const formattedEndsIn = computed(() => {
-  return t('StakingModulePool.endsIn', { blocks: pool.value.endsIn.toLocaleString('en-US') })
+  return pool.value.endsIn > 0 ? t('StakingModulePool.endsIn', { blocks: pool.value.endsIn.toLocaleString('en-US') }) : '—'
 })
 
 const stats = computed(() => {
