@@ -11,7 +11,7 @@ import VueI18n from '@intlify/vite-plugin-vue-i18n'
 import Inspect from 'vite-plugin-inspect'
 import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
-import SvgLoader from 'vite-svg-loader'
+import SvgLoader from '@soramitsu-ui/vite-plugin-svg'
 import VueSetupExtend from 'vite-plugin-vue-setup-extend'
 import UnoCSS from 'unocss/vite'
 
@@ -50,6 +50,19 @@ export default defineConfig({
           return {
             ...route,
             alias: '/',
+          }
+        }
+        if (route.path === '/earn') {
+          const { path, ...rest } = route
+          return {
+            ...rest
+          }
+        }
+        if (['farms', 'pools'].includes(route.path)) {
+          const { path, ...rest } = route
+          return {
+            path: '/' + path,
+            ...rest
           }
         }
         return route

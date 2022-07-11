@@ -15,7 +15,7 @@ declare global {
     klaytn?: Klaytn
   }
   interface HTMLElement {
-    bemClassList?: string[]
+    bemClassList?: Record<string, Set<string>>
   }
 }
 

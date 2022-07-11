@@ -5,7 +5,12 @@ import '@vue/runtime-core'
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    EarnWrap: typeof import('./components/EarnWrap.vue')['default']
+    FarmingModule: typeof import('./modules/FarmingModule/index.vue')['default']
+    FarmingModuleModal: typeof import('./modules/FarmingModule/Modal.vue')['default']
+    FarmingModulePool: typeof import('./modules/FarmingModule/Pool.vue')['default']
     HeaderMenu: typeof import('./components/HeaderMenu.vue')['default']
+    KlayAccordionItem: typeof import('./common/KlayAccordionItem.vue')['default']
     KlayButton: typeof import('./common/KlayButton.vue')['default']
     KlayCharAvatar: typeof import('./common/KlayCharAvatar.vue')['default']
     KlayCollapse: typeof import('./common/KlayCollapse.vue')['default']
@@ -32,10 +37,12 @@ declare module '@vue/runtime-core' {
     NotificationsInit: typeof import('./components/NotificationsInit.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Slippage: typeof import('./components/Slippage.vue')['default']
     TagName: typeof import('./components/TagName.vue')['default']
     TokenInput: typeof import('./components/TokenInput.vue')['default']
     TokenSelect: typeof import('./components/TokenSelect/index.vue')['default']
     TokenSelectModal: typeof import('./components/TokenSelect/Modal.vue')['default']
+    TradeWrap: typeof import('./components/TradeWrap.vue')['default']
     Tutorial: typeof import('./components/Tutorial.vue')['default']
   }
 }

@@ -50,6 +50,8 @@ const vBem = useBemClass()
 </template>
 
 <style lang="sass">
+@import '@/styles/vars.sass'
+
 .klay-slider
   position: relative
   display: flex
@@ -63,7 +65,7 @@ const vBem = useBemClass()
     height: 4px
     width: 100%
     border-radius: 2px
-    background: $gray3
+    background: $gray6
   &__line
     position: absolute
     height: 100%

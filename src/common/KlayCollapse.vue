@@ -27,7 +27,7 @@ const isOpen = ref(false)
 @import '@/styles/vars';
 
 .collapse {
-  border: 1px solid $gray3;
+  border: 1px solid $gray6;
   box-sizing: border-box;
   border-radius: 8px;
   padding: 8px 16px;

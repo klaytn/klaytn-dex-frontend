@@ -1,3 +1,5 @@
+@import '@/styles/vars.sass';
+
 .mt {
   margin-top: 16px;
 }
@@ -5,7 +7,7 @@
 .switch {
   max-width: 177px;
   width: 100%;
-  background: $gray3;
+  background: $gray6;
   border-radius: 10px;
   padding: 4px;
   display: flex;

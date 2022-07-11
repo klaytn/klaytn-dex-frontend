@@ -1,23 +1,17 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client/core'
 import { createApolloProvider } from '@vue/apollo-option'
-import { DefaultApolloClient } from '@vue/apollo-composable'
 import type { Plugin } from '@/types'
 
 const cache = new InMemoryCache()
 
-const client = new ApolloClient({
+const apolloClient = new ApolloClient({
   cache,
-  uri: import.meta.env.VITE_APP_GRAPHQL_URI,
+  uri: 'https://graph.ipfs1.dev.infra.soramitsu.co.jp/subgraphs/name/klaytn-subgraph/exchange',
+})
+const apolloProvider = createApolloProvider({
+  defaultClient: apolloClient,
 })
 
 export const install: Plugin = ({ app }) => {
-  // for Options API
-  app.use(
-    createApolloProvider({
-      defaultClient: client,
-    }),
-  )
-
-  // for Composition API
-  app.provide(DefaultApolloClient, client)
+  app.use(apolloProvider)
 }

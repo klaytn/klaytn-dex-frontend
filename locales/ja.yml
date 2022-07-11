@@ -1,7 +1,28 @@
 defaultLayout:
-  links:
+  menu:
     assets: Assets
     trade: Trade
     earn: Earn
     voting: Voting
     charts: Charts
+
+earnWrap:
+  menu:
+    farms: Farms
+    pools: Pools
+  sorting:
+    label: Sort by
+    options:
+      default: Hot
+      liquidity: Liquidity
+      annualPercentageRate: APR
+      multiplier: Multiplier
+      earned: Earned
+      latest: Latest
+
+farmsPage:
+  stats:
+    earned: Earned
+    annualPercentageRate: APR
+    liquidity: Liquidity
+    multiplier: Multiplier

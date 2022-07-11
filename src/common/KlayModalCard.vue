@@ -48,6 +48,7 @@ const api = useModalApi()
   justify-content: space-between;
   width: 100%;
   padding: 20px 17px;
+  height: 65px;
   padding-bottom: 0;
   & h3 {
     font-style: normal;

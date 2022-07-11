@@ -1,3 +1,5 @@
+@import '@/styles/vars.sass';
+
 .detailed {
   .mt {
     margin-top: 20px;
@@ -43,7 +45,7 @@
   align-items: center;
   justify-content: space-between;
   text-align: left;
-  background: $gray3;
+  background: $gray6;
   padding: 8px 16px;
   border-radius: 8px;
 

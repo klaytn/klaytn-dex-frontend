@@ -146,6 +146,7 @@
     "useEventListener": true,
     "useEventSource": true,
     "useEyeDropper": true,
+    "useFarmingStore": true,
     "useFavicon": true,
     "useFetch": true,
     "useFileSystemAccess": true,

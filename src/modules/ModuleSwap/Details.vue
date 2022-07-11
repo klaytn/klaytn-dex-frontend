@@ -3,6 +3,7 @@ import { toRefs } from '@vueuse/core'
 import { formatRate, formatPercent } from '@/utils/common'
 
 const tokensStore = useTokensStore()
+// FIXME
 const { tokenA, tokenB, userBalance, pairBalance } = $(toRefs(toRef(tokensStore, 'selectedTokens')))
 
 const getRoute = computed(() => {
