@@ -14,10 +14,12 @@ import stakingAbi from '@/utils/smartcontracts/staking.json'
 import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
 import { AbiItem } from 'caver-js'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
+import { RouteName } from '@/types'
 
 const { caver } = window
 const config = useConfigWithConnectedKaikas()
 const vBem = useBemClass()
+const router = useRouter()
 const { t } = useI18n()
 
 const props = defineProps<{
@@ -30,6 +32,8 @@ const emit = defineEmits<{
 }>()
 
 const PoolContract = $kaikas.config.createContract<StakingInitializable>(pool.value.id, stakingAbi.abi as AbiItem[])
+
+const stakingStore = useStakingStore()
 
 const expanded = ref(false)
 const enabled = ref(false)
@@ -131,6 +135,18 @@ function stake() {
 
 function unstake() {
   modalOperation.value = ModalOperation.Unstake
+}
+
+function addToKaikas(pool: Pool) {
+  stakingStore.addTokenToKaikas({
+    address: pool.rewardToken.id,
+    symbol: pool.rewardToken.symbol,
+    decimals: pool.rewardToken.decimals
+  })
+}
+
+function goToSwapPage() {
+  router.push({ name: RouteName.Swap })
 }
 
 async function withdraw() {
@@ -241,16 +257,26 @@ async function handleModalClose() {
           </div>
           <div v-bem="'staked-input-buttons'">
             <SButton
+              v-if="!pool.staked.isZero()"
               v-bem="'unstake'"
               @click="unstake()"
             >
               -
             </SButton>
             <SButton
+              v-if="!pool.staked.isZero()"
               v-bem="'stake-additional'"
               @click="stake()"
             >
               +
+            </SButton>
+            <SButton
+              v-if="pool.staked.isZero()"
+              v-bem="'stake'"
+              type="primary"
+              @click="stake()"
+            >
+              Stake {{ pool.stakeToken.symbol }}
             </SButton>
           </div>
         </div>
@@ -269,12 +295,20 @@ async function handleModalClose() {
           <div v-bem="'earned-input-buttons'">
             <SButton
               v-bem="'withdraw'"
+              :disabled="pool.earned.isZero()"
               @click="withdraw()"
             >
               Withdraw
             </SButton>
           </div>
         </div>
+        <SButton
+          v-if="!enabled"
+          v-bem="'get-stake-token'"
+          @click="goToSwapPage()"
+        >
+          Get {{ pool.stakeToken.symbol }}
+        </SButton>
       </div>
       <div v-bem="'links'">
         <a
@@ -305,6 +339,16 @@ async function handleModalClose() {
             v-bem="'link-icon'"
             name="link"
           />
+        </a>
+        <a
+          v-bem="'link'"
+          @click="addToKaikas(pool)"
+        >
+          Add to Kaikas
+          <img
+            v-bem="'link-klay-icon'"
+            src="/icons/klay.png"
+          >
         </a>
       </div>
     </template>
@@ -410,9 +454,11 @@ async function handleModalClose() {
     margin-left: 24px
   &__unstake, &__stake-additional
     margin-left: 8px
+  &__stake
+    width: 172px
   &__enable
     width: 240px
-  &__get-lp
+  &__get-stake-token
     width: 200px
     margin-left: 24px
   &__links
@@ -422,11 +468,16 @@ async function handleModalClose() {
     display: flex
     align-items: center
     font-size: 12px
+    cursor: pointer
     & + &
       margin-left: 20px
     &-icon
       margin-left: 5px
       color: $gray3
+    &-klay-icon
+      width: 20px
+      margin-left: 5px
+      filter: grayscale(1) contrast(0.3) brightness(1.2)
   &__loader
     display: flex
     justify-content: center

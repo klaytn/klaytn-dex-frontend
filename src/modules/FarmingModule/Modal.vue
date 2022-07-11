@@ -46,7 +46,7 @@ const formattedBalance = computed(() => {
 
 const label = computed(() => {
   if (operation.value === ModalOperation.Stake) {
-    if (pool.value.staked.comparedTo(0) === 0) {
+    if (pool.value.staked.isZero()) {
       return 'Stake LP tokens'
     } else {
       return 'Stake additional LP tokens'
@@ -63,12 +63,12 @@ const notEnough = computed(() => {
   return $kaikas.bigNumber(value.value).comparedTo(compareValue) === 1
 })
 
-const lessThenZero = computed(() => {
-  return $kaikas.bigNumber(value.value).comparedTo(0) === -1
+const lessThanOrEqualToZero = computed(() => {
+  return $kaikas.bigNumber(value.value).comparedTo(0) !== 1
 })
 
 const disabled = computed(() => {
-  return notEnough.value || lessThenZero.value
+  return notEnough.value || lessThanOrEqualToZero.value
 })
 
 function setMax() {

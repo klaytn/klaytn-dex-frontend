@@ -252,7 +252,7 @@ const filteredPools = computed<Pool[] | null>(() => {
   let filteredPools = [ ...pools.value ]
 
   if (stakedOnly.value)
-    filteredPools = filteredPools?.filter(pool => pool.staked.comparedTo(0) !== 0)
+    filteredPools = filteredPools?.filter(pool => !pool.staked.isZero())
 
   if (searchQuery.value)
     filteredPools = filteredPools?.filter(pool => pool.name.toLowerCase().includes(searchQuery.value.toLowerCase()))

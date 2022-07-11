@@ -31,6 +31,7 @@ export interface HeaderMenuItem {
 
 export interface Klaytn {
   enable: () => string[]
+  sendAsync: any
 }
 
 export interface Token {

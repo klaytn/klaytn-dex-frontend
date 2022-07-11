@@ -32,7 +32,7 @@ export const poolsQuery = gql`query PoolsQuery($userId: String!) {
     }
     createdAtBlock
     totalTokensStaked
-    lastRewardBlock
+    endBlock
     users(where: {address: $userId}) {
       amount
     }

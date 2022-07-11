@@ -18,7 +18,7 @@ export interface PoolsQueryResult {
     }
     createdAtBlock: string
     totalTokensStaked: string
-    lastRewardBlock: string
+    endBlock: string
     users: {
       amount: string
     }[]

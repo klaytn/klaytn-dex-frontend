@@ -90,16 +90,19 @@ const notEnough = computed(() => {
     return $kaikas.bigNumber(value.value).comparedTo(pool.value.staked) === 1
 })
 
-const lessThenZero = computed(() => {
-  return $kaikas.bigNumber(value.value).comparedTo(0) === -1
+const lessThanOrEqualToZero = computed(() => {
+  return $kaikas.bigNumber(value.value).comparedTo(0) !== 1
 })
 
 const disabled = computed(() => {
-  return notEnough.value || lessThenZero.value
+  return notEnough.value || lessThanOrEqualToZero.value
 })
 
 function setPercent(percent: number) {
-  value.value = `${balance.value?.multipliedBy(percent * 0.01)}`
+  if (operation.value === ModalOperation.Stake)
+    value.value = `${balance.value?.multipliedBy(percent * 0.01)}`
+  else
+    value.value = `${pool.value.staked.multipliedBy(percent * 0.01)}`
 }
 
 async function stake() {
@@ -250,7 +253,7 @@ async function confirm() {
     .s-text-field__input-wrapper
       height: 88px
       input
-        padding: 16px 50% 33px 16px
+        padding: 16px 92px 33px 16px
         font-size: 30px
         font-weight: 600
         line-height: 39px

@@ -3,6 +3,7 @@ import { useQuery } from '@vue/apollo-composable'
 import type { Pausable } from '@vueuse/core'
 import { SButton } from '@soramitsu-ui/ui'
 import isEqual from 'lodash/fp/isEqual'
+import BigNumber from 'bignumber.js'
 
 import {
   PoolsQueryResult,
@@ -166,7 +167,7 @@ const pools = computed<Pool[] | null>(() => {
     const totalTokensStaked = $kaikas.bigNumber(pool.totalTokensStaked).multipliedBy($kaikas.bigNumber(0.1).exponentiatedBy(pool.stakeToken.decimals))
     const totalStaked = totalTokensStaked // TODO: finish
 
-    const endsIn = Number(pool.lastRewardBlock) - blockNumber.value
+    const endsIn = Number(pool.endBlock) - blockNumber.value
 
     pools.push({
       id,
@@ -191,7 +192,7 @@ const filteredPools = computed<Pool[] | null>(() => {
   let filteredPools = [ ...pools.value ]
 
   if (stakedOnly.value)
-    filteredPools = filteredPools?.filter(pool => pool.staked.comparedTo(0) !== 0)
+    filteredPools = filteredPools?.filter(pool => !pool.staked.isZero())
 
   if (searchQuery.value)
     filteredPools = filteredPools?.filter(pool => [
@@ -262,8 +263,8 @@ function updateStaked(poolId: Pool['id'], diff: BigNumber) {
     return
 
   const diffInWei = $kaikas.bigNumber($kaikas.utils.toWei(diff.toString()))
-  const farmingQueryResult = JSON.parse(JSON.stringify(FarmingQuery.result.value)) as FarmingQueryResult
-  const pool = farmingQueryResult.farming.pools.find(pool => pool.id === poolId)
+  const farmingQueryResult = JSON.parse(JSON.stringify(PoolsQuery.result.value)) as PoolsQueryResult
+  const pool = farmingQueryResult.pools.find(pool => pool.id === poolId)
   if (!pool)
     return
   
@@ -274,29 +275,14 @@ function updateStaked(poolId: Pool['id'], diff: BigNumber) {
     return
 
   user.amount = $kaikas.bigNumber(user.amount).plus(diffInWei).toFixed(0)
-  FarmingQuery.result.value = farmingQueryResult
-}
-
-function updateBalance(pairId: Pool['pairId'], diff: BigNumber) {
-  if (!LiquidityPositionsQuery.result.value)
-    return
-
-  const liquidityPositionsQueryResult = JSON.parse(JSON.stringify(LiquidityPositionsQuery.result.value)) as LiquidityPositionsQueryResult
-  const liquidityPosition = liquidityPositionsQueryResult.user.liquidityPositions.find(liquidityPosition => liquidityPosition.pair.id === pairId) ?? null
-  if (!liquidityPosition)
-    return
-
-  liquidityPosition.liquidityTokenBalance = `${$kaikas.bigNumber(liquidityPosition.liquidityTokenBalance).plus(diff)}`
-  LiquidityPositionsQuery.result.value = liquidityPositionsQueryResult
+  PoolsQuery.result.value = farmingQueryResult
 }
 
 function handleStaked(pool: Pool, amount: string) {
   updateStaked(pool.id, $kaikas.bigNumber(amount))
-  updateBalance(pool.pairId, $kaikas.bigNumber(0).minus(amount))
 }
 function handleUnstaked(pool: Pool, amount: string) {
   updateStaked(pool.id, $kaikas.bigNumber(0).minus(amount))
-  updateBalance(pool.pairId, $kaikas.bigNumber(amount))
 }
 </script>
 
@@ -304,17 +290,12 @@ function handleUnstaked(pool: Pool, amount: string) {
   <div v-bem>
     <template v-if="rawPools">
       <div v-bem="'list'">
-        <!-- <FarmingModulePool
+        <StakingModulePool
           v-for="pool in paginatedPools"
           :key="pool.id"
           :pool="pool"
           @staked="(value: string) => handleStaked(pool, value)"
           @unstaked="(value: string) => handleUnstaked(pool, value)"
-        /> -->
-        <StakingModulePool
-          v-for="pool in paginatedPools"
-          :key="pool.id"
-          :pool="pool"
         />
       </div>
       <div

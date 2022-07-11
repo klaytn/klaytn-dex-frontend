@@ -2,6 +2,8 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 
 import { Sorting } from '@/modules/StakingModule/types'
 
+const { klaytn } = window
+
 interface State {
   stakedOnly: boolean
   searchQuery: string
@@ -17,7 +19,28 @@ const state = function (): State {
 }
 
 export const useStakingStore = defineStore('staking', {
-  state
+  state,
+
+  actions: {
+    async addTokenToKaikas({ address, symbol, decimals, image }: { address: string, symbol: string, decimals: number, image?: string }) {
+
+      klaytn.sendAsync(
+        {
+          method: 'wallet_watchAsset',
+          params: {
+            type: 'ERC20',
+            options: {
+              address,
+              symbol,
+              decimals,
+              image
+            }
+          },
+          id: Math.round(Math.random() * 100000)
+        }
+      )
+    }
+  }
 })
 
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useSwapStore, import.meta.hot))

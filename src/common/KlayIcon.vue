@@ -1,12 +1,13 @@
 <script setup lang="ts" name="KlayIcon">
 const props = withDefaults(
   defineProps<{
-    name: string
+    name?: string
     symbol?: string
     saturation?: number
     lightness?: number
   }>(),
   {
+    name: 'empty-token',
     symbol: '',
     saturation: 80,
     lightness: 70
