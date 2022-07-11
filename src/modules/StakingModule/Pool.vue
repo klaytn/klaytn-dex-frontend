@@ -222,12 +222,17 @@ async function handleModalClose() {
           <div v-bem="'stats-item-label'">
             {{ t(`StakingModulePool.stats.${label}`, { symbol: pool.rewardToken.symbol }) }}
           </div>
-          <div v-bem="'stats-item-value'">
+          <div v-bem="['stats-item-value', { zero: value == '0' }]">
             {{ value }}
             <KlayIcon
               v-if="label === 'annualPercentageRate'"
               v-bem="'stats-item-calculator'"
               name="calculator"
+            />
+            <KlayIcon
+              v-if="label === 'endsIn' && value !== '—'"
+              v-bem="'stats-item-clock'"
+              name="clock"
             />
           </div>
         </div>
@@ -422,9 +427,13 @@ async function handleModalClose() {
       font-size: 16px
       line-height: 19px
       margin-top: 4px
+      &--zero
+        color: $gray3
     &-calculator
       margin-left: 5px
       fill: $gray3
+    &-clock
+      margin-left: 7px
   &__first-row
     display: flex
     align-items: center
