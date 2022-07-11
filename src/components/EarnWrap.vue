@@ -2,12 +2,60 @@
 import { SSwitch, SSelect, STextField } from '@soramitsu-ui/ui'
 
 import { Sorting } from '@/modules/FarmingModule/types'
+import { RouteName } from '@/types'
 
 const { t } = useI18n()
 const vBem = useBemClass()
 
 const farmingStore = useFarmingStore()
-const { stakedOnly, searchQuery, sorting } = toRefs(farmingStore)
+const stakingStore = useStakingStore()
+
+const route = useRoute()
+
+const stakedOnly = computed({
+  get() {
+    if (route.name === RouteName.Farms)
+      return farmingStore.stakedOnly
+    else
+      return stakingStore.stakedOnly
+  },
+  set(value) {
+    if (route.name === RouteName.Farms)
+      farmingStore.stakedOnly = value
+    else
+      stakingStore.stakedOnly = value
+  }
+})
+
+const sorting = computed({
+  get() {
+    if (route.name === RouteName.Farms)
+      return farmingStore.sorting
+    else
+      return stakingStore.sorting
+  },
+  set(value) {
+    if (route.name === RouteName.Farms)
+      farmingStore.sorting = value
+    else
+      stakingStore.sorting = value
+  }
+})
+
+const searchQuery = computed({
+  get() {
+    if (route.name === RouteName.Farms)
+      return farmingStore.searchQuery
+    else
+      return stakingStore.searchQuery
+  },
+  set(value) {
+    if (route.name === RouteName.Farms)
+      farmingStore.searchQuery = value
+    else
+      stakingStore.searchQuery = value
+  }
+})
 
 const sortingOptions = computed(() => {
   return Object.values(Sorting).map(option => ({
@@ -137,7 +185,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
       left: 38px
       line-height: 16px
       color: $gray2
-    &:focus-within label
+    &:focus-within label, &:not(.s-text-field_empty) label
       transform: translateY(0)
       opacity: 0
     input
