@@ -1,20 +1,14 @@
 <script setup lang="ts" name="FarmingModuleStakeModal">
-import { STextField, SButton, Status } from '@soramitsu-ui/ui'
+import { STextField, Status } from '@soramitsu-ui/ui'
 import { AbiItem } from 'caver-js'
 
-import {
-  ModalOperation,
-  Pool
-} from './types'
-import {
-  farmingContractAddress,
-  formattedBigIntDecimals
-} from './const'
+import { ModalOperation, Pool } from './types'
+import { farmingContractAddress, formattedBigIntDecimals } from './const'
 
 import { Farming } from '@/types/typechain/farming'
 import farmingAbi from '@/utils/smartcontracts/farming.json'
 import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
-  
+
 const { caver } = window
 const config = useConfigWithConnectedKaikas()
 const vBem = useBemClass()
@@ -33,7 +27,7 @@ const value = ref('0')
 const loading = ref(false)
 
 const iconChars = computed(() => {
-  return pool.value.name.split('-').map(tokenName => tokenName[0])
+  return pool.value.name.split('-').map((tokenName) => tokenName[0])
 })
 
 const formattedStaked = computed(() => {
@@ -57,9 +51,7 @@ const label = computed(() => {
 })
 
 const notEnough = computed(() => {
-  let compareValue = operation.value === ModalOperation.Stake
-    ? pool.value.balance
-    : pool.value.staked
+  let compareValue = operation.value === ModalOperation.Stake ? pool.value.balance : pool.value.staked
   return $kaikas.bigNumber(value.value).comparedTo(compareValue) === 1
 })
 
@@ -90,10 +82,9 @@ async function stake() {
     const receipt = await deposit.send({
       from: config.address,
       gas: estimateGas,
-      gasPrice
+      gasPrice,
     })
-    if (receipt.status === false)
-      throw new Error('Transaction error')
+    if (receipt.status === false) throw new Error('Transaction error')
 
     $notify({ status: Status.Success, description: `${amount} LP tokens were staked` })
     emit('staked', amount)
@@ -119,7 +110,7 @@ async function unstake() {
     await withdraw.send({
       from: config.address,
       gas: estimateGas,
-      gasPrice
+      gasPrice,
     })
     $notify({ status: Status.Success, description: `${amount} LP tokens were unstaked` })
     emit('unstaked', amount)
@@ -133,11 +124,13 @@ async function unstake() {
 }
 
 async function confirm() {
-  switch(operation.value) {
+  switch (operation.value) {
     case ModalOperation.Stake:
-      stake(); break
+      stake()
+      break
     case ModalOperation.Unstake:
-      unstake(); break
+      unstake()
+      break
   }
 }
 </script>
@@ -155,14 +148,14 @@ async function confirm() {
           v-bem="'input'"
         />
         <div v-bem="'info'">
-          <SButton
+          <KlayButton
             v-bem="'max'"
             type="primary"
             size="xs"
             @click="setMax"
           >
             MAX
-          </SButton>
+          </KlayButton>
           <div v-bem="'pair-icons'">
             <KlayIcon
               v-for="(char, index) in iconChars"
@@ -191,7 +184,7 @@ async function confirm() {
       </div>
     </div>
     <div v-bem="'row'">
-      <SButton
+      <KlayButton
         v-bem="'confirm'"
         type="primary"
         size="lg"
@@ -200,7 +193,7 @@ async function confirm() {
         @click="confirm"
       >
         Confirm
-      </SButton>
+      </KlayButton>
     </div>
   </KlayModal>
 </template>

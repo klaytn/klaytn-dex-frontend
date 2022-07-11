@@ -1,18 +1,11 @@
 <script setup lang="ts" name="FarmingModulePool">
-import { STextField, SButton, Status } from '@soramitsu-ui/ui'
+import { STextField, Status } from '@soramitsu-ui/ui'
 
 import { RouteName } from '@/types'
 import farmingAbi from '@/utils/smartcontracts/farming.json'
 
-import {
-ModalOperation,
-  Pool
-} from './types'
-import {
-  MAX_UINT256,
-  formattedBigIntDecimals,
-  farmingContractAddress
-} from './const'
+import { ModalOperation, Pool } from './types'
+import { MAX_UINT256, formattedBigIntDecimals, farmingContractAddress } from './const'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
 import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
 import { AbiItem } from 'caver-js'
@@ -44,13 +37,12 @@ const modelOpen = computed({
     return !!modalOperation.value
   },
   set(value) {
-    if (!value)
-      modalOperation.value = null
-  }
+    if (!value) modalOperation.value = null
+  },
 })
 
 const iconChars = computed(() => {
-  return pool.value.name.split('-').map(tokenName => tokenName[0])
+  return pool.value.name.split('-').map((tokenName) => tokenName[0])
 })
 
 const formattedStaked = computed(() => {
@@ -82,7 +74,7 @@ const stats = computed(() => {
   }
 })
 
-function goToLiquidityAddPage (pairId: Pool['pairId']) {
+function goToLiquidityAddPage(pairId: Pool['pairId']) {
   router.push({ name: RouteName.LiquidityAdd, params: { id: pairId } })
 }
 
@@ -91,11 +83,7 @@ async function checkEnabled() {
     try {
       checkEnabledInProgress.value = true
 
-      const allowance = await config.getAllowance(
-        pool.value.pairId,
-        kip7.abi as AbiItem[],
-        farmingContractAddress
-      )
+      const allowance = await config.getAllowance(pool.value.pairId, kip7.abi as AbiItem[], farmingContractAddress)
 
       enabled.value = $kaikas.bigNumber(allowance).isEqualTo(MAX_UINT256)
 
@@ -111,12 +99,7 @@ async function checkEnabled() {
 
 async function enable() {
   try {
-    await config.approveAmount(
-      pool.value.pairId,
-      kip7.abi as AbiItem[],
-      MAX_UINT256.toFixed(),
-      farmingContractAddress
-    )
+    await config.approveAmount(pool.value.pairId, kip7.abi as AbiItem[], MAX_UINT256.toFixed(), farmingContractAddress)
 
     enabled.value = true
   } catch (e) {
@@ -127,8 +110,7 @@ async function enable() {
 }
 
 watch(expanded, (value) => {
-  if (value)
-    checkEnabled()
+  if (value) checkEnabled()
 })
 
 const loading = computed(() => {
@@ -157,7 +139,7 @@ async function withdraw() {
     await withdraw.send({
       from: config.address,
       gas: estimateGas,
-      gasPrice
+      gasPrice,
     })
     emit('withdrawn')
     $notify({ status: Status.Success, description: `${earned} DEX tokens were withdrawn` })
@@ -223,14 +205,14 @@ async function handleModalClose() {
     </template>
     <template v-if="!loading">
       <div v-bem="'first-row'">
-        <SButton
+        <KlayButton
           v-if="!enabled"
           v-bem="'enable'"
           type="primary"
           @click="enable()"
         >
           Enable {{ pool.name }} balance
-        </SButton>
+        </KlayButton>
         <div
           v-if="enabled"
           v-bem="'staked-input-wrapper'"
@@ -244,18 +226,18 @@ async function handleModalClose() {
             Staked LP Tokes
           </div>
           <div v-bem="'staked-input-buttons'">
-            <SButton
+            <KlayButton
               v-bem="'unstake'"
               @click="unstake()"
             >
               -
-            </SButton>
-            <SButton
+            </KlayButton>
+            <KlayButton
               v-bem="'stake-additional'"
               @click="stake()"
             >
               +
-            </SButton>
+            </KlayButton>
           </div>
         </div>
         <div
@@ -268,23 +250,23 @@ async function handleModalClose() {
             :disabled="true"
           />
           <div v-bem="'earned-input-label'">
-            Earned  DEX Tokens
+            Earned DEX Tokens
           </div>
           <div v-bem="'earned-input-buttons'">
-            <SButton
+            <KlayButton
               v-bem="'withdraw'"
               @click="withdraw()"
             >
               Withdraw
-            </SButton>
+            </KlayButton>
           </div>
         </div>
-        <SButton
+        <KlayButton
           v-bem="'get-lp'"
           @click="goToLiquidityAddPage(pool.pairId)"
         >
           Get {{ pool.name }} LP
-        </SButton>
+        </KlayButton>
       </div>
       <div v-bem="'links'">
         <a
