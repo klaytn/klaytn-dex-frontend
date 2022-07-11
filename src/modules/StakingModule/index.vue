@@ -43,7 +43,9 @@ const MulticallContract = config.createContract<Multicall>(multicallContractAddr
 
 const PoolsQuery = useQuery<PoolsQueryResult>(
   poolsQuery,
-  {},
+  { 
+    userId: config.address
+  },
   {
     clientId: 'staking',
     pollInterval: refetchPoolsInterval
@@ -155,13 +157,13 @@ const pools = computed<Pool[] | null>(() => {
       decimals: Number(pool.stakeToken.decimals)
     }
 
-    const staked = $kaikas.bigNumber($kaikas.fromWei('0')) // TODO: finish
+    const staked = $kaikas.bigNumber($kaikas.fromWei(pool.users[0]?.amount ?? '0'))
 
     const annualPercentageRate = $kaikas.bigNumber(0)
 
     const createdAtBlock = Number(pool.createdAtBlock)
 
-    const totalStaked = $kaikas.bigNumber(pool.totalTokensStaked) // TODO: finish
+    const totalStaked = $kaikas.bigNumber($kaikas.fromWei(pool.totalTokensStaked)) // TODO: finish
 
     const endsIn = Number(pool.lastRewardBlock) - blockNumber.value
 

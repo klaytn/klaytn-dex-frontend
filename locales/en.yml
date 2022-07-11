@@ -18,6 +18,7 @@ EarnWrap:
       annualPercentageRate: APR
       multiplier: Multiplier
       earned: Earned
+      totalStaked: Total staked
       latest: Latest
 
 FarmingModulePool:
@@ -30,7 +31,9 @@ FarmingModulePool:
 StakingModulePool:
   staked: '{symbol} Staked'
   earned: '{symbol} Earned'
+  endsIn: '{ blocks } blocks'
   stats:
     earned: '{symbol} Earned'
+    totalStaked: Total staked
     annualPercentageRate: APR
-    endsIn: '{ blocks } blocks'
+    endsIn: 'Ends in'

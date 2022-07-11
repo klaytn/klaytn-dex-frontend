@@ -47,12 +47,16 @@ const modelOpen = computed({
   }
 })
 
+const formattedEarned = computed(() => {
+  return $kaikas.bigNumber(pool.value.earned.toFixed(formattedBigIntDecimals))
+})
+
 const formattedStaked = computed(() => {
   return $kaikas.bigNumber(pool.value.staked.toFixed(formattedBigIntDecimals))
 })
 
-const formattedEarned = computed(() => {
-  return $kaikas.bigNumber(pool.value.earned.toFixed(formattedBigIntDecimals))
+const formattedTotalStaked = computed(() => {
+  return $kaikas.bigNumber(pool.value.totalStaked.toFixed(formattedBigIntDecimals))
 })
 
 const formattedAnnualPercentageRate = computed(() => {
@@ -60,12 +64,13 @@ const formattedAnnualPercentageRate = computed(() => {
 })
 
 const formattedEndsIn = computed(() => {
-  return '%' + $kaikas.bigNumber(pool.value.endsIn.toFixed(formattedBigIntDecimals))
+  return t('StakingModulePool.endsIn', { blocks: pool.value.endsIn.toLocaleString('en-US') })
 })
 
 const stats = computed(() => {
   return {
     earned: formattedEarned.value,
+    totalStaked: formattedTotalStaked.value,
     annualPercentageRate: formattedAnnualPercentageRate.value,
     endsIn: formattedEndsIn.value,
   }
@@ -132,7 +137,7 @@ async function withdraw() {
   try {
     const earned = pool.value.earned
     const gasPrice = await caver.klay.getGasPrice()
-    const withdraw = PoolContract.methods.withdraw(props.pool.id, 0)
+    const withdraw = PoolContract.methods.withdraw(0)
     const estimateGas = await withdraw.estimateGas({
       from: config.address,
       gasPrice,

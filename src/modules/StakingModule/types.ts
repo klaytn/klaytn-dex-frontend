@@ -17,6 +17,9 @@ export interface PoolsQueryResult {
     createdAtBlock: string
     totalTokensStaked: string
     lastRewardBlock: string
+    users: {
+      amount: string
+    }[]
   }[]
 }
 
@@ -69,9 +72,8 @@ export enum ModalOperation {
 
 export enum Sorting {
   Default = 'default',
-  Liquidity = 'liquidity',
   AnnualPercentageRate = 'annualPercentageRate',
-  Multiplier = 'multiplier',
   Earned = 'earned',
+  TotalStaked = 'totalStaked',
   Latest = 'latest'
 }

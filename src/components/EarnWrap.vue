@@ -1,7 +1,8 @@
 <script setup lang="ts" name="EarnWrap">
 import { SSwitch, SSelect, STextField } from '@soramitsu-ui/ui'
 
-import { Sorting } from '@/modules/FarmingModule/types'
+import { Sorting as FarmingSorting } from '@/modules/FarmingModule/types'
+import { Sorting as StakingSorting } from '@/modules/StakingModule/types'
 import { RouteName } from '@/types'
 
 const { t } = useI18n()
@@ -34,11 +35,12 @@ const sorting = computed({
     else
       return stakingStore.sorting
   },
-  set(value) {
-    if (route.name === RouteName.Farms)
-      farmingStore.sorting = value
-    else
-      stakingStore.sorting = value
+  set(value: FarmingSorting | StakingSorting) {
+    if (route.name === RouteName.Farms) {
+      farmingStore.sorting = value as FarmingSorting
+    } else {
+      stakingStore.sorting = value as StakingSorting
+    }
   }
 })
 
@@ -58,7 +60,11 @@ const searchQuery = computed({
 })
 
 const sortingOptions = computed(() => {
-  return Object.values(Sorting).map(option => ({
+  const values = route.name === RouteName.Farms
+    ? Object.values(FarmingSorting)
+    : Object.values(StakingSorting)
+
+  return values.map(option => ({
     value: option,
     label: t(`EarnWrap.sorting.options.${option}`)
   }))

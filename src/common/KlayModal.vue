@@ -16,10 +16,7 @@ const props = withDefaults(
 )
 const { label, width } = toRefs(props)
 
-const emit = defineEmits<{
-  (event: 'close'): void
-  (event: 'update:modelValue', value: boolean): void
-}>()
+const emit = defineEmits<(event: 'update:modelValue', value: boolean) => void>()
 
 const model = ref(props.modelValue)
 watch(

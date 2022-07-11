@@ -13,33 +13,61 @@ import {
 import stakingAbi from '@/utils/smartcontracts/staking.json'
 import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
+import BigNumber from 'bignumber.js'
+import kip7 from '@/utils/smartcontracts/kip-7.json'
   
 const { caver } = window
 const config = useConfigWithConnectedKaikas()
 const vBem = useBemClass()
 
 const props = defineProps<{
+  modelValue: boolean
   pool: Pool
   operation: ModalOperation
 }>()
 const { pool, operation } = toRefs(props)
 const emit = defineEmits<{
-  (e: 'close'): void
+  (event: 'update:modelValue', value: boolean): void
   (e: 'staked' | 'unstaked', value: string): void
 }>()
+
+const model = ref(props.modelValue)
+watch(
+  () => props.modelValue,
+  (origin) => {
+    model.value = origin
+  },
+)
+watch(model, (dep) => {
+  if (dep !== props.modelValue) {
+    emit('update:modelValue', dep)
+  }
+})
 
 const PoolContract = $kaikas.config.createContract<StakingInitializable>(pool.value.id, stakingAbi.abi as AbiItem[])
 
 const value = ref('0')
+const balance = ref<BigNumber | null>(null)
 const loading = ref(false)
+
+watch(model, async () => {
+  if (model.value) {
+    const contract = $kaikas.config.createContract(_new, kip7.abi as AbiItem[])
+    const balance = await contract.methods.balanceOf($kaikas.config.address).call()
+    console.log(await PoolContract.methods.userInfo(config.address).call())
+  }
+})
 
 const formattedStaked = computed(() => {
   return $kaikas.bigNumber(pool.value.staked.toFixed(formattedBigIntDecimals))
 })
 
-// const formattedBalance = computed(() => {
-//   return $kaikas.bigNumber(pool.value.balance.toFixed(formattedBigIntDecimals))
-// })
+const formattedBalance = computed(() => {
+  if (balance.value === null)
+    return ''
+
+  return $kaikas.bigNumber(balance.value.toFixed(formattedBigIntDecimals))
+})
 
 const label = computed(() => {
   if (operation.value === ModalOperation.Stake) {
@@ -77,7 +105,7 @@ async function stake() {
     loading.value = true
     const amount = value.value
     const gasPrice = await caver.klay.getGasPrice()
-    const deposit = PoolContract.methods.deposit(props.pool.id, $kaikas.utils.toWei(amount))
+    const deposit = PoolContract.methods.deposit($kaikas.utils.toWei(amount))
     const estimateGas = await deposit.estimateGas({
       from: config.address,
       gasPrice,
@@ -139,9 +167,9 @@ async function confirm() {
 
 <template>
   <KlayModal
+    v-model="model"
     width="420"
     :label="label"
-    @close="emit('close')"
   >
     <div v-bem="'row'">
       <div v-bem="'input-wrapper'">

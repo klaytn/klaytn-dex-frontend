@@ -15,7 +15,7 @@ export const pageSize = 3
 
 export const multicallContractAddress = '0xc88098CEaE07D1FE443372a0accC464A5fb94668'
 
-export const poolsQuery = gql`query PoolsQuery {
+export const poolsQuery = gql`query PoolsQuery($userId: String!) {
   pools {
     id
     stakeToken {
@@ -31,6 +31,9 @@ export const poolsQuery = gql`query PoolsQuery {
     createdAtBlock
     totalTokensStaked
     lastRewardBlock
+    users(where: {address: $userId}) {
+      amount
+    }
   }
 }`
 

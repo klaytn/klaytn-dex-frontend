@@ -30,7 +30,9 @@ FarmingModulePool:
 StakingModulePool:
   staked: '{symbol} Staked'
   earned: '{symbol} Earned'
+  endsIn: '{ blocks } blocks'
   stats:
     earned: '{symbol} Earned'
+    totalStaked: Total staked
     annualPercentageRate: APR
-    endsIn: '{ blocks } blocks'
+    endsIn: 'Ends in'
