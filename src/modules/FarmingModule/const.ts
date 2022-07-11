@@ -11,7 +11,7 @@ export const refetchFarmingInterval = 10_000
 // Defines the update interval of rewards in milliseconds
 export const refetchRewardsInterval = 1_000
 
-export const pageSize = 3
+export const pageSize = 10
 
 export const farmingContractAddress = '0x32bE07FB9dBf294c2e92715F562f7aBA02b7443A'
 export const multicallContractAddress = '0xc88098CEaE07D1FE443372a0accC464A5fb94668'

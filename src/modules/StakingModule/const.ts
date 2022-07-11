@@ -11,7 +11,7 @@ export const refetchPoolsInterval = 10_000
 // Defines the update interval of rewards in milliseconds
 export const refetchRewardsInterval = 1_000
 
-export const pageSize = 3
+export const pageSize = 10
 
 export const multicallContractAddress = '0xc88098CEaE07D1FE443372a0accC464A5fb94668'
 
