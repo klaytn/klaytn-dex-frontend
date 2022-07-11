@@ -54,10 +54,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
         label="Search"
       >
         <template #append>
-          <KlayIcon
-            v-bem="'search-icon'"
-            name="search"
-          />
+          <IconKlaySearch v-bem="'search-icon'" />
         </template>
       </KlayTextField>
     </div>
