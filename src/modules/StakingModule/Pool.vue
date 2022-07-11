@@ -1,8 +1,5 @@
-<script setup lang="ts" name="FarmingModulePool">
+<script setup lang="ts" name="StakingModulePool">
 import { STextField, SButton, Status } from '@soramitsu-ui/ui'
-
-import { RouteName } from '@/types'
-import farmingAbi from '@/utils/smartcontracts/farming.json'
 
 import {
 ModalOperation,
@@ -10,18 +7,17 @@ ModalOperation,
 } from './types'
 import {
   MAX_UINT256,
-  formattedBigIntDecimals,
-  farmingContractAddress
+  formattedBigIntDecimals
 } from './const'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
+import stakingAbi from '@/utils/smartcontracts/staking.json'
 import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
 import { AbiItem } from 'caver-js'
-import { Farming } from '@/types/typechain/farming'
+import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
 
 const { caver } = window
 const config = useConfigWithConnectedKaikas()
 const vBem = useBemClass()
-const router = useRouter()
 const { t } = useI18n()
 
 const props = defineProps<{
@@ -32,6 +28,8 @@ const emit = defineEmits<{
   (e: 'staked' | 'unstaked', value: string): void
   (e: 'withdrawn'): void
 }>()
+
+const PoolContract = $kaikas.config.createContract<StakingInitializable>(pool.value.id, stakingAbi.abi as AbiItem[])
 
 const expanded = ref(false)
 const enabled = ref(false)
@@ -49,10 +47,6 @@ const modelOpen = computed({
   }
 })
 
-const iconChars = computed(() => {
-  return pool.value.name.split('-').map(tokenName => tokenName[0])
-})
-
 const formattedStaked = computed(() => {
   return $kaikas.bigNumber(pool.value.staked.toFixed(formattedBigIntDecimals))
 })
@@ -65,26 +59,17 @@ const formattedAnnualPercentageRate = computed(() => {
   return '%' + $kaikas.bigNumber(pool.value.annualPercentageRate.toFixed(formattedBigIntDecimals))
 })
 
-const formattedLiquidity = computed(() => {
-  return '$' + $kaikas.bigNumber(pool.value.liquidity.toFixed(0))
-})
-
-const formattedMultiplier = computed(() => {
-  return 'x' + $kaikas.bigNumber(pool.value.multiplier.toFixed(formattedBigIntDecimals))
+const formattedEndsIn = computed(() => {
+  return '%' + $kaikas.bigNumber(pool.value.endsIn.toFixed(formattedBigIntDecimals))
 })
 
 const stats = computed(() => {
   return {
     earned: formattedEarned.value,
     annualPercentageRate: formattedAnnualPercentageRate.value,
-    liquidity: formattedLiquidity.value,
-    multiplier: formattedMultiplier.value,
+    endsIn: formattedEndsIn.value,
   }
 })
-
-function goToLiquidityAddPage (pairId: Pool['pairId']) {
-  router.push({ name: RouteName.LiquidityAdd, params: { id: pairId } })
-}
 
 async function checkEnabled() {
   if (!enabled.value && !checkEnabledInProgress.value && !checkEnabledCompleted.value) {
@@ -92,9 +77,9 @@ async function checkEnabled() {
       checkEnabledInProgress.value = true
 
       const allowance = await config.getAllowance(
-        pool.value.pairId,
+        pool.value.stakeToken.id,
         kip7.abi as AbiItem[],
-        farmingContractAddress
+        pool.value.id
       )
 
       enabled.value = $kaikas.bigNumber(allowance).isEqualTo(MAX_UINT256)
@@ -112,10 +97,10 @@ async function checkEnabled() {
 async function enable() {
   try {
     await config.approveAmount(
-      pool.value.pairId,
+      pool.value.stakeToken.id,
       kip7.abi as AbiItem[],
       MAX_UINT256.toFixed(),
-      farmingContractAddress
+      pool.value.id
     )
 
     enabled.value = true
@@ -135,8 +120,6 @@ const loading = computed(() => {
   return checkEnabledInProgress.value
 })
 
-const FarmingContract = $kaikas.config.createContract<Farming>(farmingContractAddress, farmingAbi.abi as AbiItem[])
-
 function stake() {
   modalOperation.value = ModalOperation.Stake
 }
@@ -149,7 +132,7 @@ async function withdraw() {
   try {
     const earned = pool.value.earned
     const gasPrice = await caver.klay.getGasPrice()
-    const withdraw = FarmingContract.methods.withdraw(props.pool.id, 0)
+    const withdraw = PoolContract.methods.withdraw(props.pool.id, 0)
     const estimateGas = await withdraw.estimateGas({
       from: config.address,
       gasPrice,
@@ -191,24 +174,24 @@ async function handleModalClose() {
     <template #title>
       <div v-bem="'head'">
         <div v-bem="'icons'">
-          <KlayIcon
+          <!-- <KlayIcon
             v-for="(char, index) in iconChars"
             :key="index"
             v-bem="'icon'"
             :char="char"
             name="empty-token"
-          />
+          /> -->
         </div>
-        <div v-bem="'name'">
+        <!-- <div v-bem="'name'">
           {{ pool.name }}
-        </div>
+        </div> -->
         <div
           v-for="(value, label) in stats"
           :key="label"
           v-bem="'stats-item'"
         >
           <div v-bem="'stats-item-label'">
-            {{ t(`FarmingModulePool.stats.${label}`) }}
+            {{ t(`StakingModulePool.stats.${label}`, { symbol: pool.rewardToken.symbol }) }}
           </div>
           <div v-bem="'stats-item-value'">
             {{ value }}
@@ -229,7 +212,7 @@ async function handleModalClose() {
           type="primary"
           @click="enable()"
         >
-          Enable {{ pool.name }} balance
+          Enable {{ pool.stakeToken.symbol }}
         </SButton>
         <div
           v-if="enabled"
@@ -241,7 +224,7 @@ async function handleModalClose() {
             :disabled="true"
           />
           <div v-bem="'staked-input-label'">
-            Staked LP Tokes
+            {{ t('StakingModulePool.staked', { symbol: pool.stakeToken.symbol }) }}
           </div>
           <div v-bem="'staked-input-buttons'">
             <SButton
@@ -268,7 +251,7 @@ async function handleModalClose() {
             :disabled="true"
           />
           <div v-bem="'earned-input-label'">
-            Earned  DEX Tokens
+            {{ t('StakingModulePool.earned', { symbol: pool.rewardToken.symbol }) }}
           </div>
           <div v-bem="'earned-input-buttons'">
             <SButton
@@ -279,15 +262,9 @@ async function handleModalClose() {
             </SButton>
           </div>
         </div>
-        <SButton
-          v-bem="'get-lp'"
-          @click="goToLiquidityAddPage(pool.pairId)"
-        >
-          Get {{ pool.name }} LP
-        </SButton>
       </div>
       <div v-bem="'links'">
-        <a
+        <!-- <a
           v-bem="'link'"
           :href="`https://baobab.klaytnfinder.io/account/${farmingContractAddress}`"
         >
@@ -306,7 +283,7 @@ async function handleModalClose() {
             v-bem="'link-icon'"
             name="link"
           />
-        </a>
+        </a> -->
       </div>
     </template>
     <div
@@ -317,7 +294,7 @@ async function handleModalClose() {
     </div>
   </KlayAccordionItem>
 
-  <FarmingModuleModal
+  <StakingModuleModal
     v-model="modelOpen"
     :pool="pool"
     :operation="modalOperation"
@@ -330,7 +307,7 @@ async function handleModalClose() {
 <style lang="sass">
 @import '@/styles/vars.sass'
 
-.farming-module-pool
+.staking-module-pool
   &__head
     display: flex
     align-items: center

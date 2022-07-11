@@ -15,3 +15,8 @@ export const apolloFarmingClient = new ApolloClient({
   cache,
   uri: getUri('farming'),
 })
+
+export const apolloStakingClient = new ApolloClient({
+  cache,
+  uri: 'http://localhost:8000/subgraphs/name/klaytn-subgraph/staking',
+})

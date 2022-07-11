@@ -6,25 +6,25 @@ const { t } = useI18n()
 const menu = computed<HeaderMenuItem[]>(() => {
   return [
     {
-      label: t('defaultLayout.menu.assets'),
+      label: t('DefaultLayout.menu.assets'),
       routeName: RouteName.Assets,
     },
     {
-      label: t('defaultLayout.menu.trade'),
+      label: t('DefaultLayout.menu.trade'),
       routeName: RouteName.Swap,
       activeWith: [RouteName.Liquidity, RouteName.LiquidityAdd, RouteName.LiquidityRemove],
     },
     {
-      label: t('defaultLayout.menu.earn'),
+      label: t('DefaultLayout.menu.earn'),
       routeName: RouteName.Farms,
       activeWith: [RouteName.Pools],
     },
     {
-      label: t('defaultLayout.menu.voting'),
+      label: t('DefaultLayout.menu.voting'),
       routeName: RouteName.Voting,
     },
     {
-      label: t('defaultLayout.menu.charts'),
+      label: t('DefaultLayout.menu.charts'),
       routeName: RouteName.Charts,
     },
   ]

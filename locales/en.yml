@@ -1,4 +1,4 @@
-defaultLayout:
+DefaultLayout:
   menu:
     assets: Assets
     trade: Trade
@@ -6,7 +6,7 @@ defaultLayout:
     voting: Voting
     charts: Charts
 
-earnWrap:
+EarnWrap:
   menu:
     farms: Farms
     pools: Pools
@@ -20,9 +20,17 @@ earnWrap:
       earned: Earned
       latest: Latest
 
-farmsPage:
+FarmingModulePool:
   stats:
     earned: Earned
     annualPercentageRate: APR
     liquidity: Liquidity
     multiplier: Multiplier
+
+StakingModulePool:
+  staked: '{symbol} Staked'
+  earned: '{symbol} Earned'
+  stats:
+    earned: '{symbol} Earned'
+    annualPercentageRate: APR
+    endsIn: '{ blocks } blocks'

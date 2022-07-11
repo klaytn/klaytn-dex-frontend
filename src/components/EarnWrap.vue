@@ -12,7 +12,7 @@ const { stakedOnly, searchQuery, sorting } = toRefs(farmingStore)
 const sortingOptions = computed(() => {
   return Object.values(Sorting).map(option => ({
     value: option,
-    label: t(`earnWrap.sorting.options.${option}`)
+    label: t(`EarnWrap.sorting.options.${option}`)
   }))
 })
 
@@ -27,14 +27,14 @@ const menuActiveClass = 'earn-wrap__head-button--active'
         to="/farms"
         :active-class="menuActiveClass"
       >
-        {{ t('earnWrap.menu.farms') }}
+        {{ t('EarnWrap.menu.farms') }}
       </RouterLink>
       <RouterLink
         v-bem="'head-button'"
         to="/pools"
         :active-class="menuActiveClass"
       >
-        {{ t('earnWrap.menu.pools') }}
+        {{ t('EarnWrap.menu.pools') }}
       </RouterLink>
       <SSwitch
         v-model="stakedOnly"
@@ -42,7 +42,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
         label="Staked only"
       />
       <span v-bem="'sorting-label'">
-        {{ t('earnWrap.sorting.label') }}
+        {{ t('EarnWrap.sorting.label') }}
       </span>
       <SSelect
         v-model="sorting"
@@ -127,6 +127,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
     &, .s-select-dropdown
       width: 160px
   &__search
+    width: 160px
     margin-left: 16px
     &, .s-text-field__input-wrapper
       height: 40px
