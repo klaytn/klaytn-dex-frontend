@@ -27,7 +27,7 @@ function select(value: number) {
       <template #head>
         <div class="slippage--head">
           <span class="label"> Slippage tolerance </span>
-          <KlayIcon name="important" />
+          <IconKlayImportant />
           <span class="percent">
             {{ renderPercent }}
           </span>

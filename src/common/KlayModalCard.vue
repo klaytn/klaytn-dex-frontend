@@ -22,7 +22,7 @@ const api = useModalApi()
         type="button"
         @click="api.close()"
       >
-        <KlayIcon name="close" />
+        <IconClayClose />
       </button>
     </div>
 

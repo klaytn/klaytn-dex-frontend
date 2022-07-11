@@ -39,10 +39,7 @@ watch(model, (dep) => {
     <template #title>
       <slot name="title" />
       <div v-bem="'chevron-wrapper'">
-        <KlayIcon
-          v-bem="'chevron'"
-          name="chevron"
-        />
+        <IconKlayChevron v-bem="'chevron'" />
       </div>
     </template>
     <slot />

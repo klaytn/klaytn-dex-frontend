@@ -2,8 +2,6 @@
 import { formatAddress } from '@/core/kaikas'
 import { type HeaderMenuItem, RouteName } from '@/types'
 import { storeToRefs } from 'pinia'
-import IconWallet from '@/assets/icons/wallet.svg'
-import IconDexLogo from '@/assets/icons/dex-logo.svg'
 
 const { t } = useI18n()
 
@@ -62,7 +60,7 @@ onMounted(connect)
     <header>
       <div class="col">
         <a href="#">
-          <IconDexLogo />
+          <IconKlayDexLogo />
         </a>
       </div>
       <div class="col col-center">
@@ -80,7 +78,7 @@ onMounted(connect)
           v-if="address"
           class="address"
         >
-          <IconWallet />
+          <IconKlayWallet />
           <span>
             {{ formattedAddress }}
           </span>
@@ -88,7 +86,7 @@ onMounted(connect)
       </div>
     </header>
 
-    <RouterView />
+    <!-- <RouterView /> -->
   </main>
 </template>
 

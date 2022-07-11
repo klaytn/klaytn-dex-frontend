@@ -46,16 +46,10 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
     <template #head>
       <div class="pair--head">
         <div class="pair--icon-f">
-          <KlayIcon
-            :char="getTokenSymbol('token0')"
-            name="empty-token"
-          />
+          <KlayCharAvatar :char="getTokenSymbol('token0')" />
         </div>
         <div class="pair--icon-s">
-          <KlayIcon
-            :char="getTokenSymbol('token1')"
-            name="empty-token"
-          />
+          <KlayCharAvatar :char="getTokenSymbol('token1')" />
         </div>
 
         <span class="pair--names"> {{ name }} </span>

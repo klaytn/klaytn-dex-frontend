@@ -16,6 +16,8 @@ import { SButton } from '@soramitsu-ui/ui'
 </template>
 
 <style lang="scss">
+@import '@/styles/vars';
+
 .klay-button.s-button {
   border-radius: 8px;
   &_type_primary {

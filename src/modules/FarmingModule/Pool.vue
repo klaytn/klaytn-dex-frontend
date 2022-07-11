@@ -173,12 +173,11 @@ async function handleModalClose() {
     <template #title>
       <div v-bem="'head'">
         <div v-bem="'icons'">
-          <KlayIcon
+          <KlayCharAvatar
             v-for="(char, index) in iconChars"
             :key="index"
             v-bem="'icon'"
             :char="char"
-            name="empty-token"
           />
         </div>
         <div v-bem="'name'">
@@ -194,10 +193,9 @@ async function handleModalClose() {
           </div>
           <div v-bem="'stats-item-value'">
             {{ value }}
-            <KlayIcon
+            <IconKlayCalculator
               v-if="label === 'annualPercentageRate'"
               v-bem="'stats-item-calculator'"
-              name="calculator"
             />
           </div>
         </div>
@@ -274,20 +272,14 @@ async function handleModalClose() {
           :href="`https://baobab.klaytnfinder.io/account/${farmingContractAddress}`"
         >
           View Contract
-          <KlayIcon
-            v-bem="'link-icon'"
-            name="link"
-          />
+          <IconKlayLink v-bem="'link-icon'" />
         </a>
         <a
           v-bem="'link'"
           :href="`https://baobab.klaytnfinder.io/account/${pool.pairId}?tabId=tokenBalance`"
         >
           See Pair Info
-          <KlayIcon
-            v-bem="'link-icon'"
-            name="link"
-          />
+          <IconKlayLink v-bem="'link-icon'" />
         </a>
       </div>
     </template>

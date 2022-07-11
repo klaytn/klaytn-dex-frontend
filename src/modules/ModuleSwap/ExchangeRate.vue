@@ -1,7 +1,6 @@
 <script setup lang="ts" name="SwapModuleExchangeRate">
 import { storeToRefs } from 'pinia'
 import { buildPair } from '@/utils/pair'
-import IconArrowDown from '@/assets/icons/arrow-down.svg'
 
 const swapStore = useSwapStore()
 const { gettingAmountFor } = $(storeToRefs(swapStore))
@@ -34,7 +33,7 @@ const models = reactive(
         set-by-balance
       />
       <div class="w-full flex justify-center items-center h-0">
-        <IconArrowDown />
+        <IconKlayArrowDown />
       </div>
       <TokenInput
         v-model="models.tokenB.input"

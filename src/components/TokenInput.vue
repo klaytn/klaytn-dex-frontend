@@ -3,7 +3,6 @@ import { formatAddress, Token, Address, ValueWei, tokenRawToWei, tokenWeiToRaw, 
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
-import IconInfo from '@/assets/icons/important.svg'
 import { roundTo } from 'round-to'
 
 const props = withDefaults(
@@ -119,7 +118,7 @@ function setToMax() {
           <template v-if="isKaikasConnected"> Balance: {{ balanceFormatted }} </template>
           <template v-else> Balance: Connect Wallet </template>
         </span>
-        <IconInfo class="m-0" />
+        <IconKlayInfo class="m-0" />
       </KlayTextField>
 
       <!-- <div
@@ -135,7 +134,7 @@ function setToMax() {
             @click="clipboard.copy(token!)"
           >
             <span class="address-name">{{ addrFormatted }}</span>
-            <KlayIcon name="copy" />
+            <IconKlayCopy />
           </div>
         </div>
       </div> -->

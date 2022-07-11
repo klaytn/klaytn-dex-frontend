@@ -157,12 +157,11 @@ async function confirm() {
             MAX
           </KlayButton>
           <div v-bem="'pair-icons'">
-            <KlayIcon
+            <KlayCharAvatar
               v-for="(char, index) in iconChars"
               :key="index"
               v-bem="'pair-icon'"
               :char="char"
-              name="empty-token"
             />
           </div>
           <div v-bem="'pair-name'">

@@ -79,7 +79,7 @@ function formatAmount(value: string) {
     </div>
 
     <div class="detailed--icon">
-      <KlayIcon name="arrow-down" />
+      <IconKlayArrowDown />
     </div>
 
     <div class="detailed--input input-amount">
@@ -105,7 +105,7 @@ function formatAmount(value: string) {
     </div>
 
     <div class="detailed--icon">
-      <KlayIcon name="plus" />
+      <IconKlayPlus />
     </div>
 
     <div class="detailed--input input-amount">

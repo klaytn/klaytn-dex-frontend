@@ -71,7 +71,7 @@ const exchangeLoading = $computed(() => {
     </div>
 
     <div class="icon">
-      <KlayIcon name="plus" />
+      <IconKlayPlus />
     </div>
 
     <div class="input">
@@ -87,7 +87,7 @@ const exchangeLoading = $computed(() => {
       v-if="selectedTokens.emptyPair"
       class="warning-text"
     >
-      <KlayIcon name="important" />
+      <IconKlayImportant />
       <span>Pair not exist</span>
     </div>
   </div>

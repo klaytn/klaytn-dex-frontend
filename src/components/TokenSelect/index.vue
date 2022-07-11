@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { Address } from '@/core/kaikas'
-import IconCollapseArrow from '@/assets/icons/collapse-arrow.svg'
 
 const props = withDefaults(
   defineProps<{
@@ -38,7 +37,7 @@ function onSelect(token: Address) {
     Select Token
 
     <template #icon>
-      <IconCollapseArrow />
+      <IconKlayCollapseArrow />
     </template>
   </KlayButton>
 
@@ -51,10 +50,7 @@ function onSelect(token: Address) {
       @click="isModalOpen = true"
     >
       <template v-if="tokenData">
-        <KlayIcon
-          :char="tokenData.symbol[0]"
-          name="empty-token"
-        />
+        <KlayCharAvatar :char="tokenData.symbol[0]" />
         <span>
           {{ tokenData.symbol }}
         </span>

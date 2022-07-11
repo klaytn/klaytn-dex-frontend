@@ -5,9 +5,6 @@ name: Trade
 <script setup lang="ts">
 import { RouteName } from '@/types'
 import { storeToRefs } from 'pinia'
-import IconRefresh from '@/assets/icons/refresh.svg'
-import IconFilters from '@/assets/icons/filters.svg'
-import IconBackArrow from '@/assets/icons/back-arrow.svg'
 
 const tokensStore = useTokensStore()
 const { isDataLoading: isLoading, doesDataExist } = $(storeToRefs(tokensStore))
@@ -45,7 +42,7 @@ function refresh() {
             rounded
           >
             <template #icon>
-              <IconBackArrow />
+              <IconKlayBackArrow />
             </template>
           </KlayButton>
         </RouterLink>
@@ -74,7 +71,7 @@ function refresh() {
         @click="refresh"
       >
         <template #icon>
-          <IconRefresh />
+          <IconKlayRefresh />
         </template>
       </KlayButton>
 
@@ -84,7 +81,7 @@ function refresh() {
         disabled
       >
         <template #icon>
-          <IconFilters />
+          <IconKlayFilters />
         </template>
       </KlayButton>
     </div>

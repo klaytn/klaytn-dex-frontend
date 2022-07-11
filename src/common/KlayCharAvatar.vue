@@ -1,4 +1,4 @@
-<script setup lang="ts" name="KlayIcon">
+<script setup lang="ts">
 const props = defineProps<{
   content: string
 }>()

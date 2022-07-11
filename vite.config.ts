@@ -14,6 +14,9 @@ import LinkAttributes from 'markdown-it-link-attributes'
 import SvgLoader from '@soramitsu-ui/vite-plugin-svg'
 import VueSetupExtend from 'vite-plugin-vue-setup-extend'
 import UnoCSS from 'unocss/vite'
+import Icons from 'unplugin-icons/vite'
+import IconResolver from 'unplugin-icons/resolver'
+import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
@@ -41,6 +44,12 @@ export default defineConfig({
     UnoCSS(),
 
     SvgLoader(),
+
+    Icons({
+      customCollections: {
+        klay: FileSystemIconLoader('./src/assets/icons'),
+      },
+    }),
 
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({
@@ -92,6 +101,13 @@ export default defineConfig({
       include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
       dts: 'src/components.d.ts',
       directoryAsNamespace: true,
+      resolvers: [
+        IconResolver({
+          prefix: 'icon',
+          enabledCollections: [],
+          customCollections: ['klay'],
+        }),
+      ],
     }),
 
     // https://github.com/antfu/vite-plugin-md
