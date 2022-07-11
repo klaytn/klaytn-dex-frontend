@@ -37,3 +37,7 @@ StakingModulePool:
     totalStaked: Total staked
     annualPercentageRate: APR
     endsIn: 'Ends in'
+
+StakingModuleModal:
+  stakeTitle: Stake in pool
+  unstakeTitle: Unstake {symbol}

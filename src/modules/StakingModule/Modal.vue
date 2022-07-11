@@ -20,6 +20,7 @@ import { KIP7 } from '@/types/typechain/tokens'
 const { caver } = window
 const config = useConfigWithConnectedKaikas()
 const vBem = useBemClass()
+const { t } = useI18n()
 
 const props = defineProps<{
   modelValue: boolean
@@ -72,19 +73,18 @@ const formattedBalance = computed(() => {
 
 const label = computed(() => {
   if (operation.value === ModalOperation.Stake) {
-    if (pool.value.staked.comparedTo(0) === 0) {
-      return 'Stake LP tokens'
-    } else {
-      return 'Stake additional LP tokens'
-    }
+    return t('StakingModuleModal.stakeTitle')
   } else {
-    return 'Unstake LP tokens'
+    return t('StakingModuleModal.unstakeTitle', { symbol: pool.value.stakeToken.symbol })
   }
 })
 
 const notEnough = computed(() => {
+  if (balance.value === null)
+    return false
+
   let compareValue = operation.value === ModalOperation.Stake
-    ? pool.value.balance
+    ? balance.value
     : pool.value.staked
   return $kaikas.bigNumber(value.value).comparedTo(compareValue) === 1
 })
@@ -98,7 +98,7 @@ const disabled = computed(() => {
 })
 
 function setMax() {
-  value.value = `${pool.value.balance}`
+  value.value = `${balance.value}`
 }
 
 async function stake() {
@@ -195,7 +195,7 @@ async function confirm() {
             />
           </div>
           <div v-bem="'pair-name'">
-            {{ pool.name }}
+            {{ pool.stakeToken.symbol }}
           </div>
         </div>
         <div

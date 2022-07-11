@@ -18,6 +18,7 @@ EarnWrap:
       annualPercentageRate: APR
       multiplier: Multiplier
       earned: Earned
+      totalStaked: Total staked
       latest: Latest
 
 FarmingModulePool:
@@ -36,3 +37,7 @@ StakingModulePool:
     totalStaked: Total staked
     annualPercentageRate: APR
     endsIn: 'Ends in'
+
+StakingModuleModal:
+  stakeTitle: Stake in pool
+  unstakeTitle: Unstake {symbol}
