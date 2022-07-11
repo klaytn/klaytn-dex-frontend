@@ -107,7 +107,7 @@ export default {
           :label="t.symbol"
         >
           <KlayIcon
-            :char="t.symbol[0]"
+            :symbol="t.symbol"
             name="empty-token"
           />
           <!--          <img class="token-logo" :src="t.logo" alt="token logo" /> -->
@@ -122,7 +122,7 @@ export default {
         @click="onAddToken"
       >
         <KlayIcon
-          :char="importToken.symbol[0]"
+          :symbol="importToken.symbol"
           name="empty-token"
         />
         <div class="info">
@@ -147,7 +147,7 @@ export default {
         @click="onSelect(t)"
       >
         <KlayIcon
-          :char="t.symbol[0]"
+          :symbol="t.symbol"
           name="empty-token"
         />
         <div class="info">

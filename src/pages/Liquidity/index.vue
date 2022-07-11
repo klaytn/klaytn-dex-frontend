@@ -149,13 +149,13 @@ export default {
             <div class="pair--head">
               <div class="pair--icon-f">
                 <KlayIcon
-                  :char="p.token0.symbol[0]"
+                  :symbol="p.token0.symbol"
                   name="empty-token"
                 />
               </div>
               <div class="pair--icon-s">
                 <KlayIcon
-                  :char="p.token1.symbol[0]"
+                  :symbol="p.token1.symbol"
                   name="empty-token"
                 />
               </div>

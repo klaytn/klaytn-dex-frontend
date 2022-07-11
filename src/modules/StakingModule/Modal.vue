@@ -182,7 +182,7 @@ async function confirm() {
         <div v-bem="'info'">
           <KlayIcon
             v-bem="'pair-icon'"
-            :char="pool.stakeToken.symbol[0]"
+            :symbol="pool.stakeToken.symbol"
             name="empty-token"
           />
           <div v-bem="'pair-name'">

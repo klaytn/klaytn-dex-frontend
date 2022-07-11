@@ -32,8 +32,8 @@ const emit = defineEmits<{
 const value = ref('0')
 const loading = ref(false)
 
-const iconChars = computed(() => {
-  return pool.value.name.split('-').map(tokenName => tokenName[0])
+const tokenSymbols = computed(() => {
+  return pool.value.name.split('-')
 })
 
 const formattedStaked = computed(() => {
@@ -165,10 +165,10 @@ async function confirm() {
           </SButton>
           <div v-bem="'pair-icons'">
             <KlayIcon
-              v-for="(char, index) in iconChars"
+              v-for="(symbol, index) in tokenSymbols"
               :key="index"
               v-bem="'pair-icon'"
-              :char="char"
+              :symbol="symbol"
               name="empty-token"
             />
           </div>

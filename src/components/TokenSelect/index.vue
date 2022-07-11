@@ -48,7 +48,7 @@ export default {
       >
         <!--        <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo" /> -->
         <KlayIcon
-          :char="selectedToken.symbol[0]"
+          :symbol="selectedToken.symbol"
           name="empty-token"
         />
         <span v-if="selectedToken">

@@ -180,10 +180,10 @@ async function handleModalClose() {
       <div v-bem="'head'">
         <div v-bem="'icons'">
           <!-- <KlayIcon
-            v-for="(char, index) in iconChars"
+            v-for="(symbol, index) in tokenSymbols"
             :key="index"
             v-bem="'icon'"
-            :char="char"
+            :symbol="symbol"
             name="empty-token"
           /> -->
         </div>

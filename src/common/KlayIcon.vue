@@ -1,17 +1,32 @@
 <script setup lang="ts" name="KlayIcon">
 const props = defineProps<{
   name: string
-  char?: string
+  symbol?: string
 }>()
-const { name, char } = toRefs(props)
+const { name, symbol } = toRefs(props)
+
+const char = computed(() => {
+  return symbol?.value?.[0] ?? ''
+})
+
+function stringToHslColor(str: string, s: number, l: number) {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  
+  let h = hash % 400 // 460
+  return 'hsl('+h+', '+s+'%, '+l+'%)'
+}
 
 const CurrentIcon = defineAsyncComponent(() => import(`../assets/icons/${name.value}.svg`))
 </script>
 
 <template>
   <div
-    v-if="char"
+    v-if="symbol"
     class="char"
+    :style="{ background: stringToHslColor(symbol, 80, 70) }"
   >
     {{ char }}
   </div>
@@ -30,12 +45,10 @@ const CurrentIcon = defineAsyncComponent(() => import(`../assets/icons/${name.va
   align-items: center;
   width: 24px;
   height: 24px;
-  background: #DFE4ED;
   border-radius: 50%;
   font-weight: 700;
   text-align: center;
   font-size: 12px;
-  border: 2px solid $white;
   box-sizing: content-box;
 }
 </style>
