@@ -193,9 +193,13 @@ const filteredPools = computed<Pool[] | null>(() => {
   if (stakedOnly.value)
     filteredPools = filteredPools?.filter(pool => pool.staked.comparedTo(0) !== 0)
 
-  // if (searchQuery.value)
-  //   filteredPools = filteredPools?.filter(pool => pool.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
-  // TODO: finish
+  if (searchQuery.value)
+    filteredPools = filteredPools?.filter(pool => [
+      pool.stakeToken.symbol,
+      pool.stakeToken.name,
+      pool.rewardToken.symbol,
+      pool.rewardToken.name
+    ].some(item => item.toLowerCase().includes(searchQuery.value.toLowerCase())))
 
   return filteredPools
 })
@@ -207,19 +211,14 @@ const sortedPools = computed<Pool[] | null>(() => {
   let sortedPools = [ ...filteredPools.value ]
 
   sortedPools = sortedPools.sort((poolA, poolB) => {
-    // if (sorting.value === Sorting.Liquidity)
-    //   return poolB.liquidity.comparedTo(poolA.liquidity)
-    // TODO: finish
-
     if (sorting.value === Sorting.AnnualPercentageRate)
       return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
 
-    // if (sorting.value === Sorting.Multiplier)
-    //   return poolB.multiplier.comparedTo(poolA.multiplier)
-    // TODO: finish
-
     if (sorting.value === Sorting.Earned)
       return poolB.earned.comparedTo(poolA.earned)
+
+    if (sorting.value === Sorting.TotalStaked)
+      return poolB.earned.comparedTo(poolA.totalStaked)
 
     if (sorting.value === Sorting.Latest)
       return poolB.createdAtBlock - poolA.createdAtBlock
@@ -258,47 +257,47 @@ const loading = computed(() => {
   return pools.value === null || !rewardsFetched.value
 })
 
-// function updateStaked(poolId: Pool['id'], diff: BigNumber) {
-//   if (!PoolsQuery.result.value)
-//     return
+function updateStaked(poolId: Pool['id'], diff: BigNumber) {
+  if (!PoolsQuery.result.value)
+    return
 
-//   const diffInWei = $kaikas.bigNumber($kaikas.utils.toWei(diff.toString()))
-//   const farmingQueryResult = JSON.parse(JSON.stringify(FarmingQuery.result.value)) as FarmingQueryResult
-//   const pool = farmingQueryResult.farming.pools.find(pool => pool.id === poolId)
-//   if (!pool)
-//     return
+  const diffInWei = $kaikas.bigNumber($kaikas.utils.toWei(diff.toString()))
+  const farmingQueryResult = JSON.parse(JSON.stringify(FarmingQuery.result.value)) as FarmingQueryResult
+  const pool = farmingQueryResult.farming.pools.find(pool => pool.id === poolId)
+  if (!pool)
+    return
   
-//   pool.totalTokensStaked = $kaikas.bigNumber(pool.totalTokensStaked).plus(diffInWei).toFixed(0)
+  pool.totalTokensStaked = $kaikas.bigNumber(pool.totalTokensStaked).plus(diffInWei).toFixed(0)
 
-//   const user = pool.users[0] ?? null
-//   if (!user)
-//     return
+  const user = pool.users[0] ?? null
+  if (!user)
+    return
 
-//   user.amount = $kaikas.bigNumber(user.amount).plus(diffInWei).toFixed(0)
-//   FarmingQuery.result.value = farmingQueryResult
-// }
+  user.amount = $kaikas.bigNumber(user.amount).plus(diffInWei).toFixed(0)
+  FarmingQuery.result.value = farmingQueryResult
+}
 
-// function updateBalance(pairId: Pool['pairId'], diff: BigNumber) {
-//   if (!LiquidityPositionsQuery.result.value)
-//     return
+function updateBalance(pairId: Pool['pairId'], diff: BigNumber) {
+  if (!LiquidityPositionsQuery.result.value)
+    return
 
-//   const liquidityPositionsQueryResult = JSON.parse(JSON.stringify(LiquidityPositionsQuery.result.value)) as LiquidityPositionsQueryResult
-//   const liquidityPosition = liquidityPositionsQueryResult.user.liquidityPositions.find(liquidityPosition => liquidityPosition.pair.id === pairId) ?? null
-//   if (!liquidityPosition)
-//     return
+  const liquidityPositionsQueryResult = JSON.parse(JSON.stringify(LiquidityPositionsQuery.result.value)) as LiquidityPositionsQueryResult
+  const liquidityPosition = liquidityPositionsQueryResult.user.liquidityPositions.find(liquidityPosition => liquidityPosition.pair.id === pairId) ?? null
+  if (!liquidityPosition)
+    return
 
-//   liquidityPosition.liquidityTokenBalance = `${$kaikas.bigNumber(liquidityPosition.liquidityTokenBalance).plus(diff)}`
-//   LiquidityPositionsQuery.result.value = liquidityPositionsQueryResult
-// }
+  liquidityPosition.liquidityTokenBalance = `${$kaikas.bigNumber(liquidityPosition.liquidityTokenBalance).plus(diff)}`
+  LiquidityPositionsQuery.result.value = liquidityPositionsQueryResult
+}
 
-// function handleStaked(pool: Pool, amount: string) {
-//   updateStaked(pool.id, $kaikas.bigNumber(amount))
-//   updateBalance(pool.pairId, $kaikas.bigNumber(0).minus(amount))
-// }
-// function handleUnstaked(pool: Pool, amount: string) {
-//   updateStaked(pool.id, $kaikas.bigNumber(0).minus(amount))
-//   updateBalance(pool.pairId, $kaikas.bigNumber(amount))
-// }
+function handleStaked(pool: Pool, amount: string) {
+  updateStaked(pool.id, $kaikas.bigNumber(amount))
+  updateBalance(pool.pairId, $kaikas.bigNumber(0).minus(amount))
+}
+function handleUnstaked(pool: Pool, amount: string) {
+  updateStaked(pool.id, $kaikas.bigNumber(0).minus(amount))
+  updateBalance(pool.pairId, $kaikas.bigNumber(amount))
+}
 </script>
 
 <template>

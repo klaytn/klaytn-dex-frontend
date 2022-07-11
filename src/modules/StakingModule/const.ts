@@ -22,11 +22,13 @@ export const poolsQuery = gql`query PoolsQuery($userId: String!) {
       id
       decimals
       symbol
+      name
     }
     rewardToken {
       id
       decimals
       symbol
+      name
     }
     createdAtBlock
     totalTokensStaked

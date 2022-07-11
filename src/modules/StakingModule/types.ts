@@ -8,11 +8,13 @@ export interface PoolsQueryResult {
       id: string
       decimals: string
       symbol: string
+      name: string
     }
     rewardToken: {
       id: string
       decimals: string
       symbol: string
+      name: string
     }
     createdAtBlock: string
     totalTokensStaked: string
@@ -49,11 +51,13 @@ export interface Pool {
     id: string
     decimals: number
     symbol: string
+    name: string
   }
   rewardToken: {
     id: string
     decimals: number
     symbol: string
+    name: string
   }
   staked: BigNumber
   earned: BigNumber

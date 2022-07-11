@@ -16,6 +16,7 @@ import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPo
 import BigNumber from 'bignumber.js'
 import kip7 from '@/utils/smartcontracts/kip-7.json'
 import { KIP7 } from '@/types/typechain/tokens'
+import { fromWei, toWei } from './utils'
   
 const { caver } = window
 const config = useConfigWithConnectedKaikas()
@@ -56,7 +57,7 @@ watch(model, async () => {
   if (model.value) {
     const contract = config.createContract<KIP7>(pool.value.stakeToken.id, kip7.abi as AbiItem[])
     const balanceInWei = await contract.methods.balanceOf(config.address).call()
-    balance.value = $kaikas.bigNumber(balanceInWei).multipliedBy($kaikas.bigNumber(0.1).exponentiatedBy(pool.value.stakeToken.decimals))
+    balance.value = fromWei(balanceInWei, pool.value.stakeToken.decimals)
   }
 })
 
@@ -83,10 +84,10 @@ const notEnough = computed(() => {
   if (balance.value === null)
     return false
 
-  let compareValue = operation.value === ModalOperation.Stake
-    ? balance.value
-    : pool.value.staked
-  return $kaikas.bigNumber(value.value).comparedTo(compareValue) === 1
+  if (operation.value === ModalOperation.Stake)
+    return $kaikas.bigNumber(value.value).comparedTo(balance.value) === 1
+  else
+    return $kaikas.bigNumber(value.value).comparedTo(pool.value.staked) === 1
 })
 
 const lessThenZero = computed(() => {
@@ -97,8 +98,8 @@ const disabled = computed(() => {
   return notEnough.value || lessThenZero.value
 })
 
-function setMax() {
-  value.value = `${balance.value}`
+function setPercent(percent: number) {
+  value.value = `${balance.value?.multipliedBy(percent * 0.01)}`
 }
 
 async function stake() {
@@ -106,7 +107,7 @@ async function stake() {
     loading.value = true
     const amount = value.value
     const gasPrice = await caver.klay.getGasPrice()
-    const deposit = PoolContract.methods.deposit($kaikas.utils.toWei(amount))
+    const deposit = PoolContract.methods.deposit(toWei(amount))
     const estimateGas = await deposit.estimateGas({
       from: config.address,
       gasPrice,
@@ -135,7 +136,7 @@ async function unstake() {
     loading.value = true
     const amount = value.value
     const gasPrice = await caver.klay.getGasPrice()
-    const withdraw = PoolContract.methods.withdraw(props.pool.id, $kaikas.utils.toWei(amount))
+    const withdraw = PoolContract.methods.withdraw(toWei(amount, pool.value.stakeToken.decimals))
     const estimateGas = await withdraw.estimateGas({
       from: config.address,
       gasPrice,
@@ -179,14 +180,6 @@ async function confirm() {
           v-bem="'input'"
         />
         <div v-bem="'info'">
-          <SButton
-            v-bem="'max'"
-            type="primary"
-            size="xs"
-            @click="setMax"
-          >
-            MAX
-          </SButton>
           <div v-bem="'pair-icons'">
             <KlayIcon
               v-bem="'pair-icon'"
@@ -211,6 +204,25 @@ async function confirm() {
           Staked: {{ formattedStaked }}
         </div>
       </div>
+    </div>
+    <div v-bem="'percents'">
+      <SButton
+        v-for="percent in [10, 25, 50, 75]"
+        :key="percent"
+        v-bem="'percent'"
+        size="sm"
+        @click="setPercent(percent)"
+      >
+        {{ percent }}%
+      </SButton>
+      <SButton
+        v-bem="'percent'"
+        type="primary"
+        size="sm"
+        @click="setPercent(100)"
+      >
+        MAX
+      </SButton>
     </div>
     <div v-bem="'row'">
       <SButton
@@ -251,9 +263,15 @@ async function confirm() {
     height: 39px
     top: 16px
     right: 16px
-  &__max
-    font-size: 10px
+  &__percents
+    display: flex
+    margin: 8px 0 24px
+  &__percent
+    flex: 1
+    font-size: 12px
     font-weight: 700
+    & + &
+      margin-left: 16px
   &__pair
     position: absolute
     display: flex

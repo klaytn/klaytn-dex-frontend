@@ -269,11 +269,11 @@ async function handleModalClose() {
         </div>
       </div>
       <div v-bem="'links'">
-        <!-- <a
+        <a
           v-bem="'link'"
-          :href="`https://baobab.klaytnfinder.io/account/${farmingContractAddress}`"
+          :href="`https://baobab.klaytnfinder.io/account/${pool.stakeToken.id}`"
         >
-          View Contract
+          See Token Info
           <KlayIcon
             v-bem="'link-icon'"
             name="link"
@@ -281,14 +281,23 @@ async function handleModalClose() {
         </a>
         <a
           v-bem="'link'"
-          :href="`https://baobab.klaytnfinder.io/account/${pool.pairId}?tabId=tokenBalance`"
         >
-          See Pair Info
+          View Project Site
           <KlayIcon
             v-bem="'link-icon'"
             name="link"
           />
-        </a> -->
+        </a>
+        <a
+          v-bem="'link'"
+          :href="`https://baobab.klaytnfinder.io/account/${pool.id}`"
+        >
+          View Contract
+          <KlayIcon
+            v-bem="'link-icon'"
+            name="link"
+          />
+        </a>
       </div>
     </template>
     <div
