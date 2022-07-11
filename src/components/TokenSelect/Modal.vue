@@ -56,7 +56,7 @@ const tokenToImportScope = useScope(
       addr &&
       addrSmartcontractCheckState?.kind === 'ok' &&
       addrSmartcontractCheckState.data &&
-      !tokensStore.tryFindToken(addr)
+      !tokensStore.findTokenData(addr)
     )
       return addr
     return false

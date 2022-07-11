@@ -5,12 +5,14 @@ const pairs = computed(() => store.queryAnyway.result?.user?.liquidityPositions 
 </script>
 
 <template>
-  <template v-if="pairs">
-    <div
+  <div
+    v-if="pairs"
+    class="px-4 space-y-4"
+  >
+    <ModuleLiquidityViewPairsListItem
       v-for="item in pairs"
       :key="item.pair.name"
-    >
-      {{ item }}
-    </div>
-  </template>
+      :data="item"
+    />
+  </div>
 </template>

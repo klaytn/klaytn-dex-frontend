@@ -19,7 +19,7 @@ const isSwapDisabled = $computed(() => {
 </script>
 
 <template>
-  <div class="space-y-4 py-5 px-4">
+  <div class="space-y-4 pt-5 px-4">
     <ModuleSwapExchangeRate />
 
     <KlayButton

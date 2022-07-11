@@ -11,14 +11,14 @@ const props = defineProps<{
 }>()
 
 const { liquidityTokenBalance, pair } = $(toRefs(toRef(props, 'data')))
-const { name, reserve0, reserve1, reserveKLAY, reserveUSD } = $(toRefs($$(pair)))
+const { name, reserve0, reserve1, reserveKLAY, reserveUSD, id: pairId, totalSupply } = $(toRefs($$(pair)))
 
 const tokensStore = useTokensStore()
 
 const useTokenAnyway = (which: 'token0' | 'token1') =>
   computed(() => {
-    const token = tokensStore.tryFindToken(pair[which].id)
-    invariant(token)
+    const token = tokensStore.findTokenData(pair[which].id)
+    invariant(token, () => `Cannot find data for "${which}" (${pair[which].id})`)
     return token
   })
 const tokensResolved = reactive({
@@ -60,11 +60,12 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
 
         <span class="pair--names"> {{ name }} </span>
         <span class="pair--rate">
-          <!-- {{ formatValueRaw(p.totalSupply) }} -->
+          {{ formatValueRaw(totalSupply) }}
           <span class="pair--rate-gray">(${{ formatValueRaw(reserveUSD) }}) </span>
         </span>
       </div>
     </template>
+
     <template #main>
       <div class="pair--main">
         <div class="pair--info">
@@ -94,20 +95,77 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
           </div>
         </div>
 
-        <div class="pair--links">
-          <!-- TODO -->
-          <!-- <RouterLink to="/liquidity/add">
+        <div class="grid grid-cols-3 gap-4 mt-4">
+          <KlayButton disabled>
             Add
-          </RouterLink>
-          <RouterLink :to="`/liquidity/remove/${p.address}`">
+          </KlayButton>
+          <KlayButton disabled>
             Remove
-          </RouterLink>
-          <a
-            href="#"
-            class="deposit"
-          >Deposit</a> -->
+          </KlayButton>
+          <KlayButton
+            type="primary"
+            disabled
+          >
+            Deposit
+          </KlayButton>
         </div>
       </div>
     </template>
   </KlayCollapse>
 </template>
+
+<style lang="scss" scoped>
+@import '@/styles/vars';
+
+.pair {
+  &--head {
+    display: flex;
+    align-items: center;
+    padding: 5px 0;
+    cursor: pointer;
+    width: 100%;
+  }
+  &--icon-f,
+  &--icon-s {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: block;
+  }
+  &--icon-s {
+    margin-left: -10px;
+    margin-right: 10px;
+  }
+  &--names {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 17px;
+    color: $dark;
+    margin-right: 8px;
+  }
+  &--rate {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 17px;
+    color: $dark;
+    &-gray {
+      color: $gray4;
+    }
+  }
+  &--info {
+    margin-top: 11px;
+  }
+  &--row {
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 230%;
+    color: $dark;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+</style>

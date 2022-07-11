@@ -425,7 +425,7 @@ export const useSwapStore = defineStore('swap', () => {
     buildPair((type) =>
       computed(() => {
         const addr = selection[type]?.addr
-        return addr ? tokensStore.tryFindToken(addr) ?? null : null
+        return addr ? tokensStore.findTokenData(addr) ?? null : null
       }),
     ),
   )

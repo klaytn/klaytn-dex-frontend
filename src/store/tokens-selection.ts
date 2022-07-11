@@ -26,212 +26,213 @@ interface PairData {
   isEmpty: boolean
 }
 
-export const useTokensSelectionStore = defineStore('tokens-selection', () => {
-  const kaikasStore = useKaikasStore()
-  const tokensStore = useTokensStore()
+// TODO
+// export const useTokensSelectionStore = defineStore('tokens-selection', () => {
+//   const kaikasStore = useKaikasStore()
+//   const tokensStore = useTokensStore()
 
-  const lastTouched = ref<null | TokenType>(null)
+//   const lastTouched = ref<null | TokenType>(null)
 
-  const selection = reactive<Selection>({
-    tokenA: null,
-    tokenB: null,
-  })
+//   const selection = reactive<Selection>({
+//     tokenA: null,
+//     tokenB: null,
+//   })
 
-  function tryResolveToken(type: TokenType): null | Token {
-    const tokens = tokensStore.tokens as Token[]
-    const addr = selection[type]?.addr
-    if (!tokens || !addr) return null
-    return tokens.find((x) => x.address === addr) ?? null
-  }
+//   function tryResolveToken(type: TokenType): null | Token {
+//     const tokens = tokensStore.tokens as Token[]
+//     const addr = selection[type]?.addr
+//     if (!tokens || !addr) return null
+//     return tokens.find((x) => x.address === addr) ?? null
+//   }
 
-  const selectionResolvedTokens = reactive({
-    tokenA: computed(() => tryResolveToken('tokenA')),
-    tokenB: computed(() => tryResolveToken('tokenB')),
-  })
+//   const selectionResolvedTokens = reactive({
+//     tokenA: computed(() => tryResolveToken('tokenA')),
+//     tokenB: computed(() => tryResolveToken('tokenB')),
+//   })
 
-  const computePairBySelectionTaskScope = useDanglingScope<{
-    tokenA: Address
-    tokenB: Address
-    pair: Ref<PairData | null>
-    task: Task<Address>
-  }>()
+//   const computePairBySelectionTaskScope = useDanglingScope<{
+//     tokenA: Address
+//     tokenB: Address
+//     pair: Ref<PairData | null>
+//     task: Task<Address>
+//   }>()
 
-  function computePairBySelection() {
-    const kaikas = kaikasStore.getKaikasAnyway()
-    invariant(selection.tokenA && selection.tokenB)
-    const {
-      tokenA: { addr: tokenA },
-      tokenB: { addr: tokenB },
-    } = selection
+//   function computePairBySelection() {
+//     const kaikas = kaikasStore.getKaikasAnyway()
+//     invariant(selection.tokenA && selection.tokenB)
+//     const {
+//       tokenA: { addr: tokenA },
+//       tokenB: { addr: tokenB },
+//     } = selection
 
-    computePairBySelectionTaskScope.setup(() => {
-      const task = useTask(() => kaikas.tokens.getPairAddress(tokenA, tokenB))
-      task.run()
+//     computePairBySelectionTaskScope.setup(() => {
+//       const task = useTask(() => kaikas.tokens.getPairAddress(tokenA, tokenB))
+//       task.run()
 
-      const pair = computed(() => {
-        const state = task.state
-        if (state.kind === 'ok') {
-          const addr = state.data
-          const isEmpty = isEmptyAddress(addr)
-          return { addr, isEmpty }
-        }
-        return null
-      })
+//       const pair = computed(() => {
+//         const state = task.state
+//         if (state.kind === 'ok') {
+//           const addr = state.data
+//           const isEmpty = isEmptyAddress(addr)
+//           return { addr, isEmpty }
+//         }
+//         return null
+//       })
 
-      return { task, tokenA, tokenB, pair }
-    })
-  }
+//       return { task, tokenA, tokenB, pair }
+//     })
+//   }
 
-  const computedPairBySelection = computed<null | PairData>(() => {
-    return computePairBySelectionTaskScope.scope.value?.setup.pair.value ?? null
-  })
+//   const computedPairBySelection = computed<null | PairData>(() => {
+//     return computePairBySelectionTaskScope.scope.value?.setup.pair.value ?? null
+//   })
 
-  // async function checkEmptyPair() {
-  //   const { tokenA, tokenB } = state.selectedTokens
-  //   if (!tokenA || !tokenB) return
+//   // async function checkEmptyPair() {
+//   //   const { tokenA, tokenB } = state.selectedTokens
+//   //   if (!tokenA || !tokenB) return
 
-  //   const kaikas = kaikasStore.getKaikasAnyway()
+//   //   const kaikas = kaikasStore.getKaikasAnyway()
 
-  //   const pairAddress = await kaikas.tokens.getPairAddress(tokenA.address, tokenB.address)
-  //   if (isEmptyAddress(pairAddress)) {
-  //     state.selectedTokens.emptyPair = true
-  //     return
-  //   }
+//   //   const pairAddress = await kaikas.tokens.getPairAddress(tokenA.address, tokenB.address)
+//   //   if (isEmptyAddress(pairAddress)) {
+//   //     state.selectedTokens.emptyPair = true
+//   //     return
+//   //   }
 
-  //   state.selectedTokens.emptyPair = false
-  // }
+//   //   state.selectedTokens.emptyPair = false
+//   // }
 
-  const computeSelectionByPairTaskScope = useDanglingScope<{
-    pairAddr: Address
-    /**
-     * FIXME question: should we create tokens, or should we assume
-     * that they are already persisted in the tokens store?
-     */
-    data: Ref<null | {
-      token0: Address
-      token1: Address
-      userBalance: Balance
-      pairBalance: Balance
-    }>
-  }>()
+//   const computeSelectionByPairTaskScope = useDanglingScope<{
+//     pairAddr: Address
+//     /**
+//      * FIXME question: should we create tokens, or should we assume
+//      * that they are already persisted in the tokens store?
+//      */
+//     data: Ref<null | {
+//       token0: Address
+//       token1: Address
+//       userBalance: Balance
+//       pairBalance: Balance
+//     }>
+//   }>()
 
-  function computeSelectionByPair(pairAddr: Address) {
-    computePairBySelectionTaskScope.dispose()
+//   function computeSelectionByPair(pairAddr: Address) {
+//     computePairBySelectionTaskScope.dispose()
 
-    const kaikas = kaikasStore.getKaikasAnyway()
-    const pairContract = kaikas.cfg.createContract<DexPair>(pairAddr, PAIR_ABI)
+//     const kaikas = kaikasStore.getKaikasAnyway()
+//     const pairContract = kaikas.cfg.createContract<DexPair>(pairAddr, PAIR_ABI)
 
-    computeSelectionByPairTaskScope.setup(() => {
-      const task = useTask(async () => {
-        const [token0, token1] = (await Promise.all([
-          pairContract.methods.token0().call(),
-          pairContract.methods.token1().call(),
-        ])) as [Address, Address]
+//     computeSelectionByPairTaskScope.setup(() => {
+//       const task = useTask(async () => {
+//         const [token0, token1] = (await Promise.all([
+//           pairContract.methods.token0().call(),
+//           pairContract.methods.token1().call(),
+//         ])) as [Address, Address]
 
-        // should it be here?
-        const { pairBalance, userBalance } = await kaikas.tokens.getPairBalance(token0, token1)
+//         // should it be here?
+//         const { pairBalance, userBalance } = await kaikas.tokens.getPairBalance(token0, token1)
 
-        return { token0, token1, pairBalance, userBalance }
-      })
+//         return { token0, token1, pairBalance, userBalance }
+//       })
 
-      const data = computed(() => {
-        return task.state.kind === 'ok' ? task.state.data : null
-      })
+//       const data = computed(() => {
+//         return task.state.kind === 'ok' ? task.state.data : null
+//       })
 
-      return { pairAddr, data }
-    })
-  }
+//       return { pairAddr, data }
+//     })
+//   }
 
-  const computedSelectionByPair = computed(() => computeSelectionByPairTaskScope.scope.value?.setup.data.value ?? null)
+//   const computedSelectionByPair = computed(() => computeSelectionByPairTaskScope.scope.value?.setup.data.value ?? null)
 
-  // async function setSelectedTokensByPair(pairAddress: Address) {
-  //   const kaikas = kaikasStore.getKaikasAnyway()
-  //   const addr = kaikas.cfg.addrs.self
+//   // async function setSelectedTokensByPair(pairAddress: Address) {
+//   //   const kaikas = kaikasStore.getKaikasAnyway()
+//   //   const addr = kaikas.cfg.addrs.self
 
-  //   const pairContract = kaikas.cfg.createContract<DexPair>(pairAddress, PAIR_ABI)
+//   //   const pairContract = kaikas.cfg.createContract<DexPair>(pairAddress, PAIR_ABI)
 
-  //   const token0Address = (await pairContract.methods.token0().call({
-  //     from: addr,
-  //   })) as Address
-  //   const token1Address = (await pairContract.methods.token1().call({
-  //     from: addr,
-  //   })) as Address
+//   //   const token0Address = (await pairContract.methods.token0().call({
+//   //     from: addr,
+//   //   })) as Address
+//   //   const token1Address = (await pairContract.methods.token1().call({
+//   //     from: addr,
+//   //   })) as Address
 
-  //   const [token0, token1] = await Promise.all([kaikas.createToken(token0Address), kaikas.createToken(token1Address)])
+//   //   const [token0, token1] = await Promise.all([kaikas.createToken(token0Address), kaikas.createToken(token1Address)])
 
-  //   const { pairBalance, userBalance } = await kaikas.tokens.getPairBalance(token0Address, token1Address)
+//   //   const { pairBalance, userBalance } = await kaikas.tokens.getPairBalance(token0Address, token1Address)
 
-  //   state.selectedTokens = {
-  //     tokenA: token0,
-  //     tokenB: token1,
-  //     pairBalance,
-  //     userBalance,
-  //     emptyPair: false,
-  //     pairAddress,
-  //   }
-  // }
+//   //   state.selectedTokens = {
+//   //     tokenA: token0,
+//   //     tokenB: token1,
+//   //     pairBalance,
+//   //     userBalance,
+//   //     emptyPair: false,
+//   //     pairAddress,
+//   //   }
+//   // }
 
-  // function setSelectedToken({ type, token }: { type: 'tokenB' | 'tokenA'; token: Token }) {
-  //   state.selectedTokens[type] = token
-  // }
+//   // function setSelectedToken({ type, token }: { type: 'tokenB' | 'tokenA'; token: Token }) {
+//   //   state.selectedTokens[type] = token
+//   // }
 
-  // function setComputedToken(token: 'tokenB' | 'tokenA' | null) {
-  //   state.computedToken = token
-  // }
+//   // function setComputedToken(token: 'tokenB' | 'tokenA' | null) {
+//   //   state.computedToken = token
+//   // }
 
-  // function clearSelectedTokens() {
-  //   state.selectedTokens = selectedTokensFactory()
-  // }
+//   // function clearSelectedTokens() {
+//   //   state.selectedTokens = selectedTokensFactory()
+//   // }
 
-  function setTokenValue({
-    type,
-    value,
-    pairBalance,
-    userBalance,
-  }: {
-    type: 'tokenB' | 'tokenA'
-    value: any
-    pairBalance: string | null
-    userBalance: string | null
-  }) {
-    state.selectedTokens = {
-      ...state.selectedTokens,
-      pairBalance,
-      userBalance,
-      [type]: {
-        ...state.selectedTokens[type],
-        value,
-      },
-    }
-  }
+//   function setTokenValue({
+//     type,
+//     value,
+//     pairBalance,
+//     userBalance,
+//   }: {
+//     type: 'tokenB' | 'tokenA'
+//     value: any
+//     pairBalance: string | null
+//     userBalance: string | null
+//   }) {
+//     state.selectedTokens = {
+//       ...state.selectedTokens,
+//       pairBalance,
+//       userBalance,
+//       [type]: {
+//         ...state.selectedTokens[type],
+//         value,
+//       },
+//     }
+//   }
 
-  /**
-   * Fails if there are no selected tokens
-   */
-  function getSelectedTokensAnyway(): { tokenA: Token; tokenB: Token } {
-    const { tokenA, tokenB } = state.selectedTokens
-    invariant(tokenA && tokenB, 'No selected tokens')
-    return { tokenA, tokenB }
-  }
+//   /**
+//    * Fails if there are no selected tokens
+//    */
+//   function getSelectedTokensAnyway(): { tokenA: Token; tokenB: Token } {
+//     const { tokenA, tokenB } = state.selectedTokens
+//     invariant(tokenA && tokenB, 'No selected tokens')
+//     return { tokenA, tokenB }
+//   }
 
-  /**
-   * Fails if there are no selected tokens or pair address
-   */
-  function getSelectedTokensAndPairAnyway(): ReturnType<typeof getSelectedTokensAnyway> & { pairAddress: Address } {
-    const { pairAddress } = state.selectedTokens
-    invariant(pairAddress, 'No selected pair address')
-    return { pairAddress, ...getSelectedTokensAnyway() }
-  }
+//   /**
+//    * Fails if there are no selected tokens or pair address
+//    */
+//   function getSelectedTokensAndPairAnyway(): ReturnType<typeof getSelectedTokensAnyway> & { pairAddress: Address } {
+//     const { pairAddress } = state.selectedTokens
+//     invariant(pairAddress, 'No selected pair address')
+//     return { pairAddress, ...getSelectedTokensAnyway() }
+//   }
 
-  return {
-    selection,
-    lastTouched,
+//   return {
+//     selection,
+//     lastTouched,
 
-    selectionResolvedTokens,
+//     selectionResolvedTokens,
 
-    computeSelectionByPair,
-    computePairBySelection,
-  }
-})
+//     computeSelectionByPair,
+//     computePairBySelection,
+//   }
+// })
 
-import.meta.hot?.accept(acceptHMRUpdate(useTokensSelectionStore, import.meta.hot))
+// import.meta.hot?.accept(acceptHMRUpdate(useTokensSelectionStore, import.meta.hot))

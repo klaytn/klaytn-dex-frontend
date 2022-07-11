@@ -70,9 +70,21 @@ export const useTokensStore = defineStore('tokens', () => {
     return [...imported, ...WHITELIST_TOKENS]
   })
 
-  // TODO find in map, not in a list
-  function tryFindToken(addr: Address): null | Token {
-    return tokens.value?.find((x) => x.address === addr) ?? null
+  /**
+   * All addresses are written in lower-case
+   */
+  type TokensIndexMap = Map<Address, Token>
+  const tokensIndexMap = computed<null | TokensIndexMap>(() => {
+    const list = tokens.value
+    if (!list) return null
+    return new Map(list.map((item) => [item.address.toLowerCase() as Address, item]))
+  })
+
+  /**
+   * Lookup for token data by token's address. **Case insensitive**.
+   */
+  function findTokenData(addr: Address): null | Token {
+    return tokensIndexMap.value?.get(addr.toLowerCase() as Address) ?? null
   }
 
   const getUserBalanceTask = useTask<Map<Address, Balance<string>>>(async () => {
@@ -117,7 +129,7 @@ export const useTokensStore = defineStore('tokens', () => {
 
   return {
     tokens,
-    tryFindToken,
+    findTokenData,
 
     isDataLoading,
     getImportedTokens,

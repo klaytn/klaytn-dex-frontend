@@ -16,7 +16,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
     {
       label: t('defaultLayout.links.trade'),
       routeName: RouteName.Swap,
-      activeWith: [RouteName.Liquidity, RouteName.LiquidityAdd, RouteName.LiquidityRemove],
+      activeWith: [RouteName.Trade, RouteName.Liquidity, RouteName.LiquidityAdd, RouteName.LiquidityRemove],
     },
     {
       label: t('defaultLayout.links.earn'),

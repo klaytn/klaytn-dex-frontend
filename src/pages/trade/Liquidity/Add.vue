@@ -2,36 +2,21 @@
 name: LiquidityAdd
 </route>
 
-<script setup lang="ts" name="LiquidityAdd" />
+<script setup lang="ts">
+import invariant from 'tiny-invariant'
+import { parseAddress } from '@/core/kaikas'
+
+const route = useRoute()
+
+const pairAddress = route.query.pair as undefined | string | string[]
+if (pairAddress) {
+  invariant(typeof pairAddress === 'string')
+  const parsed = parseAddress(pairAddress)
+}
+</script>
 
 <template>
-  <KlayWrap>
-    <template #head>
-      <RouterLink
-        to="/liquidity"
-        class="back"
-      >
-        <KlayIcon name="back-arrow" />
-        <span> Add Liquidity </span>
-      </RouterLink>
-    </template>
-    <div class="add-liq">
-      <LiquidityModuleAdd />
-    </div>
-  </KlayWrap>
+  <div>
+    {{ $route.q }}
+  </div>
 </template>
-
-<style lang="scss" scoped>
-.back {
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 22px;
-  color: $dark2;
-  display: flex;
-  align-items: center;
-
-  & span {
-    margin-left: 11px;
-  }
-}
-</style>

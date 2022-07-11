@@ -8,7 +8,7 @@ const { isLoading, isUserEmpty } = toRefs(toRef(liquidityPairsStore, 'queryAnywa
 </script>
 
 <template>
-  <div class="pb-5 space-y-4">
+  <div class="space-y-4">
     <h3 class="title px-4">
       Your liquidity
     </h3>
@@ -26,6 +26,8 @@ const { isLoading, isUserEmpty } = toRefs(toRef(liquidityPairsStore, 'queryAnywa
     >
       Empty
     </div>
+
+    <ModuleLiquidityViewPairsList v-if="!isUserEmpty" />
   </div>
 </template>
 

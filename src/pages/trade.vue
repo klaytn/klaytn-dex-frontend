@@ -7,6 +7,7 @@ import { RouteName } from '@/types'
 import { storeToRefs } from 'pinia'
 import IconRefresh from '@/assets/icons/refresh.svg'
 import IconFilters from '@/assets/icons/filters.svg'
+import IconBackArrow from '@/assets/icons/back-arrow.svg'
 
 const tokensStore = useTokensStore()
 const { isDataLoading: isLoading, doesDataExist } = $(storeToRefs(tokensStore))
@@ -35,10 +36,21 @@ function refresh() {
 </script>
 
 <template>
-  <div class="wrap mx-auto">
+  <div class="wrap mx-auto pb-5">
     <div class="flex items-center mb-4 space-x-4 pt-5 px-4">
       <template v-if="isOnLiquidityAdd">
-        add liquidity?
+        <RouterLink :to="{ name: RouteName.Liquidity }">
+          <KlayButton
+            type="action"
+            rounded
+          >
+            <template #icon>
+              <IconBackArrow />
+            </template>
+          </KlayButton>
+        </RouterLink>
+
+        <h1>Add Liquidity</h1>
       </template>
 
       <template v-else>
@@ -98,6 +110,14 @@ function refresh() {
   border-radius: 20px;
   max-width: 420px;
   width: 100%;
+}
+
+h1 {
+  font-style: normal;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 150%;
+  color: $dark;
 }
 
 .link {

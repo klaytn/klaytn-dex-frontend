@@ -12,7 +12,7 @@ const props = withDefaults(
 const emit = defineEmits(['update:token'])
 
 const tokensStore = useTokensStore()
-const tokenData = $computed(() => props.token && tokensStore.tryFindToken(props.token))
+const tokenData = $computed(() => props.token && tokensStore.findTokenData(props.token))
 
 let model = $(useVModel(props, 'token', emit))
 let isModalOpen = $ref(false)
