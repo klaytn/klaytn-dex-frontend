@@ -1,6 +1,4 @@
 <script setup lang="ts" name="EarnWrap">
-import { SSwitch, SSelect } from '@soramitsu-ui/ui'
-
 import { Sorting } from '@/modules/FarmingModule/types'
 
 const { t } = useI18n()
@@ -36,7 +34,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
       >
         {{ t('earnWrap.menu.pools') }}
       </RouterLink>
-      <SSwitch
+      <KlaySwitch
         v-model="stakedOnly"
         v-bem="'staked-only'"
         label="Staked only"
@@ -44,7 +42,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
       <span v-bem="'sorting-label'">
         {{ t('earnWrap.sorting.label') }}
       </span>
-      <SSelect
+      <KlaySelect
         v-model="sorting"
         v-bem="'sorting'"
         :options="sortingOptions"

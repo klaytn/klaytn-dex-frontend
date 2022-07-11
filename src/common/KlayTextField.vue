@@ -3,7 +3,14 @@ import { STextField } from '@soramitsu-ui/ui'
 </script>
 
 <template>
-  <STextField />
+  <STextField>
+    <template #default>
+      <slot />
+    </template>
+    <template #append>
+      <slot name="append" />
+    </template>
+  </STextField>
 </template>
 
 <style lang="scss">
