@@ -120,12 +120,12 @@ function setupQueries({
     const pools = [] as Pool[]
 
     farming.value.pools.forEach((pool) => {
-      if (farming.value === null || pairs.value === null || blockNumber.value === null) return
+      if (!farming.value || !pairs.value || !blockNumber.value || !rewards.value) return
 
       const id = pool.id
       const pair = pairs.value.find((pair) => pair.id === pool.pair) ?? null
 
-      const reward = rewards[pool.id]
+      const reward = rewards.value[pool.id]
       const earned = reward ? new BigNumber(farmingFromWei(reward)) : null
 
       if (pair === null || earned === null) return

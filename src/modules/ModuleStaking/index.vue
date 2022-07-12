@@ -55,11 +55,11 @@ const pools = computed<Pool[] | null>(() => {
   const pools = [] as Pool[]
 
   rawPools.value.forEach((pool) => {
-    if (rawPools.value === null || blockNumber.value === null) return
+    if (!blockNumber.value || !rawPools.value || !rewards.value) return
 
     const id = pool.id
 
-    const reward = rewards[pool.id]
+    const reward = rewards.value[pool.id]
     const earned = reward
       ? new BigNumber(
           tokenWeiToRaw(
