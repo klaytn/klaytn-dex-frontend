@@ -32,6 +32,7 @@ export default class Config {
       status: 'connected',
       cfg: new Config({
         caver,
+        klaytn,
         contracts: {
           router: new caver.klay.Contract(ROUTER, cfgAddrs.router) as unknown as DexRouter,
           factory: new caver.klay.Contract(FACTORY, cfgAddrs.factory) as unknown as DexFactory,
@@ -56,8 +57,9 @@ export default class Config {
   }>
 
   public readonly caver!: Caver
+  public readonly klaytn!: Klaytn
 
-  private constructor(data: Pick<Config, 'addrs' | 'contracts' | 'caver'>) {
+  private constructor(data: Pick<Config, 'addrs' | 'contracts' | 'caver' | 'klaytn'>) {
     Object.assign(this, data)
   }
 

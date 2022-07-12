@@ -1,13 +1,13 @@
-<script setup lang="ts">
+<script setup lang="ts" name="ModuleFarmingPool">
 import { Status } from '@soramitsu-ui/ui'
 import { RouteName } from '@/types'
 import { FARMING } from '@/core/kaikas/smartcontracts/abi'
 import { ModalOperation, Pool } from './types'
-import { MAX_UINT256, FORMATTED_BIG_INT_DECIMALS, FARMING_CONTRACT_ADDRESS } from './const'
+import { FORMATTED_BIG_INT_DECIMALS, FARMING_CONTRACT_ADDRESS } from './const'
 import { Farming } from '@/types/typechain/farming'
 import BigNumber from 'bignumber.js'
 import { useTask, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
-import { asWei } from '@/core/kaikas'
+import { useEnableState } from '../ModuleFarmingStakingShared/composable.check-enabled'
 
 const kaikasStore = useKaikasStore()
 
@@ -73,31 +73,16 @@ function goToLiquidityAddPage(pairId: Pool['pairId']) {
   router.push({ name: RouteName.LiquidityAdd, params: { id: pairId } })
 }
 
-const checkEnabledTask = useTask(async () => {
-  const allowance = await kaikasStore.getKaikasAnyway().cfg.getAllowance(pool.value.pairId, FARMING_CONTRACT_ADDRESS)
-  const isEnabled = new BigNumber(allowance).isEqualTo(MAX_UINT256)
-  return isEnabled
-})
-useTaskLog(checkEnabledTask, 'farming-pool-enabled-check')
-wheneverTaskErrors(checkEnabledTask, () => {
-  $notify({ status: Status.Error, description: 'Fetch enabled pools error' })
-})
-const checkEnabledInProgress = computed(() => checkEnabledTask.state.kind === 'pending')
-whenever(expanded, () => checkEnabledTask.run())
-
-const enableTask = useTask(async () => {
-  const kaikas = kaikasStore.getKaikasAnyway()
-  await kaikas.cfg.approveAmount(pool.value.pairId, asWei(MAX_UINT256.toFixed()), FARMING_CONTRACT_ADDRESS)
-})
-useTaskLog(enableTask, 'farming-pool-enable')
-wheneverTaskErrors(enableTask, () => {
-  $notify({ status: Status.Error, description: 'Approve amount error' })
-})
-const enable = () => enableTask.run()
-
-const enabled = computed(() => {
-  return enableTask.state.kind === 'ok' || (checkEnabledTask.state.kind === 'ok' && checkEnabledTask.state.data)
-})
+const {
+  pending: checkEnabledInProgress,
+  check: triggerCheckEnabled,
+  enable,
+  enabled,
+} = useEnableState(
+  computed(() => pool.value.pairId),
+  FARMING_CONTRACT_ADDRESS,
+)
+whenever(expanded, triggerCheckEnabled)
 
 const loading = computed(() => {
   // FIXME include "enableTask" pending here too?

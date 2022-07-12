@@ -5,9 +5,24 @@ import { Opaque } from 'type-fest'
 export interface Klaytn {
   enable: () => Promise<Address[]>
   /**
-   * FIXME
+   * https://docs.kaikas.io/02_api_reference/01_klaytn_provider#wallet_watchasset
    */
-  sendAsync: unknown
+  sendAsync: (
+    params: {
+      method: 'wallet_watchAsset'
+      params: {
+        type: 'ERC20'
+        options: {
+          address: Address
+          symbol: TokenSymbol
+          decimals: number
+          image?: string
+        }
+      }
+      id: number
+    },
+    callback?: (err: unknown, result: unknown) => void,
+  ) => void
 }
 
 export interface Token {
@@ -55,6 +70,11 @@ export interface Token {
  * Address like `0xb9920BD871e39C6EF46169c32e7AC4C698688881`
  */
 export type Address = Opaque<string, 'Address'>
+
+/**
+ * A ticker symbol or shorthand, up to 5 chars
+ */
+export type TokenSymbol = Opaque<string, 'TokenSymbol'>
 
 /**
  * `BigNumber` (from `bignumber.js` package) as a string

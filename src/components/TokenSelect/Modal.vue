@@ -174,7 +174,7 @@ function doImport() {
                 :title="`${t.balance ?? '-'} ${t.symbol}`"
                 class="token-count"
               >
-                {{ t.balance ? formatBalance(t.balance, t.decimals) : '-' }} {{ t.symbol }}
+                {{ t.balance ? formatBalance(t.balance as any, t.decimals) : '-' }} {{ t.symbol }}
               </div>
             </div>
           </template>

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" name="ModuleFarming">
 import { Pool } from './types'
 import { PAGE_SIZE } from './const'
 

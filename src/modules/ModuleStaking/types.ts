@@ -1,26 +1,34 @@
-import { Address } from '@/core/kaikas'
+import { Address, TokenSymbol } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
 export * from '../ModuleFarmingStakingShared/types'
 
 export interface Pool {
   id: Address
-  name: string
-  pairId: Address
+  stakeToken: {
+    id: Address
+    decimals: number
+    symbol: TokenSymbol
+    name: string
+  }
+  rewardToken: {
+    id: Address
+    decimals: number
+    symbol: TokenSymbol
+    name: string
+  }
   staked: BigNumber
   earned: BigNumber
-  balance: BigNumber
-  annualPercentageRate: BigNumber
-  liquidity: BigNumber
-  multiplier: BigNumber
   createdAtBlock: number
+  totalStaked: BigNumber
+  annualPercentageRate: BigNumber
+  endsIn: number
 }
 
 export const Sorting = {
   Default: 'default',
-  Liquidity: 'liquidity',
   AnnualPercentageRate: 'annualPercentageRate',
-  Multiplier: 'multiplier',
   Earned: 'earned',
+  TotalStaked: 'totalStaked',
   Latest: 'latest',
 } as const
 

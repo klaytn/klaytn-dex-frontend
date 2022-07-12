@@ -3,87 +3,20 @@ import { useLazyQuery, useQuery } from '@vue/apollo-composable'
 import BigNumber from 'bignumber.js'
 import gql from 'graphql-tag'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import {
-  FARMING_CONTRACT_ADDRESS,
-  MULTICALL_CONTRACT_ADDRESS,
-  REFETCH_FARMING_INTERVAL,
-  REFETCH_REWARDS_INTERVAL,
-} from '../const'
-import { Pool, Rewards, Sorting } from '../types'
-import { Multicall } from '@/types/typechain/farming/MultiCall.sol'
-import { MULTICALL, FARMING } from '@/core/kaikas/smartcontracts/abi'
+import { FARMING_CONTRACT_ADDRESS, REFETCH_FARMING_INTERVAL } from '../const'
+import { Pool, Sorting } from '../types'
 import invariant from 'tiny-invariant'
-import { Task, useDanglingScope, useScope, useTask, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
+import { useDanglingScope } from '@vue-kakuyaku/core'
 import { Ref } from 'vue'
 import { deepClone } from '@/utils/common'
 import { not, or } from '@vueuse/core'
 import { farmingFromWei, farmingToWei } from '../utils'
 import { Status } from '@soramitsu-ui/ui'
-
-interface FarmingQueryResult {
-  farming: {
-    id: Address
-    poolCount: number
-    totalAllocPoint: string
-    pools: {
-      id: Address
-      pair: Address
-      bonusMultiplier: string
-      /**
-       * FIXME is it wei?
-       */
-      totalTokensStaked: string
-      allocPoint: string
-      bonusEndBlock: string
-      createdAtBlock: string
-      users: {
-        amount: string
-      }[]
-    }[]
-  }
-}
-
-interface PairsQueryResult {
-  pairs: {
-    id: Address
-    name: string
-    reserveUSD: string
-    totalSupply: string
-  }[]
-}
-
-interface LiquidityPositionsQueryResult {
-  user: {
-    liquidityPositions: {
-      liquidityTokenBalance: string
-      pair: {
-        id: Address
-      }
-    }[]
-  }
-}
-
-function useBlockNumber(kaikas: Kaikas): Ref<number | null> {
-  const blockNumber = ref<number | null>(null)
-
-  const task = useTask(async () => {
-    const value = await kaikas.cfg.caver.klay.getBlockNumber()
-    blockNumber.value = value
-  })
-  task.run()
-
-  useScope(
-    computed(() => blockNumber.value !== null),
-    () => {
-      useIntervalFn(() => {
-        invariant(typeof blockNumber.value === 'number')
-        blockNumber.value++
-      }, 1000)
-    },
-  )
-
-  return blockNumber
-}
+import { useFetchFarmingRewards } from '../composable.fetch-rewards'
+import { useBlockNumber } from '@/modules/ModuleFarmingStakingShared/composable.block-number'
+import { useFarmingQuery } from '../query.farming'
+import { usePairsQuery } from '../query.pairs'
+import { useLiquidityPairsQuery } from '../query.liquidity-pairs'
 
 function useSortedPools(pools: Ref<Pool[] | null>, sort: Ref<Sorting>) {
   const sorted = computed<Pool[] | null>(() => {
@@ -113,90 +46,6 @@ function useSortedPools(pools: Ref<Pool[] | null>, sort: Ref<Sorting>) {
   return sorted
 }
 
-function useFetchRewards({
-  kaikas,
-  farmingPoolIds,
-  updateBlockNumber,
-}: {
-  kaikas: Kaikas
-  farmingPoolIds: Ref<Address[] | null>
-  updateBlockNumber: (value: number) => void
-}): {
-  /**
-   * reactive object
-   */
-  rewards: Rewards
-  areRewardsFetched: Ref<boolean>
-} {
-  const MulticallContract = kaikas.cfg.createContract<Multicall>(MULTICALL_CONTRACT_ADDRESS, MULTICALL)
-
-  const rewards = reactive<Rewards>({})
-
-  const fetchedRewards = computed<Set<Address>>(() => {
-    return new Set(Object.keys(rewards) as Address[])
-  })
-  const rewardsToFetch = computed<Set<Address>>(() => {
-    return new Set((farmingPoolIds.value ?? []).filter((addr) => !fetchedRewards.value.has(addr)))
-  })
-  const areRewardsFetched = computed<boolean>(() => !rewardsToFetch.value.size)
-
-  const fetchRewardsTaskScope = useDanglingScope<Task<{ blockNumber: number; rewards: Rewards }>>()
-
-  function fetchRewards() {
-    const ids = [...rewardsToFetch.value]
-    if (!ids.length) return
-
-    fetchRewardsTaskScope.setup(() => {
-      const task = useTask(async () => {
-        /**
-         * FIXME describe magic constant
-         */
-        const PENDING_PTN_ABI_NAME = 'pendingPtn' as const
-        const abiItem = FARMING.find((item) => item.name === PENDING_PTN_ABI_NAME)
-        invariant(abiItem)
-
-        const calls = ids.map((poolId) => {
-          return [
-            FARMING_CONTRACT_ADDRESS,
-            kaikas.cfg.caver.klay.abi.encodeFunctionCall(abiItem, [poolId, kaikas.selfAddress]),
-          ] as [string, string]
-        })
-
-        const result = await MulticallContract.methods.aggregate(calls).call()
-
-        const rewards = result.returnData.reduce<Rewards>((acc, hexString, index) => {
-          const poolId = ids[index]
-          acc[poolId] = farmingFromWei(asWei(kaikas.cfg.caver.klay.abi.decodeParameter('uint256', hexString)))
-          return acc
-        }, {})
-
-        return {
-          rewards,
-          blockNumber: Number(result.blockNumber),
-        }
-      })
-
-      task.run()
-
-      wheneverTaskSucceeds(task, (result) => {
-        updateBlockNumber(result.blockNumber)
-        Object.assign(rewards, result.rewards)
-      })
-
-      return task
-    })
-  }
-
-  const fetchRewardsThrottled = useThrottleFn(fetchRewards, REFETCH_REWARDS_INTERVAL)
-  useIntervalFn(() => fetchRewardsThrottled(), REFETCH_REWARDS_INTERVAL)
-  whenever(
-    () => rewardsToFetch.value.size > 0,
-    () => fetchRewardsThrottled(),
-  )
-
-  return { rewards, areRewardsFetched }
-}
-
 function setupQueries({
   kaikas,
   stakedOnly,
@@ -214,36 +63,7 @@ function setupQueries({
     blockNumber.value = value
   }
 
-  const FarmingQuery = useQuery<FarmingQueryResult>(
-    gql`
-    query FarmingQuery($userId: String!) {
-      farming(id: "${FARMING_CONTRACT_ADDRESS}") {
-        id
-        poolCount
-        totalAllocPoint
-        pools {
-          id
-          pair
-          bonusMultiplier
-          totalTokensStaked
-          allocPoint
-          bonusEndBlock
-          createdAtBlock
-          users(where: {address: $userId}) {
-            amount
-          }
-        }
-      }
-    }
-  `,
-    () => ({
-      userId: kaikas.selfAddress,
-    }),
-    {
-      clientId: 'farming',
-      pollInterval: REFETCH_FARMING_INTERVAL,
-    },
-  )
+  const FarmingQuery = useFarmingQuery(kaikas.selfAddress)
 
   const farming = computed(() => FarmingQuery.result.value?.farming ?? null)
 
@@ -260,23 +80,7 @@ function setupQueries({
   const pairsQueryVariables = ref<{ pairIds: Address[] }>({
     pairIds: [],
   })
-  const PairsQuery = useLazyQuery<PairsQueryResult>(
-    gql`
-      query PairsQuery($pairIds: [String]!) {
-        pairs(where: { id_in: $pairIds }) {
-          id
-          name
-          reserveUSD
-          totalSupply
-        }
-      }
-    `,
-    pairsQueryVariables,
-    {
-      clientId: 'exchange',
-      pollInterval: REFETCH_FARMING_INTERVAL,
-    },
-  )
+  const PairsQuery = usePairsQuery(computed(() => pairsQueryVariables.value.pairIds))
 
   const pairs = computed(() => {
     return PairsQuery.result.value?.pairs ?? null
@@ -297,26 +101,13 @@ function setupQueries({
     handleFarmingQueryResult()
   })
 
-  const { rewards, areRewardsFetched } = useFetchRewards({ kaikas, farmingPoolIds, updateBlockNumber })
+  const { rewards, areRewardsFetched } = useFetchFarmingRewards({
+    kaikas,
+    poolIds: farmingPoolIds,
+    updateBlockNumber,
+  })
 
-  const LiquidityPositionsQuery = useQuery<LiquidityPositionsQueryResult>(
-    gql`
-      query LiquidityPositionsQuery($userId: String!) {
-        user(id: $userId) {
-          liquidityPositions {
-            liquidityTokenBalance
-            pair {
-              id
-            }
-          }
-        }
-      }
-    `,
-    () => ({
-      userId: kaikas.selfAddress,
-    }),
-    { clientId: 'exchange' },
-  )
+  const LiquidityPositionsQuery = useLiquidityPairsQuery(kaikas.selfAddress)
 
   const liquidityPositions = computed(() => {
     if (!LiquidityPositionsQuery.result.value) return null
@@ -335,7 +126,7 @@ function setupQueries({
       const pair = pairs.value.find((pair) => pair.id === pool.pair) ?? null
 
       const reward = rewards[pool.id]
-      const earned = reward ? new BigNumber(reward) : null
+      const earned = reward ? new BigNumber(farmingFromWei(reward)) : null
 
       if (pair === null || earned === null) return
 

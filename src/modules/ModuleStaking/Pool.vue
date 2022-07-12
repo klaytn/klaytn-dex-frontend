@@ -1,23 +1,17 @@
-<script setup lang="ts" name="StakingModulePool">
+<script setup lang="ts" name="ModuleStakingPool">
 import { STextField, SButton, Status } from '@soramitsu-ui/ui'
 
-import {
-ModalOperation,
-  Pool
-} from './types'
-import {
-  MAX_UINT256,
-  formattedBigIntDecimals
-} from './const'
-import kip7 from '@/utils/smartcontracts/kip-7.json'
-import stakingAbi from '@/utils/smartcontracts/staking.json'
-import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
-import { AbiItem } from 'caver-js'
+import { ModalOperation, Pool } from './types'
+import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
 import { RouteName } from '@/types'
+import BigNumber from 'bignumber.js'
+import { useEnableState } from '../ModuleFarmingStakingShared/composable.check-enabled'
+import { useTask, wheneverTaskSucceeds, wheneverTaskErrors } from '@vue-kakuyaku/core'
+import { STAKING } from '@/core/kaikas/smartcontracts/abi'
 
-const { caver } = window
-const config = useConfigWithConnectedKaikas()
+const kaikas = useKaikasStore().getKaikasAnyway()
+
 const vBem = useBemClass()
 const router = useRouter()
 const { t } = useI18n()
@@ -31,14 +25,11 @@ const emit = defineEmits<{
   (e: 'withdrawn'): void
 }>()
 
-const PoolContract = $kaikas.config.createContract<StakingInitializable>(pool.value.id, stakingAbi.abi as AbiItem[])
+const PoolContract = kaikas.cfg.createContract<StakingInitializable>(pool.value.id, STAKING)
 
 const stakingStore = useStakingStore()
 
 const expanded = ref(false)
-const enabled = ref(false)
-const checkEnabledInProgress = ref(false)
-const checkEnabledCompleted = ref(false)
 const modalOperation = ref<ModalOperation | null>(null)
 
 const modelOpen = computed({
@@ -46,29 +37,30 @@ const modelOpen = computed({
     return !!modalOperation.value
   },
   set(value) {
-    if (!value)
-      modalOperation.value = null
-  }
+    if (!value) modalOperation.value = null
+  },
 })
 
 const formattedEarned = computed(() => {
-  return $kaikas.bigNumber(pool.value.earned.toFixed(formattedBigIntDecimals))
+  return new BigNumber(pool.value.earned.toFixed(FORMATTED_BIG_INT_DECIMALS))
 })
 
 const formattedStaked = computed(() => {
-  return $kaikas.bigNumber(pool.value.staked.toFixed(formattedBigIntDecimals))
+  return new BigNumber(pool.value.staked.toFixed(FORMATTED_BIG_INT_DECIMALS))
 })
 
 const formattedTotalStaked = computed(() => {
-  return $kaikas.bigNumber(pool.value.totalStaked.toFixed(formattedBigIntDecimals))
+  return new BigNumber(pool.value.totalStaked.toFixed(FORMATTED_BIG_INT_DECIMALS))
 })
 
 const formattedAnnualPercentageRate = computed(() => {
-  return '%' + $kaikas.bigNumber(pool.value.annualPercentageRate.toFixed(formattedBigIntDecimals))
+  return '%' + new BigNumber(pool.value.annualPercentageRate.toFixed(FORMATTED_BIG_INT_DECIMALS))
 })
 
 const formattedEndsIn = computed(() => {
-  return pool.value.endsIn > 0 ? t('StakingModulePool.endsIn', { blocks: pool.value.endsIn.toLocaleString('en-US') }) : '—'
+  return pool.value.endsIn > 0
+    ? t('StakingModulePool.endsIn', { blocks: pool.value.endsIn.toLocaleString('en-US') })
+    : '—'
 })
 
 const stats = computed(() => {
@@ -80,54 +72,16 @@ const stats = computed(() => {
   }
 })
 
-async function checkEnabled() {
-  if (!enabled.value && !checkEnabledInProgress.value && !checkEnabledCompleted.value) {
-    try {
-      checkEnabledInProgress.value = true
-
-      const allowance = await config.getAllowance(
-        pool.value.stakeToken.id,
-        kip7.abi as AbiItem[],
-        pool.value.id
-      )
-
-      enabled.value = $kaikas.bigNumber(allowance).isEqualTo(MAX_UINT256)
-
-      checkEnabledInProgress.value = false
-      checkEnabledCompleted.value = true
-    } catch (e) {
-      console.error(e)
-      $notify({ status: Status.Error, description: 'Fetch enabled pools error' })
-      throw new Error('Error')
-    }
-  }
-}
-
-async function enable() {
-  try {
-    await config.approveAmount(
-      pool.value.stakeToken.id,
-      kip7.abi as AbiItem[],
-      MAX_UINT256.toFixed(),
-      pool.value.id
-    )
-
-    enabled.value = true
-  } catch (e) {
-    console.error(e)
-    $notify({ status: Status.Error, description: 'Approve amount error' })
-    throw new Error('Error')
-  }
-}
-
-watch(expanded, (value) => {
-  if (value)
-    checkEnabled()
-})
-
-const loading = computed(() => {
-  return checkEnabledInProgress.value
-})
+const {
+  pending: loading,
+  check: triggerCheckEnabled,
+  enable,
+  enabled,
+} = useEnableState(
+  computed(() => pool.value.stakeToken.id),
+  computed(() => pool.value.id),
+)
+whenever(expanded, triggerCheckEnabled)
 
 function stake() {
   modalOperation.value = ModalOperation.Stake
@@ -141,7 +95,7 @@ function addToKaikas(pool: Pool) {
   stakingStore.addTokenToKaikas({
     address: pool.rewardToken.id,
     symbol: pool.rewardToken.symbol,
-    decimals: pool.rewardToken.decimals
+    decimals: pool.rewardToken.decimals,
   })
 }
 
@@ -149,28 +103,31 @@ function goToSwapPage() {
   router.push({ name: RouteName.Swap })
 }
 
-async function withdraw() {
-  try {
-    const earned = pool.value.earned
-    const gasPrice = await caver.klay.getGasPrice()
-    const withdraw = PoolContract.methods.withdraw(0)
-    const estimateGas = await withdraw.estimateGas({
-      from: config.address,
-      gasPrice,
-    })
-    await withdraw.send({
-      from: config.address,
-      gas: estimateGas,
-      gasPrice
-    })
-    emit('withdrawn')
-    $notify({ status: Status.Success, description: `${earned} ${pool.value.rewardToken.symbol} tokens were withdrawn` })
-  } catch (e) {
-    console.error(e)
-    $notify({ status: Status.Error, description: `Withdraw ${pool.value.rewardToken.symbol} tokens error` })
-    throw new Error('Error')
-  }
-}
+const withdrawTask = useTask(async () => {
+  const earned = pool.value.earned
+  const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
+  const withdraw = PoolContract.methods.withdraw(0)
+  const estimateGas = await withdraw.estimateGas({
+    from: kaikas.selfAddress,
+    gasPrice,
+  })
+  await withdraw.send({
+    from: kaikas.selfAddress,
+    gas: estimateGas,
+    gasPrice,
+  })
+
+  return { earned }
+})
+useTaskLog(withdrawTask, 'staking-pool-withdraw')
+wheneverTaskSucceeds(withdrawTask, ({ earned }) => {
+  emit('withdrawn')
+  $notify({ status: Status.Success, description: `${earned} ${pool.value.rewardToken.symbol} tokens were withdrawn` })
+})
+wheneverTaskErrors(withdrawTask, () => {
+  $notify({ status: Status.Error, description: `Withdraw ${pool.value.rewardToken.symbol} tokens error` })
+})
+const withdraw = () => withdrawTask.run()
 
 async function handleStaked(amount: string) {
   modalOperation.value = null
@@ -195,24 +152,20 @@ async function handleModalClose() {
     <template #title>
       <div v-bem="'head'">
         <div v-bem="'icons'">
-          <KlayIcon
+          <KlayCharAvatar
             v-bem="'icon'"
             :symbol="pool.rewardToken.symbol"
             :lightness="65"
           />
-          <KlayIcon
+          <KlayCharAvatar
             v-bem="'icon'"
             :symbol="pool.stakeToken.symbol"
             :lightness="75"
           />
         </div>
         <div v-bem="'title'">
-          <span v-bem="'title-stake'">
-            Stake {{ pool.stakeToken.symbol }}
-          </span>
-          <span v-bem="'title-earn'">
-            Earn {{ pool.rewardToken.symbol }}
-          </span>
+          <span v-bem="'title-stake'"> Stake {{ pool.stakeToken.symbol }} </span>
+          <span v-bem="'title-earn'"> Earn {{ pool.rewardToken.symbol }} </span>
         </div>
         <div
           v-for="(value, label) in stats"
@@ -224,15 +177,13 @@ async function handleModalClose() {
           </div>
           <div v-bem="['stats-item-value', { zero: value == '0' }]">
             {{ value }}
-            <KlayIcon
+            <IconClayCalculator
               v-if="label === 'annualPercentageRate'"
               v-bem="'stats-item-calculator'"
-              name="calculator"
             />
-            <KlayIcon
+            <IconKlayClock
               v-if="label === 'endsIn' && value !== '—'"
               v-bem="'stats-item-clock'"
-              name="clock"
             />
           </div>
         </div>
@@ -321,29 +272,18 @@ async function handleModalClose() {
           :href="`https://baobab.klaytnfinder.io/account/${pool.stakeToken.id}`"
         >
           See Token Info
-          <KlayIcon
-            v-bem="'link-icon'"
-            name="link"
-          />
+          <IconKlayLink v-bem="'link-icon'" />
         </a>
-        <a
-          v-bem="'link'"
-        >
+        <a v-bem="'link'">
           View Project Site
-          <KlayIcon
-            v-bem="'link-icon'"
-            name="link"
-          />
+          <IconKlayLink v-bem="'link-icon'" />
         </a>
         <a
           v-bem="'link'"
           :href="`https://baobab.klaytnfinder.io/account/${pool.id}`"
         >
           View Contract
-          <KlayIcon
-            v-bem="'link-icon'"
-            name="link"
-          />
+          <IconKlayLink v-bem="'link-icon'" />
         </a>
         <a
           v-bem="'link'"

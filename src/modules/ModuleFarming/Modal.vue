@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" name="ModuleFarmingModal">
 import { Status, SModal } from '@soramitsu-ui/ui'
 import { ModalOperation, Pool } from './types'
 import { FARMING_CONTRACT_ADDRESS, FORMATTED_BIG_INT_DECIMALS } from './const'

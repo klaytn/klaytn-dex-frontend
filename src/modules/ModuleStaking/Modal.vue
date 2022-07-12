@@ -1,25 +1,16 @@
-<script setup lang="ts" name="StakingModuleStakeModal">
+<script setup lang="ts" name="ModuleStakingModal">
 import { STextField, SButton, Status } from '@soramitsu-ui/ui'
-import { AbiItem } from 'caver-js'
-
-import {
-  ModalOperation,
-  Pool
-} from './types'
-import {
-  formattedBigIntDecimals
-} from './const'
-
-import stakingAbi from '@/utils/smartcontracts/staking.json'
-import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
+import { ModalOperation, Pool } from './types'
+import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
 import BigNumber from 'bignumber.js'
-import kip7 from '@/utils/smartcontracts/kip-7.json'
-import { KIP7 } from '@/types/typechain/tokens'
-import { fromWei, toWei } from './utils'
-  
-const { caver } = window
-const config = useConfigWithConnectedKaikas()
+import { STAKING } from '@/core/kaikas/smartcontracts/abi'
+import { useScope, useTask } from '@vue-kakuyaku/core'
+import { tokenRawToWei, tokenWeiToRaw } from '@/core/kaikas'
+
+const kaikasStore = useKaikasStore()
+const kaikas = kaikasStore.getKaikasAnyway()
+
 const vBem = useBemClass()
 const { t } = useI18n()
 
@@ -34,42 +25,36 @@ const emit = defineEmits<{
   (e: 'staked' | 'unstaked', value: string): void
 }>()
 
-const model = ref(props.modelValue)
-watch(
-  () => props.modelValue,
-  (origin) => {
-    model.value = origin
-  },
-)
-watch(model, (dep) => {
-  if (dep !== props.modelValue) {
-    emit('update:modelValue', dep)
-  }
-})
+const model = useVModel(props, 'modelValue', emit, { passive: true })
 
-const PoolContract = config.createContract<StakingInitializable>(pool.value.id, stakingAbi.abi as AbiItem[])
+const PoolContract = kaikas.cfg.createContract<StakingInitializable>(pool.value.id, STAKING)
 
 const value = ref('0')
-const balance = ref<BigNumber | null>(null)
 const loading = ref(false)
 
-watch(model, async () => {
-  if (model.value) {
-    const contract = config.createContract<KIP7>(pool.value.stakeToken.id, kip7.abi as AbiItem[])
-    const balanceInWei = await contract.methods.balanceOf(config.address).call()
-    balance.value = fromWei(balanceInWei, pool.value.stakeToken.decimals)
-  }
+const balanceScope = useScope(model, () => {
+  const task = useTask(async () => {
+    const token = pool.value.stakeToken
+    const balance = await kaikas.getTokenBalance(token.id)
+    return new BigNumber(tokenWeiToRaw(token, balance))
+  })
+  useTaskLog(task, 'get-balance')
+  task.run()
+  return task
+})
+const balance = computed(() => {
+  const state = balanceScope.value?.setup.state
+  return state?.kind === 'ok' ? state.data : null
 })
 
 const formattedStaked = computed(() => {
-  return $kaikas.bigNumber(pool.value.staked.toFixed(formattedBigIntDecimals))
+  return new BigNumber(pool.value.staked.toFixed(FORMATTED_BIG_INT_DECIMALS))
 })
 
 const formattedBalance = computed(() => {
-  if (balance.value === null)
-    return ''
+  if (balance.value === null) return ''
 
-  return $kaikas.bigNumber(balance.value.toFixed(formattedBigIntDecimals))
+  return new BigNumber(balance.value.toFixed(FORMATTED_BIG_INT_DECIMALS))
 })
 
 const label = computed(() => {
@@ -81,17 +66,14 @@ const label = computed(() => {
 })
 
 const notEnough = computed(() => {
-  if (balance.value === null)
-    return false
+  if (balance.value === null) return false
 
-  if (operation.value === ModalOperation.Stake)
-    return $kaikas.bigNumber(value.value).comparedTo(balance.value) === 1
-  else
-    return $kaikas.bigNumber(value.value).comparedTo(pool.value.staked) === 1
+  if (operation.value === ModalOperation.Stake) return new BigNumber(value.value).comparedTo(balance.value) === 1
+  else return new BigNumber(value.value).comparedTo(pool.value.staked) === 1
 })
 
 const lessThanOrEqualToZero = computed(() => {
-  return $kaikas.bigNumber(value.value).comparedTo(0) !== 1
+  return new BigNumber(value.value).comparedTo(0) !== 1
 })
 
 const disabled = computed(() => {
@@ -99,29 +81,32 @@ const disabled = computed(() => {
 })
 
 function setPercent(percent: number) {
-  if (operation.value === ModalOperation.Stake)
-    value.value = `${balance.value?.multipliedBy(percent * 0.01)}`
-  else
-    value.value = `${pool.value.staked.multipliedBy(percent * 0.01)}`
+  if (operation.value === ModalOperation.Stake) value.value = `${balance.value?.multipliedBy(percent * 0.01)}`
+  else value.value = `${pool.value.staked.multipliedBy(percent * 0.01)}`
 }
 
 async function stake() {
   try {
     loading.value = true
     const amount = value.value
-    const gasPrice = await caver.klay.getGasPrice()
-    const deposit = PoolContract.methods.deposit(toWei(amount))
+    const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
+    const deposit = PoolContract.methods.deposit(
+      tokenRawToWei(
+        // FIXME stake token or reward token?
+        pool.value.stakeToken,
+        amount,
+      ),
+    )
     const estimateGas = await deposit.estimateGas({
-      from: config.address,
+      from: kaikas.selfAddress,
       gasPrice,
     })
     const receipt = await deposit.send({
-      from: config.address,
+      from: kaikas.selfAddress,
       gas: estimateGas,
-      gasPrice
+      gasPrice,
     })
-    if (receipt.status === false)
-      throw new Error('Transaction error')
+    if (receipt.status === false) throw new Error('Transaction error')
 
     $notify({ status: Status.Success, description: `${amount} ${pool.value.stakeToken.symbol} tokens were staked` })
     emit('staked', amount)
@@ -138,16 +123,16 @@ async function unstake() {
   try {
     loading.value = true
     const amount = value.value
-    const gasPrice = await caver.klay.getGasPrice()
-    const withdraw = PoolContract.methods.withdraw(toWei(amount, pool.value.stakeToken.decimals))
+    const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
+    const withdraw = PoolContract.methods.withdraw(tokenRawToWei(pool.value.stakeToken, amount))
     const estimateGas = await withdraw.estimateGas({
-      from: config.address,
+      from: kaikas.selfAddress,
       gasPrice,
     })
     await withdraw.send({
-      from: config.address,
+      from: kaikas.selfAddress,
       gas: estimateGas,
-      gasPrice
+      gasPrice,
     })
     $notify({ status: Status.Success, description: `${amount} ${pool.value.stakeToken.symbol} tokens were unstaked` })
     emit('unstaked', amount)
@@ -161,11 +146,13 @@ async function unstake() {
 }
 
 async function confirm() {
-  switch(operation.value) {
+  switch (operation.value) {
     case ModalOperation.Stake:
-      stake(); break
+      stake()
+      break
     case ModalOperation.Unstake:
-      unstake(); break
+      unstake()
+      break
   }
 }
 </script>
@@ -183,10 +170,9 @@ async function confirm() {
           v-bem="'input'"
         />
         <div v-bem="'info'">
-          <KlayIcon
+          <KlayCharAvatar
             v-bem="'pair-icon'"
             :symbol="pool.stakeToken.symbol"
-            name="empty-token"
           />
           <div v-bem="'pair-name'">
             {{ pool.stakeToken.symbol }}

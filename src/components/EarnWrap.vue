@@ -1,6 +1,6 @@
 <script setup lang="ts" name="EarnWrap">
 import { Sorting as FarmingSorting } from '@/modules/ModuleFarming/types'
-import { Sorting as StakingSorting } from '@/modules/StakingModule/types'
+import { Sorting as StakingSorting } from '@/modules/ModuleStaking/types'
 import { RouteName } from '@/types'
 
 const { t } = useI18n()
@@ -12,7 +12,7 @@ const stakingStore = useStakingStore()
 
 const route = useRoute()
 
-// FIXME mame variadic models less boilerplace
+// FIXME make variadic models less boilerplace
 
 const stakedOnly = computed({
   get() {
