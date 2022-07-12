@@ -77,7 +77,7 @@ function setToMax() {
 
 <template>
   <div
-    class="root space-y-2"
+    class="root space-y-3"
     :class="{ 'pointer-events-none': isLoading }"
   >
     <div class="flex items-center space-x-2">
@@ -86,8 +86,9 @@ function setToMax() {
           v-if="token"
           v-bind="$attrs"
           v-model="model"
-          :disabled="isDisabled"
+          :disabled="isDisabled || isLoading"
           placeholder="0"
+          class="disabled:opacity-40"
         >
       </div>
 
@@ -114,7 +115,7 @@ function setToMax() {
     <div class="flex items-center">
       <div
         v-if="estimated"
-        class="text-xs text-orange-700"
+        class="estimated"
       >
         estimated *
       </div>
@@ -123,7 +124,7 @@ function setToMax() {
 
       <div
         :title="balance?.toFixed()"
-        class="balance flex space-x-2"
+        class="balance flex items-center space-x-2"
       >
         <span>
           <template v-if="isKaikasConnected"> Balance: {{ balanceFormatted }} </template>
@@ -194,11 +195,15 @@ button.max {
 }
 
 .balance {
+  max-width: 200px;
+}
+
+.balance,
+.estimated {
   font-style: normal;
   font-weight: 500;
   font-size: 12px;
   line-height: 15px;
-  color: $gray4;
-  max-width: 200px;
+  color: #778294;
 }
 </style>
