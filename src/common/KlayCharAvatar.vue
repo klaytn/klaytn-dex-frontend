@@ -36,7 +36,5 @@ const hsl = computed(() => `hsl(${stringHashForHsl(props.symbol)}, ${props.satur
 div {
   font-weight: 700;
   font-size: 12px;
-  background: $gray5;
-  border: 1px solid $gray4;
 }
 </style>
