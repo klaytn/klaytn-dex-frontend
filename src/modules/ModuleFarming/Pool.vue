@@ -10,6 +10,8 @@ import { useTask, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku
 import { useEnableState } from '../ModuleFarmingStakingShared/composable.check-enabled'
 
 const kaikasStore = useKaikasStore()
+const kaikas = kaikasStore.getKaikasAnyway()
+const FarmingContract = kaikas.cfg.createContract<Farming>(FARMING_CONTRACT_ADDRESS, FARMING)
 
 const vBem = useBemClass()
 const router = useRouter()
@@ -98,14 +100,6 @@ function unstake() {
 }
 
 const withdrawTask = useTask(async () => {
-  const kaikas = kaikasStore.getKaikasAnyway()
-
-  const FarmingContract = kaikas.cfg.createContract<Farming>(
-    // FIXME wtf?
-    props.pool.id,
-    FARMING,
-  )
-
   const earned = pool.value.earned
   const gasPrice = await kaikas.cfg.getGasPrice()
   const withdraw = FarmingContract.methods.withdraw(props.pool.id, 0)
