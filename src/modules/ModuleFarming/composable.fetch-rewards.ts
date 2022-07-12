@@ -1,7 +1,7 @@
 import { FARMING } from '@/core/kaikas/smartcontracts/abi'
 import invariant from 'tiny-invariant'
 import { Except } from 'type-fest'
-import { GenericFetchRewardsProps, useFetchRewards } from '../ModuleFarmingStakingShared/composable.fetch-rewards'
+import { GenericFetchRewardsProps, useFetchRewards } from '../ModuleEarnShared/composable.fetch-rewards'
 import { FARMING_CONTRACT_ADDRESS } from './const'
 import { PoolId } from './types'
 

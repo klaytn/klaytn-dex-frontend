@@ -1,6 +1,6 @@
 import { Address, TokenSymbol } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
-export * from '../ModuleFarmingStakingShared/types'
+export * from '../ModuleEarnShared/types'
 
 export interface Pool {
   id: Address

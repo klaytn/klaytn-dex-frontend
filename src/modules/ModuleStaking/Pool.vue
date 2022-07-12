@@ -6,7 +6,7 @@ import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
 import { RouteName } from '@/types'
 import BigNumber from 'bignumber.js'
-import { useEnableState } from '../ModuleFarmingStakingShared/composable.check-enabled'
+import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { useTask, wheneverTaskSucceeds, wheneverTaskErrors } from '@vue-kakuyaku/core'
 import { STAKING } from '@/core/kaikas/smartcontracts/abi'
 

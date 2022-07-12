@@ -1,5 +1,5 @@
 import { Except } from 'type-fest'
-import { GenericFetchRewardsProps, useFetchRewards } from '../ModuleFarmingStakingShared/composable.fetch-rewards'
+import { GenericFetchRewardsProps, useFetchRewards } from '../ModuleEarnShared/composable.fetch-rewards'
 import { STAKING } from '@/core/kaikas/smartcontracts/abi'
 import invariant from 'tiny-invariant'
 import { Address } from '@/core/kaikas'

@@ -7,7 +7,7 @@ import { FORMATTED_BIG_INT_DECIMALS, FARMING_CONTRACT_ADDRESS } from './const'
 import { Farming } from '@/types/typechain/farming'
 import BigNumber from 'bignumber.js'
 import { useTask, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
-import { useEnableState } from '../ModuleFarmingStakingShared/composable.check-enabled'
+import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 
 const kaikasStore = useKaikasStore()
 const kaikas = kaikasStore.getKaikasAnyway()
