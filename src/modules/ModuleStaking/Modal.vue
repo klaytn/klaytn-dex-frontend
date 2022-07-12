@@ -1,5 +1,5 @@
 <script setup lang="ts" name="ModuleStakingStakeModal">
-import { STextField, SButton, Status, SModal } from '@soramitsu-ui/ui'
+import { Status, SModal } from '@soramitsu-ui/ui'
 import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
@@ -165,7 +165,7 @@ async function confirm() {
     >
       <div v-bem="'row'">
         <div v-bem="'input-wrapper'">
-          <STextField
+          <KlayTextField
             v-model="value"
             v-bem="'input'"
           />
@@ -193,7 +193,7 @@ async function confirm() {
         </div>
       </div>
       <div v-bem="'percents'">
-        <SButton
+        <KlayButton
           v-for="percent in [10, 25, 50, 75]"
           :key="percent"
           v-bem="'percent'"
@@ -201,18 +201,18 @@ async function confirm() {
           @click="setPercent(percent)"
         >
           {{ percent }}%
-        </SButton>
-        <SButton
+        </KlayButton>
+        <KlayButton
           v-bem="'percent'"
           type="primary"
           size="sm"
           @click="setPercent(100)"
         >
           MAX
-        </SButton>
+        </KlayButton>
       </div>
       <div v-bem="'row'">
-        <SButton
+        <KlayButton
           v-bem="'confirm'"
           type="primary"
           size="lg"
@@ -221,7 +221,7 @@ async function confirm() {
           @click="confirm"
         >
           Confirm
-        </SButton>
+        </KlayButton>
       </div>
     </KlayModalCard>
   </SModal>

@@ -3,6 +3,7 @@ import { useModalApi } from '@soramitsu-ui/ui'
 
 defineProps<{
   title?: string
+  noPadding?: boolean
 }>()
 
 const api = useModalApi()
@@ -26,7 +27,9 @@ const api = useModalApi()
       </button>
     </div>
 
-    <slot />
+    <div :class="{ 'px-4 py-5': !noPadding }">
+      <slot />
+    </div>
   </div>
 </template>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts" name="ModuleStakingPool">
-import { STextField, SButton, Status } from '@soramitsu-ui/ui'
+import { Status } from '@soramitsu-ui/ui'
 
 import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
@@ -191,19 +191,19 @@ async function handleModalClose() {
     </template>
     <template v-if="!loading">
       <div v-bem="'first-row'">
-        <SButton
+        <KlayButton
           v-if="!enabled"
           v-bem="'enable'"
           type="primary"
           @click="enable()"
         >
           Enable {{ pool.stakeToken.symbol }}
-        </SButton>
+        </KlayButton>
         <div
           v-if="enabled"
           v-bem="'staked-input-wrapper'"
         >
-          <STextField
+          <KlayTextField
             v-bem="'staked-input'"
             :model-value="formattedStaked"
             :disabled="true"
@@ -212,35 +212,35 @@ async function handleModalClose() {
             {{ t('ModuleStakingPool.staked', { symbol: pool.stakeToken.symbol }) }}
           </div>
           <div v-bem="'staked-input-buttons'">
-            <SButton
+            <KlayButton
               v-if="!pool.staked.isZero()"
               v-bem="'unstake'"
               @click="unstake()"
             >
               -
-            </SButton>
-            <SButton
+            </KlayButton>
+            <KlayButton
               v-if="!pool.staked.isZero()"
               v-bem="'stake-additional'"
               @click="stake()"
             >
               +
-            </SButton>
-            <SButton
+            </KlayButton>
+            <KlayButton
               v-if="pool.staked.isZero()"
               v-bem="'stake'"
               type="primary"
               @click="stake()"
             >
               Stake {{ pool.stakeToken.symbol }}
-            </SButton>
+            </KlayButton>
           </div>
         </div>
         <div
           v-if="enabled"
           v-bem="'earned-input-wrapper'"
         >
-          <STextField
+          <KlayTextField
             v-bem="'earned-input'"
             :model-value="formattedEarned"
             :disabled="true"
@@ -249,22 +249,22 @@ async function handleModalClose() {
             {{ t('ModuleStakingPool.earned', { symbol: pool.rewardToken.symbol }) }}
           </div>
           <div v-bem="'earned-input-buttons'">
-            <SButton
+            <KlayButton
               v-bem="'withdraw'"
               :disabled="pool.earned.isZero()"
               @click="withdraw()"
             >
               Withdraw
-            </SButton>
+            </KlayButton>
           </div>
         </div>
-        <SButton
+        <KlayButton
           v-if="!enabled"
           v-bem="'get-stake-token'"
           @click="goToSwapPage()"
         >
           Get {{ pool.stakeToken.symbol }}
-        </SButton>
+        </KlayButton>
       </div>
       <div v-bem="'links'">
         <a
