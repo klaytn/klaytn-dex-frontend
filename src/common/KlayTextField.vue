@@ -41,11 +41,6 @@ import { STextField } from '@soramitsu-ui/ui'
     transition: 250ms ease border-color;
   }
 
-  &:hover {
-    background: $gray6;
-    border: 1px solid $blue-light3;
-  }
-
   svg {
     transition: 250ms ease;
   }
