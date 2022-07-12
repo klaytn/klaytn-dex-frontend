@@ -13,7 +13,7 @@ const isOpen = ref(false)
         class="icon-wrap"
         :style="{ transform: `rotate(${isOpen ? 180 : 0}deg)` }"
       >
-        <IconClayCollapseArrow />
+        <IconKlayCollapseArrow />
       </div>
     </div>
     <slot
