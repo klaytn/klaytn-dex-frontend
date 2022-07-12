@@ -5,5 +5,5 @@ name: Pools
 <script setup lang="ts" name="Pools" />
 
 <template>
-  <StakingModule />
+  <ModuleStaking />
 </template>

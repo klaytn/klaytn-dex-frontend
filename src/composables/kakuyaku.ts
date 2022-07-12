@@ -11,6 +11,10 @@ export function useTaskLog(task: Task<unknown>, name: string) {
       console.error(`Task "${name}" errored:`, task.state.error)
     }
   })
+
+  onScopeDispose(() => {
+    debug('disposed')
+  })
 }
 
 export function useNotifyOnError(task: Task<unknown>, message: string) {

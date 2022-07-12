@@ -21,23 +21,23 @@ EarnWrap:
       totalStaked: Total staked
       latest: Latest
 
-FarmingModulePool:
+ModuleFarmingPool:
   stats:
     earned: Earned
     annualPercentageRate: APR
     liquidity: Liquidity
     multiplier: Multiplier
 
-StakingModulePool:
-  staked: '{symbol} Staked'
-  earned: '{symbol} Earned'
-  endsIn: '{ blocks } blocks'
+ModuleStakingPool:
+  staked: "{symbol} Staked"
+  earned: "{symbol} Earned"
+  endsIn: "{ blocks } blocks"
   stats:
-    earned: '{symbol} Earned'
+    earned: "{symbol} Earned"
     totalStaked: Total staked
     annualPercentageRate: APR
-    endsIn: 'Ends in'
+    endsIn: "Ends in"
 
-StakingModuleModal:
+ModuleStakingModal:
   stakeTitle: Stake in pool
   unstakeTitle: Unstake {symbol}

@@ -200,7 +200,7 @@ function handleUnstaked(pool: Pool, amount: string) {
   <div v-bem>
     <template v-if="rawPools">
       <div v-bem="'list'">
-        <StakingModulePool
+        <ModuleStakingPool
           v-for="pool in paginatedPools"
           :key="pool.id"
           :pool="pool"
@@ -235,7 +235,7 @@ function handleUnstaked(pool: Pool, amount: string) {
 <style lang="sass">
 $padding-bottom: 19px
 
-.staking-module
+.module-staking
   flex: 1
   display: flex
   flex-direction: column

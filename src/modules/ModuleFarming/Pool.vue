@@ -166,7 +166,7 @@ function handleModalClose() {
           v-bem="'stats-item'"
         >
           <div v-bem="'stats-item-label'">
-            {{ t(`FarmingModulePool.stats.${label}`) }}
+            {{ t(`ModuleFarmingPool.stats.${label}`) }}
           </div>
           <div v-bem="'stats-item-value'">
             {{ value }}
@@ -283,7 +283,7 @@ function handleModalClose() {
 <style lang="sass">
 @import '@/styles/vars.sass'
 
-.farming-module-pool
+.module-farming-pool
   &__head
     display: flex
     align-items: center

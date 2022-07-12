@@ -1,5 +1,5 @@
-<script setup lang="ts" name="ModuleStakingModal">
-import { STextField, SButton, Status } from '@soramitsu-ui/ui'
+<script setup lang="ts" name="ModuleStakingStakeModal">
+import { STextField, SButton, Status, SModal } from '@soramitsu-ui/ui'
 import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
@@ -59,9 +59,9 @@ const formattedBalance = computed(() => {
 
 const label = computed(() => {
   if (operation.value === ModalOperation.Stake) {
-    return t('StakingModuleModal.stakeTitle')
+    return t('ModuleStakingModal.stakeTitle')
   } else {
-    return t('StakingModuleModal.unstakeTitle', { symbol: pool.value.stakeToken.symbol })
+    return t('ModuleStakingModal.unstakeTitle', { symbol: pool.value.stakeToken.symbol })
   }
 })
 
@@ -158,78 +158,79 @@ async function confirm() {
 </script>
 
 <template>
-  <KlayModal
-    v-model="model"
-    width="420"
-    :label="label"
-  >
-    <div v-bem="'row'">
-      <div v-bem="'input-wrapper'">
-        <STextField
-          v-model="value"
-          v-bem="'input'"
-        />
-        <div v-bem="'info'">
-          <KlayCharAvatar
-            v-bem="'pair-icon'"
-            :symbol="pool.stakeToken.symbol"
+  <SModal v-model:show="model">
+    <KlayModalCard
+      :title="label"
+      class="w-[420px]"
+    >
+      <div v-bem="'row'">
+        <div v-bem="'input-wrapper'">
+          <STextField
+            v-model="value"
+            v-bem="'input'"
           />
-          <div v-bem="'pair-name'">
-            {{ pool.stakeToken.symbol }}
+          <div v-bem="'info'">
+            <KlayCharAvatar
+              v-bem="'pair-icon'"
+              :symbol="pool.stakeToken.symbol"
+            />
+            <div v-bem="'pair-name'">
+              {{ pool.stakeToken.symbol }}
+            </div>
+          </div>
+          <div
+            v-if="operation === ModalOperation.Stake"
+            v-bem="'balance'"
+          >
+            Balance: {{ formattedBalance }}
+          </div>
+          <div
+            v-if="operation === ModalOperation.Unstake"
+            v-bem="'staked'"
+          >
+            Staked: {{ formattedStaked }}
           </div>
         </div>
-        <div
-          v-if="operation === ModalOperation.Stake"
-          v-bem="'balance'"
-        >
-          Balance: {{ formattedBalance }}
-        </div>
-        <div
-          v-if="operation === ModalOperation.Unstake"
-          v-bem="'staked'"
-        >
-          Staked: {{ formattedStaked }}
-        </div>
       </div>
-    </div>
-    <div v-bem="'percents'">
-      <SButton
-        v-for="percent in [10, 25, 50, 75]"
-        :key="percent"
-        v-bem="'percent'"
-        size="sm"
-        @click="setPercent(percent)"
-      >
-        {{ percent }}%
-      </SButton>
-      <SButton
-        v-bem="'percent'"
-        type="primary"
-        size="sm"
-        @click="setPercent(100)"
-      >
-        MAX
-      </SButton>
-    </div>
-    <div v-bem="'row'">
-      <SButton
-        v-bem="'confirm'"
-        type="primary"
-        size="lg"
-        :disabled="disabled"
-        :loading="loading"
-        @click="confirm"
-      >
-        Confirm
-      </SButton>
-    </div>
-  </KlayModal>
+      <div v-bem="'percents'">
+        <SButton
+          v-for="percent in [10, 25, 50, 75]"
+          :key="percent"
+          v-bem="'percent'"
+          size="sm"
+          @click="setPercent(percent)"
+        >
+          {{ percent }}%
+        </SButton>
+        <SButton
+          v-bem="'percent'"
+          type="primary"
+          size="sm"
+          @click="setPercent(100)"
+        >
+          MAX
+        </SButton>
+      </div>
+      <div v-bem="'row'">
+        <SButton
+          v-bem="'confirm'"
+          type="primary"
+          size="lg"
+          :disabled="disabled"
+          :loading="loading"
+          @click="confirm"
+        >
+          Confirm
+        </SButton>
+      </div>
+    </KlayModalCard>
+  </SModal>
 </template>
 
 <style lang="sass">
 @import '@/styles/vars.sass'
 
-.staking-module-stake-modal
+.module-staking-stake-modal
   &__row
     & + &
       margin-top: 16px

@@ -59,7 +59,7 @@ const formattedAnnualPercentageRate = computed(() => {
 
 const formattedEndsIn = computed(() => {
   return pool.value.endsIn > 0
-    ? t('StakingModulePool.endsIn', { blocks: pool.value.endsIn.toLocaleString('en-US') })
+    ? t('ModuleStakingPool.endsIn', { blocks: pool.value.endsIn.toLocaleString('en-US') })
     : '—'
 })
 
@@ -173,11 +173,11 @@ async function handleModalClose() {
           v-bem="'stats-item'"
         >
           <div v-bem="'stats-item-label'">
-            {{ t(`StakingModulePool.stats.${label}`, { symbol: pool.rewardToken.symbol }) }}
+            {{ t(`ModuleStakingPool.stats.${label}`, { symbol: pool.rewardToken.symbol }) }}
           </div>
           <div v-bem="['stats-item-value', { zero: value == '0' }]">
             {{ value }}
-            <IconClayCalculator
+            <IconKlayCalculator
               v-if="label === 'annualPercentageRate'"
               v-bem="'stats-item-calculator'"
             />
@@ -209,7 +209,7 @@ async function handleModalClose() {
             :disabled="true"
           />
           <div v-bem="'staked-input-label'">
-            {{ t('StakingModulePool.staked', { symbol: pool.stakeToken.symbol }) }}
+            {{ t('ModuleStakingPool.staked', { symbol: pool.stakeToken.symbol }) }}
           </div>
           <div v-bem="'staked-input-buttons'">
             <SButton
@@ -246,7 +246,7 @@ async function handleModalClose() {
             :disabled="true"
           />
           <div v-bem="'earned-input-label'">
-            {{ t('StakingModulePool.earned', { symbol: pool.rewardToken.symbol }) }}
+            {{ t('ModuleStakingPool.earned', { symbol: pool.rewardToken.symbol }) }}
           </div>
           <div v-bem="'earned-input-buttons'">
             <SButton
@@ -305,7 +305,7 @@ async function handleModalClose() {
     </div>
   </KlayAccordionItem>
 
-  <StakingModuleModal
+  <ModuleStakingModal
     v-model="modelOpen"
     :pool="pool"
     :operation="modalOperation"
@@ -318,7 +318,7 @@ async function handleModalClose() {
 <style lang="sass">
 @import '@/styles/vars.sass'
 
-.staking-module-pool
+.module-staking-pool
   &__head
     display: flex
     align-items: center

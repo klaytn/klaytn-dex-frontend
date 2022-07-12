@@ -1,5 +1,7 @@
 // enable debug
-localStorage.debug = '*'
+if (import.meta.env.DEV) {
+  localStorage.debug = '*'
+}
 
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'

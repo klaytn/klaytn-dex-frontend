@@ -67,7 +67,7 @@ const paginatedPools = computed<Pool[] | null>(() => {
 <style lang="sass">
 $padding-bottom: 19px
 
-.farming-module
+.module-farming
   flex: 1
   display: flex
   flex-direction: column
