@@ -1,5 +1,4 @@
-FORMATTED_BIG_INT_DECIMALSFARMING_CONTRACT_ADDRESS
-<script setup lang="ts" name="FarmingModulePool">
+<script setup lang="ts">
 import { Status } from '@soramitsu-ui/ui'
 import { RouteName } from '@/types'
 import { FARMING } from '@/core/kaikas/smartcontracts/abi'

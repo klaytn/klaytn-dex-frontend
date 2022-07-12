@@ -1,4 +1,3 @@
-LiquidityPairsPositionItem
 <script setup lang="ts">
 import { roundTo } from 'round-to'
 import { toRefs } from '@vueuse/core'
@@ -46,10 +45,10 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
     <template #head>
       <div class="pair--head">
         <div class="pair--icon-f">
-          <KlayCharAvatar :content="getTokenSymbol('token0')" />
+          <KlayCharAvatar :symbol="getTokenSymbol('token0')" />
         </div>
         <div class="pair--icon-s">
-          <KlayCharAvatar :content="getTokenSymbol('token1')" />
+          <KlayCharAvatar :symbol="getTokenSymbol('token1')" />
         </div>
 
         <span class="pair--names"> {{ name }} </span>
