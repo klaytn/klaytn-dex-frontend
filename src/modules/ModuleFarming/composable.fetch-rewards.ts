@@ -3,8 +3,9 @@ import invariant from 'tiny-invariant'
 import { Except } from 'type-fest'
 import { GenericFetchRewardsProps, useFetchRewards } from '../ModuleFarmingStakingShared/composable.fetch-rewards'
 import { FARMING_CONTRACT_ADDRESS } from './const'
+import { PoolId } from './types'
 
-export function useFetchFarmingRewards(props: Except<GenericFetchRewardsProps, 'prepareCalls'>) {
+export function useFetchFarmingRewards(props: Except<GenericFetchRewardsProps<PoolId>, 'prepareCalls'>) {
   /**
    * FIXME describe magic constant
    */

@@ -100,7 +100,11 @@ function unstake() {
 const withdrawTask = useTask(async () => {
   const kaikas = kaikasStore.getKaikasAnyway()
 
-  const FarmingContract = kaikas.cfg.createContract<Farming>(props.pool.id, FARMING)
+  const FarmingContract = kaikas.cfg.createContract<Farming>(
+    // FIXME wtf?
+    props.pool.id,
+    FARMING,
+  )
 
   const earned = pool.value.earned
   const gasPrice = await kaikas.cfg.getGasPrice()

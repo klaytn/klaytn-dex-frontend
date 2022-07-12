@@ -1,9 +1,10 @@
 import { Address } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
+import { PoolId } from '../ModuleFarmingStakingShared/types'
 export * from '../ModuleFarmingStakingShared/types'
 
 export interface Pool {
-  id: Address
+  id: PoolId
   name: string
   pairId: Address
   staked: BigNumber

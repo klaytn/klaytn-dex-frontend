@@ -1,6 +1,12 @@
 import { Address, ValueWei } from '@/core/kaikas'
+import { Opaque } from 'type-fest'
 
-export type Rewards = Record<Address, ValueWei<string> | undefined>
+/**
+ * Stringified number
+ */
+export type PoolId = Opaque<string, 'PoolId'>
+
+export type Rewards<T extends Address | PoolId> = Record<T, ValueWei<string> | undefined>
 
 export const ModalOperation = {
   Stake: 'stake',

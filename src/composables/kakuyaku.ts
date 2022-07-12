@@ -6,9 +6,18 @@ export function useTaskLog(task: Task<unknown>, name: string) {
   const debug = Debug('kakuyaku').extend(name)
 
   watchEffect(() => {
-    debug('state: %o', { ...task.state })
-    if (task.state.kind === 'err') {
-      console.error(`Task "${name}" errored:`, task.state.error)
+    const state = task.state
+    if (state.kind !== 'uninit') {
+      if (state.kind === 'ok') {
+        debug('ok: %o', state.data)
+      } else if (state.kind === 'err') {
+        debug('err: %o', state.error)
+        console.error(`Task "${name}" errored:`, state.error)
+      } else if (state.kind === 'pending') {
+        debug('pending...')
+      } else {
+        debug('aborted')
+      }
     }
   })
 

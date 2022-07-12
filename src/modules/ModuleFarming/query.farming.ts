@@ -3,6 +3,7 @@ import { useQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
 import { FARMING_CONTRACT_ADDRESS, REFETCH_FARMING_INTERVAL } from './const'
+import { PoolId } from './types'
 
 export interface FarmingQueryResult {
   farming: {
@@ -10,7 +11,7 @@ export interface FarmingQueryResult {
     poolCount: number
     totalAllocPoint: string
     pools: {
-      id: Address
+      id: PoolId
       pair: Address
       bonusMultiplier: string
       /**

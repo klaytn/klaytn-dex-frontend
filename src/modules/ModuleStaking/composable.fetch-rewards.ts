@@ -2,8 +2,9 @@ import { Except } from 'type-fest'
 import { GenericFetchRewardsProps, useFetchRewards } from '../ModuleFarmingStakingShared/composable.fetch-rewards'
 import { STAKING } from '@/core/kaikas/smartcontracts/abi'
 import invariant from 'tiny-invariant'
+import { Address } from '@/core/kaikas'
 
-export function useFetchStakingRewards(props: Except<GenericFetchRewardsProps, 'prepareCalls'>) {
+export function useFetchStakingRewards(props: Except<GenericFetchRewardsProps<Address>, 'prepareCalls'>) {
   const abiItem = STAKING.find((item) => item.name === 'pendingReward')
   invariant(abiItem)
 
