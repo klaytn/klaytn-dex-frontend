@@ -106,6 +106,7 @@ function doImport() {
   <SModal v-model:show="openModel">
     <KlayModalCard
       style="width: 344px"
+      no-padding
       title="Select a token"
       class="flex flex-col min-h-0 pt-5 h-90vh"
     >

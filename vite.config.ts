@@ -85,7 +85,13 @@ export default defineConfig({
     AutoImport({
       imports: ['vue', 'vue-router', 'vue-i18n', 'vue/macros', '@vueuse/head', '@vueuse/core'],
       dts: 'src/auto-imports.d.ts',
-      dirs: ['src/composables', 'src/store', 'src/modules/ModuleFarming/store', 'src/modules/ModuleStaking/store'],
+      dirs: [
+        'src/composables',
+        'src/store',
+        'src/modules/ModuleFarming/store',
+        'src/modules/ModuleStaking/store',
+        'src/modules/ModuleSwap/store',
+      ],
       vueTemplate: true,
       eslintrc: {
         enabled: true,
@@ -171,7 +177,7 @@ export default defineConfig({
 
   // https://github.com/vitest-dev/vitest
   test: {
-    include: ['test/**/*.test.ts'],
+    include: ['src/**/*.spec.ts'],
     includeSource: ['src/**/*.ts'],
     environment: 'jsdom',
     deps: {

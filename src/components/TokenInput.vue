@@ -12,11 +12,14 @@ const props = withDefaults(
     isLoading?: boolean
     isDisabled?: boolean
     setByBalance?: boolean
+    // FIXME not by design
+    estimated?: boolean
   }>(),
   {
     isLoading: false,
     isDisabled: false,
     setByBalance: false,
+    estimated: false,
   },
 )
 
@@ -79,19 +82,20 @@ function setToMax() {
   >
     <div class="flex items-center space-x-2">
       <div class="flex-1">
-        <KlayLoader
-          v-if="isLoading"
-          color="gray"
-        />
-
         <input
-          v-else-if="token"
+          v-if="token"
           v-bind="$attrs"
           v-model="model"
           :disabled="isDisabled"
           placeholder="0"
         >
       </div>
+
+      <KlayLoader
+        v-if="isLoading"
+        color="gray"
+        size="24"
+      />
 
       <KlayButton
         v-if="showMaxButton"
@@ -107,7 +111,14 @@ function setToMax() {
       </div>
     </div>
 
-    <div class="flex">
+    <div class="flex items-center">
+      <div
+        v-if="estimated"
+        class="text-xs text-orange-700"
+      >
+        estimated *
+      </div>
+
       <div class="flex-1" />
 
       <div
