@@ -120,6 +120,7 @@ export const useLiquidityPairsStore = defineStore('liquidity-pairs', () => {
         }),
         () => ({
           enabled: !!kaikasStore.address,
+          clientId: 'exchange',
         }),
       )
 

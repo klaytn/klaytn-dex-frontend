@@ -1,18 +1,17 @@
+FORMATTED_BIG_INT_DECIMALSFARMING_CONTRACT_ADDRESS
 <script setup lang="ts" name="FarmingModulePool">
 import { Status } from '@soramitsu-ui/ui'
-
 import { RouteName } from '@/types'
-import farmingAbi from '@/utils/smartcontracts/farming.json'
-
+import { FARMING } from '@/core/kaikas/smartcontracts/abi'
 import { ModalOperation, Pool } from './types'
-import { MAX_UINT256, formattedBigIntDecimals, farmingContractAddress } from './const'
-import kip7 from '@/utils/smartcontracts/kip-7.json'
-import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
-import { AbiItem } from 'caver-js'
+import { MAX_UINT256, FORMATTED_BIG_INT_DECIMALS, FARMING_CONTRACT_ADDRESS } from './const'
 import { Farming } from '@/types/typechain/farming'
+import BigNumber from 'bignumber.js'
+import { useTask, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
+import { asWei } from '@/core/kaikas'
 
-const { caver } = window
-const config = useConfigWithConnectedKaikas()
+const kaikasStore = useKaikasStore()
+
 const vBem = useBemClass()
 const router = useRouter()
 const { t } = useI18n()
@@ -27,9 +26,6 @@ const emit = defineEmits<{
 }>()
 
 const expanded = ref(false)
-const enabled = ref(false)
-const checkEnabledInProgress = ref(false)
-const checkEnabledCompleted = ref(false)
 const modalOperation = ref<ModalOperation | null>(null)
 
 const modelOpen = computed({
@@ -46,23 +42,23 @@ const iconChars = computed(() => {
 })
 
 const formattedStaked = computed(() => {
-  return $kaikas.bigNumber(pool.value.staked.toFixed(formattedBigIntDecimals))
+  return new BigNumber(pool.value.staked.toFixed(FORMATTED_BIG_INT_DECIMALS))
 })
 
 const formattedEarned = computed(() => {
-  return $kaikas.bigNumber(pool.value.earned.toFixed(formattedBigIntDecimals))
+  return new BigNumber(pool.value.earned.toFixed(FORMATTED_BIG_INT_DECIMALS))
 })
 
 const formattedAnnualPercentageRate = computed(() => {
-  return '%' + $kaikas.bigNumber(pool.value.annualPercentageRate.toFixed(formattedBigIntDecimals))
+  return '%' + new BigNumber(pool.value.annualPercentageRate.toFixed(FORMATTED_BIG_INT_DECIMALS))
 })
 
 const formattedLiquidity = computed(() => {
-  return '$' + $kaikas.bigNumber(pool.value.liquidity.toFixed(0))
+  return '$' + new BigNumber(pool.value.liquidity.toFixed(0))
 })
 
 const formattedMultiplier = computed(() => {
-  return 'x' + $kaikas.bigNumber(pool.value.multiplier.toFixed(formattedBigIntDecimals))
+  return 'x' + new BigNumber(pool.value.multiplier.toFixed(FORMATTED_BIG_INT_DECIMALS))
 })
 
 const stats = computed(() => {
@@ -78,46 +74,36 @@ function goToLiquidityAddPage(pairId: Pool['pairId']) {
   router.push({ name: RouteName.LiquidityAdd, params: { id: pairId } })
 }
 
-async function checkEnabled() {
-  if (!enabled.value && !checkEnabledInProgress.value && !checkEnabledCompleted.value) {
-    try {
-      checkEnabledInProgress.value = true
+const checkEnabledTask = useTask(async () => {
+  const allowance = await kaikasStore.getKaikasAnyway().cfg.getAllowance(pool.value.pairId, FARMING_CONTRACT_ADDRESS)
+  const isEnabled = new BigNumber(allowance).isEqualTo(MAX_UINT256)
+  return isEnabled
+})
+useTaskLog(checkEnabledTask, 'farming-pool-enabled-check')
+wheneverTaskErrors(checkEnabledTask, () => {
+  $notify({ status: Status.Error, description: 'Fetch enabled pools error' })
+})
+const checkEnabledInProgress = computed(() => checkEnabledTask.state.kind === 'pending')
+whenever(expanded, () => checkEnabledTask.run())
 
-      const allowance = await config.getAllowance(pool.value.pairId, kip7.abi as AbiItem[], farmingContractAddress)
+const enableTask = useTask(async () => {
+  const kaikas = kaikasStore.getKaikasAnyway()
+  await kaikas.cfg.approveAmount(pool.value.pairId, asWei(MAX_UINT256.toFixed()), FARMING_CONTRACT_ADDRESS)
+})
+useTaskLog(enableTask, 'farming-pool-enable')
+wheneverTaskErrors(enableTask, () => {
+  $notify({ status: Status.Error, description: 'Approve amount error' })
+})
+const enable = () => enableTask.run()
 
-      enabled.value = $kaikas.bigNumber(allowance).isEqualTo(MAX_UINT256)
-
-      checkEnabledInProgress.value = false
-      checkEnabledCompleted.value = true
-    } catch (e) {
-      console.error(e)
-      $notify({ status: Status.Error, description: 'Fetch enabled pools error' })
-      throw new Error('Error')
-    }
-  }
-}
-
-async function enable() {
-  try {
-    await config.approveAmount(pool.value.pairId, kip7.abi as AbiItem[], MAX_UINT256.toFixed(), farmingContractAddress)
-
-    enabled.value = true
-  } catch (e) {
-    console.error(e)
-    $notify({ status: Status.Error, description: 'Approve amount error' })
-    throw new Error('Error')
-  }
-}
-
-watch(expanded, (value) => {
-  if (value) checkEnabled()
+const enabled = computed(() => {
+  return enableTask.state.kind === 'ok' || (checkEnabledTask.state.kind === 'ok' && checkEnabledTask.state.data)
 })
 
 const loading = computed(() => {
+  // FIXME include "enableTask" pending here too?
   return checkEnabledInProgress.value
 })
-
-const FarmingContract = $kaikas.config.createContract<Farming>(farmingContractAddress, farmingAbi.abi as AbiItem[])
 
 function stake() {
   modalOperation.value = ModalOperation.Stake
@@ -127,40 +113,47 @@ function unstake() {
   modalOperation.value = ModalOperation.Unstake
 }
 
-async function withdraw() {
-  try {
-    const earned = pool.value.earned
-    const gasPrice = await caver.klay.getGasPrice()
-    const withdraw = FarmingContract.methods.withdraw(props.pool.id, 0)
-    const estimateGas = await withdraw.estimateGas({
-      from: config.address,
-      gasPrice,
-    })
-    await withdraw.send({
-      from: config.address,
-      gas: estimateGas,
-      gasPrice,
-    })
-    emit('withdrawn')
-    $notify({ status: Status.Success, description: `${earned} DEX tokens were withdrawn` })
-  } catch (e) {
-    console.error(e)
-    $notify({ status: Status.Error, description: 'Withdraw DEX tokens error' })
-    throw new Error('Error')
-  }
-}
+const withdrawTask = useTask(async () => {
+  const kaikas = kaikasStore.getKaikasAnyway()
 
-async function handleStaked(amount: string) {
+  const FarmingContract = kaikas.cfg.createContract<Farming>(props.pool.id, FARMING)
+
+  const earned = pool.value.earned
+  const gasPrice = await kaikas.cfg.getGasPrice()
+  const withdraw = FarmingContract.methods.withdraw(props.pool.id, 0)
+  const estimateGas = await withdraw.estimateGas({
+    from: kaikas.selfAddress,
+    gasPrice,
+  })
+  await withdraw.send({
+    from: kaikas.selfAddress,
+    gas: estimateGas,
+    gasPrice,
+  })
+
+  return { earned }
+})
+useTaskLog(withdrawTask, 'farming-pool-withdraw')
+wheneverTaskSucceeds(withdrawTask, ({ earned }) => {
+  emit('withdrawn')
+  $notify({ status: Status.Success, description: `${earned} DEX tokens were withdrawn` })
+})
+wheneverTaskErrors(withdrawTask, () => {
+  $notify({ status: Status.Error, description: 'Withdraw DEX tokens error' })
+})
+const withdraw = () => withdrawTask.run()
+
+function handleStaked(amount: string) {
   modalOperation.value = null
   emit('staked', amount)
 }
 
-async function handleUnstaked(amount: string) {
+function handleUnstaked(amount: string) {
   modalOperation.value = null
   emit('unstaked', amount)
 }
 
-async function handleModalClose() {
+function handleModalClose() {
   modalOperation.value = null
 }
 </script>
@@ -177,7 +170,7 @@ async function handleModalClose() {
             v-for="(char, index) in iconChars"
             :key="index"
             v-bem="'icon'"
-            :char="char"
+            :content="char"
           />
         </div>
         <div v-bem="'name'">
@@ -218,7 +211,7 @@ async function handleModalClose() {
           <KlayTextField
             v-bem="'staked-input'"
             :model-value="formattedStaked"
-            :disabled="true"
+            disabled
           />
           <div v-bem="'staked-input-label'">
             Staked LP Tokes
@@ -245,7 +238,7 @@ async function handleModalClose() {
           <KlayTextField
             v-bem="'earned-input'"
             :model-value="formattedEarned"
-            :disabled="true"
+            disabled
           />
           <div v-bem="'earned-input-label'">
             Earned DEX Tokens
@@ -269,13 +262,15 @@ async function handleModalClose() {
       <div v-bem="'links'">
         <a
           v-bem="'link'"
-          :href="`https://baobab.klaytnfinder.io/account/${farmingContractAddress}`"
+          target="_blank"
+          :href="`https://baobab.klaytnfinder.io/account/${FARMING_CONTRACT_ADDRESS}`"
         >
           View Contract
           <IconKlayLink v-bem="'link-icon'" />
         </a>
         <a
           v-bem="'link'"
+          target="_blank"
           :href="`https://baobab.klaytnfinder.io/account/${pool.pairId}?tabId=tokenBalance`"
         >
           See Pair Info
@@ -291,7 +286,7 @@ async function handleModalClose() {
     </div>
   </KlayAccordionItem>
 
-  <FarmingModuleModal
+  <ModuleFarmingModal
     v-model="modelOpen"
     :pool="pool"
     :operation="modalOperation"

@@ -1,5 +1,8 @@
 import { ValueWei, fromWei } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
+import rfdc from 'rfdc'
+
+const reallyFastDeepClone = rfdc()
 
 // FIXME v1 & v2 values comes from `Token.value`. What type is it?
 
@@ -22,6 +25,10 @@ export function formatWeiValue(value: ValueWei<string>): string {
   if (!value) return '-'
   const bn = new BigNumber(fromWei(value))
   return bn.toFixed(4)
+}
+
+export function deepClone<T>(object: T): T {
+  return reallyFastDeepClone(object)
 }
 
 if (import.meta.vitest) {

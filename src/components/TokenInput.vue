@@ -110,16 +110,16 @@ function setToMax() {
     <div class="flex">
       <div class="flex-1" />
 
-      <KlayTextField
-        :title="balance"
+      <div
+        :title="balance?.toFixed()"
         class="balance flex space-x-2"
       >
         <span>
           <template v-if="isKaikasConnected"> Balance: {{ balanceFormatted }} </template>
           <template v-else> Balance: Connect Wallet </template>
         </span>
-        <IconKlayInfo class="m-0" />
-      </KlayTextField>
+        <IconKlayImportant />
+      </div>
 
       <!-- <div
           v-if="tokenData"

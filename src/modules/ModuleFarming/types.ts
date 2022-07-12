@@ -1,4 +1,4 @@
-import { Address } from '@/types'
+import { Address } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
 
 export interface FarmingQueryResult {
@@ -54,18 +54,22 @@ export interface Pool {
   createdAtBlock: number
 }
 
-export type Rewards = Record<Pool['id'], string | undefined>
+export type Rewards = Record<Address, string | undefined>
 
-export enum ModalOperation {
-  Stake = 'stake',
-  Unstake = 'unstake',
-}
+export const ModalOperation = {
+  Stake: 'stake',
+  Unstake: 'unstake',
+} as const
 
-export enum Sorting {
-  Default = 'default',
-  Liquidity = 'liquidity',
-  AnnualPercentageRate = 'annualPercentageRate',
-  Multiplier = 'multiplier',
-  Earned = 'earned',
-  Latest = 'latest',
-}
+export type ModalOperation = typeof ModalOperation[keyof typeof ModalOperation]
+
+export const Sorting = {
+  Default: 'default',
+  Liquidity: 'liquidity',
+  AnnualPercentageRate: 'annualPercentageRate',
+  Multiplier: 'multiplier',
+  Earned: 'earned',
+  Latest: 'latest',
+} as const
+
+export type Sorting = typeof Sorting[keyof typeof Sorting]

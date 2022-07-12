@@ -7,6 +7,8 @@ import { SSwitch } from '@soramitsu-ui/ui'
 </template>
 
 <style lang="scss">
+@import '@/styles/vars';
+
 .klay-switch.s-switch {
   &__button {
     background-color: $gray5 !important;

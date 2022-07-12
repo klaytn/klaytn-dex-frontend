@@ -50,7 +50,7 @@ function onSelect(token: Address) {
       @click="isModalOpen = true"
     >
       <template v-if="tokenData">
-        <KlayCharAvatar :char="tokenData.symbol[0]" />
+        <KlayCharAvatar :content="tokenData.symbol" />
         <span>
           {{ tokenData.symbol }}
         </span>

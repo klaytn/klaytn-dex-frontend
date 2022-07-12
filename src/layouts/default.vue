@@ -86,7 +86,7 @@ onMounted(connect)
       </div>
     </header>
 
-    <!-- <RouterView /> -->
+    <RouterView />
   </main>
 </template>
 

@@ -14,6 +14,8 @@ import { STextField } from '@soramitsu-ui/ui'
 </template>
 
 <style lang="scss">
+@import '@/styles/vars';
+
 .s-text-field {
   &__input-wrapper {
     background: $gray6;

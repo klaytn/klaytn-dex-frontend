@@ -1,41 +1,51 @@
 <script setup lang="ts" name="FarmingModuleStakeModal">
-import { Status } from '@soramitsu-ui/ui'
-import { AbiItem } from 'caver-js'
-
+import { Status, SModal } from '@soramitsu-ui/ui'
 import { ModalOperation, Pool } from './types'
-import { farmingContractAddress, formattedBigIntDecimals } from './const'
-
+import { FARMING_CONTRACT_ADDRESS, FORMATTED_BIG_INT_DECIMALS } from './const'
+import BigNumber from 'bignumber.js'
 import { Farming } from '@/types/typechain/farming'
-import farmingAbi from '@/utils/smartcontracts/farming.json'
-import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
+import { FARMING } from '@/core/kaikas/smartcontracts/abi'
+import { useTask, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
+import invariant from 'tiny-invariant'
+import { farmingToWei } from './utils'
 
-const { caver } = window
-const config = useConfigWithConnectedKaikas()
+const kaikasStore = useKaikasStore()
+
+const FarmingContract = computed(() =>
+  kaikasStore.kaikas?.cfg.createContract<Farming>(FARMING_CONTRACT_ADDRESS, FARMING),
+)
+const contractAnyway = () => {
+  const item = FarmingContract.value
+  invariant(item)
+  return item
+}
+
 const vBem = useBemClass()
 
 const props = defineProps<{
+  modelValue: boolean
   pool: Pool
   operation: ModalOperation
 }>()
 const { pool, operation } = toRefs(props)
 const emit = defineEmits<{
-  (e: 'close'): void
+  (e: 'update:modelValue', value: boolean): void
   (e: 'staked' | 'unstaked', value: string): void
 }>()
 
+const show = useVModel(props, 'modelValue', emit)
 const value = ref('0')
-const loading = ref(false)
 
 const iconChars = computed(() => {
   return pool.value.name.split('-').map((tokenName) => tokenName[0])
 })
 
 const formattedStaked = computed(() => {
-  return $kaikas.bigNumber(pool.value.staked.toFixed(formattedBigIntDecimals))
+  return new BigNumber(pool.value.staked.toFixed(FORMATTED_BIG_INT_DECIMALS))
 })
 
 const formattedBalance = computed(() => {
-  return $kaikas.bigNumber(pool.value.balance.toFixed(formattedBigIntDecimals))
+  return new BigNumber(pool.value.balance.toFixed(FORMATTED_BIG_INT_DECIMALS))
 })
 
 const label = computed(() => {
@@ -52,11 +62,11 @@ const label = computed(() => {
 
 const notEnough = computed(() => {
   let compareValue = operation.value === ModalOperation.Stake ? pool.value.balance : pool.value.staked
-  return $kaikas.bigNumber(value.value).comparedTo(compareValue) === 1
+  return new BigNumber(value.value).comparedTo(compareValue) === 1
 })
 
 const lessThenZero = computed(() => {
-  return $kaikas.bigNumber(value.value).comparedTo(0) === -1
+  return new BigNumber(value.value).comparedTo(0) === -1
 })
 
 const disabled = computed(() => {
@@ -67,63 +77,62 @@ function setMax() {
   value.value = `${pool.value.balance}`
 }
 
-const FarmingContract = $kaikas.config.createContract<Farming>(farmingContractAddress, farmingAbi.abi as AbiItem[])
+const stakeTask = useTask(async () => {
+  const kaikas = kaikasStore.getKaikasAnyway()
+  const FarmingContract = contractAnyway()
 
-async function stake() {
-  try {
-    loading.value = true
-    const amount = value.value
-    const gasPrice = await caver.klay.getGasPrice()
-    const deposit = FarmingContract.methods.deposit(props.pool.id, $kaikas.utils.toWei(amount))
-    const estimateGas = await deposit.estimateGas({
-      from: config.address,
-      gasPrice,
-    })
-    const receipt = await deposit.send({
-      from: config.address,
-      gas: estimateGas,
-      gasPrice,
-    })
-    if (receipt.status === false) throw new Error('Transaction error')
+  const amount = value.value
+  const gasPrice = await kaikas.cfg.getGasPrice()
+  const deposit = FarmingContract.methods.deposit(props.pool.id, farmingToWei(amount))
+  const estimateGas = await deposit.estimateGas({
+    from: kaikas.selfAddress,
+    gasPrice,
+  })
+  const receipt = await deposit.send({
+    from: kaikas.selfAddress,
+    gas: estimateGas,
+    gasPrice,
+  })
+  if (receipt.status === false) throw new Error('Transaction error')
 
-    $notify({ status: Status.Success, description: `${amount} LP tokens were staked` })
-    emit('staked', amount)
-  } catch (e) {
-    console.error(e)
-    $notify({ status: Status.Error, description: 'Stake LP tokens error' })
-    throw new Error('Error')
-  } finally {
-    loading.value = false
-  }
-}
+  return { amount }
+})
+wheneverTaskSucceeds(stakeTask, ({ amount }) => {
+  $notify({ status: Status.Success, description: `${amount} LP tokens were staked` })
+  emit('staked', amount)
+})
+useNotifyOnError(stakeTask, 'Stake LP tokens error')
+const stake = () => stakeTask.run()
 
-async function unstake() {
-  try {
-    loading.value = true
-    const amount = value.value
-    const gasPrice = await caver.klay.getGasPrice()
-    const withdraw = FarmingContract.methods.withdraw(props.pool.id, $kaikas.utils.toWei(amount))
-    const estimateGas = await withdraw.estimateGas({
-      from: config.address,
-      gasPrice,
-    })
-    await withdraw.send({
-      from: config.address,
-      gas: estimateGas,
-      gasPrice,
-    })
-    $notify({ status: Status.Success, description: `${amount} LP tokens were unstaked` })
-    emit('unstaked', amount)
-  } catch (e) {
-    console.error(e)
-    $notify({ status: Status.Error, description: 'Unstake LP tokens error' })
-    throw new Error('Error')
-  } finally {
-    loading.value = false
-  }
-}
+const unstakeTask = useTask(async () => {
+  const kaikas = kaikasStore.getKaikasAnyway()
+  const FarmingContract = contractAnyway()
 
-async function confirm() {
+  const amount = value.value
+  const gasPrice = await kaikas.cfg.getGasPrice()
+  const withdraw = FarmingContract.methods.withdraw(props.pool.id, farmingToWei(amount))
+  const estimateGas = await withdraw.estimateGas({
+    from: kaikas.selfAddress,
+    gasPrice,
+  })
+  await withdraw.send({
+    from: kaikas.selfAddress,
+    gas: estimateGas,
+    gasPrice,
+  })
+
+  return { amount }
+})
+wheneverTaskSucceeds(unstakeTask, ({ amount }) => {
+  $notify({ status: Status.Success, description: `${amount} LP tokens were unstaked` })
+  emit('unstaked', amount)
+})
+useNotifyOnError(unstakeTask, 'Unstake LP tokens error')
+const unstake = () => unstakeTask.run()
+
+const loading = computed(() => stakeTask.state.kind === 'pending' || unstakeTask.state.kind === 'pending')
+
+function confirm() {
   switch (operation.value) {
     case ModalOperation.Stake:
       stake()
@@ -136,65 +145,66 @@ async function confirm() {
 </script>
 
 <template>
-  <KlayModal
-    width="420"
-    :label="label"
-    @close="emit('close')"
-  >
-    <div v-bem="'row'">
-      <div v-bem="'input-wrapper'">
-        <KlayTextField
-          v-model="value"
-          v-bem="'input'"
-        />
-        <div v-bem="'info'">
-          <KlayButton
-            v-bem="'max'"
-            type="primary"
-            size="xs"
-            @click="setMax"
+  <SModal v-model:show="show">
+    <KlayModalCard
+      class="w-[420px]"
+      :title="label"
+    >
+      <div v-bem="'row'">
+        <div v-bem="'input-wrapper'">
+          <KlayTextField
+            v-model="value"
+            v-bem="'input'"
+          />
+          <div v-bem="'info'">
+            <KlayButton
+              v-bem="'max'"
+              type="primary"
+              size="xs"
+              @click="setMax"
+            >
+              MAX
+            </KlayButton>
+            <div v-bem="'pair-icons'">
+              <KlayCharAvatar
+                v-for="(char, index) in iconChars"
+                :key="index"
+                v-bem="'pair-icon'"
+                :content="char"
+              />
+            </div>
+            <div v-bem="'pair-name'">
+              {{ pool.name }}
+            </div>
+          </div>
+          <div
+            v-if="operation === ModalOperation.Stake"
+            v-bem="'balance'"
           >
-            MAX
-          </KlayButton>
-          <div v-bem="'pair-icons'">
-            <KlayCharAvatar
-              v-for="(char, index) in iconChars"
-              :key="index"
-              v-bem="'pair-icon'"
-              :char="char"
-            />
+            Balance: {{ formattedBalance }}
           </div>
-          <div v-bem="'pair-name'">
-            {{ pool.name }}
+          <div
+            v-if="operation === ModalOperation.Unstake"
+            v-bem="'staked'"
+          >
+            Staked: {{ formattedStaked }}
           </div>
-        </div>
-        <div
-          v-if="operation === ModalOperation.Stake"
-          v-bem="'balance'"
-        >
-          Balance: {{ formattedBalance }}
-        </div>
-        <div
-          v-if="operation === ModalOperation.Unstake"
-          v-bem="'staked'"
-        >
-          Staked: {{ formattedStaked }}
         </div>
       </div>
-    </div>
-    <div v-bem="'row'">
-      <KlayButton
-        v-bem="'confirm'"
-        type="primary"
-        size="lg"
-        :disabled="disabled"
-        :loading="loading"
-        @click="confirm"
-      >
-        Confirm
-      </KlayButton>
-    </div>
-  </KlayModal>
+      <div v-bem="'row'">
+        <KlayButton
+          v-bem="'confirm'"
+          type="primary"
+          size="lg"
+          :disabled="disabled"
+          :loading="loading"
+          @click="confirm"
+        >
+          Confirm
+        </KlayButton>
+      </div>
+    </KlayModalCard>
+  </SModal>
 </template>
 
 <style lang="sass">

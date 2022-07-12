@@ -5,5 +5,5 @@ name: Farms
 <script setup lang="ts" name="Farms" />
 
 <template>
-  <FarmingModule />
+  <ModuleFarming />
 </template>

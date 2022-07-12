@@ -27,7 +27,7 @@ const tokensResolved = reactive({
 })
 
 function getTokenSymbol(which: 'token0' | 'token1'): string {
-  return tokensResolved[which].symbol[0]
+  return tokensResolved[which].symbol
 }
 
 function formatValueRaw(value: LiquidityPairValueRaw) {
@@ -46,10 +46,10 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
     <template #head>
       <div class="pair--head">
         <div class="pair--icon-f">
-          <KlayCharAvatar :char="getTokenSymbol('token0')" />
+          <KlayCharAvatar :content="getTokenSymbol('token0')" />
         </div>
         <div class="pair--icon-s">
-          <KlayCharAvatar :char="getTokenSymbol('token1')" />
+          <KlayCharAvatar :content="getTokenSymbol('token1')" />
         </div>
 
         <span class="pair--names"> {{ name }} </span>

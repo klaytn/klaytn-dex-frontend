@@ -7,7 +7,7 @@ const firstCapital = computed(() => props.content?.slice(0, 1).toUpperCase())
 </script>
 
 <template>
-  <div>
+  <div class="w-6 h-6 rounded-full flex items-center justify-center">
     {{ firstCapital }}
   </div>
 </template>
@@ -16,14 +16,9 @@ const firstCapital = computed(() => props.content?.slice(0, 1).toUpperCase())
 @import '@/styles/vars';
 
 div {
-  width: 24px;
-  height: 24px;
-  background: $gray5;
-  border-radius: 50%;
   font-weight: 700;
-  text-align: center;
-  padding-top: 6px;
   font-size: 12px;
+  background: $gray5;
   border: 1px solid $gray4;
 }
 </style>

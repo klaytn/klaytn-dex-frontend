@@ -1,11 +1,13 @@
 <script setup lang="ts" name="EarnWrap">
-import { Sorting } from '@/modules/FarmingModule/types'
+import { Sorting } from '@/modules/ModuleFarming/types'
+import { storeToRefs } from 'pinia'
 
 const { t } = useI18n()
 const vBem = useBemClass()
 
+const kaikasStore = useKaikasStore()
 const farmingStore = useFarmingStore()
-const { stakedOnly, searchQuery, sorting } = toRefs(farmingStore)
+const { stakedOnly, searchQuery, sorting } = storeToRefs(farmingStore)
 
 const sortingOptions = computed(() => {
   return Object.values(Sorting).map((option) => ({
@@ -58,7 +60,10 @@ const menuActiveClass = 'earn-wrap__head-button--active'
         </template>
       </KlayTextField>
     </div>
-    <slot />
+
+    <template v-if="kaikasStore.isConnected">
+      <slot />
+    </template>
   </div>
 </template>
 

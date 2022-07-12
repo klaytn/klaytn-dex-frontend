@@ -127,7 +127,7 @@ function doImport() {
               :key="t.symbol"
               :label="t.symbol"
             >
-              <KlayCharAvatar :char="t.symbol[0]" />
+              <KlayCharAvatar :content="t.symbol" />
             </TagName>
           </div>
         </div>
@@ -138,7 +138,7 @@ function doImport() {
             class="list-item"
             @click="doImport()"
           >
-            <KlayCharAvatar :char="tokenToImport.symbol[0]" />
+            <KlayCharAvatar :content="tokenToImport.symbol" />
             <div class="info">
               <p class="token">
                 {{ tokenToImport.symbol }}
@@ -163,19 +163,19 @@ function doImport() {
               class="list-item"
               @click="selectToken(t.address)"
             >
-              <KlayCharAvatar :char="t.symbol[0]" />
+              <KlayCharAvatar :content="t.symbol" />
               <div class="info">
                 <p class="token">
                   {{ t.symbol }}
                 </p>
                 <span class="token-name">{{ t.name.toLowerCase() }}</span>
               </div>
-              <KlayTextField
+              <div
                 :title="`${t.balance ?? '-'} ${t.symbol}`"
                 class="token-count"
               >
                 {{ t.balance ? formatBalance(t.balance, t.decimals) : '-' }} {{ t.symbol }}
-              </KlayTextField>
+              </div>
             </div>
           </template>
         </div>

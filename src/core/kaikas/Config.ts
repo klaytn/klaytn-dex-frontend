@@ -6,6 +6,7 @@ import { type Klaytn, type Address, ValueWei } from './types'
 import { MAGIC_ROUTER_ADDR, MAGIC_FACTORY_ADDR, MAGIC_WETH_ADDR, MAGIC_GAS_PRICE } from './const'
 import { ROUTER, FACTORY, WETH, KIP7 as KIP7_ABI } from './smartcontracts/abi'
 import { KIP7 } from '@/types/typechain/tokens'
+import { asWei } from './utils'
 
 export default class Config {
   public static async connectKaikas(params?: ConnectParams): Promise<ConnectResult> {
@@ -67,16 +68,39 @@ export default class Config {
   /**
    * Uses KIP7 by default
    */
-  public async approveAmount(addr: Address, amountStr: ValueWei<string>): Promise<void> {
+  public async getAllowance(addr: Address, contractAddr = this.addrs.router): Promise<ValueWei<string>> {
     const contract = this.createContract<KIP7>(addr, KIP7_ABI)
-    await this.approveAmountWithExistingContract(contract, amountStr)
+    return this.getAllowanceWithContract(contract, contractAddr)
   }
 
-  public async approveAmountWithExistingContract(contract: KIP7 | DexPair, amountStr: ValueWei<string>): Promise<void> {
-    const allowanceStr = await contract.methods.allowance(this.addrs.self, this.addrs.router).call({
+  public async getAllowanceWithContract(
+    contract: KIP7 | DexPair,
+    contractAddr = this.addrs.router,
+  ): Promise<ValueWei<string>> {
+    const allowanceStr = await contract.methods.allowance(this.addrs.self, contractAddr).call({
       from: this.addrs.self,
     })
+    return asWei(allowanceStr)
+  }
 
+  /**
+   * Uses KIP7 by default
+   */
+  public async approveAmount(
+    addr: Address,
+    amountStr: ValueWei<string>,
+    contractAddr = this.addrs.router,
+  ): Promise<void> {
+    const contract = this.createContract<KIP7>(addr, KIP7_ABI)
+    await this.approveAmountWithContract(contract, amountStr, contractAddr)
+  }
+
+  public async approveAmountWithContract(
+    contract: KIP7 | DexPair,
+    amountStr: ValueWei<string>,
+    contractAddr = this.addrs.router,
+  ): Promise<void> {
+    const allowanceStr = await this.getAllowanceWithContract(contract, contractAddr)
     const amountBn = new BigNumber(amountStr)
     const allowanceBn = new BigNumber(allowanceStr)
 
@@ -90,6 +114,11 @@ export default class Config {
       gas,
       gasPrice: MAGIC_GAS_PRICE,
     })
+  }
+
+  public async getGasPrice(): Promise<ValueWei<string>> {
+    const gasPrice = await this.caver.klay.getGasPrice()
+    return asWei(gasPrice)
   }
 }
 

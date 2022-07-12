@@ -182,6 +182,7 @@
     "useMutationObserver": true,
     "useNavigatorLanguage": true,
     "useNetwork": true,
+    "useNotifyOnError": true,
     "useNow": true,
     "useOffsetPagination": true,
     "useOnline": true,
