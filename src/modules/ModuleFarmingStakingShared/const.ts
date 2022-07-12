@@ -9,7 +9,7 @@ export const FORMATTED_BIG_INT_DECIMALS = 6
 export const REFETCH_FARMING_INTERVAL = 10_000
 
 /** Defines the update interval of rewards in milliseconds */
-export const REFETCH_REWARDS_INTERVAL = 1_000
+export const REFETCH_REWARDS_INTERVAL = 10_000
 
 export const PAGE_SIZE = 10
 
