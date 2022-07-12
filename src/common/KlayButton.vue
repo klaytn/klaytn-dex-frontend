@@ -36,6 +36,18 @@ import { SButton } from '@soramitsu-ui/ui'
     background: $white;
     box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.15);
     color: $blue;
+
+    &.s-button_disabled {
+      background: $white;
+      color: $gray4;
+    }
+    &:not(.s-button_disabled) {
+      &:hover,
+      &:active {
+        color: $blue;
+        background: $white;
+      }
+    }
   }
   &_size_lg {
     border-radius: 16px;

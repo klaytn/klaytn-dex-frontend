@@ -1,18 +1,61 @@
 <script setup lang="ts" name="EarnWrap">
-import { Sorting } from '@/modules/ModuleFarming/types'
-import { storeToRefs } from 'pinia'
+import { Sorting as FarmingSorting } from '@/modules/ModuleFarming/types'
+import { Sorting as StakingSorting } from '@/modules/StakingModule/types'
+import { RouteName } from '@/types'
 
 const { t } = useI18n()
 const vBem = useBemClass()
 
 const kaikasStore = useKaikasStore()
 const farmingStore = useFarmingStore()
-const { stakedOnly, searchQuery, sorting } = storeToRefs(farmingStore)
+const stakingStore = useStakingStore()
+
+const route = useRoute()
+
+// FIXME mame variadic models less boilerplace
+
+const stakedOnly = computed({
+  get() {
+    if (route.name === RouteName.Farms) return farmingStore.stakedOnly
+    else return stakingStore.stakedOnly
+  },
+  set(value) {
+    if (route.name === RouteName.Farms) farmingStore.stakedOnly = value
+    else stakingStore.stakedOnly = value
+  },
+})
+
+const sorting = computed({
+  get() {
+    if (route.name === RouteName.Farms) return farmingStore.sorting
+    else return stakingStore.sorting
+  },
+  set(value: FarmingSorting | StakingSorting) {
+    if (route.name === RouteName.Farms) {
+      farmingStore.sorting = value as FarmingSorting
+    } else {
+      stakingStore.sorting = value as StakingSorting
+    }
+  },
+})
+
+const searchQuery = computed({
+  get() {
+    if (route.name === RouteName.Farms) return farmingStore.searchQuery
+    else return stakingStore.searchQuery
+  },
+  set(value) {
+    if (route.name === RouteName.Farms) farmingStore.searchQuery = value
+    else stakingStore.searchQuery = value
+  },
+})
 
 const sortingOptions = computed(() => {
-  return Object.values(Sorting).map((option) => ({
+  const values = route.name === RouteName.Farms ? Object.values(FarmingSorting) : Object.values(StakingSorting)
+
+  return values.map((option) => ({
     value: option,
-    label: t(`earnWrap.sorting.options.${option}`),
+    label: t(`EarnWrap.sorting.options.${option}`),
   }))
 })
 
@@ -27,14 +70,14 @@ const menuActiveClass = 'earn-wrap__head-button--active'
         to="/farms"
         :active-class="menuActiveClass"
       >
-        {{ t('earnWrap.menu.farms') }}
+        {{ t('EarnWrap.menu.farms') }}
       </RouterLink>
       <RouterLink
         v-bem="'head-button'"
         to="/pools"
         :active-class="menuActiveClass"
       >
-        {{ t('earnWrap.menu.pools') }}
+        {{ t('EarnWrap.menu.pools') }}
       </RouterLink>
       <KlaySwitch
         v-model="stakedOnly"
@@ -42,7 +85,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
         label="Staked only"
       />
       <span v-bem="'sorting-label'">
-        {{ t('earnWrap.sorting.label') }}
+        {{ t('EarnWrap.sorting.label') }}
       </span>
       <KlaySelect
         v-model="sorting"
@@ -127,6 +170,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
     &, .s-select-dropdown
       width: 160px
   &__search
+    width: 160px
     margin-left: 16px
     &, .s-text-field__input-wrapper
       height: 40px
@@ -136,7 +180,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
       left: 38px
       line-height: 16px
       color: $gray2
-    &:focus-within label
+    &:focus-within label, &:not(.s-text-field_empty) label
       transform: translateY(0)
       opacity: 0
     input

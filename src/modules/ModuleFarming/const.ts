@@ -11,7 +11,7 @@ export const REFETCH_FARMING_INTERVAL = 10_000
 /** Defines the update interval of rewards in milliseconds */
 export const REFETCH_REWARDS_INTERVAL = 1_000
 
-export const PAGE_SIZE = 3
+export const PAGE_SIZE = 10
 
 export const FARMING_CONTRACT_ADDRESS = '0x32bE07FB9dBf294c2e92715F562f7aBA02b7443A' as Address
 export const MULTICALL_CONTRACT_ADDRESS = '0xc88098CEaE07D1FE443372a0accC464A5fb94668' as Address

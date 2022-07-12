@@ -10,6 +10,9 @@ import { SSelect } from '@soramitsu-ui/ui'
 .klay-select {
   .s-select-dropdown {
     border-radius: 8px;
+    .s-select-option__content {
+      font-size: 14px;
+    }
   }
 }
 </style>

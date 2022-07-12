@@ -4,6 +4,10 @@ import { Opaque } from 'type-fest'
 
 export interface Klaytn {
   enable: () => Promise<Address[]>
+  /**
+   * FIXME
+   */
+  sendAsync: unknown
 }
 
 export interface Token {

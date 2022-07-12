@@ -209,6 +209,7 @@
     "useSlots": true,
     "useSpeechRecognition": true,
     "useSpeechSynthesis": true,
+    "useStakingStore": true,
     "useStorage": true,
     "useStorageAsync": true,
     "useStyleTag": true,

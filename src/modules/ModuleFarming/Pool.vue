@@ -37,8 +37,8 @@ const modelOpen = computed({
   },
 })
 
-const iconChars = computed(() => {
-  return pool.value.name.split('-').map((tokenName) => tokenName[0])
+const tokenSymbols = computed(() => {
+  return pool.value.name.split('-')
 })
 
 const formattedStaked = computed(() => {
@@ -167,10 +167,10 @@ function handleModalClose() {
       <div v-bem="'head'">
         <div v-bem="'icons'">
           <KlayCharAvatar
-            v-for="(char, index) in iconChars"
+            v-for="(symbol, index) in tokenSymbols"
             :key="index"
             v-bem="'icon'"
-            :content="char"
+            :symbol="symbol"
           />
         </div>
         <div v-bem="'name'">
@@ -182,7 +182,7 @@ function handleModalClose() {
           v-bem="'stats-item'"
         >
           <div v-bem="'stats-item-label'">
-            {{ t(`farmsPage.stats.${label}`) }}
+            {{ t(`FarmingModulePool.stats.${label}`) }}
           </div>
           <div v-bem="'stats-item-value'">
             {{ value }}
@@ -315,14 +315,18 @@ function handleModalClose() {
     display: flex
     flex-direction: column
     flex: 1
+    margin-bottom: 12px
     &-label
       font-weight: 500
       font-size: 12px
+      line-height: 14px
       color: $gray2
     &-value
       display: flex
       align-items: center
       font-size: 16px
+      line-height: 19px
+      margin-top: 4px
     &-calculator
       margin-left: 5px
       fill: $gray3

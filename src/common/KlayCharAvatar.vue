@@ -1,14 +1,32 @@
 <script setup lang="ts">
-const props = defineProps<{
-  content: string
-}>()
+import { stringHashForHsl } from '@/utils/common'
 
-const firstCapital = computed(() => props.content?.slice(0, 1).toUpperCase())
+const props = withDefaults(
+  defineProps<{
+    symbol?: string
+    saturation?: number
+    lightness?: number
+  }>(),
+  {
+    symbol: '',
+    saturation: 80,
+    lightness: 70,
+  },
+)
+
+const char = computed(() => {
+  return props.symbol[0] ?? ''
+})
+
+const hsl = computed(() => `hsl(${stringHashForHsl(props.symbol)}, ${props.saturation}%, ${props.lightness}%)`)
 </script>
 
 <template>
-  <div class="w-6 h-6 rounded-full flex items-center justify-center">
-    {{ firstCapital }}
+  <div
+    class="w-6 h-6 rounded-full flex items-center justify-center"
+    :style="{ background: hsl }"
+  >
+    {{ char }}
   </div>
 </template>
 

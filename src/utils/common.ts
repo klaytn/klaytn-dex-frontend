@@ -31,6 +31,13 @@ export function deepClone<T>(object: T): T {
   return reallyFastDeepClone(object)
 }
 
+export function stringHashForHsl(str: string): number {
+  return [...str].reduce((a, c) => {
+    const h = c.charCodeAt(0) + ((a << 4) - a)
+    return h % 360
+  }, 0)
+}
+
 if (import.meta.vitest) {
   const { test, expect, describe } = import.meta.vitest
 

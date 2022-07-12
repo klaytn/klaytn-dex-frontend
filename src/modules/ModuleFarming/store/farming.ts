@@ -386,7 +386,7 @@ function setupQueries({
 
     let filteredPools = [...pools.value]
 
-    if (stakedOnly.value) filteredPools = filteredPools.filter((pool) => pool.staked.comparedTo(0) !== 0)
+    if (stakedOnly.value) filteredPools = filteredPools.filter((pool) => !pool.staked.isZero())
 
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase()

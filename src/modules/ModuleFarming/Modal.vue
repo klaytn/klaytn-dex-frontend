@@ -37,7 +37,7 @@ const show = useVModel(props, 'modelValue', emit)
 const value = ref('0')
 
 const iconChars = computed(() => {
-  return pool.value.name.split('-').map((tokenName) => tokenName[0])
+  return pool.value.name.split('-')
 })
 
 const formattedStaked = computed(() => {
@@ -50,7 +50,7 @@ const formattedBalance = computed(() => {
 
 const label = computed(() => {
   if (operation.value === ModalOperation.Stake) {
-    if (pool.value.staked.comparedTo(0) === 0) {
+    if (pool.value.staked.isZero()) {
       return 'Stake LP tokens'
     } else {
       return 'Stake additional LP tokens'
@@ -62,15 +62,15 @@ const label = computed(() => {
 
 const notEnough = computed(() => {
   let compareValue = operation.value === ModalOperation.Stake ? pool.value.balance : pool.value.staked
-  return new BigNumber(value.value).comparedTo(compareValue) === 1
+  return new BigNumber(value.value).isGreaterThan(compareValue)
 })
 
-const lessThenZero = computed(() => {
-  return new BigNumber(value.value).comparedTo(0) === -1
+const lessThanOrEqualToZero = computed(() => {
+  return new BigNumber(value.value).isLessThanOrEqualTo(0)
 })
 
 const disabled = computed(() => {
-  return notEnough.value || lessThenZero.value
+  return notEnough.value || lessThanOrEqualToZero.value
 })
 
 function setMax() {
@@ -170,7 +170,7 @@ function confirm() {
                 v-for="(char, index) in iconChars"
                 :key="index"
                 v-bem="'pair-icon'"
-                :content="char"
+                :symbol="char"
               />
             </div>
             <div v-bem="'pair-name'">
