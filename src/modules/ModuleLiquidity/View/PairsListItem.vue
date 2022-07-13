@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { roundTo } from 'round-to'
 import { toRefs } from '@vueuse/core'
-import { LiquidityPairsPosition, LiquidityPairValueRaw } from '@/store/liquidity'
-import invariant from 'tiny-invariant'
+import { LiquidityPairsPosition, LiquidityPairValueRaw } from '../query.liquidity-pairs'
 import BigNumber from 'bignumber.js'
 
 const props = defineProps<{
@@ -10,24 +9,7 @@ const props = defineProps<{
 }>()
 
 const { liquidityTokenBalance, pair } = $(toRefs(toRef(props, 'data')))
-const { name, reserve0, reserve1, reserveKLAY, reserveUSD, id: pairId, totalSupply } = $(toRefs($$(pair)))
-
-const tokensStore = useTokensStore()
-
-const useTokenAnyway = (which: 'token0' | 'token1') =>
-  computed(() => {
-    const token = tokensStore.findTokenData(pair[which].id)
-    invariant(token, () => `Cannot find data for "${which}" (${pair[which].id})`)
-    return token
-  })
-const tokensResolved = reactive({
-  token0: useTokenAnyway('token0'),
-  token1: useTokenAnyway('token1'),
-})
-
-function getTokenSymbol(which: 'token0' | 'token1'): string {
-  return tokensResolved[which].symbol
-}
+const { name, reserve0, reserve1, reserveKLAY, reserveUSD, totalSupply, token0, token1 } = $(toRefs($$(pair)))
 
 function formatValueRaw(value: LiquidityPairValueRaw) {
   return roundTo(Number(value), 5)
@@ -45,10 +27,10 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
     <template #head>
       <div class="pair--head">
         <div class="pair--icon-f">
-          <KlayCharAvatar :symbol="getTokenSymbol('token0')" />
+          <KlayCharAvatar :symbol="token0.symbol" />
         </div>
         <div class="pair--icon-s">
-          <KlayCharAvatar :symbol="getTokenSymbol('token1')" />
+          <KlayCharAvatar :symbol="token1.symbol" />
         </div>
 
         <span class="pair--names"> {{ name }} </span>
@@ -63,13 +45,13 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
       <div class="pair--main">
         <div class="pair--info">
           <div class="pair--row">
-            <span>Pooled {{ tokensResolved.token0.name }}</span>
+            <span>Pooled {{ token0.name }}</span>
             <span>
               {{ formatValueRaw(reserve0) }}
             </span>
           </div>
           <div class="pair--row">
-            <span>Pooled {{ tokensResolved.token1.name }}</span>
+            <span>Pooled {{ token1.name }}</span>
             <span>
               {{ formatValueRaw(reserve1) }}
             </span>
