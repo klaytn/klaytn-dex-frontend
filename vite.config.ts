@@ -17,6 +17,7 @@ import UnoCSS from 'unocss/vite'
 import Icons from 'unplugin-icons/vite'
 import IconResolver from 'unplugin-icons/resolver'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
+import { RouteRecordRaw } from 'vue-router'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
@@ -54,27 +55,18 @@ export default defineConfig({
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({
       extensions: ['vue', 'md'],
-      extendRoute(route) {
-        if (route.path === '/swap') {
-          return {
-            ...route,
-            alias: '/',
-          }
+      extendRoute(route: RouteRecordRaw): null | undefined | RouteRecordRaw {
+        // making them root-level
+        if (route.path.match(/^(farms|pools|swap|liquidity)/)) {
+          return { ...route, path: '/' + route.path }
         }
-        if (route.path === '/earn') {
-          const { path, ...rest } = route
-          return {
-            ...rest,
-          }
-        }
-        if (['farms', 'pools'].includes(route.path)) {
-          const { path, ...rest } = route
-          return {
-            path: '/' + path,
-            ...rest,
-          }
-        }
-        return route
+      },
+      onRoutesGenerated(routes: RouteRecordRaw[]) {
+        // default route
+        routes.push({
+          path: '/',
+          redirect: '/swap',
+        })
       },
     }),
 
@@ -91,6 +83,7 @@ export default defineConfig({
         'src/modules/ModuleFarming/store',
         'src/modules/ModuleStaking/store',
         'src/modules/ModuleSwap/store',
+        'src/modules/ModuleLiquidity/store',
       ],
       vueTemplate: true,
       eslintrc: {
