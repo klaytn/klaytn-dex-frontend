@@ -36,6 +36,10 @@ const emit = defineEmits<{
 const show = useVModel(props, 'modelValue', emit)
 const value = ref('0')
 
+watch(show, () => {
+  value.value = '0'
+})
+
 const iconChars = computed(() => {
   return pool.value.name.split('-')
 })

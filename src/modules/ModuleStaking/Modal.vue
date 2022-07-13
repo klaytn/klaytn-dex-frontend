@@ -32,6 +32,10 @@ const PoolContract = kaikas.cfg.createContract<StakingInitializable>(pool.value.
 const value = ref('0')
 const loading = ref(false)
 
+watch(model, () => {
+  value.value = '0'
+})
+
 const balanceScope = useScope(model, () => {
   const task = useTask(async () => {
     const token = pool.value.stakeToken
