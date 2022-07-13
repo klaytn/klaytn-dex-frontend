@@ -20,31 +20,6 @@ export interface TokenAddressAndDesiredValue {
   desired: WeiNumStrBn
 }
 
-/*
-
-Questions:
-
-- What is the difference between adding liquidity for existing pair and for non-existing?
-  - In both we call router.addLiquidity()
-  - for existing there is the one change: we take into account "out"/"in" mode and according to
-  it we compute amountAMin or amountBMin. If it doesn't exist, we ignore is it "in" or is it "out"
-- Why we divide by 100 when computing min amount? It happens in "existing pair" add liquidity, and it happens
-  in liquidity store to compute min values at all: min = input / 100
-- Add liquidity **ETH**?
-  - We always sort tokens pair by placing native (or ETH, or KLAY) token at the second place.
-  - existing/non-existing diff: if pair exists, we compute "amount eth min" as "desired eth * 0.99"
-    otherwise... we do the same (wtf?)
-
-- So... our "amount min" values are always the same - `desired * 0.99`
-
-Итого:
-
-Имеем два токена с *желательными* значениями.
-
-Если какой-то из них 
-
-*/
-
 function minByDesired(desired: WeiNumStrBn): ValueWei<string> {
   const nDesired = new BN(desired)
 
