@@ -31,12 +31,6 @@ export function asWei<T extends AnyNumber>(value: T): ValueWei<T> {
   return value as ValueWei<T>
 }
 
-export function sortKlayPair(tokenA: Token, tokenB: Token) {
-  if (isNativeToken(tokenA.address)) return [tokenB, tokenA]
-
-  return [tokenA, tokenB]
-}
-
 export function deadlineFiveMinutesFromNow(): Deadline {
   return (~~(Date.now() / 1000) + 300) as Deadline
 }

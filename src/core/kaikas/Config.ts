@@ -1,4 +1,3 @@
-import BigNumber from 'bignumber.js'
 import type { DexFactory, DexPair, DexRouter } from '@/types/typechain/swap'
 import type { WETH9 } from '@/types/typechain/tokens/WKLAY.sol'
 import Caver, { type AbiItem } from 'caver-js'
@@ -7,6 +6,9 @@ import { MAGIC_ROUTER_ADDR, MAGIC_FACTORY_ADDR, MAGIC_WETH_ADDR, MAGIC_GAS_PRICE
 import { ROUTER, FACTORY, WETH, KIP7 as KIP7_ABI } from './smartcontracts/abi'
 import { KIP7 } from '@/types/typechain/tokens'
 import { asWei } from './utils'
+import BN from 'bn.js'
+
+type WeiNumStrBn = ValueWei<string | number | BN>
 
 export default class Config {
   public static async connectKaikas(params?: ConnectParams): Promise<ConnectResult> {
@@ -88,25 +90,21 @@ export default class Config {
   /**
    * Uses KIP7 by default
    */
-  public async approveAmount(
-    addr: Address,
-    amountStr: ValueWei<string>,
-    contractAddr = this.addrs.router,
-  ): Promise<void> {
+  public async approveAmount(addr: Address, amountStr: WeiNumStrBn, contractAddr = this.addrs.router): Promise<void> {
     const contract = this.createContract<KIP7>(addr, KIP7_ABI)
     await this.approveAmountWithContract(contract, amountStr, contractAddr)
   }
 
   public async approveAmountWithContract(
     contract: KIP7 | DexPair,
-    amountStr: ValueWei<string>,
+    amountStr: WeiNumStrBn,
     contractAddr = this.addrs.router,
   ): Promise<void> {
     const allowanceStr = await this.getAllowanceWithContract(contract, contractAddr)
-    const amountBn = new BigNumber(amountStr)
-    const allowanceBn = new BigNumber(allowanceStr)
 
-    if (amountBn.isLessThanOrEqualTo(allowanceBn)) return
+    const nAmount = new BN(amountStr)
+    const nAllowance = new BN(allowanceStr)
+    if (nAmount.lte(nAllowance)) return
 
     const approveMethod = contract.methods.approve(this.addrs.router, amountStr)
 
