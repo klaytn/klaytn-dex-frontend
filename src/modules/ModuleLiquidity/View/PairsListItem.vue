@@ -111,7 +111,6 @@ function goToFarms() {
           </KlayButton>
           <KlayButton
             type="primary"
-            disabled
             @click="goToFarms()"
           >
             Deposit
