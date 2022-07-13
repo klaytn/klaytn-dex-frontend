@@ -91,7 +91,7 @@ export const useLiquidityStore = defineStore('liquidity', () => {
   watch(
     [() => doQuoteScope.scope.value?.setup.exchangeRate ?? null, selection.tokens],
     ([rate]) => {
-      debug('exchange rate watch', rate, selection.token)
+      debug('exchange rate watch', rate)
       if (rate) {
         invariant(quoteFor.value)
         const tokenData = selection.tokens[quoteFor.value]
