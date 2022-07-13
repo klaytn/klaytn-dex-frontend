@@ -35,8 +35,7 @@ import { SButton } from '@soramitsu-ui/ui'
   &_type_secondary {
     background: $white;
     box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.15);
-    color: $blue;
-
+    transition: 150ms color ease;
     &.s-button_disabled {
       background: $white;
       color: $gray4;
