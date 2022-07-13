@@ -99,7 +99,14 @@ function addToKaikas(pool: Pool) {
   })
 }
 
+const swapStore = useSwapStore()
+
 function goToSwapPage() {
+  const { rewardToken, stakeToken } = pool.value
+  swapStore.setBothTokens({
+    tokenA: rewardToken.id,
+    tokenB: stakeToken.id,
+  })
   router.push({ name: RouteName.Swap })
 }
 
