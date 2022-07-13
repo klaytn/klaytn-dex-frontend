@@ -98,6 +98,7 @@ export default defineConfig({
         'src/modules/ModuleFarming/store',
         'src/modules/ModuleStaking/store',
         'src/modules/ModuleSwap/store',
+        'src/modules/ModuleLiquidity/store',
       ],
       vueTemplate: true,
       eslintrc: {
