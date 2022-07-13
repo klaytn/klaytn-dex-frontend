@@ -29,7 +29,7 @@ const emit = defineEmits<{
 const expanded = ref(false)
 const modalOperation = ref<ModalOperation | null>(null)
 
-const modelOpen = computed({
+const modalOpen = computed({
   get() {
     return !!modalOperation.value
   },
@@ -269,7 +269,7 @@ function handleModalClose() {
   </KlayAccordionItem>
 
   <ModuleFarmingModal
-    v-model="modelOpen"
+    v-model="modalOpen"
     :pool="pool"
     :operation="modalOperation"
     @update:mode="handleModalClose"

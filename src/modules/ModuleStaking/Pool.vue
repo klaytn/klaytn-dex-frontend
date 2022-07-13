@@ -32,7 +32,7 @@ const stakingStore = useStakingStore()
 const expanded = ref(false)
 const modalOperation = ref<ModalOperation | null>(null)
 
-const modelOpen = computed({
+const modalOpen = computed({
   get() {
     return !!modalOperation.value
   },
@@ -313,7 +313,7 @@ async function handleModalClose() {
   </KlayAccordionItem>
 
   <ModuleStakingModal
-    v-model="modelOpen"
+    v-model="modalOpen"
     :pool="pool"
     :operation="modalOperation"
     @update:mode="handleModalClose"

@@ -36,6 +36,10 @@ const emit = defineEmits<{
 const show = useVModel(props, 'modelValue', emit)
 const value = ref('0')
 
+watch(show, () => {
+  value.value = '0'
+})
+
 const iconChars = computed(() => {
   return pool.value.name.split('-')
 })
@@ -74,7 +78,10 @@ const disabled = computed(() => {
 })
 
 function setMax() {
-  value.value = `${pool.value.balance}`
+  if (operation.value === ModalOperation.Stake) 
+    value.value = `${pool.value.balance}`
+  else
+    value.value = `${pool.value.staked}`
 }
 
 const stakeTask = useTask(async () => {
