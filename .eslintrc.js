@@ -15,9 +15,12 @@ module.exports = {
   },
   rules: {
     'vue/html-indent': ['warn', 2],
+    'vue/multi-word-component-names': 'off',
 
     // make possible `/// <reference...`
     'spaced-comment': ['error', 'always', { markers: ['/'] }],
+
+    'no-unused-vars': 'warn',
   },
   overrides: [
     {

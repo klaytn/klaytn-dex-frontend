@@ -11,16 +11,23 @@ function toSnakeCase(value: string) {
     .toLowerCase()
 }
 
-export function getBemClasses(props: Props, context?: ComponentInternalInstance | null): string[] {
-  if (!context) context = getCurrentInstance()
+function getBlockName() {
+  const context = getCurrentInstance()
   if (context === null) throw new Error('Component context is null')
-  const componentName = (context?.vnode.type as any).name as string
+
+  const componentName = (context.vnode.type as any).name as string
   const block = toSnakeCase(componentName)
+
+  return block
+}
+
+export function getBemClasses(props: Props, blockParam?: string): Set<string> {
+  const block = blockParam ? blockParam : getBlockName()
+
   if (isRef(props) || isRef(props?.[0]) || isRef(props?.[1]))
     throw new Error('Value of bem class directive must not contain refs')
   if (typeof props !== 'string' && !Array.isArray(props) && props !== undefined && typeof props !== 'object')
     throw new Error('Value of bem class directive must be string, array or object')
-  props = <Props>props
   let classList = [block]
   if (props) {
     if (typeof props === 'string' || Array.isArray(props)) {
@@ -38,29 +45,43 @@ export function getBemClasses(props: Props, context?: ComponentInternalInstance 
       })
     }
   }
-  return classList
+  return new Set(classList)
 }
 
 export function useBemClass() {
-  const context = getCurrentInstance()
+  const block = getBlockName()
   return {
     mounted(el: HTMLElement, { value }: { value: Props }) {
-      const classList = getBemClasses(value, context)
-      el.bemClassList = classList
+      const classList = getBemClasses(value, block)
+      if (!el.bemClassList) el.bemClassList = {}
+      el.bemClassList[block] = classList
       classList.forEach((item) => {
         el.classList.add(item)
       })
     },
     updated(el: HTMLElement, { value }: { value: Props }) {
-      if (el.bemClassList) {
-        el.bemClassList.forEach((item) => {
-          el.classList.remove(item)
+      const oldClassList = el.bemClassList?.[block]
+      const newClassList = getBemClasses(value, block)
+      if (oldClassList) {
+        oldClassList.forEach((item) => {
+          if (!newClassList.has(item)) {
+            console.log(newClassList, item)
+            el.classList.remove(item)
+          }
+        })
+        newClassList.forEach((item) => {
+          if (!el.classList.contains(item)) {
+            el.classList.add(item)
+          }
+        })
+      } else {
+        newClassList.forEach((item) => {
+          el.classList.add(item)
         })
       }
-      const classList = getBemClasses(value, context)
-      classList.forEach((item) => {
-        el.classList.add(item)
-      })
+
+      if (!el.bemClassList) el.bemClassList = {}
+      el.bemClassList[block] = newClassList
     },
   }
 }

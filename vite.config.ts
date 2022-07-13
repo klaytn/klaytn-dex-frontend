@@ -1,5 +1,5 @@
 import path from 'path'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import Vue from '@vitejs/plugin-vue'
 import Pages from 'vite-plugin-pages'
 import Layouts from 'vite-plugin-vue-layouts'
@@ -11,31 +11,26 @@ import VueI18n from '@intlify/vite-plugin-vue-i18n'
 import Inspect from 'vite-plugin-inspect'
 import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
-import SvgLoader from 'vite-svg-loader'
+import SvgLoader from '@soramitsu-ui/vite-plugin-svg'
 import VueSetupExtend from 'vite-plugin-vue-setup-extend'
+import UnoCSS from 'unocss/vite'
+import Icons from 'unplugin-icons/vite'
+import IconResolver from 'unplugin-icons/resolver'
+import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
 export default defineConfig({
-  css: {
-    preprocessorOptions: {
-      scss: {
-        additionalData:
-          "@use '@soramitsu-ui/ui/styles'; @use '@soramitsu-ui/theme/fonts/Sora'; @use '@soramitsu-ui/theme/sass' as theme; @import '@/styles/vars.sass';",
-      },
-      sass: {
-        additionalData:
-          "@use '@soramitsu-ui/ui/styles'\n@use '@soramitsu-ui/theme/fonts/Sora'\n@use '@soramitsu-ui/theme/sass' as theme\n@import '@/styles/vars.sass'\n",
-      },
-    },
-  },
-
   resolve: {
     alias: {
       '@/': `${path.resolve(__dirname, 'src')}/`,
       web3: 'web3/dist/web3.min.js',
       '@popperjs/core': '@popperjs/core/dist/esm/index.js',
     },
+  },
+
+  define: {
+    'import.meta.vitest': 'undefined',
   },
 
   plugins: [
@@ -46,7 +41,15 @@ export default defineConfig({
 
     VueSetupExtend(),
 
+    UnoCSS(),
+
     SvgLoader(),
+
+    Icons({
+      customCollections: {
+        klay: FileSystemIconLoader('./src/assets/icons'),
+      },
+    }),
 
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({
@@ -56,6 +59,19 @@ export default defineConfig({
           return {
             ...route,
             alias: '/',
+          }
+        }
+        if (route.path === '/earn') {
+          const { path, ...rest } = route
+          return {
+            ...rest,
+          }
+        }
+        if (['farms', 'pools'].includes(route.path)) {
+          const { path, ...rest } = route
+          return {
+            path: '/' + path,
+            ...rest,
           }
         }
         return route
@@ -69,11 +85,17 @@ export default defineConfig({
     AutoImport({
       imports: ['vue', 'vue-router', 'vue-i18n', 'vue/macros', '@vueuse/head', '@vueuse/core'],
       dts: 'src/auto-imports.d.ts',
-      dirs: ['src/composables', 'src/store'],
+      dirs: [
+        'src/composables',
+        'src/store',
+        'src/modules/ModuleFarming/store',
+        'src/modules/ModuleStaking/store',
+        'src/modules/ModuleSwap/store',
+      ],
       vueTemplate: true,
       eslintrc: {
-        enabled: true
-      }
+        enabled: true,
+      },
     }),
 
     // https://github.com/antfu/unplugin-vue-components
@@ -85,6 +107,13 @@ export default defineConfig({
       include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
       dts: 'src/components.d.ts',
       directoryAsNamespace: true,
+      resolvers: [
+        IconResolver({
+          prefix: 'icon',
+          enabledCollections: [],
+          customCollections: ['klay'],
+        }),
+      ],
     }),
 
     // https://github.com/antfu/vite-plugin-md
@@ -148,7 +177,8 @@ export default defineConfig({
 
   // https://github.com/vitest-dev/vitest
   test: {
-    include: ['test/**/*.test.ts'],
+    include: ['src/**/*.spec.ts'],
+    includeSource: ['src/**/*.ts'],
     environment: 'jsdom',
     deps: {
       inline: ['@vue', '@vueuse', 'vue-demi'],

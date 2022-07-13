@@ -1,19 +1,23 @@
 <script setup lang="ts" name="KlaySlippage">
-const selectedPercent = ref(0.5)
+// const swapStore = useSwapStore()
 
-const swapStore = useSwapStore()
-const { slippagePercent } = toRefs(swapStore)
-const { setSlippage } = swapStore
+const props = defineProps<{
+  modelValue: number
+}>()
 
-const renderPercent = computed(() => `${slippagePercent.value}%`)
+const emit = defineEmits(['update:modelValue'])
 
-function input(value: number) {
-  if (value > 0 && value <= 10) setSlippage(value)
-}
+let slippageModel = $computed({
+  get: () => props.modelValue,
+  set: (value) => {
+    if (value > 0 && value <= 10) emit('update:modelValue', value)
+  },
+})
+
+const renderPercent = $computed(() => `${slippageModel}%`)
 
 function select(value: number) {
-  selectedPercent.value = value
-  setSlippage(value)
+  slippageModel = value
 }
 </script>
 
@@ -23,7 +27,7 @@ function select(value: number) {
       <template #head>
         <div class="slippage--head">
           <span class="label"> Slippage tolerance </span>
-          <KlayIcon name="important" />
+          <IconKlayImportant />
           <span class="percent">
             {{ renderPercent }}
           </span>
@@ -57,10 +61,10 @@ function select(value: number) {
             3%
           </button>
           <input
+            v-model.number="slippageModel"
             class="input"
             type="text"
             :placeholder="renderPercent"
-            @input="input($event.target.value)"
           >
         </div>
       </template>

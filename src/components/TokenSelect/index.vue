@@ -1,93 +1,83 @@
-<script lang="ts">
-export default {
-  name: 'TokenSelect',
-  props: {
-    selectedToken: {
-      type: Object,
-      default: null,
-    },
-  },
-  emits: ['select'],
-  data() {
-    return {
-      modalOpen: false,
-    }
-  },
-  methods: {
-    onSelect(token) {
-      this.modalOpen = false
-      this.$emit('select', token)
-    },
-  },
+<script lang="ts" setup>
+import { Address } from '@/core/kaikas'
+
+const props = withDefaults(
+  defineProps<{
+    token?: null | Address
+  }>(),
+  { token: null },
+)
+
+const emit = defineEmits(['update:token'])
+
+const tokensStore = useTokensStore()
+const tokenData = $computed(() => props.token && tokensStore.findTokenData(props.token))
+
+let model = $(useVModel(props, 'token', emit))
+let isModalOpen = $ref(false)
+
+function onSelect(token: Address) {
+  model = token
+  isModalOpen = false
 }
 </script>
 
 <template>
-  <div class="select--wrap">
-    <TokenSelectModal
-      v-if="modalOpen"
-      @select="onSelect"
-      @close="modalOpen = false"
-    />
-    <button
-      v-if="!selectedToken"
-      class="select-btn"
-      @click="modalOpen = true"
-    >
-      <span>Select token</span>
-      <KlayIcon name="collapse-arrow" />
-    </button>
+  <TokenSelectModal
+    v-model:open="isModalOpen"
+    @select="onSelect"
+  />
 
+  <KlayButton
+    v-if="!token"
+    type="primary"
+    icon-position="right"
+    @click="isModalOpen = true"
+  >
+    Select Token
+
+    <template #icon>
+      <IconKlayCollapseArrow />
+    </template>
+  </KlayButton>
+
+  <button
+    v-else
+    class="btn-filled"
+  >
     <div
-      v-if="selectedToken"
-      class="select"
+      class="btn-filled__content"
+      @click="isModalOpen = true"
     >
-      <div
-        class="select--head"
-        @click="modalOpen = true"
-      >
-        <!--        <img v-if="selectedToken" :src="selectedToken.logo" alt="Token logo" /> -->
-        <KlayIcon
-          :char="selectedToken.symbol[0]"
-          name="empty-token"
-        />
-        <span v-if="selectedToken">
-          {{ selectedToken.symbol }}
+      <template v-if="tokenData">
+        <KlayCharAvatar :symbol="tokenData.symbol" />
+        <span>
+          {{ tokenData.symbol }}
         </span>
-      </div>
+      </template>
     </div>
-  </div>
+  </button>
 </template>
 
 <style scoped lang="scss">
-.select {
-  width: 100px;
+@import '@/styles/vars';
+
+.btn-empty {
+  background: $blue;
+  color: $white;
+  border-radius: 8px;
+  padding: 12px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-filled {
   height: 40px;
   background: $white;
   border-radius: 8px;
   box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.07);
-  margin-left: 8px;
-  position: relative;
 
-  &::after {
-    display: none !important;
-  }
-
-  &-btn {
-    background: $blue;
-    color: $white;
-    width: 130px;
-    text-align: center;
-    border-radius: 8px;
-    padding: 12px 12px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  &--head {
+  &__content {
     width: 100%;
     display: flex;
     height: 100%;
@@ -117,10 +107,6 @@ export default {
       color: $dark2;
       margin-left: 8px;
     }
-  }
-
-  & .wrap {
-    margin-top: 17px;
   }
 }
 </style>

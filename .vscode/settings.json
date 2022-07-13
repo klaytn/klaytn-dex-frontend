@@ -24,7 +24,13 @@
     "bignumber",
     "smartcontracts",
     "typechain",
-    "WKLAY"
+    "WKLAY",
+    "unstake",
+    "unstaked",
+    "Pausable",
+    "multicall",
+    "Initializable",
+    "exponentiated"
   ],
   "i18n-ally.sourceLanguage": "en",
   "i18n-ally.keystyle": "nested",

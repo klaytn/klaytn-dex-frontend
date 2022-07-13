@@ -1,5 +1,5 @@
 <script setup lang="ts" name="TagName">
-const { label } = defineProps<{
+defineProps<{
   label: string
 }>()
 </script>
@@ -14,6 +14,8 @@ const { label } = defineProps<{
 </template>
 
 <style lang="scss" scoped>
+@import '@/styles/vars';
+
 .tag-name {
   display: flex;
   align-items: center;

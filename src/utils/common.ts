@@ -1,11 +1,69 @@
-export const copyToClipboard = function myFunction(value) {
-  /* Create the text field */
-  const copyText = document.createElement('input')
-  copyText.focus()
-  copyText.value = value
-  /* Select the text field */
-  copyText.select()
-  copyText.setSelectionRange(0, 99999) /* For mobile devices */
-  /* Copy the text inside the text field */
-  navigator.clipboard.writeText(copyText.value)
+import { ValueWei, fromWei } from '@/core/kaikas'
+import BigNumber from 'bignumber.js'
+import rfdc from 'rfdc'
+
+const reallyFastDeepClone = rfdc()
+
+// FIXME v1 & v2 values comes from `Token.value`. What type is it?
+
+export function formatRate(v1: string, v2: string) {
+  const bigNA = new BigNumber(v1)
+  const bigNB = new BigNumber(v2)
+
+  return bigNA.dividedBy(bigNB).toFixed(5)
+}
+
+export function formatPercent(v1: string, v2: string) {
+  const bigNA = new BigNumber(v1)
+  const bigNB = new BigNumber(v2)
+  const percent = bigNA.dividedToIntegerBy(100)
+
+  return `${bigNB.dividedBy(percent).toFixed(2)}%`
+}
+
+export function formatWeiValue(value: ValueWei<string>): string {
+  if (!value) return '-'
+  const bn = new BigNumber(fromWei(value))
+  return bn.toFixed(4)
+}
+
+export function deepClone<T>(object: T): T {
+  return reallyFastDeepClone(object)
+}
+
+export function stringHashForHsl(str: string): number {
+  return [...str].reduce((a, c) => {
+    const h = c.charCodeAt(0) + ((a << 4) - a)
+    return h % 360
+  }, 0)
+}
+
+if (import.meta.vitest) {
+  const { test, expect, describe } = import.meta.vitest
+
+  describe('format rate', () => {
+    test('case 1', () => {
+      expect(formatRate('423', '20')).toMatchInlineSnapshot('"21.15000"')
+    })
+
+    test('case 2', () => {
+      expect(formatRate('1000', '3.5')).toMatchInlineSnapshot('"285.71429"')
+    })
+  })
+
+  describe('format percent', () => {
+    test('case 1', () => {
+      expect(formatPercent('423', '20')).toMatchInlineSnapshot('"5.00%"')
+    })
+
+    test('case 2', () => {
+      expect(formatPercent('1000', '3.5')).toMatchInlineSnapshot('"0.35%"')
+    })
+  })
+
+  describe('format wei value', () => {
+    test('case 1', () => {
+      expect(formatWeiValue('1523515128848712348' as ValueWei<string>)).toMatchInlineSnapshot('"1.5235"')
+    })
+  })
 }

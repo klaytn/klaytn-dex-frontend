@@ -1,51 +1,55 @@
 <script setup lang="ts" name="KlayButton">
-const { loading = false } = defineProps<{
-  loading?: boolean
-}>()
+import { SButton } from '@soramitsu-ui/ui'
 </script>
 
 <template>
-  <button
+  <SButton
+    class="klay-button"
     v-bind="$attrs"
-    class="btn"
-    :class="[{ loading }]"
   >
     <slot />
-  </button>
+
+    <template #icon>
+      <slot name="icon" />
+    </template>
+  </SButton>
 </template>
 
-<style lang="scss" scoped>
-.btn {
-  background: $blue;
-  border: none;
-  cursor: pointer;
-  padding: 13px 13px;
-  font-style: normal;
-  font-weight: 700;
-  font-size: 20px;
-  color: $white;
-  border-radius: 16px;
-  line-height: 150%;
-  max-width: 388px;
-  width: 100%;
+<style lang="scss">
+@import '@/styles/vars';
 
-  &.loading {
-    background: #8fbafb;
-    cursor: default;
+.klay-button.s-button {
+  border-radius: 8px;
+  &_type_primary {
+    background-color: $blue;
     &:hover {
-      background: #8fbafb;
+      background-color: $blue-light1;
+    }
+    &:active {
+      background-color: $blue-dark;
     }
   }
-
-  &:hover {
-    background: #3684f9;
+  &_type_primary.s-button_disabled {
+    background: $gray4;
   }
-  &:active {
-    background: #0263f5;
+  &_type_secondary {
+    background: $white;
+    box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.15);
+    transition: 150ms color ease;
+    &.s-button_disabled {
+      background: $white;
+      color: $gray4;
+    }
+    &:not(.s-button_disabled) {
+      &:hover,
+      &:active {
+        color: $blue;
+        background: $white;
+      }
+    }
   }
-  &:disabled {
-    background: $disabled;
-    cursor: default;
+  &_size_lg {
+    border-radius: 16px;
   }
 }
 </style>

@@ -13,7 +13,7 @@ const isOpen = ref(false)
         class="icon-wrap"
         :style="{ transform: `rotate(${isOpen ? 180 : 0}deg)` }"
       >
-        <KlayIcon name="collapse-arrow" />
+        <IconKlayCollapseArrow />
       </div>
     </div>
     <slot
@@ -24,8 +24,10 @@ const isOpen = ref(false)
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars';
+
 .collapse {
-  border: 1px solid $gray3;
+  border: 1px solid $gray6;
   box-sizing: border-box;
   border-radius: 8px;
   padding: 8px 16px;

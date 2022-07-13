@@ -1,15 +1,14 @@
 <script setup lang="ts" name="HeaderMenu">
-import type { RouteName } from '@/types'
-import { type HeaderMenuItem } from '@/types'
+import type { RouteName, HeaderMenuItem } from '@/types'
 
-const { items } = defineProps<{
+const props = defineProps<{
   items: HeaderMenuItem[]
 }>()
 
 const route = useRoute()
 
 const computedItems = computed(() => {
-  return items.map((item) => {
+  return props.items.map((item) => {
     const active = route.name === item.routeName || (item.activeWith ?? []).includes(route.name as RouteName)
     return {
       ...item,
@@ -36,6 +35,8 @@ const vBem = useBemClass()
 </template>
 
 <style scoped lang="sass">
+@import '@/styles/vars'
+
 .header-menu
   display: flex
   align-items: center

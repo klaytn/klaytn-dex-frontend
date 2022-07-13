@@ -10,10 +10,21 @@
     "skipLibCheck": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "noUnusedLocals": true,
+
+    // there are a lot in src/types/typechain
+    // anyway, let ESLint catch those errors
+    "noUnusedLocals": false,
+
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["vitest", "vite/client", "vue/ref-macros", "vite-plugin-pages/client", "vite-plugin-vue-layouts/client"],
+    "types": [
+      "vitest",
+      "vitest/importMeta",
+      "vite/client",
+      "vue/ref-macros",
+      "vite-plugin-pages/client",
+      "vite-plugin-vue-layouts/client"
+    ],
     "paths": {
       "@/*": ["src/*"]
     }
