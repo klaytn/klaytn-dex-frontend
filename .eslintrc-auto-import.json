@@ -150,6 +150,7 @@
     "useFavicon": true,
     "useFetch": true,
     "useFileSystemAccess": true,
+    "useFlattenState": true,
     "useFocus": true,
     "useFocusWithin": true,
     "useFps": true,
@@ -194,6 +195,8 @@
     "usePreferredColorScheme": true,
     "usePreferredDark": true,
     "usePreferredLanguages": true,
+    "usePromise": true,
+    "usePromiseLog": true,
     "useRafFn": true,
     "useRefHistory": true,
     "useResizeObserver": true,
@@ -210,12 +213,12 @@
     "useSpeechRecognition": true,
     "useSpeechSynthesis": true,
     "useStakingStore": true,
+    "useStaleState": true,
     "useStorage": true,
     "useStorageAsync": true,
     "useStyleTag": true,
     "useSwapStore": true,
     "useSwipe": true,
-    "useTaskLog": true,
     "useTemplateRefsList": true,
     "useTextSelection": true,
     "useThrottle": true,
@@ -257,6 +260,9 @@
     "watchSyncEffect": true,
     "watchThrottled": true,
     "watchWithFilter": true,
-    "whenever": true
+    "whenever": true,
+    "wheneverDone": true,
+    "wheneverFulfilled": true,
+    "wheneverRejected": true
   }
 }
