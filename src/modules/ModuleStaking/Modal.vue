@@ -81,8 +81,10 @@ const disabled = computed(() => {
 })
 
 function setPercent(percent: number) {
-  if (operation.value === ModalOperation.Stake) value.value = `${balance.value?.multipliedBy(percent * 0.01)}`
-  else value.value = `${pool.value.staked.multipliedBy(percent * 0.01)}`
+  if (operation.value === ModalOperation.Stake) 
+    value.value = `${balance.value?.multipliedBy(percent * 0.01)}`
+  else
+    value.value = `${pool.value.staked.multipliedBy(percent * 0.01)}`
 }
 
 async function stake() {
