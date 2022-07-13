@@ -17,6 +17,7 @@ import UnoCSS from 'unocss/vite'
 import Icons from 'unplugin-icons/vite'
 import IconResolver from 'unplugin-icons/resolver'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
+import { RouteRecordRaw } from 'vue-router'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
@@ -75,6 +76,12 @@ export default defineConfig({
           }
         }
         return route
+      },
+      onRoutesGenerated: (routes: RouteRecordRaw[]) => {
+        routes.push({
+          path: '/',
+          redirect: '/trade/swap',
+        })
       },
     }),
 
