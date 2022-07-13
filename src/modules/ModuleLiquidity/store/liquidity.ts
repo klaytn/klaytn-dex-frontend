@@ -8,6 +8,7 @@ import {
   Balance,
 } from '@/core/kaikas'
 import { MAGIC_GAS_PRICE } from '@/core/kaikas/const'
+import { syncInputAddrsWithLocalStorage, useTokensInput } from '@/modules/ModuleTradeShared/composable.tokens-input'
 // import { AddLiquidityAmountPropsBase } from '@/core/kaikas/Liquidity'
 import { DexPair } from '@/types/typechain/swap'
 import { Status } from '@vueuse/core'
@@ -19,7 +20,11 @@ import invariant from 'tiny-invariant'
 // TODO
 export const useLiquidityStore = defineStore('liquidity', () => {
   const kaikasStore = useKaikasStore()
-  const tokensStore = useTokensStore()
+
+  const selection = useTokensInput()
+  syncInputAddrsWithLocalStorage(selection.input, 'liquidity-store-input-tokens')
+
+  // const tokensStore = useTokensStore()
 
   const state = reactive<State>({
     removeLiquidityPair: {
