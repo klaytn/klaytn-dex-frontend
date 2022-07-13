@@ -23,13 +23,12 @@ export function usePairAddress(pair: TokensPair<Address | null | undefined>): {
 
   const scope = useScope(key, () => {
     const kaikas = kaikasStore.getKaikasAnyway()
-    const a = pair.tokenA!
-    const b = pair.tokenB!
+    const pairForSure = pair as TokensPair<Address>
 
     const task = useTask(async () => {
-      const addr = await kaikas.tokens.getPairAddress(a, b)
+      const addr = await kaikas.tokens.getPairAddress(pairForSure)
       if (isEmptyAddress(addr)) return null
-      const { userBalance, pairBalance } = await kaikas.tokens.getPairBalance(a, b)
+      const { userBalance, pairBalance } = await kaikas.tokens.getPairBalance(pairForSure)
       return { addr, userBalance, pairBalance }
     })
 

@@ -2,55 +2,139 @@ import { ValueWei, deadlineFiveMinutesFromNow, tokenWeiToRaw, Address } from '@/
 import { usePairAddress } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { syncInputAddrsWithLocalStorage, useTokensInput } from '@/modules/ModuleTradeShared/composable.tokens-input'
 import { buildPair, mirrorTokenType, TokenType } from '@/utils/pair'
+import { Status } from '@soramitsu-ui/ui'
+import { useDanglingScope, useStaleIfErrorState, useTask, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
+import Debug from 'debug'
+
+const debug = Debug('liquidity-store')
 
 export const useLiquidityStore = defineStore('liquidity', () => {
   const kaikasStore = useKaikasStore()
 
   const selection = useTokensInput()
   syncInputAddrsWithLocalStorage(selection.input, 'liquidity-store-input-tokens')
+
   const pair = usePairAddress(selection.addrs)
+  const isEmptyPair = computed(() => pair.result === 'empty')
 
   const quoteFor = ref<null | TokenType>(null)
 
-  async function doQuoteFor(value: ValueWei<string>, quoteFor: TokenType) {
+  const doQuoteScope = useDanglingScope<{ pending: boolean; exchangeRate: null | ValueWei<string> }>()
+
+  // FIXME data race
+  function doQuoteFor(value: ValueWei<string>, quoteFor: TokenType) {
     const kaikas = kaikasStore.getKaikasAnyway()
-
     invariant(pair.result === 'not-empty', 'Pair should exist')
-
     const { tokenA, tokenB } = selection.addrs
     invariant(tokenA && tokenB)
 
-    const exchangeRate = await kaikas.tokens.getTokenQuote({
-      tokenA,
-      tokenB,
-      value,
-      quoteFor,
+    doQuoteScope.setup(() => {
+      const task = useTask(() =>
+        kaikas.tokens.getTokenQuote({
+          tokenA,
+          tokenB,
+          value,
+          quoteFor,
+        }),
+      )
+
+      task.run()
+
+      const pending = computed(() => task.state.kind === 'pending')
+      const exchangeRate = computed(() => (task.state.kind === 'ok' ? task.state.data : null))
+
+      return reactive({ pending, exchangeRate })
     })
-
-    const tokenData = selection.tokens[quoteFor]
-    invariant(tokenData)
-    selection.input[quoteFor].inputRaw = tokenWeiToRaw(tokenData, exchangeRate)
   }
+  const debouncedDoQuoteFor = useDebounceFn(doQuoteFor, 700)
 
-  async function doAddLiquidity() {
+  const quoteForTask = computed(() => {
+    const task = doQuoteScope.scope.value?.setup
+    if (task) {
+      invariant(quoteFor.value)
+      return {
+        quoteFor: quoteFor.value,
+        pending: task.pending,
+        completed: !!task.exchangeRate,
+      }
+    }
+    return null
+  })
+
+  const quoteTaskKey = computed<null | string>(() => {
+    const addr = pair.pair?.addr
+    if (!addr) return null
+
+    const quote = quoteFor.value
+    if (!quote) return null
+
+    const value = selection.wei[mirrorTokenType(quote)]?.input
+    if (!value) return null
+
+    return `${addr}-${quote}-${value}`
+  })
+
+  watch(
+    quoteTaskKey,
+    (key) => {
+      debug('quote task key:', key)
+      doQuoteScope.dispose()
+      if (key) {
+        debouncedDoQuoteFor(selection.wei[mirrorTokenType(quoteFor.value!)]!.input, quoteFor.value!)
+      }
+    },
+    { immediate: true, deep: true },
+  )
+
+  watch(
+    [() => doQuoteScope.scope.value?.setup.exchangeRate ?? null, selection.tokens],
+    ([rate]) => {
+      debug('exchange rate watch', rate, selection.token)
+      if (rate) {
+        invariant(quoteFor.value)
+        const tokenData = selection.tokens[quoteFor.value]
+        if (tokenData) {
+          selection.input[quoteFor.value].inputRaw = tokenWeiToRaw(tokenData, rate)
+        }
+      }
+    },
+    { immediate: true, deep: true },
+  )
+
+  const addLiquidityTask = useTask(async () => {
     const kaikas = kaikasStore.getKaikasAnyway()
 
     await kaikas.liquidity.addLiquidity({
       tokens: buildPair((type) => {
         const addr = selection.addrs[type]
         const wei = selection.wei[type]
-        invariant(addr && wei)
+        invariant(addr && wei, `Addr and wei value for ${type} should exist`)
         return { addr, desired: wei.input }
       }),
       deadline: deadlineFiveMinutesFromNow(),
     })
+  })
+  useTaskLog(addLiquidityTask, 'add-liquidity')
+  useNotifyOnError(addLiquidityTask, 'Add liquidity failed')
+  wheneverTaskSucceeds(addLiquidityTask, () => {
+    $notify({ status: Status.Success, description: 'Add liquidity ok!' })
+  })
+  const { pending: isAddLiquidityPending, result } = toRefs(useStaleIfErrorState(addLiquidityTask))
+
+  const isSubmitted = computed(() => !!result.value)
+  function clearSubmittion() {
+    result.value = null
   }
 
   function input(token: TokenType, raw: string) {
     selection.input[token].inputRaw = raw
     quoteFor.value = mirrorTokenType(token)
+
+    if (selection.addrs.tokenA && selection.addrs.tokenB && selection.wei[token] && pair.result === 'not-empty') {
+      debouncedDoQuoteFor(selection.wei[token]!.input, quoteFor.value)
+    }
   }
 
   function setToken(token: TokenType, addr: Address) {
@@ -59,7 +143,17 @@ export const useLiquidityStore = defineStore('liquidity', () => {
 
   return {
     selection,
-    addLiquidity: doAddLiquidity,
+    addLiquidity: () => addLiquidityTask.run(),
+    isAddLiquidityPending,
+    isEmptyPair,
+    pair,
+    quoteForTask,
+
+    isSubmitted,
+    clearSubmittion,
+
+    input,
+    setToken,
   }
 })
 

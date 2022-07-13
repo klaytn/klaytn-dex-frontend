@@ -2,7 +2,7 @@ import Config from './Config'
 import Liquidity from './Liquidity'
 import Swap from './Swap'
 import Tokens from './Tokens'
-import { Address, Balance, Token } from './types'
+import { Address, Balance, Token, TokenSymbol } from './types'
 import { KIP7 as KIP7_ABI } from './smartcontracts/abi'
 import type { KIP7 } from '@/types/typechain/tokens'
 import { isNativeToken } from './utils'
@@ -31,7 +31,7 @@ export default class Kaikas {
     const contract = this.cfg.createContract<KIP7>(addr, KIP7_ABI)
     const [name, symbol, decimals] = await Promise.all([
       contract.methods.name().call(),
-      contract.methods.symbol().call(),
+      contract.methods.symbol().call() as Promise<TokenSymbol>,
       contract.methods
         .decimals()
         .call()

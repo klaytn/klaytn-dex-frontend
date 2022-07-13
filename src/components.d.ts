@@ -18,6 +18,7 @@ declare module '@vue/runtime-core' {
     IconKlayFilters: typeof import('~icons/klay/filters')['default']
     IconKlayImportant: typeof import('~icons/klay/important')['default']
     IconKlayLink: typeof import('~icons/klay/link')['default']
+    IconKlayPlus: typeof import('~icons/klay/plus')['default']
     IconKlayRefresh: typeof import('~icons/klay/refresh')['default']
     IconKlaySearch: typeof import('~icons/klay/search')['default']
     IconKlayWallet: typeof import('~icons/klay/wallet')['default']

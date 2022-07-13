@@ -1,133 +1,103 @@
 <script lang="ts" setup>
-import { isNativeToken } from '@/core/kaikas'
-import { Status } from '@soramitsu-ui/ui'
-import { useTask, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
+import { SModal } from '@soramitsu-ui/ui'
 import { storeToRefs } from 'pinia'
-import invariant from 'tiny-invariant'
 import { formatPercent, formatRate } from '@/utils/common'
 import DetailsRow from './DetailsRow.vue'
 import Details from './Details.vue'
+import { toRefs, not } from '@vueuse/core'
 
-const emit = defineEmits(['close'])
+const props = defineProps<{
+  modelValue: boolean
+}>()
+const emit = defineEmits(['update:modelValue'])
 
-const tokensStore = useTokensStore()
-const { selectedTokens, computedToken } = $(storeToRefs(tokensStore))
+const show = useVModel(props, 'modelValue', emit)
 
 const liquidityStore = useLiquidityStore()
+const { tokens, wei } = toRefs(toRef(liquidityStore, 'selection'))
+const { pair, isAddLiquidityPending: isInProgress, isSubmitted } = storeToRefs(liquidityStore)
 
-const addLiquidityTask = useTask(async () => {
-  const { tokenA, tokenB } = selectedTokens
-  invariant(tokenA && tokenB)
-
-  const isKlayToken = isNativeToken(tokenA.address) && isNativeToken(tokenB.address)
-
-  if (isKlayToken) {
-    await liquidityStore.addLiquidityETH()
-  } else if (computedToken === 'tokenA') {
-    await liquidityStore.addLiquidityAmount('in')
-  } else if (computedToken === 'tokenB') {
-    await liquidityStore.addLiquidityAmount('out')
-  }
-})
-
-const isSubmitted = $computed(() => addLiquidityTask.state.kind === 'ok')
-const isInProgress = $computed(() => addLiquidityTask.state.kind === 'pending')
-
-wheneverTaskErrors(addLiquidityTask, () => {
-  $notify({ status: Status.Error, description: 'Transaction Reverted' })
-})
-
-wheneverTaskSucceeds(addLiquidityTask, () => {
-  $notify({ status: Status.Error, description: 'Transaction Reverted' })
-})
+function supply() {
+  liquidityStore.addLiquidity()
+}
 </script>
 
 <template>
-  <KlayModal
-    width="344"
-    label="Confirm Supply"
-    @close="$emit('close')"
+  <SModal
+    v-model:show="show"
+    @after-close="liquidityStore.clearSubmittion()"
   >
-    <div>
-      <div
-        v-if="!isSubmitted"
-        class="m-content"
-      >
-        <!--        <p class="m-title">You will receive LP ETH-KLAY Tokens</p> -->
-        <!--        <div class="m-head"> -->
-        <!--          <img :src="selectedTokens.tokenA.logo" alt="" /> -->
-        <!--          <img :src="selectedTokens.tokenB.logo" alt="" /> -->
-        <!--          <p>3.6747823</p> -->
-        <!--        </div> -->
-
-        <Details v-if="selectedTokens.tokenA?.value && selectedTokens.tokenB?.value">
-          <h3>Prices and pool share</h3>
-
-          <DetailsRow>
-            <span>
-              {{ selectedTokens.tokenA.symbol }} per
-              {{ selectedTokens.tokenB.symbol }}
-            </span>
-            <span>
-              {{ formatRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
-            </span>
-          </DetailsRow>
-          <DetailsRow>
-            <span>
-              {{ selectedTokens.tokenB.symbol }} per
-              {{ selectedTokens.tokenA.symbol }}
-            </span>
-            <span>
-              {{ formatRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
-            </span>
-          </DetailsRow>
-          <DetailsRow v-if="selectedTokens.pairBalance && selectedTokens.userBalance">
-            <span>Share of pool</span>
-            <span>
-              {{ formatPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}
-            </span>
-          </DetailsRow>
-          <!--          <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
-          <!--            <span>You'll earn</span> -->
-          <!--            <span>0.17%</span> -->
-          <!--          </div> -->
-
-          <!--          <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
-          <!--            <span>Transaction Fee</span> -->
-          <!--            <span>0.074 KLAY ($0.013)</span> -->
-          <!--          </div> -->
-        </Details>
+    <KlayModalCard
+      title="Confirm Supply"
+      class="w-[344px]"
+    >
+      <div v-if="isSubmitted">
+        <div class="text-xl text-center font-bold p-6 mb-16">
+          Transaction Submitted
+        </div>
 
         <KlayButton
-          type="button"
-          :disabled="isInProgress"
-          class="btn"
-          @click="addLiquidityTask.run()"
+          type="primary"
+          size="lg"
+          class="w-full"
+          @click="show = false"
         >
-          {{ isInProgress ? 'Wait' : 'Supply' }}
+          Close
         </KlayButton>
       </div>
 
       <div
         v-else
-        class="m-content"
+        class="space-y-4"
       >
-        <div class="submitted">
-          <p>Transaction Submitted</p>
-          <!--          <a href="#"> View on BscScan </a> -->
-        </div>
+        <Details v-if="tokens.tokenA && tokens.tokenB && wei.tokenA && wei.tokenB">
+          <template #title>
+            Prices and pool share
+          </template>
+
+          <DetailsRow>
+            <span>
+              {{ tokens.tokenA.symbol }} per
+              {{ tokens.tokenB.symbol }}
+            </span>
+            <span>
+              {{ formatRate(wei.tokenA.input, wei.tokenB.input) }}
+            </span>
+          </DetailsRow>
+          <DetailsRow>
+            <span>
+              {{ tokens.tokenB.symbol }} per
+              {{ tokens.tokenA.symbol }}
+            </span>
+            <span>
+              {{ formatRate(wei.tokenB.input, wei.tokenA.input) }}
+            </span>
+          </DetailsRow>
+          <DetailsRow v-if="pair.pair">
+            <span>Share of pool</span>
+            <span>
+              {{ formatPercent(pair.pair.pairBalance, pair.pair.userBalance) }}
+            </span>
+          </DetailsRow>
+        </Details>
+
         <KlayButton
           type="button"
-          @click="emit('close')"
+          size="lg"
+          class="w-full"
+          :loading="isInProgress"
+          @click="supply()"
         >
-          Close
+          Confirm Supply
         </KlayButton>
       </div>
-    </div>
-  </KlayModal>
+    </KlayModalCard>
+  </SModal>
 </template>
 
 <style lang="scss" scoped>
+@import '@/styles/vars';
+
 .slippage {
   margin-top: 16px;
 }

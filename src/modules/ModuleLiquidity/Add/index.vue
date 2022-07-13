@@ -1,48 +1,24 @@
 <script lang="ts" setup>
-import { storeToRefs } from 'pinia'
-import { formatPercent, formatRate } from '@/utils/common'
-import Details from './Details.vue'
-
-const tokensStore = useTokensStore()
-
-const { selectedTokens } = $(storeToRefs(tokensStore))
-
-// FIXME liquidity store does not have "pairs"
-// const liquidityStore = useLiquidityStore()
-// const { pairs } = storeToRefs(liquidityStore)
-
-const isOpen = $ref(false)
-
-const isValid = $computed(() => selectedTokens.tokenA?.value && selectedTokens.tokenB?.value)
-
-onBeforeUnmount(() => {
-  tokensStore.clearSelectedTokens()
-})
+const modal = ref(false)
 </script>
 
 <template>
-  <div class="liquidity">
-    <LiquidityModuleAddExchangeRate />
-
-    <div class="liquidity--slippage">
-      <KlaySlippage />
-    </div>
+  <div class="space-y-4 px-4">
+    <ModuleLiquidityAddExchangeRate />
 
     <KlayButton
-      type="button"
-      :disabled="!isValid"
-      class="liquidity--btn"
-      @click="isOpen = true"
+      class="w-full"
+      size="lg"
+      type="primary"
+      @click="modal = true"
     >
       Supply
     </KlayButton>
 
-    <LiquidityModuleAddModal
-      v-if="isOpen"
-      @close="isOpen = false"
-    />
+    <ModuleLiquidityAddModal v-model="modal" />
 
-    <Details v-if="selectedTokens.tokenA?.value && selectedTokens.tokenB?.value">
+    <!-- TODO -->
+    <!-- <Details v-if="false && selectedTokens.tokenA?.value && selectedTokens.tokenB?.value">
       <template #title>
         Prices and pool share
       </template>
@@ -69,15 +45,6 @@ onBeforeUnmount(() => {
         <span>Share of pool</span>
         <span>{{ formatPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}</span>
       </DetailsRow>
-      <!--      <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
-      <!--        <span>You'll earn</span> -->
-      <!--        <span>0.17%</span> -->
-      <!--      </div> -->
-
-      <!--      <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
-      <!--        <span>Transaction Fee</span> -->
-      <!--        <span>0.074 KLAY ($0.013)</span> -->
-      <!--      </div> -->
-    </Details>
+    </Details> -->
   </div>
 </template>
