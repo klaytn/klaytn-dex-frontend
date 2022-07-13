@@ -4,6 +4,7 @@ import { toRefs } from '@vueuse/core'
 import { LiquidityPairsPosition, LiquidityPairValueRaw } from '@/store/liquidity'
 import invariant from 'tiny-invariant'
 import BigNumber from 'bignumber.js'
+import { RouteName } from '@/types'
 
 const props = defineProps<{
   data: LiquidityPairsPosition
@@ -37,6 +38,19 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
   if (v1 === '0') return '0'
   const percent = new BigNumber(v1).dividedToIntegerBy(100)
   return `${new BigNumber(v2).dividedBy(percent).toFixed(2)}%`
+}
+
+const router = useRouter()
+const farmingStore = useFarmingStore()
+
+function goToFarms() {
+  farmingStore.setOpenPoolsFor({
+    tokenA: pair.token0.id,
+    tokenB: pair.token1.id,
+  })
+  router.push({
+    name: RouteName.Farms,
+  })
 }
 </script>
 
@@ -98,6 +112,7 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
           <KlayButton
             type="primary"
             disabled
+            @click="goToFarms()"
           >
             Deposit
           </KlayButton>
