@@ -41,6 +41,9 @@ export const useSwapStore = defineStore('swap', () => {
     })),
   )
   syncSelectionAddrsWithLocalStorage(selection)
+  const resetSelection = (newData: TokensPair<InputRaw>) => {
+    Object.assign(selection, newData)
+  }
 
   const selectionAddrs = reactive(buildPair((type) => computed(() => selection[type]?.addr)))
 
@@ -190,6 +193,11 @@ export const useSwapStore = defineStore('swap', () => {
     triggerGetAmount(true)
   }
 
+  function setBothTokens(pair: TokensPair<Address>) {
+    resetSelection(buildPair((type) => ({ inputRaw: '', addr: pair[type] })))
+    getAmountFor.value = null
+  }
+
   function setTokenValue(type: TokenType, raw: string) {
     selection[type].inputRaw = raw
     getAmountFor.value = mirrorTokenType(type)
@@ -214,6 +222,7 @@ export const useSwapStore = defineStore('swap', () => {
 
     setToken,
     setTokenValue,
+    setBothTokens,
     reset,
   }
 })
