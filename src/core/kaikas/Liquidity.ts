@@ -1,11 +1,9 @@
 import Config from './Config'
-import { type ValueWei, type Address, type Deadline } from './types'
+import { type ValueWei, type Address, type Deadline, WeiNumStrBn } from './types'
 import BN from 'bn.js'
 import { MAGIC_GAS_PRICE } from './const'
 import { TokensPair } from '@/utils/pair'
 import { asWei, isNativeToken } from './utils'
-
-type WeiNumStrBn = ValueWei<number | string | BN>
 
 export interface AddLiquidityResult {
   lpTokenGas: ValueWei<number>
