@@ -2,12 +2,14 @@ import Config from './Config'
 import { type ValueWei, type Address, type Deadline, WeiNumStrBn } from './types'
 import BN from 'bn.js'
 import { MAGIC_GAS_PRICE } from './const'
-import { TokensPair } from '@/utils/pair'
-import { asWei, isNativeToken } from './utils'
+import { buildPairAsync, TokensPair } from '@/utils/pair'
+import { asWei, deadlineFiveMinutesFromNow, isNativeToken, tokenRawToWei } from './utils'
+import { DexPair } from '@/types/typechain/swap'
+import { PAIR } from './smartcontracts/abi'
+import Tokens from './Tokens'
 
 export interface AddLiquidityResult {
   lpTokenGas: ValueWei<number>
-  send: () => Promise<unknown>
 }
 
 export interface AddLiquidityProps {
@@ -18,6 +20,26 @@ export interface AddLiquidityProps {
 export interface TokenAddressAndDesiredValue {
   addr: Address
   desired: WeiNumStrBn
+}
+
+export interface ComputeRemoveLiquidityAmountsProps {
+  tokens: TokensPair<Address>
+  pair: Address
+  lpTokenValue: WeiNumStrBn
+}
+
+export interface ComputeRemoveLiquidityAmountsResult {
+  amounts: TokensPair<ValueWei<BN>>
+
+  // FIXME desired to be used within `rmLiquidity`, but actually unused
+  pairContract: DexPair
+  totalSupply: ValueWei<BN>
+}
+
+export interface RemoveLiquidityProps {
+  tokens: TokensPair<Address>
+  pair: Address
+  lpTokenValue: WeiNumStrBn
 }
 
 function minByDesired(desired: WeiNumStrBn): ValueWei<string> {
@@ -34,11 +56,23 @@ function detectEth(
   return null
 }
 
+/**
+ * FIXME
+ */
+function rmLiquidityLpToken(props: RemoveLiquidityProps): ValueWei<BN> {
+  if (isNativeToken(props.tokens.tokenA) || isNativeToken(props.tokens.tokenB)) {
+    return asWei(new BN(tokenRawToWei({ decimals: 18 }, '10')))
+  }
+  return asWei(new BN(props.lpTokenValue))
+}
+
 export default class Liquidity {
   private readonly cfg: Config
+  private readonly tokens: Tokens
 
-  public constructor(cfg: Config) {
-    this.cfg = cfg
+  public constructor(deps: { cfg: Config; tokens: Tokens }) {
+    this.cfg = deps.cfg
+    this.tokens = deps.tokens
   }
 
   private get router() {
@@ -80,15 +114,14 @@ export default class Liquidity {
           value: desiredEth,
         }),
       )
-      const send = () =>
-        method.send({
-          from: this.addr,
-          gas: lpTokenGas,
-          gasPrice: MAGIC_GAS_PRICE,
-          value: desiredEth,
-        })
+      await method.send({
+        from: this.addr,
+        gas: lpTokenGas,
+        gasPrice: MAGIC_GAS_PRICE,
+        value: desiredEth,
+      })
 
-      return { lpTokenGas, send }
+      return { lpTokenGas }
     } else {
       const { tokenA, tokenB } = props.tokens
 
@@ -104,15 +137,72 @@ export default class Liquidity {
       )
 
       const lpTokenGas = asWei(await method.estimateGas())
-      const send = () =>
-        method.send({
-          from: this.addr,
-          gas: lpTokenGas,
-          gasPrice: MAGIC_GAS_PRICE,
-        })
+      await method.send({
+        from: this.addr,
+        gas: lpTokenGas,
+        gasPrice: MAGIC_GAS_PRICE,
+      })
 
-      return { lpTokenGas, send }
+      return { lpTokenGas }
     }
+  }
+
+  /**
+   * FIXME there should be a different between ETH/nonETH, right?
+   */
+  public async rmLiquidity(props: RemoveLiquidityProps): Promise<void> {
+    const nLpToken = rmLiquidityLpToken(props)
+    const { amounts } = await this.computeRmLiquidityAmounts(props)
+
+    await this.cfg.approveAmount(props.pair, nLpToken)
+
+    const method = this.router.methods.removeLiquidity(
+      props.tokens.tokenA,
+      props.tokens.tokenB,
+      nLpToken,
+      amounts.tokenA,
+      amounts.tokenB,
+      this.addr,
+      deadlineFiveMinutesFromNow(),
+    )
+
+    const gas = await method.estimateGas({ from: this.addr, gasPrice: MAGIC_GAS_PRICE })
+    await method.send({ from: this.addr, gas, gasPrice: MAGIC_GAS_PRICE })
+  }
+
+  public async computeRmLiquidityAmounts(
+    props: ComputeRemoveLiquidityAmountsProps,
+  ): Promise<ComputeRemoveLiquidityAmountsResult> {
+    const pairContract = this.cfg.createContract<DexPair>(props.pair, PAIR)
+
+    const nTotalSupply = asWei(new BN(await pairContract.methods.totalSupply().call()))
+    const nLpToken = asWei(new BN(props.lpTokenValue))
+
+    const amounts = await buildPairAsync((type) =>
+      this.tokenRmAmount({
+        lpToken: nLpToken,
+        totalSupply: nTotalSupply,
+        pair: props.pair,
+        token: props.tokens[type],
+      }),
+    )
+
+    return { amounts, pairContract, totalSupply: nTotalSupply }
+  }
+
+  /**
+   * amount = lpTokenValue * tokenBalanceOfPair / totalSupply
+   */
+  private async tokenRmAmount(props: {
+    token: Address
+    pair: Address
+    lpToken: ValueWei<BN>
+    totalSupply: ValueWei<BN>
+  }): Promise<ValueWei<BN>> {
+    const balance = await this.tokens.getTokenBalanceOfAddr(props.token, props.pair)
+    const nBalance = new BN(balance)
+    const amount = props.lpToken.mul(nBalance).div(props.totalSupply).subn(1)
+    return asWei(amount)
   }
 }
 

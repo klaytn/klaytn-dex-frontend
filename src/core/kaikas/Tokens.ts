@@ -1,10 +1,11 @@
-import { asWei, isEmptyAddress } from './utils'
+import { asWei, isEmptyAddress, isNativeToken } from './utils'
 import { type DexPair } from '@/types/typechain/swap'
-import { type Balance, type ValueWei, type Address, WeiNumStrBn } from './types'
+import { type Balance, type ValueWei, type Address, WeiNumStrBn, Token, TokenSymbol } from './types'
 import Config from './Config'
-import { PAIR } from './smartcontracts/abi'
+import { PAIR, KIP7 as KIP7_ABI } from './smartcontracts/abi'
 import { TokensPair, TokenType } from '@/utils/pair'
 import invariant from 'tiny-invariant'
+import { KIP7 } from '@/types/typechain/tokens'
 
 export interface GetTokenQuoteProps extends TokensPair<Address> {
   value: WeiNumStrBn
@@ -18,7 +19,7 @@ export default class Tokens {
     this.cfg = cfg
   }
 
-  private get selfAddr(): Address {
+  private get addr(): Address {
     return this.cfg.addrs.self
   }
 
@@ -34,10 +35,10 @@ export default class Tokens {
   public async getTokenQuote({ tokenA, tokenB, value, quoteFor }: GetTokenQuoteProps): Promise<ValueWei<string>> {
     const pairContract = await this.createPairContract({ tokenA, tokenB })
     const token0 = await pairContract.methods.token0().call({
-      from: this.selfAddr,
+      from: this.addr,
     })
     const reserves = await pairContract.methods.getReserves().call({
-      from: this.selfAddr,
+      from: this.addr,
     })
 
     const sortedReserves = (quoteFor === 'tokenA' ? token0 !== tokenA : token0 === tokenA)
@@ -46,7 +47,7 @@ export default class Tokens {
 
     return asWei(
       await this.routerContract.methods.quote(value, sortedReserves[0], sortedReserves[1]).call({
-        from: this.selfAddr,
+        from: this.addr,
       }),
     )
   }
@@ -58,7 +59,7 @@ export default class Tokens {
     const pairContract = await this.createPairContract(pair)
 
     const pairBalance = (await pairContract.methods.totalSupply().call()) as Balance
-    const userBalance = (await pairContract.methods.balanceOf(this.selfAddr).call()) as Balance
+    const userBalance = (await pairContract.methods.balanceOf(this.addr).call()) as Balance
 
     return { pairBalance, userBalance }
   }
@@ -68,8 +69,38 @@ export default class Tokens {
    */
   public async getPairAddress({ tokenA, tokenB }: TokensPair<Address>): Promise<Address> {
     return (await this.factoryContract.methods.getPair(tokenA, tokenB).call({
-      from: this.selfAddr,
+      from: this.addr,
     })) as Address
+  }
+
+  public async getToken(addr: Address): Promise<Token> {
+    const contract = this.cfg.createContract<KIP7>(addr, KIP7_ABI)
+    const [name, symbol, decimals] = await Promise.all([
+      contract.methods.name().call(),
+      contract.methods.symbol().call() as Promise<TokenSymbol>,
+      contract.methods
+        .decimals()
+        .call()
+        .then((x) => Number(x)),
+    ])
+    return { address: addr, name, symbol, decimals }
+  }
+
+  public async getTokenBalanceOfUser(token: Address): Promise<Balance> {
+    return this.getTokenBalanceOfAddr(token, this.addr)
+  }
+
+  public async getTokenBalanceOfAddr(token: Address, balanceOf: Address): Promise<Balance> {
+    if (isNativeToken(token)) {
+      // we can't get KLAY balance via KIP7 contract, because it returns a balance of WKLAY,
+      // which is not correct
+      const balance = (await this.cfg.caver.rpc.klay.getBalance(balanceOf)) as Balance
+      return balance
+    }
+
+    const contract = this.cfg.createContract<KIP7>(token, KIP7_ABI)
+    const balance = (await contract.methods.balanceOf(balanceOf).call()) as Balance
+    return balance
   }
 
   private async createPairContract(pair: TokensPair<Address>): Promise<DexPair> {

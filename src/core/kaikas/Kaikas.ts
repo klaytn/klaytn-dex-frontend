@@ -2,10 +2,7 @@ import Config from './Config'
 import Liquidity from './Liquidity'
 import Swap from './Swap'
 import Tokens from './Tokens'
-import { Address, Balance, Token, TokenSymbol } from './types'
-import { KIP7 as KIP7_ABI } from './smartcontracts/abi'
-import type { KIP7 } from '@/types/typechain/tokens'
-import { isNativeToken } from './utils'
+import { Address, Balance, Token } from './types'
 
 export default class Kaikas {
   public readonly cfg: Config
@@ -14,9 +11,9 @@ export default class Kaikas {
   public readonly tokens: Tokens
 
   public constructor(cfg: Config) {
-    this.liquidity = new Liquidity(cfg)
-    this.swap = new Swap(cfg)
     this.tokens = new Tokens(cfg)
+    this.liquidity = new Liquidity({ cfg, tokens: this.tokens })
+    this.swap = new Swap(cfg)
     this.cfg = cfg
   }
 
@@ -27,34 +24,24 @@ export default class Kaikas {
     return this.cfg.addrs.self
   }
 
+  /**
+   * @deprecated use {@link Tokens.getToken}
+   */
   public async getToken(addr: Address): Promise<Token> {
-    const contract = this.cfg.createContract<KIP7>(addr, KIP7_ABI)
-    const [name, symbol, decimals] = await Promise.all([
-      contract.methods.name().call(),
-      contract.methods.symbol().call() as Promise<TokenSymbol>,
-      contract.methods
-        .decimals()
-        .call()
-        .then((x) => Number(x)),
-    ])
-    return { address: addr, name, symbol, decimals }
+    return this.tokens.getToken(addr)
   }
 
+  /**
+   * @deprecated use {@link Tokens.getTokenBalanceOfUser}
+   */
   public async getTokenBalance(addr: Address): Promise<Balance> {
-    if (isNativeToken(addr)) {
-      // we can't get KLAY balance via KIP7 contract, because it returns a balance of WKLAY,
-      // which is not correct
-      const balance = (await this.cfg.caver.rpc.klay.getBalance(this.selfAddress)) as Balance
-      return balance
-    }
-
-    const contract = this.cfg.createContract<KIP7>(addr, KIP7_ABI)
-    const balance = (await contract.methods.balanceOf(this.selfAddress).call()) as Balance
-    return balance
+    return this.tokens.getTokenBalanceOfUser(addr)
   }
 
+  /**
+   * @deprecated use {@link Config.isSmartContract}
+   */
   public async isSmartContract(addr: Address): Promise<boolean> {
-    const code = await this.cfg.caver.klay.getCode(addr)
-    return code !== '0x'
+    return this.cfg.isSmartContract(addr)
   }
 }

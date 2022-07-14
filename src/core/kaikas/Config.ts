@@ -88,23 +88,23 @@ export default class Config {
   /**
    * Uses KIP7 by default
    */
-  public async approveAmount(addr: Address, amountStr: WeiNumStrBn, contractAddr = this.addrs.router): Promise<void> {
+  public async approveAmount(addr: Address, amount: WeiNumStrBn, contractAddr = this.addrs.router): Promise<void> {
     const contract = this.createContract<KIP7>(addr, KIP7_ABI)
-    await this.approveAmountWithContract(contract, amountStr, contractAddr)
+    await this.approveAmountWithContract(contract, amount, contractAddr)
   }
 
   public async approveAmountWithContract(
     contract: KIP7 | DexPair,
-    amountStr: WeiNumStrBn,
+    amount: WeiNumStrBn,
     contractAddr = this.addrs.router,
   ): Promise<void> {
     const allowanceStr = await this.getAllowanceWithContract(contract, contractAddr)
 
-    const nAmount = new BN(amountStr)
+    const nAmount = new BN(amount)
     const nAllowance = new BN(allowanceStr)
     if (nAmount.lte(nAllowance)) return
 
-    const approveMethod = contract.methods.approve(this.addrs.router, amountStr)
+    const approveMethod = contract.methods.approve(this.addrs.router, amount)
 
     const gas = await approveMethod.estimateGas()
     await approveMethod.send({
@@ -117,6 +117,11 @@ export default class Config {
   public async getGasPrice(): Promise<ValueWei<string>> {
     const gasPrice = await this.caver.klay.getGasPrice()
     return asWei(gasPrice)
+  }
+
+  public async isSmartContract(addr: Address): Promise<boolean> {
+    const code = await this.caver.klay.getCode(addr)
+    return code !== '0x'
   }
 }
 
