@@ -25,6 +25,7 @@ function onSelect(token: Address) {
 <template>
   <TokenSelectModal
     v-model:open="isModalOpen"
+    :selected="token"
     @select="onSelect"
   />
 
@@ -41,22 +42,20 @@ function onSelect(token: Address) {
     </template>
   </KlayButton>
 
-  <button
+  <KlayButton
     v-else
-    class="btn-filled"
+    @click="isModalOpen = true"
   >
     <div
-      class="btn-filled__content"
-      @click="isModalOpen = true"
+      v-if="tokenData"
+      class="flex items-center space-x-2 text-black"
     >
-      <template v-if="tokenData">
-        <KlayCharAvatar :symbol="tokenData.symbol" />
-        <span>
-          {{ tokenData.symbol }}
-        </span>
-      </template>
+      <KlayCharAvatar :symbol="tokenData.symbol" />
+      <span>
+        {{ tokenData.symbol }}
+      </span>
     </div>
-  </button>
+  </KlayButton>
 </template>
 
 <style scoped lang="scss">

@@ -44,10 +44,9 @@ const kaikasStore = useKaikasStore()
 const { isConnected: isKaikasConnected } = $(storeToRefs(kaikasStore))
 
 const tokensStore = useTokensStore()
+const { isBalancePending } = $(storeToRefs(tokensStore))
 
-const tokenData = $computed<null | Token>(
-  () => (props.token && tokensStore.tokens?.find((x) => x.address === props.token)) ?? null,
-)
+const tokenData = $computed<null | Token>(() => (props.token && tokensStore.findTokenData(props.token)) ?? null)
 
 const balance = $computed<null | ValueWei<BigNumber>>(
   () => (props.token && tokensStore.userBalanceMap?.get(props.token)) ?? null,
@@ -130,6 +129,11 @@ function setToMax() {
           <template v-if="isKaikasConnected"> Balance: {{ balanceFormatted }} </template>
           <template v-else> Balance: Connect Wallet </template>
         </span>
+        <KlayLoader
+          v-if="isBalancePending"
+          color="gray"
+          size="14"
+        />
         <IconKlayImportant />
       </div>
 

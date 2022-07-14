@@ -1,11 +1,15 @@
 <script setup lang="ts" name="TagName">
 defineProps<{
   label: string
+  disabled?: boolean
 }>()
 </script>
 
 <template>
-  <div class="tag-name">
+  <div
+    class="tag-name"
+    :class="{ 'opacity-40': disabled }"
+  >
     <div class="tag-name--content">
       <slot />
     </div>
