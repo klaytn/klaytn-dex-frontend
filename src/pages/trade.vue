@@ -7,7 +7,7 @@ import { RouteName } from '@/types'
 import { storeToRefs } from 'pinia'
 
 const tokensStore = useTokensStore()
-const { isDataLoading: isLoading, doesDataExist } = $(storeToRefs(tokensStore))
+const { isBalancePending, isImportedPending, isImportedLoaded } = $(storeToRefs(tokensStore))
 
 const route = useRoute()
 const isOnLiquidityAdd = $computed(() => route.name === RouteName.LiquidityAdd)
@@ -27,8 +27,7 @@ const headLinks: {
 ]
 
 function refresh() {
-  tokensStore.getImportedTokens()
-  tokensStore.getUserBalance()
+  tokensStore.touchUserBalance()
 }
 </script>
 
@@ -67,7 +66,7 @@ function refresh() {
       <KlayButton
         type="action"
         rounded
-        :loading="isLoading"
+        :loading="isBalancePending || isImportedPending"
         @click="refresh"
       >
         <template #icon>
@@ -86,14 +85,14 @@ function refresh() {
       </KlayButton>
     </div>
 
+    <RouterView v-if="isImportedLoaded" />
+
     <div
-      v-if="isLoading && !doesDataExist"
+      v-else-if="isImportedPending"
       class="p-8 flex items-center justify-center"
     >
       <KlayLoader />
     </div>
-
-    <RouterView v-else />
   </div>
 </template>
 

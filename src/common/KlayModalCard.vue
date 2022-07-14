@@ -1,17 +1,16 @@
-<script setup lang="ts" name="KlayModal">
+<script setup lang="ts" name="KlayModalCard">
 import { useModalApi } from '@soramitsu-ui/ui'
 
 defineProps<{
   title?: string
-  noPadding?: boolean
 }>()
 
 const api = useModalApi()
 </script>
 
 <template>
-  <div class="card">
-    <div class="head">
+  <div class="card space-y-5">
+    <div class="head pt-5 px-4">
       <h3>
         <slot name="title">
           {{ title }}
@@ -27,9 +26,11 @@ const api = useModalApi()
       </button>
     </div>
 
-    <div :class="{ 'px-4 py-5': !noPadding }">
-      <slot />
-    </div>
+    <slot name="body">
+      <div class="px-4 py-5">
+        <slot />
+      </div>
+    </slot>
   </div>
 </template>
 
@@ -37,23 +38,18 @@ const api = useModalApi()
 @import '@/styles/vars';
 
 .card {
-  text-align: left;
   background: $white;
   border-radius: 20px;
-  z-index: 999;
   max-height: 90vh;
-  overflow: auto;
 }
 
 .head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  padding: 20px 17px;
   height: 65px;
-  padding-bottom: 0;
-  & h3 {
+
+  h3 {
     font-style: normal;
     font-weight: 700;
     font-size: 18px;

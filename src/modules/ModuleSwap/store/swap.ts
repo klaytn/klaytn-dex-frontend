@@ -106,7 +106,7 @@ export const useSwapStore = defineStore('swap', () => {
     await send()
 
     // 3. Re-fetch balances
-    tokensStore.getUserBalance()
+    tokensStore.touchUserBalance()
   })
 
   wheneverTaskErrors(swapTask, (err) => {

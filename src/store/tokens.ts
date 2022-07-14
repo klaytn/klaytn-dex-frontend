@@ -1,9 +1,10 @@
-import { acceptHMRUpdate, defineStore } from 'pinia'
-import { Address, asWei, Balance, Token } from '@/core/kaikas'
-import { useStaleIfErrorState, useTask } from '@vue-kakuyaku/core'
+import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
+import { Address, asWei, Balance, Kaikas, Token } from '@/core/kaikas'
+import { useErrorRetry, useScope, useStaleIfErrorState, useTask } from '@vue-kakuyaku/core'
 import { WHITELIST_TOKENS } from '@/core/kaikas/const'
 import invariant from 'tiny-invariant'
 import BigNumber from 'bignumber.js'
+import { Ref } from 'vue'
 
 export interface TokenWithOptionBalance extends Token {
   balance: null | Balance<BigNumber>
@@ -21,59 +22,126 @@ function listItemsFromMapOrNull<K, V>(keys: K[], map: Map<K, V>): null | V[] {
   return fromMap
 }
 
-export const useTokensStore = defineStore('tokens', () => {
+async function loadTokens(kaikas: Kaikas, addrs: Address[]): Promise<Map<Address, Token>> {
+  const pairs = await Promise.all(
+    addrs.map(async (addr) => {
+      const token = await kaikas.getToken(addr)
+      return [addr, token] as [Address, Token]
+    }),
+  )
+
+  return new Map(pairs)
+}
+
+async function loadBalances(kaikas: Kaikas, tokens: Address[]): Promise<Map<Address, Balance>> {
+  const entries = await Promise.all(
+    tokens.map(async (addr) => {
+      const balance = await kaikas.getTokenBalance(addr)
+      return [addr, balance] as [Address, Balance<string>]
+    }),
+  )
+
+  return new Map(entries)
+}
+
+function useImportedTokens() {
   const kaikasStore = useKaikasStore()
+  const { isConnected } = storeToRefs(kaikasStore)
 
-  const importedTokensAddrs = useLocalStorage<Address[]>('klaytn-dex-imported-tokens', [])
+  const tokens = useLocalStorage<Address[]>('klaytn-dex-imported-tokens', [])
 
-  const importedTokensOrdered = computed<null | Token[]>(() => {
-    return listItemsFromMapOrNull(importedTokensAddrs.value, importedTokensMap.value)
+  const fetchScope = useScope(isConnected, () => {
+    const task = useTask(async () => {
+      const kaikas = kaikasStore.getKaikasAnyway()
+      return loadTokens(kaikas, tokens.value)
+    })
+
+    useTaskLog(task, 'imported-tokens')
+    useErrorRetry(task)
+
+    task.run()
+
+    return useStaleIfErrorState(task)
   })
 
-  const getImportedTokensTask = useTask(async () => {
-    const kaikas = kaikasStore.getKaikasAnyway()
+  const isPending = computed(() => fetchScope.value?.setup.pending ?? false)
+  const result = computed(() => fetchScope.value?.setup.result?.some ?? null)
+  const isLoaded = computed(() => !!result.value)
 
-    const pairs = await Promise.all(
-      importedTokensAddrs.value.map(async (addr) => {
-        const token = await kaikas.getToken(addr)
-        return [addr, token] as [Address, Token]
-      }),
-    )
-
-    return new Map(pairs)
-  })
-
-  const getImportedTokensTaskState = useStaleIfErrorState(getImportedTokensTask)
-  const areImportedTokensLoaded = computed(() => getImportedTokensTask.state.kind === 'ok')
-  const importedTokensMap = computed<Map<Address, Token>>(() => {
-    return getImportedTokensTaskState.result?.some ?? new Map()
+  const tokensFetched = computed<null | Token[]>(() => {
+    if (!result.value) return null
+    return listItemsFromMapOrNull(tokens.value, result.value)
   })
 
   /**
-   * Saves new imported token
+   * Saves new imported token.
+   * Does not fetch token data again
    */
   function importToken(token: Token): void {
-    importedTokensAddrs.value.unshift(token.address)
-    importedTokensMap.value.set(token.address, token)
+    tokens.value.unshift(token.address)
+    if (result.value) {
+      result.value.set(token.address, token)
+    }
   }
 
-  useTaskLog(getImportedTokensTask, 'imported-tokens')
-
-  function getImportedTokens() {
-    getImportedTokensTask.run()
+  return {
+    tokens,
+    tokensFetched,
+    isPending,
+    isLoaded,
+    importToken,
   }
+}
 
-  const tokens = computed<null | Token[]>(() => {
-    const imported = importedTokensOrdered.value
-    if (!imported) return null
+function useUserBalance(tokens: Ref<null | Address[]>) {
+  const kaikasStore = useKaikasStore()
 
-    return [...imported, ...WHITELIST_TOKENS]
+  const fetchScope = useScope(
+    computed(() => !!tokens.value),
+    () => {
+      const task = useTask<Map<Address, Balance<string>>>(async () => {
+        const kaikas = kaikasStore.getKaikasAnyway()
+        invariant(tokens.value)
+
+        return loadBalances(kaikas, tokens.value)
+      })
+
+      useTaskLog(task, 'user-balance')
+      useErrorRetry(task)
+      watch(tokens, () => task.run(), { immediate: true })
+
+      /**
+       * Refetch balance
+       */
+      function touch() {
+        task.run()
+      }
+
+      return reactive({ ...toRefs(useStaleIfErrorState(task)), touch })
+    },
+  )
+
+  const isPending = computed<boolean>(() => fetchScope.value?.setup.pending ?? false)
+  const result = computed<null | Map<Address, Balance<BigNumber>>>(() => {
+    const data = fetchScope.value?.setup.result?.some
+    if (data) return new Map([...data].map(([addr, balance]) => [addr, asWei(new BigNumber(balance))]))
+    return null
   })
+  const isLoaded = computed<boolean>(() => !!result.value)
 
+  function touch() {
+    fetchScope.value?.setup.touch()
+  }
+
+  return { isPending, isLoaded, result, touch }
+}
+
+function useTokensIndex(tokens: Ref<null | Token[]>) {
   /**
    * All addresses are written in lower-case
    */
   type TokensIndexMap = Map<Address, Token>
+
   const tokensIndexMap = computed<null | TokensIndexMap>(() => {
     const list = tokens.value
     if (!list) return null
@@ -87,35 +155,34 @@ export const useTokensStore = defineStore('tokens', () => {
     return tokensIndexMap.value?.get(addr.toLowerCase() as Address) ?? null
   }
 
-  const getUserBalanceTask = useTask<Map<Address, Balance<string>>>(async () => {
-    const kaikas = kaikasStore.getKaikasAnyway()
-    invariant(tokens.value)
+  return { findTokenData }
+}
 
-    const entries = await Promise.all(
-      tokens.value.map(async ({ address }) => {
-        const balance = await kaikas.getTokenBalance(address)
-        return [address, balance] as [Address, Balance<string>]
-      }),
-    )
+export const useTokensStore = defineStore('tokens', () => {
+  const {
+    tokensFetched: importedFetched,
+    isLoaded: isImportedLoaded,
+    isPending: isImportedPending,
+    importToken,
+  } = useImportedTokens()
 
-    return new Map(entries)
+  const tokensLoaded = computed(() => {
+    return importedFetched.value ? [...importedFetched.value, ...WHITELIST_TOKENS] : null
   })
-  useTaskLog(getUserBalanceTask, 'user-balance')
-  const userBalanceTaskState = useStaleIfErrorState(getUserBalanceTask)
-  const userBalanceMap = computed<null | Map<Address, Balance<BigNumber>>>(() => {
-    const data = userBalanceTaskState.result?.some
-    if (data) return new Map([...data].map(([addr, balance]) => [addr, asWei(new BigNumber(balance))]))
-    return null
-  })
+  const tokensLoadedAddrs = computed(() => tokensLoaded.value?.map((x) => x.address) ?? null)
 
-  function getUserBalance() {
-    getUserBalanceTask.run()
-  }
+  const { findTokenData } = useTokensIndex(tokensLoaded)
 
-  const tokensWithBalance = computed<null | TokenWithOptionBalance[]>(() => {
+  const {
+    result: userBalanceMap,
+    isPending: isBalancePending,
+    touch: touchUserBalance,
+  } = useUserBalance(tokensLoadedAddrs)
+
+  const tokensWithBalance = computed(() => {
     const balanceMap = userBalanceMap.value
     return (
-      tokens.value?.map<TokenWithOptionBalance>((x) => {
+      tokensLoaded.value?.map<TokenWithOptionBalance>((x) => {
         return {
           ...x,
           balance: balanceMap?.get(x.address) ?? null,
@@ -124,22 +191,17 @@ export const useTokensStore = defineStore('tokens', () => {
     )
   })
 
-  const isDataLoading = computed(() => userBalanceTaskState.pending || getImportedTokensTaskState.pending)
-  const doesDataExist = computed(() => areImportedTokensLoaded.value && userBalanceMap.value)
-
   return {
-    tokens,
-    findTokenData,
-
-    isDataLoading,
-    getImportedTokens,
-    areImportedTokensLoaded,
-    getUserBalance,
-    userBalanceMap,
+    isBalancePending,
+    isImportedPending,
+    isImportedLoaded,
+    tokensLoaded,
     tokensWithBalance,
-    doesDataExist,
+    userBalanceMap,
 
     importToken,
+    findTokenData,
+    touchUserBalance,
   }
 })
 

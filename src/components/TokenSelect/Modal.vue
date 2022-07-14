@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { Status, SModal } from '@soramitsu-ui/ui'
-import { Balance, isAddress, Token, Address, tokenWeiToRaw } from '@/core/kaikas'
+import { isAddress, Token, Address } from '@/core/kaikas'
 import { useTask, useScope } from '@vue-kakuyaku/core'
-import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 
 const props = defineProps<{
   open: boolean
+  selected: Address | null
 }>()
 
 const emit = defineEmits(['select', 'update:open'])
@@ -44,11 +44,12 @@ debouncedWatch(
 
 const searchAsAddressSmartcontractCheckScope = useScope($$(searchAsAddress), (addr) => {
   const task = useTask(() => kaikasStore.getKaikasAnyway().isSmartContract(addr))
+  useTaskLog(task, 'smartcontract-check-' + addr)
   task.run()
   return task
 })
 
-const tokenToImportScope = useScope(
+const importLookupScope = useScope(
   computed<false | Address>(() => {
     const addr = searchAsAddress
     const addrSmartcontractCheckState = searchAsAddressSmartcontractCheckScope.value?.setup.state
@@ -63,24 +64,31 @@ const tokenToImportScope = useScope(
   }),
   (addr) => {
     const task = useTask<Token | null>(() => kaikasStore.getKaikasAnyway().getToken(addr))
+    useTaskLog(task, 'import-lookup')
     task.run()
     return task
   },
 )
 
+const isImportLookupPending = $computed<boolean>(() => {
+  return (
+    importLookupScope.value?.setup.state.kind === 'pending' ||
+    searchAsAddressSmartcontractCheckScope.value?.setup.state.kind === 'pending'
+  )
+})
+
 const tokenToImport = $computed<Token | null>(() => {
-  const state = tokenToImportScope.value?.setup.state
+  const state = importLookupScope.value?.setup.state
   return state?.kind === 'ok' ? state.data : null
 })
 
-function isBalancePositive(balance: Balance<BigNumber>): boolean {
-  return new BigNumber(balance).isGreaterThan(0)
-}
+const nothingFound = $computed(() => {
+  if (tokensFilteredBySearch.length) return false
+  // maybe importing something
+  if (searchAsAddress && (tokenToImport || isImportLookupPending)) return false
 
-function formatBalance(balance: Balance<BigNumber>, decimals: number): string {
-  const raw = tokenWeiToRaw({ decimals }, balance.toString() as Balance<string>)
-  return new BigNumber(raw).toFixed(4)
-}
+  return true
+})
 
 function resetSearch() {
   search = ''
@@ -88,9 +96,6 @@ function resetSearch() {
 }
 
 function selectToken(token: Address) {
-  // const balance = tokensStore.userBalanceMap?.get(token)
-  // invariant(balance, 'Balance should be loaded before selection')
-  // invariant(isBalancePositive(balance), 'Balance should be greater than 0')
   emit('select', token)
 }
 
@@ -108,79 +113,73 @@ function doImport() {
       style="width: 344px"
       no-padding
       title="Select a token"
-      class="flex flex-col min-h-0 pt-5 h-90vh"
+      class="flex flex-col min-h-0 h-90vh overflow-hidden"
     >
-      <div class="flex-1 pt-4 h-full min-h-0 flex flex-col">
-        <KlayTextField
-          v-model="search"
-          class="mx-[17px]"
-          label="Search name or paste address"
-        />
+      <template #body>
+        <div class="flex-1 min-h-0 flex flex-col">
+          <KlayTextField
+            v-model="search"
+            class="mx-[17px]"
+            label="Search name or paste address"
+          />
 
-        <div class="p-x-[17px] recent">
-          <div
-            v-for="t in recentTokens"
-            :key="t.address"
-            class="tag"
-            @click="selectToken(t.address)"
-          >
+          <div class="p-2 flex items-center flex-wrap">
             <TagName
-              :key="t.symbol"
+              v-for="t in recentTokens"
+              :key="t.address"
+              :disabled="t.address === selected"
               :label="t.symbol"
+              class="m-2 cursor-pointer"
+              @click="selectToken(t.address)"
             >
               <KlayCharAvatar :symbol="t.symbol" />
             </TagName>
           </div>
-        </div>
 
-        <div class="flex-1 overflow-y-scroll list mb-2">
-          <div
-            v-if="tokenToImport"
-            class="list-item"
-            @click="doImport()"
-          >
-            <KlayCharAvatar :symbol="tokenToImport.symbol" />
-            <div class="info">
-              <p class="token">
-                {{ tokenToImport.symbol }}
-              </p>
-              <span class="token-name">{{ tokenToImport.name }}</span>
-            </div>
-            <button
-              type="button"
-              class="import"
-            >
-              Import
-            </button>
-          </div>
-
-          <template
-            v-for="t in tokensFilteredBySearch"
-            :key="t.address"
-          >
-            <div class="list-hr" />
-
-            <div
-              class="list-item"
-              @click="selectToken(t.address)"
-            >
-              <KlayCharAvatar :symbol="t.symbol" />
-              <div class="info">
-                <p class="token">
-                  {{ t.symbol }}
-                </p>
-                <span class="token-name">{{ t.name.toLowerCase() }}</span>
-              </div>
+          <div class="flex-1 min-h-0 overflow-y-scroll list">
+            <div class="h-full">
               <div
-                :title="`${t.balance ?? '-'} ${t.symbol}`"
-                class="token-count"
+                v-if="nothingFound"
+                class="p-4 text-center no-results"
               >
-                {{ t.balance ? formatBalance(t.balance as any, t.decimals) : '-' }} {{ t.symbol }}
+                No results found
               </div>
+
+              <TokenSelectModalListItem
+                v-else-if="tokenToImport"
+                :token="tokenToImport"
+                for-import
+                @click:import="doImport()"
+              />
+
+              <div
+                v-if="isImportLookupPending"
+                class="p-8 flex items-center justify-center"
+              >
+                <KlayLoader />
+              </div>
+
+              <template
+                v-for="(token, i) in tokensFilteredBySearch"
+                :key="token.address"
+              >
+                <div
+                  v-if="i > 0 || tokenToImport"
+                  class="list-div mx-4"
+                />
+
+                <TokenSelectModalListItem
+                  :token="token"
+                  :disabled="token.address === selected"
+                  :balance="token.balance"
+                  class="py-2"
+                  @click="selectToken(token.address)"
+                />
+              </template>
             </div>
-          </template>
+          </div>
         </div>
-      </div>
+      </template>
     </KlayModalCard>
   </SModal>
 </template>
@@ -188,112 +187,15 @@ function doImport() {
 <style scoped lang="scss">
 @import '@/styles/vars';
 
-p {
-  color: $gray4;
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 180%;
-}
-
-.recent {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-top: 16px;
-}
-
-.tag {
-  margin-right: 8px;
-  margin-bottom: 8px;
-  cursor: pointer;
-}
-
 .list {
-  margin-top: 17px;
-  max-height: 400px;
   border-top: 1px solid $gray5;
 }
 
-.list-hr {
-  background: $gray5;
-  height: 1px;
-  min-height: 1px;
-  margin: 0 17px;
-  // width: 100%;
+.list-div {
+  border-top: 1px solid $gray5;
 }
-
-.list-item {
-  display: flex;
-  align-items: flex-start;
-
-  padding: 8px 17px;
-  cursor: pointer;
-
-  &_disabled {
-    opacity: 0.5 !important;
-    cursor: default !important;
-
-    &:hover {
-      background: $white !important;
-    }
-  }
-
-  &:hover {
-    background: $gray3;
-  }
-
-  &:last-child {
-    border-bottom: 1px solid $gray5;
-  }
-}
-
-.info {
-  margin-left: 5px;
-}
-
-.token {
-  font-style: normal;
-  font-weight: 600;
+.no-results {
+  color: rgba(49, 49, 49, 1);
   font-size: 14px;
-  line-height: 17px;
-  color: $dark;
-}
-
-.token-name {
-  font-style: normal;
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 180%;
-  color: $gray4;
-}
-
-.token-logo {
-  display: block;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  object-fit: contain;
-}
-
-.token-count {
-  font-style: normal;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 17px;
-  color: $dark;
-  margin-left: auto;
-  max-width: 150px;
-}
-
-.import {
-  background: $blue;
-  border-radius: 10px;
-  color: $white;
-  margin-left: auto;
-  font-weight: 700;
-  font-size: 12px;
-  line-height: 18px;
-  padding: 7px 24px;
-  cursor: pointer;
 }
 </style>

@@ -65,6 +65,7 @@ declare module '@vue/runtime-core' {
     TokenInput: typeof import('./components/TokenInput.vue')['default']
     TokenSelect: typeof import('./components/TokenSelect/index.vue')['default']
     TokenSelectModal: typeof import('./components/TokenSelect/Modal.vue')['default']
+    TokenSelectModalListItem: typeof import('./components/TokenSelect/ModalListItem.vue')['default']
     Tutorial: typeof import('./components/Tutorial.vue')['default']
   }
 }
