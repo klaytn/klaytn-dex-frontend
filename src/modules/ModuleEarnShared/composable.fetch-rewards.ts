@@ -45,23 +45,23 @@ export function useFetchRewards<T extends PoolId | Address>({
     blockNumber: number
   }
 
-  const promise = usePromise<FetchRewardsResult>() // use promise state
+  const { state, set } = usePromise<FetchRewardsResult>() // use promise state
 
   function run() {
     const ids = poolIds.value
     invariant(ids)
-    if (promise.state.value?.kind !== 'pending') {
-      promise.set(fetchRewards(ids)) // set promise
+    if (!state.pending) {
+      set(fetchRewards(ids)) // set promise
     }
   }
   const runDebounced = useDebounceFn(run, REFETCH_REWARDS_INTERVAL)
 
   watch(poolIds, run)
-  wheneverDone(promise.state, runDebounced)
-  wheneverFulfilled(promise.state, ({ blockNumber }) => updateBlockNumber(blockNumber))
-  usePromiseLog(promise.state, 'fetch-rewards-generic')
+  wheneverDone(state, runDebounced)
+  wheneverFulfilled(state, ({ blockNumber }) => updateBlockNumber(blockNumber))
+  usePromiseLog(state, 'fetch-rewards-generic')
 
-  const fulfilled = toRef(useStaleState(promise.state), 'fulfilled') // getting stale rewards data
+  const fulfilled = toRef(useStaleState(state), 'fulfilled') // getting stale rewards data
 
   const rewards = computed(() => fulfilled.value?.value?.rewards ?? null)
   const areRewardsFetched = computed(() => !!rewards.value)

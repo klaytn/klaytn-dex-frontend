@@ -1,11 +1,6 @@
 import { Address, Kaikas, ValueWei } from '@/core/kaikas'
 import { TokensPair, TokenType } from '@/utils/pair'
-import { useScope, useTask } from '@vue-kakuyaku/core'
-import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
-import Debug from 'debug'
-
-const debug = Debug('swap-get-amount')
 
 export interface GetAmountProps extends TokensPair<Address> {
   amountFor: TokenType
@@ -39,62 +34,44 @@ async function getAmount(props: GetAmountProps & { kaikas: Kaikas }): Promise<Va
 export function useGetAmount(props: Ref<null | GetAmountProps>) {
   const kaikasStore = useKaikasStore()
 
-  const computedKey = computed<string | null>(() => {
-    const val = props.value
-    if (!val) return null
-    return `${val.tokenA}-${val.tokenB}-for-${val.amountFor}-${val.referenceValue}`
-  })
-  const taskKey = ref<null | string>(computedKey.value)
-  function updateKey() {
-    taskKey.value = computedKey.value
-  }
-  const updateKeyDebounced = useDebounceFn(updateKey, 500)
-  function update(immediate = false) {
-    debug('update', { immediate })
-    immediate ? updateKey() : updateKeyDebounced()
-  }
-  watch(computedKey, (key) => {
-    debug('computed key updated:', key)
-    taskKey.value = null
-    update()
-  })
+  const scope = useScopeWithAdvancedKey(
+    computed(() => {
+      const val = props.value
+      if (!val) return null
+      return {
+        key: `${val.tokenA}-${val.tokenB}-for-${val.amountFor}-${val.referenceValue}`,
+        payload: val,
+      }
+    }),
+    (props) => {
+      const { set, state } = usePromise<ValueWei<string>>()
+      usePromiseLog(state, 'swap-get-amount')
 
-  const taskScope = useScope(taskKey, () => {
-    const kaikas = kaikasStore.getKaikasAnyway()
-    const propsVal = props.value
-    invariant(propsVal)
-    debug('task scope setup. props:', propsVal)
+      function run() {
+        set(getAmount({ ...props, kaikas: kaikasStore.getKaikasAnyway() }))
+      }
 
-    const task = useTask(async () => {
-      const amount = await getAmount({
-        kaikas,
-        ...propsVal,
-      })
+      run()
 
-      return { amount }
-    })
+      return state
+    },
+  )
 
-    task.run()
-    useTaskLog(task, `get-amounts`)
-
-    return { task, props: propsVal }
+  const gettingFor = computed<null | TokenType>(() => {
+    const x = scope.value
+    return x?.expose.pending ? x.payload.amountFor : null
   })
 
-  const gettingAmountFor = computed<null | TokenType>(() => {
-    if (taskScope.value?.setup.task.state.kind === 'pending') return taskScope.value.setup.props.amountFor
-    return null
-  })
+  const gotFor = computed<null | { type: TokenType; amount: ValueWei<string> }>(() => {
+    const x = scope.value
 
-  const gotAmountFor = computed<null | { type: TokenType; amount: ValueWei<string> }>(() => {
-    const setup = taskScope.value?.setup
-
-    return setup?.task.state.kind === 'ok'
+    return x?.expose.fulfilled
       ? {
-          amount: setup.task.state.data.amount,
-          type: setup.props.amountFor,
+          amount: x.expose.fulfilled.value,
+          type: x.payload.amountFor,
         }
       : null
   })
 
-  return { gotAmountFor, gettingAmountFor, trigger: update }
+  return { gotAmountFor: gotFor, gettingAmountFor: gettingFor }
 }
