@@ -2,7 +2,7 @@
 import { buildPair } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 
-const liquidityStore = useLiquidityStore()
+const liquidityStore = useLiquidityAddStore()
 const { quoteForTask } = storeToRefs(liquidityStore)
 
 const pendingQuoteFor = computed(() => (quoteForTask.value?.pending ? quoteForTask.value.quoteFor : null))

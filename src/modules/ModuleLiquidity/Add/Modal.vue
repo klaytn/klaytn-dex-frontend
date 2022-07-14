@@ -13,7 +13,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const show = useVModel(props, 'modelValue', emit)
 
-const liquidityStore = useLiquidityStore()
+const liquidityStore = useLiquidityAddStore()
 const { tokens, wei } = toRefs(toRef(liquidityStore, 'selection'))
 const { pair, isAddLiquidityPending: isInProgress, isSubmitted } = storeToRefs(liquidityStore)
 

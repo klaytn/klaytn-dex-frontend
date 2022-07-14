@@ -8,9 +8,9 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import Debug from 'debug'
 
-const debug = Debug('liquidity-store')
+const debug = Debug('liquidity-add-store')
 
-export const useLiquidityStore = defineStore('liquidity', () => {
+export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const kaikasStore = useKaikasStore()
 
   const selection = useTokensInput()
@@ -23,7 +23,6 @@ export const useLiquidityStore = defineStore('liquidity', () => {
 
   const doQuoteScope = useDanglingScope<{ pending: boolean; exchangeRate: null | ValueWei<string> }>()
 
-  // FIXME data race
   function doQuoteFor(value: ValueWei<string>, quoteFor: TokenType) {
     const kaikas = kaikasStore.getKaikasAnyway()
     invariant(pair.result === 'not-empty', 'Pair should exist')
@@ -157,4 +156,4 @@ export const useLiquidityStore = defineStore('liquidity', () => {
   }
 })
 
-if (import.meta.hot) import.meta.hot?.accept(acceptHMRUpdate(useLiquidityStore, import.meta.hot))
+if (import.meta.hot) import.meta.hot?.accept(acceptHMRUpdate(useLiquidityAddStore, import.meta.hot))
