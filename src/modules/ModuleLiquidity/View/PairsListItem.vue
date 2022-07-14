@@ -3,6 +3,7 @@ import { roundTo } from 'round-to'
 import { toRefs } from '@vueuse/core'
 import { LiquidityPairsPosition, LiquidityPairValueRaw } from '../query.liquidity-pairs'
 import BigNumber from 'bignumber.js'
+import { RouteName } from '@/types'
 
 const props = defineProps<{
   data: LiquidityPairsPosition
@@ -19,6 +20,17 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
   if (v1 === '0') return '0'
   const percent = new BigNumber(v1).dividedToIntegerBy(100)
   return `${new BigNumber(v2).dividedBy(percent).toFixed(2)}%`
+}
+
+const addLiquidityStore = useLiquidityAddStore()
+const router = useRouter()
+
+function goToAddLiquidity() {
+  addLiquidityStore.setBoth({
+    tokenA: token0.id,
+    tokenB: token1.id,
+  })
+  router.push({ name: RouteName.LiquidityAdd })
 }
 </script>
 
@@ -71,7 +83,7 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
         </div>
 
         <div class="grid grid-cols-3 gap-4 mt-4">
-          <KlayButton disabled>
+          <KlayButton @click="goToAddLiquidity()">
             Add
           </KlayButton>
           <KlayButton disabled>

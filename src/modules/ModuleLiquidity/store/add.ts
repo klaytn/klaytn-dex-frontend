@@ -1,7 +1,7 @@
 import { ValueWei, deadlineFiveMinutesFromNow, tokenWeiToRaw, Address } from '@/core/kaikas'
 import { usePairAddress } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { syncInputAddrsWithLocalStorage, useTokensInput } from '@/modules/ModuleTradeShared/composable.tokens-input'
-import { buildPair, mirrorTokenType, TokenType } from '@/utils/pair'
+import { buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
 import { Status } from '@soramitsu-ui/ui'
 import { useDanglingScope, useStaleIfErrorState, useTask, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -105,7 +105,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const addLiquidityTask = useTask(async () => {
     const kaikas = kaikasStore.getKaikasAnyway()
 
-    await kaikas.liquidity.prepareAddLiquidity({
+    const { send } = await kaikas.liquidity.prepareAddLiquidity({
       tokens: buildPair((type) => {
         const addr = selection.addrs[type]
         const wei = selection.wei[type]
@@ -114,6 +114,9 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
       }),
       deadline: deadlineFiveMinutesFromNow(),
     })
+
+    // TODO show confirmation first!
+    await send()
   })
   useTaskLog(addLiquidityTask, 'add-liquidity')
   useNotifyOnError(addLiquidityTask, 'Add liquidity failed')
@@ -140,6 +143,10 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     selection.input[token].addr = addr
   }
 
+  function setBoth(tokens: TokensPair<Address>) {
+    selection.resetInput(buildPair((type) => ({ addr: tokens[type], inputRaw: '' })))
+  }
+
   return {
     selection,
     addLiquidity: () => addLiquidityTask.run(),
@@ -153,6 +160,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
     input,
     setToken,
+    setBoth,
   }
 })
 
