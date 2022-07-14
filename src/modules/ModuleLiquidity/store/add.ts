@@ -105,7 +105,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const addLiquidityTask = useTask(async () => {
     const kaikas = kaikasStore.getKaikasAnyway()
 
-    await kaikas.liquidity.addLiquidity({
+    await kaikas.liquidity.prepareAddLiquidity({
       tokens: buildPair((type) => {
         const addr = selection.addrs[type]
         const wei = selection.wei[type]

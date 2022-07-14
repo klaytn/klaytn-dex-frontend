@@ -167,6 +167,7 @@
     "useKeyModifier": true,
     "useLastChanged": true,
     "useLiquidityAddStore": true,
+    "useLiquidityRmStore": true,
     "useLocalStorage": true,
     "useMagicKeys": true,
     "useManualRefHistory": true,
