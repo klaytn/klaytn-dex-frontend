@@ -43,12 +43,12 @@ export function useGetAmount(props: Ref<null | GetAmountProps>) {
         payload: val,
       }
     }),
-    (props) => {
+    (actualProps) => {
       const { set, state } = usePromise<ValueWei<string>>()
       usePromiseLog(state, 'swap-get-amount')
 
       function run() {
-        set(getAmount({ ...props, kaikas: kaikasStore.getKaikasAnyway() }))
+        set(getAmount({ ...actualProps, kaikas: kaikasStore.getKaikasAnyway() }))
       }
 
       run()
