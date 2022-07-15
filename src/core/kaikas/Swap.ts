@@ -80,6 +80,7 @@ export default class Swap {
     return amounts as [ValueWei<string>, ValueWei<string>]
   }
 
+  // TODO prepare swap
   public async swap(props: SwapProps): Promise<SwapResult> {
     const routerMethods = this.cfg.contracts.router.methods
     const deadline = props.deadline ?? deadlineFiveMinutesFromNow()

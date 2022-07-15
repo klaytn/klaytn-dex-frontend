@@ -2,7 +2,9 @@ import { Status } from '@soramitsu-ui/ui'
 import Debug from 'debug'
 import { Except } from 'type-fest'
 import { Ref, WatchOptions, WatchStopHandle } from 'vue'
-import { useDanglingScope } from '@vue-kakuyaku/core'
+import { useDanglingScope as useDeferredScope, useScope } from '@vue-kakuyaku/core'
+
+export { useDeferredScope, useScope as useComputedScope }
 
 type PromiseStateAtomic<T> = PromiseStateAtomicEmpty | PromiseStateAtomicPending | PromiseResultAtomic<T>
 
@@ -179,7 +181,7 @@ export function useScopeWithAdvancedKey<K extends string | number | symbol, P, S
   key: Ref<null | { key: K; payload: P }>,
   fn: (payload: P) => S,
 ): Ref<null | { expose: S; key: K; payload: P }> {
-  const { scope, setup, dispose } = useDanglingScope<{ expose: S; key: K; payload: P }>()
+  const { scope, setup, dispose } = useDeferredScope<{ expose: S; key: K; payload: P }>()
 
   watch(
     () => key.value?.key,
@@ -198,4 +200,10 @@ export function useScopeWithAdvancedKey<K extends string | number | symbol, P, S
   )
 
   return computed(() => scope.value?.setup ?? null)
+}
+
+export function useTask<T>(fn: () => Promise<T>): { state: PromiseStateAtomic<T>; run: () => void; abort: () => void } {
+  const { state, set, clear } = usePromise<T>()
+  const run = () => set(fn())
+  return { state, run, abort: clear }
 }

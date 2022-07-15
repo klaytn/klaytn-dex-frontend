@@ -104,11 +104,7 @@ export const useSwapStore = defineStore('swap', () => {
 
   const getAmountFor = ref<null | TokenType>(null)
 
-  const {
-    gotAmountFor,
-    gettingAmountFor,
-    trigger: triggerGetAmount,
-  } = useGetAmount(
+  const { gotAmountFor, gettingAmountFor } = useGetAmount(
     computed<GetAmountProps | null>(() => {
       const amountFor = getAmountFor.value
       if (!amountFor) return null
@@ -156,7 +152,7 @@ export const useSwapStore = defineStore('swap', () => {
     return { tokenA, tokenB, amountFor }
   }
 
-  const swapTask = useTask(async () => {
+  async function swapFn() {
     const kaikas = kaikasStore.getKaikasAnyway()
     const { tokenA, tokenB, amountFor } = getSwapPrerequisitesAnyway()
 
@@ -167,30 +163,19 @@ export const useSwapStore = defineStore('swap', () => {
     // some of them is native
     const swapProps = buildSwapProps({ tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
     const { send } = await kaikas.swap.swap(swapProps)
-    await send()
 
-    // 3. Re-fetch balances
+    // TODO confirm!
+    await send()
+  }
+  const { state: swapState, set: setSwapPromise } = usePromise()
+  wheneverFulfilled(swapState, () => {
     tokensStore.touchUserBalance()
   })
-
-  wheneverTaskErrors(swapTask, (err) => {
-    console.error(err)
-    $notify({ status: Status.Error, title: `Swap failed: ${String(err)}` })
-  })
-
-  wheneverTaskSucceeds(swapTask, () => {
-    $notify({ status: Status.Success, title: 'Swap succeeded!' })
-  })
-
-  function swap() {
-    swapTask.run()
-  }
-
-  const swapState = useStaleIfErrorState(swapTask)
+  useNotifyOnError(swapState, 'Swap failed')
+  const swap = () => setSwapPromise(swapFn())
 
   function setToken(type: TokenType, addr: Address | null) {
     selection[type] = { addr, inputRaw: '' }
-    triggerGetAmount(true)
   }
 
   function setBothTokens(pair: TokensPair<Address>) {

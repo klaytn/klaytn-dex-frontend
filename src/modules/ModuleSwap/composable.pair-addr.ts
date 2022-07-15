@@ -1,38 +1,55 @@
-import { Address, isEmptyAddress } from '@/core/kaikas'
+import { Address, isEmptyAddress, ValueWei } from '@/core/kaikas'
 import { TokensPair } from '@/utils/pair'
-import { Task, useScope, useTask } from '@vue-kakuyaku/core'
 import { Ref } from 'vue'
 
-export type PairAddressResult = 'unknown' | 'empty' | 'not-empty'
+export type PairAddressResult =
+  | {
+      kind: 'empty'
+    }
+  | {
+      kind: 'exist'
+      addr: Address
+      totalSupply: ValueWei<string>
+      userBalance: ValueWei<string>
+    }
 
-export function usePairAddress(
-  pair: TokensPair<Address | null | undefined>,
-): Ref<null | Task<{ pair: Address; isEmpty: boolean }>> {
+export function usePairAddress(tokens: TokensPair<Address | null | undefined>): {
+  pending: Ref<boolean>
+  pair: Ref<null | PairAddressResult>
+} {
   const kaikasStore = useKaikasStore()
 
-  const key = computed<null | string>(() => {
-    const a = pair.tokenA ?? null
-    const b = pair.tokenB ?? null
-    return a && b && (kaikasStore.isConnected || null) && `${a}-${b}`
-  })
+  const scope = useScopeWithAdvancedKey(
+    computed(() => {
+      const { tokenA, tokenB } = tokens
+      if (tokenA && tokenB) return { key: `${tokenA}-${tokenB}`, payload: { tokenA, tokenB } }
+      return null
+    }),
+    ({ tokenA, tokenB }) => {
+      const kaikas = kaikasStore.getKaikasAnyway()
 
-  const scope = useScope<Task<{ pair: Address; isEmpty: boolean }>, string>(key, () => {
-    const kaikas = kaikasStore.getKaikasAnyway()
-    const a = pair.tokenA!
-    const b = pair.tokenB!
+      const { run, state } = useTask<PairAddressResult>(async () => {
+        const addr = await kaikas.tokens.getPairAddress(tokenA, tokenB)
+        const isEmpty = isEmptyAddress(addr)
+        if (isEmpty) return { kind: 'empty' }
 
-    const task = useTask(async () => {
-      const pair = await kaikas.tokens.getPairAddress(a, b)
-      const isEmpty = isEmptyAddress(pair)
-      return { pair, isEmpty }
-    })
+        const { pairBalance, userBalance } = await kaikas.tokens.getPairBalance(tokenA, tokenB)
+        return {
+          kind: 'exist',
+          addr,
+          totalSupply: pairBalance,
+          userBalance,
+        }
+      })
+      run()
+      usePromiseLog(state, 'pair-addr')
 
-    task.run()
+      return state
+    },
+  )
 
-    useTaskLog(task, 'pair-addr')
+  const pending = computed(() => scope.value?.expose.pending ?? false)
+  const pair = computed(() => scope.value?.expose.fulfilled?.value ?? null)
 
-    return task
-  })
-
-  return computed(() => scope.value?.setup ?? null)
+  return { pending, pair }
 }

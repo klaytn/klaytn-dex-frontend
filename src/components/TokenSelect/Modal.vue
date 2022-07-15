@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { Status, SModal } from '@soramitsu-ui/ui'
 import { isAddress, Token, Address } from '@/core/kaikas'
-import { useTask, useScope } from '@vue-kakuyaku/core'
 import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 
@@ -33,54 +32,35 @@ const recentTokens = $computed(() => tokensFilteredBySearch.slice(0, 6))
  * it is ref, thus it is possible to reset it immediately,
  * not after debounce delay
  */
-let searchAsAddress = $ref<null | Address>(null)
-debouncedWatch(
-  $$(search),
-  (value) => {
-    searchAsAddress = isAddress(value) ? value : null
-  },
-  { debounce: 500 },
-)
+let searchAsAddress = $computed<null | Address>(() => (isAddress(search) ? search : null))
 
-const searchAsAddressSmartcontractCheckScope = useScope($$(searchAsAddress), (addr) => {
-  const task = useTask(() => kaikasStore.getKaikasAnyway().isSmartContract(addr))
-  useTaskLog(task, 'smartcontract-check-' + addr)
-  task.run()
-  return task
+const searchAsAddressSmartcontractCheckScope = useComputedScope($$(searchAsAddress), (addr) => {
+  const { set, state } = usePromise<boolean>()
+  set(kaikasStore.getKaikasAnyway().isSmartContract(addr))
+  usePromiseLog(state, 'smartcontract-check-' + addr)
+  return state
 })
 
-const importLookupScope = useScope(
-  computed<false | Address>(() => {
+const importLookupScope = useComputedScope(
+  computed(() => {
     const addr = searchAsAddress
-    const addrSmartcontractCheckState = searchAsAddressSmartcontractCheckScope.value?.setup.state
-    if (
-      addr &&
-      addrSmartcontractCheckState?.kind === 'ok' &&
-      addrSmartcontractCheckState.data &&
-      !tokensStore.findTokenData(addr)
-    )
-      return addr
-    return false
+    const addrSmartcontractCheckState = searchAsAddressSmartcontractCheckScope.value?.setup
+    if (addr && addrSmartcontractCheckState?.fulfilled?.value && !tokensStore.findTokenData(addr)) return addr
+    return null
   }),
   (addr) => {
-    const task = useTask<Token | null>(() => kaikasStore.getKaikasAnyway().getToken(addr))
-    useTaskLog(task, 'import-lookup')
-    task.run()
-    return task
+    const { state, set } = usePromise<null | Token>()
+    set(kaikasStore.getKaikasAnyway().getToken(addr))
+    usePromiseLog(state, 'import-lookup')
+    return state
   },
 )
 
-const isImportLookupPending = $computed<boolean>(() => {
-  return (
-    importLookupScope.value?.setup.state.kind === 'pending' ||
-    searchAsAddressSmartcontractCheckScope.value?.setup.state.kind === 'pending'
-  )
-})
+const isImportLookupPending = $computed<boolean>(
+  () => !!importLookupScope.value?.setup.pending || !!searchAsAddressSmartcontractCheckScope.value?.setup.pending,
+)
 
-const tokenToImport = $computed<Token | null>(() => {
-  const state = importLookupScope.value?.setup.state
-  return state?.kind === 'ok' ? state.data : null
-})
+const tokenToImport = $computed<Token | null>(() => importLookupScope.value?.setup.fulfilled?.value ?? null)
 
 const nothingFound = $computed(() => {
   if (tokensFilteredBySearch.length) return false
