@@ -35,23 +35,12 @@ const menu = computed<HeaderMenuItem[]>(() => {
 const kaikasStore = useKaikasStore()
 const { address, isNotInstalled } = storeToRefs(kaikasStore)
 
-const tokensStore = useTokensStore()
-
 const formattedAddress = computed(() => {
   if (!address.value) return ''
   return formatAddress(address.value)
 })
 
-async function connect() {
-  await kaikasStore.connect()
-
-  if (kaikasStore.status === 'connected') {
-    tokensStore.getUserBalance()
-    tokensStore.getImportedTokens()
-  }
-}
-
-onMounted(connect)
+onMounted(() => kaikasStore.connect())
 </script>
 
 <template>
@@ -68,11 +57,8 @@ onMounted(connect)
       </div>
 
       <div class="col col-right">
-        <div
-          v-if="isNotInstalled || !address"
-          @click="connect"
-        >
-          Connect
+        <div v-if="isNotInstalled || !address">
+          Connect Wallet
         </div>
         <div
           v-if="address"
