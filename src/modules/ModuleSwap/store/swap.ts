@@ -1,7 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { Status } from '@soramitsu-ui/ui'
 import invariant from 'tiny-invariant'
-import { useTask, useStaleIfErrorState, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
 import { Address, tokenWeiToRaw, ValueWei } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, buildPair, mirrorTokenType } from '@/utils/pair'
@@ -21,7 +19,7 @@ export const useSwapStore = defineStore('swap', () => {
   const selection = useTokensInput()
   syncInputAddrsWithLocalStorage(selection.input, 'swap-store-tokens-input')
 
-  const { result: pairAddrResult } = toRefs(usePairAddress(selection.addrs))
+  const { pair: pairAddrResult } = toRefs(usePairAddress(selection.addrs))
 
   const swapValidation = useSwapValidation({
     tokenA: computed(() => {
@@ -51,7 +49,7 @@ export const useSwapStore = defineStore('swap', () => {
       const { tokenA, tokenB } = selection.addrs
       if (!tokenA || !tokenB) return null
 
-      if (pairAddrResult.value !== 'not-empty') return null
+      if (pairAddrResult.value?.kind !== 'exist') return null
 
       return {
         tokenA,

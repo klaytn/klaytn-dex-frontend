@@ -1,9 +1,14 @@
-import { Address, tokenRawToWei } from '@/core/kaikas'
+import { Address, tokenRawToWei, ValueWei } from '@/core/kaikas'
 import { buildPair, doForPair, TokensPair } from '@/utils/pair'
 
 export interface TokenInput {
   addr: Address | null
   inputRaw: string
+}
+
+export interface TokenInputWei {
+  addr: Address
+  input: ValueWei<string>
 }
 
 export function useTokensInput() {
@@ -35,7 +40,7 @@ export function useTokensInput() {
   const wei = readonly(
     reactive(
       buildPair((type) =>
-        computed(() => {
+        computed<TokenInputWei | null>(() => {
           const raw = input[type]?.inputRaw
           if (!raw) return null
           const token = tokens[type]

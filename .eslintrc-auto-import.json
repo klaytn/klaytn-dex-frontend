@@ -33,6 +33,7 @@
     "eagerComputed": true,
     "effectScope": true,
     "extendRef": true,
+    "flattenState": true,
     "getCurrentInstance": true,
     "getCurrentScope": true,
     "h": true,

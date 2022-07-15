@@ -10,18 +10,18 @@ export function useSwapValidation({
 }: {
   tokenA: Ref<(Token & { balance: ValueWei<BigNumber>; input: ValueWei<string> }) | null>
   tokenB: Ref<Token | null>
-  pairAddr: Ref<PairAddressResult>
+  pairAddr: Ref<PairAddressResult | null>
 }): Ref<{ kind: 'ok' } | { kind: 'err'; message: string }> {
   const err = (message: string) => ({ kind: 'err' as const, message })
 
   return computed(() => {
     if (!tokenA.value || !tokenB.value) return err('Select Token')
 
-    if (pairAddr.value === 'unknown') {
+    if (!pairAddr.value) {
       return err('Route is not computed yet')
     }
 
-    if (pairAddr.value === 'empty') {
+    if (pairAddr.value.kind === 'empty') {
       return err(`Route ${tokenA.value.symbol}>${tokenB.value.symbol} not found`)
     }
 

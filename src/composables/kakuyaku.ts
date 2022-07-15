@@ -202,8 +202,35 @@ export function useScopeWithAdvancedKey<K extends string | number | symbol, P, S
   return computed(() => scope.value?.setup ?? null)
 }
 
-export function useTask<T>(fn: () => Promise<T>): { state: PromiseStateAtomic<T>; run: () => void; abort: () => void } {
+export function useTask<T>(fn: () => Promise<T>): { state: PromiseStateAtomic<T>; run: () => void; clear: () => void } {
   const { state, set, clear } = usePromise<T>()
   const run = () => set(fn())
-  return { state, run, abort: clear }
+  return { state, run, clear }
+}
+
+interface PromiseStateAtomicFulfilledFlat<T> {
+  pending: false
+  fulfilled: T
+  rejected: null
+}
+
+interface PromiseStateAtomicRejectedFlat {
+  pending: false
+  fulfilled: null
+  rejected: unknown
+}
+
+type PromiseStateAtomicFlat<T> =
+  | PromiseStateAtomicEmpty
+  | PromiseStateAtomicPending
+  | PromiseStateAtomicFulfilledFlat<T>
+  | PromiseStateAtomicRejectedFlat
+
+export function flattenState<T>(state: PromiseStateAtomic<T>): PromiseStateAtomicFlat<T> {
+  // TODO make just proxy?
+  return reactive({
+    pending: computed(() => state.pending),
+    fulfilled: computed(() => state.fulfilled?.value ?? null),
+    rejected: computed(() => state.rejected?.reason ?? null),
+  }) as PromiseStateAtomicFlat<T>
 }
