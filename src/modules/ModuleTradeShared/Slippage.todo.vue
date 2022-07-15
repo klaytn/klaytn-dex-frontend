@@ -1,24 +1,25 @@
 <script setup lang="ts" name="Slippage">
-const selectedPercent = ref(0.5)
+// const selectedPercent = ref(0.5)
 
-const swapStore = useSwapStore()
-const { slippagePercent } = toRefs(swapStore)
-const { setSlippage } = swapStore
+// const swapStore = useSwapStore()
+// const { slippagePercent } = toRefs(swapStore)
+// const { setSlippage } = swapStore
 
-const renderPercent = computed(() => `${slippagePercent.value}%`)
+// const renderPercent = computed(() => `${slippagePercent.value}%`)
 
-function input(value: number) {
-  if (value > 0 && value <= 10) setSlippage(value)
-}
+// function input(value: number) {
+//   if (value > 0 && value <= 10) setSlippage(value)
+// }
 
-function select(value: number) {
-  selectedPercent.value = value
-  setSlippage(value)
-}
+// function select(value: number) {
+//   selectedPercent.value = value
+//   setSlippage(value)
+// }
 </script>
 
 <template>
-  <div class="slippage">
+  <div>todo</div>
+  <!-- <div class="slippage">
     <KlayCollapse>
       <template #head>
         <div class="slippage--head">
@@ -65,7 +66,7 @@ function select(value: number) {
         </div>
       </template>
     </KlayCollapse>
-  </div>
+  </div> -->
 </template>
 
 <style lang="scss" scoped>

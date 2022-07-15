@@ -2,100 +2,36 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { Status } from '@soramitsu-ui/ui'
 import invariant from 'tiny-invariant'
 import { useTask, useStaleIfErrorState, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
-import { Address, tokenRawToWei, tokenWeiToRaw } from '@/core/kaikas'
+import { Address, tokenWeiToRaw, ValueWei } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
-import { TokenType, TokensPair, buildPair, mirrorTokenType, doForPair } from '@/utils/pair'
+import { TokenType, TokensPair, buildPair, mirrorTokenType } from '@/utils/pair'
 import Debug from 'debug'
-import { InputRaw } from '../types'
 import { useGetAmount, GetAmountProps } from '../composable.get-amount'
-import { usePairAddress, PairAddressResult } from '../composable.pair-addr'
+import { usePairAddress } from '../../ModuleTradeShared/composable.pair-by-tokens'
 import { useSwapValidation } from '../composable.validation'
 import { buildSwapProps } from '../util.swap-props'
+import { syncInputAddrsWithLocalStorage, useTokensInput } from '../../ModuleTradeShared/composable.tokens-input'
 
-const debugRoot = Debug('swap-store')
-
-function syncSelectionAddrsWithLocalStorage(selection: TokensPair<InputRaw>) {
-  doForPair((type) => {
-    const ls = useLocalStorage<null | Address>(`swap-store-selection-${type}`, null)
-    const selectionWritable = computed({
-      get: () => selection[type].addr,
-      set: (v) => {
-        selection[type].addr = v
-      },
-    })
-    if (ls.value && !selectionWritable.value) {
-      selectionWritable.value = ls.value
-    }
-    syncRef(selectionWritable, ls)
-  })
-}
+const debugModule = Debug('swap-store')
 
 export const useSwapStore = defineStore('swap', () => {
   const kaikasStore = useKaikasStore()
   const tokensStore = useTokensStore()
 
-  const selection = reactive<TokensPair<InputRaw>>(
-    buildPair(() => ({
-      addr: null,
-      inputRaw: '',
-    })),
-  )
-  syncSelectionAddrsWithLocalStorage(selection)
-  const resetSelection = (newData: TokensPair<InputRaw>) => {
-    Object.assign(selection, newData)
-  }
+  const selection = useTokensInput()
+  syncInputAddrsWithLocalStorage(selection.input, 'swap-store-tokens-input')
 
-  const selectionAddrs = reactive(buildPair((type) => computed(() => selection[type]?.addr)))
-
-  const selectionTokens = reactive(
-    buildPair((type) =>
-      computed(() => {
-        const addr = selection[type]?.addr
-        return addr ? tokensStore.findTokenData(addr) ?? null : null
-      }),
-    ),
-  )
-
-  const selectionWeis = reactive(
-    buildPair((type) =>
-      computed(() => {
-        const raw = selection[type]?.inputRaw
-        if (!raw) return null
-        const token = selectionTokens[type]
-        if (!token) return null
-        return { addr: token.address, input: tokenRawToWei(token, raw) }
-      }),
-    ),
-  )
-
-  const pairAddress = usePairAddress(selectionAddrs)
-  const pairAddrResult = computed<PairAddressResult>(() => {
-    const state = pairAddress.value?.state
-    if (state?.kind === 'ok') {
-      return state.data.isEmpty ? 'empty' : 'not-empty'
-    }
-    return 'unknown'
-  })
-
-  const selectionBalance = reactive(
-    buildPair((type) =>
-      computed(() => {
-        const addr = selection[type]?.addr
-        if (!addr) return null
-        return tokensStore.userBalanceMap?.get(addr) ?? null
-      }),
-    ),
-  )
+  const { result: pairAddrResult } = toRefs(usePairAddress(selection.addrs))
 
   const swapValidation = useSwapValidation({
     tokenA: computed(() => {
-      const balance = selectionBalance.tokenA
-      const token = selectionTokens.tokenA
-      const input = selectionWeis.tokenA?.input
+      const balance = selection.balance.tokenA as ValueWei<BigNumber> | null
+      const token = selection.tokens.tokenA
+      const input = selection.wei.tokenA?.input
 
       return balance && token && input ? { ...token, balance, input } : null
     }),
-    tokenB: computed(() => selectionTokens.tokenB),
+    tokenB: computed(() => selection.tokens.tokenB),
     pairAddr: pairAddrResult,
   })
 
@@ -109,10 +45,10 @@ export const useSwapStore = defineStore('swap', () => {
       const amountFor = getAmountFor.value
       if (!amountFor) return null
 
-      const referenceValue = selectionWeis[mirrorTokenType(amountFor)]
+      const referenceValue = selection.wei[mirrorTokenType(amountFor)]
       if (!referenceValue || new BigNumber(referenceValue.input).isLessThanOrEqualTo(0)) return null
 
-      const { tokenA, tokenB } = selectionAddrs
+      const { tokenA, tokenB } = selection.addrs
       if (!tokenA || !tokenB) return null
 
       if (pairAddrResult.value !== 'not-empty') return null
@@ -127,15 +63,15 @@ export const useSwapStore = defineStore('swap', () => {
   )
   // const
   watch(
-    [gotAmountFor, selectionTokens],
+    [gotAmountFor, selection.tokens],
     ([result]) => {
       if (result) {
         const { type: amountFor, amount } = result
-        const tokenData = selectionTokens[amountFor]
+        const tokenData = selection.tokens[amountFor]
         if (tokenData) {
-          debugRoot('Setting computed amount %o for %o', amount, amountFor)
+          debugModule('Setting computed amount %o for %o', amount, amountFor)
           const raw = tokenWeiToRaw(tokenData, amount)
-          selection[amountFor].inputRaw = new BigNumber(raw).toFixed(5)
+          selection.input[amountFor].inputRaw = new BigNumber(raw).toFixed(5)
         }
       }
     },
@@ -143,7 +79,7 @@ export const useSwapStore = defineStore('swap', () => {
   )
 
   function getSwapPrerequisitesAnyway() {
-    const { tokenA, tokenB } = selectionWeis
+    const { tokenA, tokenB } = selection.wei
     invariant(tokenA && tokenB, 'Both tokens should be selected')
 
     const amountFor = getAmountFor.value
@@ -175,27 +111,26 @@ export const useSwapStore = defineStore('swap', () => {
   const swap = () => setSwapPromise(swapFn())
 
   function setToken(type: TokenType, addr: Address | null) {
-    selection[type] = { addr, inputRaw: '' }
+    selection.input[type] = { addr, inputRaw: '' }
   }
 
   function setBothTokens(pair: TokensPair<Address>) {
-    resetSelection(buildPair((type) => ({ inputRaw: '', addr: pair[type] })))
+    selection.resetInput(buildPair((type) => ({ inputRaw: '', addr: pair[type] })))
     getAmountFor.value = null
   }
 
   function setTokenValue(type: TokenType, raw: string) {
-    selection[type].inputRaw = raw
+    selection.input[type].inputRaw = raw
     getAmountFor.value = mirrorTokenType(type)
   }
 
   function reset() {
-    selection.tokenA.addr = selection.tokenB.addr = getAmountFor.value = null
-    selection.tokenA.inputRaw = selection.tokenB.inputRaw = ''
+    selection.input.tokenA.addr = selection.input.tokenB.addr = getAmountFor.value = null
+    selection.input.tokenA.inputRaw = selection.input.tokenB.inputRaw = ''
   }
 
   return {
     selection,
-    selectionTokens,
 
     isValid,
     validationMessage,

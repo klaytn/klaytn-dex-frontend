@@ -1,7 +1,7 @@
 import { ValueWei, Token } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
 import { Ref } from 'vue'
-import { PairAddressResult } from './composable.pair-addr'
+import { PairAddressResult } from '../ModuleTradeShared/composable.pair-by-tokens'
 
 export function useSwapValidation({
   tokenA,

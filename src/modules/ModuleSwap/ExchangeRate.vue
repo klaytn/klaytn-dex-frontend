@@ -10,13 +10,13 @@ const estimated = $computed(() => gotAmountFor?.type)
 const models = reactive(
   buildPair((type) => ({
     input: computed({
-      get: () => swapStore.selection[type].inputRaw,
+      get: () => swapStore.selection.input[type].inputRaw,
       set: (raw) => {
         swapStore.setTokenValue(type, raw)
       },
     }),
     addr: computed({
-      get: () => swapStore.selection[type].addr,
+      get: () => swapStore.selection.input[type].addr,
       set: (addr) => {
         swapStore.setToken(type, addr)
       },

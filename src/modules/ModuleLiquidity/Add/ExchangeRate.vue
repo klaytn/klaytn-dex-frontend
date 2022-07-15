@@ -1,90 +1,55 @@
 <script lang="ts" setup>
-// FIXME component is closely the same as `src/modules/SwapModule/ExchangeRate.vue`
-// remove code duplication
-
-import { ValueWei, toWei } from '@/core/kaikas'
-import { useDanglingScope, useTask } from '@vue-kakuyaku/core'
+import { buildPair } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 
-const tokensStore = useTokensStore()
-const { selectedTokens } = $(storeToRefs(tokensStore))
+const liquidityStore = useLiquidityAddStore()
+const { quoteForTask } = storeToRefs(liquidityStore)
 
-const liquidityStore = useLiquidityStore()
+const pendingQuoteFor = computed(() => (quoteForTask.value?.pending ? quoteForTask.value.quoteFor : null))
+const estimated = computed(() => (quoteForTask.value?.completed ? quoteForTask.value.quoteFor : null))
 
-const isNotValid = $computed(() => {
-  return !selectedTokens.tokenA || !selectedTokens.tokenB || selectedTokens.emptyPair
-})
-
-const exchangeScope = useDanglingScope<{ exchangeToken: 'tokenA' | 'tokenB'; pending: boolean }>()
-
-const onInputDebounced = useDebounceFn(
-  (
-    // FIXME is it ether value?
-    // TODO consider token decimals
-    valueEther: string,
-    tokenType: 'tokenA' | 'tokenB',
-  ) => {
-    if (!valueEther || isNotValid) return
-    const valueWei = toWei(valueEther, 'ether') as ValueWei<string>
-
-    tokensStore.setSelectedToken({
-      token: {
-        ...selectedTokens[tokenType]!,
-        value: valueWei,
+const models = reactive(
+  buildPair((type) => ({
+    addr: computed({
+      get: () => liquidityStore.selection.input[type].addr,
+      set: (addr) => {
+        if (addr) {
+          liquidityStore.setToken(type, addr)
+        }
       },
-      type: tokenType,
-    })
-
-    const exchangeToken = tokenType === 'tokenA' ? 'tokenB' : 'tokenA'
-
-    tokensStore.setComputedToken(exchangeToken)
-
-    exchangeScope.setup(() => {
-      const task = useTask(async () => {
-        await liquidityStore.quoteForToken(valueWei, exchangeToken)
-      })
-
-      task.run()
-
-      return reactive({ exchangeToken, pending: computed(() => task.state.kind === 'pending') })
-    })
-  },
-  500,
+    }),
+    input: computed({
+      get: () => liquidityStore.selection.input[type].inputRaw,
+      set: (raw) => liquidityStore.input(type, raw),
+    }),
+  })),
 )
-
-const exchangeLoading = $computed(() => {
-  const scope = exchangeScope.scope.value?.setup
-  if (!scope?.pending) return null
-  return scope.exchangeToken
-})
 </script>
 
 <template>
-  <div>
-    <div class="input">
+  <div class="space-y-4">
+    <div class="space-y-1">
       <TokenInput
-        :is-loading="exchangeLoading === 'tokenA'"
-        token-type="tokenA"
-        :is-disabled="isNotValid"
-        @input="(v: string) => onInputDebounced(v, 'tokenA')"
+        v-model="models.tokenA.input"
+        v-model:token="models.tokenA.addr"
+        :is-loading="pendingQuoteFor === 'tokenA'"
+        :estimated="estimated === 'tokenA'"
       />
-    </div>
 
-    <div class="icon">
-      <IconKlayPlus />
-    </div>
+      <div class="w-full flex justify-center h-0">
+        <IconKlayPlus class="-mt-3" />
+      </div>
 
-    <div class="input">
       <TokenInput
-        :is-loading="exchangeLoading === 'tokenB'"
-        token-type="tokenB"
-        :is-disabled="isNotValid"
-        @input="(v: string) => onInputDebounced(v, 'tokenB')"
+        v-model="models.tokenB.input"
+        v-model:token="models.tokenB.addr"
+        :is-loading="pendingQuoteFor === 'tokenB'"
+        :estimated="estimated === 'tokenB'"
       />
     </div>
 
     <div
-      v-if="selectedTokens.emptyPair"
+      v-if="liquidityStore.isEmptyPair"
       class="warning-text"
     >
       <IconKlayImportant />
@@ -94,71 +59,6 @@ const exchangeLoading = $computed(() => {
 </template>
 
 <style lang="scss" scoped>
-.input:first-child {
-  margin-bottom: -8px;
-}
-
-// FIXME what?
-.liquidity {
-  &--slippage {
-    margin-top: 16px;
-  }
-
-  & .error {
-    text-align: center;
-    margin-top: 16px;
-    font-weight: 700;
-  }
-
-  & .submitted {
-    padding-top: 98px;
-    padding-bottom: 138px;
-    text-align: center;
-
-    & p {
-      font-style: normal;
-      font-weight: 700;
-      font-size: 18px;
-      line-height: 180%;
-      color: $dark2;
-    }
-  }
-
-  & .m-title {
-    color: $dark2;
-    font-style: normal;
-    font-weight: 700;
-    font-size: 14px;
-    line-height: 17px;
-    margin-bottom: 7px;
-  }
-
-  & .m-content {
-    padding: 16px;
-    box-sizing: border-box;
-  }
-
-  & .m-head {
-    display: flex;
-    align-items: center;
-    font-style: normal;
-    font-weight: 600;
-    font-size: 30px;
-    line-height: 36px;
-    color: $dark2;
-
-    & img {
-      width: 36px;
-    }
-  }
-}
-
-.icon {
-  width: min-content;
-  margin: auto;
-  margin-bottom: -8px;
-}
-
 .warning-text {
   margin-top: 16px;
   font-style: normal;

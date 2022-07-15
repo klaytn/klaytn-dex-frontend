@@ -5,6 +5,8 @@
 </template>
 
 <style lang="scss" scoped>
+@import '@/styles/vars';
+
 .row {
   display: flex;
   justify-content: space-between;

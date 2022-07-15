@@ -1,7 +1,6 @@
-import { type ValueWei, type Address, type Deadline } from './types'
+import { type ValueWei, type Address, type Deadline, WeiNumStrBn } from './types'
 import Config from './Config'
 import { MAGIC_GAS_PRICE } from './const'
-import BN from 'bn.js'
 import { deadlineFiveMinutesFromNow } from './utils'
 
 export interface AddrsPair {
@@ -16,7 +15,7 @@ export interface SwapPropsBase extends AddrsPair {
   deadline?: Deadline
 }
 
-export type AmountValue = ValueWei<string | number | BN>
+export type AmountValue = WeiNumStrBn
 
 export interface SwapExactAForB<A extends string, B extends string> {
   mode: `exact-${A}-for-${B}`
