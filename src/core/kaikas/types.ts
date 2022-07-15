@@ -54,8 +54,6 @@ export type Balance<T extends AnyNumber = string> = ValueWei<T>
 
 export type AnyNumber = number | string | BN | BigNumber
 
-export type ValueEther<T extends AnyNumber = AnyNumber> = Opaque<T, 'ValueEther'>
-
 export type ValueWei<T extends AnyNumber = AnyNumber> = Opaque<T, 'ValueWei'>
 
 /**

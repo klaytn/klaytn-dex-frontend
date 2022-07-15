@@ -1,4 +1,4 @@
-import { Address, Balance, isEmptyAddress } from '@/core/kaikas'
+import { Address, isEmptyAddress, ValueWei } from '@/core/kaikas'
 import { TokensPair } from '@/utils/pair'
 import { useScope, useTask } from '@vue-kakuyaku/core'
 
@@ -9,8 +9,8 @@ export function usePairAddress(pair: TokensPair<Address | null | undefined>): {
   result: PairAddressResult
   pair: null | {
     addr: Address
-    pairBalance: Balance
-    userBalance: Balance
+    totalSupply: ValueWei<string>
+    userBalance: ValueWei<string>
   }
 } {
   const kaikasStore = useKaikasStore()
@@ -28,8 +28,8 @@ export function usePairAddress(pair: TokensPair<Address | null | undefined>): {
     const task = useTask(async () => {
       const addr = await kaikas.tokens.getPairAddress(pairForSure)
       if (isEmptyAddress(addr)) return null
-      const { userBalance, pairBalance } = await kaikas.tokens.getPairBalance(pairForSure)
-      return { addr, userBalance, pairBalance }
+      const { userBalance, totalSupply } = await kaikas.tokens.getPairBalanceOfUser(pairForSure)
+      return { addr, userBalance, totalSupply }
     })
 
     task.run()

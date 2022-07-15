@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia'
 import { formatPercent, formatRate } from '@/utils/common'
 import DetailsRow from './DetailsRow.vue'
 import Details from './Details.vue'
-import { toRefs, not } from '@vueuse/core'
+import { toRefs } from '@vueuse/core'
 
 const props = defineProps<{
   modelValue: boolean
@@ -76,7 +76,7 @@ function supply() {
           <DetailsRow v-if="pair.pair">
             <span>Share of pool</span>
             <span>
-              {{ formatPercent(pair.pair.pairBalance, pair.pair.userBalance) }}
+              {{ formatPercent(pair.pair.totalSupply, pair.pair.userBalance) }}
             </span>
           </DetailsRow>
         </Details>

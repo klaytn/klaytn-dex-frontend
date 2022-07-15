@@ -26,10 +26,6 @@ export interface ComputeRemoveLiquidityAmountsProps {
 
 export interface ComputeRemoveLiquidityAmountsResult {
   amounts: TokensPair<ValueWei<BN>>
-
-  // FIXME desired to be used within `rmLiquidity`, but actually unused
-  pairContract: DexPair
-  totalSupply: ValueWei<BN>
 }
 
 export interface PrepareRemoveLiquidityProps {
@@ -210,7 +206,7 @@ export default class Liquidity {
       }),
     )
 
-    return { amounts, pairContract, totalSupply: nTotalSupply }
+    return { amounts }
   }
 
   /**

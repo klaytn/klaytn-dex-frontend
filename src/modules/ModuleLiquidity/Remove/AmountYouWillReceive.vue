@@ -1,43 +1,46 @@
+<script setup lang="ts">
+import { storeToRefs } from 'pinia'
+import { buildPair } from '@/utils/pair'
+
+const store = useLiquidityRmStore()
+const { amounts, selectedTokensData: tokens } = storeToRefs(store)
+const symbols = reactive(buildPair((type) => computed(() => tokens.value[type]?.symbol)))
+</script>
+
 <template>
-  <div>
+  <div v-if="symbols.tokenA && symbols.tokenB">
     <h4>
       <span> You will receive </span>
       <IconKlayImportant />
     </h4>
 
-    <div
-      v-if="removeLiquidityPair.amount0 && selectedTokens.tokenA"
-      class="row"
-    >
-      <div>{{ selectedTokens.tokenA.symbol }}</div>
-      <div>{{ formatWeiValue(removeLiquidityPair.amount0) }}</div>
+    <div class="row">
+      <div>{{ symbols.tokenA }}</div>
+      <div>{{ amounts?.tokenA }}</div>
     </div>
 
-    <div
-      v-if="removeLiquidityPair.amount1 && selectedTokens.tokenB"
-      class="row"
-    >
-      <div>{{ selectedTokens.tokenB.symbol }}</div>
-      <div>{{ formatWeiValue(removeLiquidityPair.amount1) }}</div>
+    <div class="row">
+      <div>{{ symbols.tokenB }}</div>
+      <div>{{ amounts?.tokenB }}</div>
     </div>
 
-    <template v-if="selectedTokens.tokenA && selectedTokens.tokenB">
+    <template>
       <div class="row">
         <div>
-          {{ selectedTokens.tokenA.symbol }}
+          {{ symbols.tokenA }}
           per
-          {{ selectedTokens.tokenB.symbol }}
+          {{ symbols.tokenB }}
         </div>
-        <div>-</div>
+        <i>todo</i>
       </div>
 
       <div class="row">
         <div>
-          {{ selectedTokens.tokenB.symbol }}
+          {{ symbols.tokenB }}
           per
-          {{ selectedTokens.tokenA.symbol }}
+          {{ symbols.tokenA }}
         </div>
-        <div>-</div>
+        <i>todo</i>
       </div>
     </template>
   </div>

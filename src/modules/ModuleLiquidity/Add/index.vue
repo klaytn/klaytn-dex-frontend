@@ -15,7 +15,7 @@ const modal = ref(false)
       Supply
     </KlayButton>
 
-    <ModuleLiquidityAddModal v-model="modal" />
+    <ModuleLiquidityAddConfirmModal v-model="modal" />
 
     <!-- TODO -->
     <!-- <Details v-if="false && selectedTokens.tokenA?.value && selectedTokens.tokenB?.value">

@@ -1,46 +1,52 @@
+<script setup lang="ts">
+import { buildPair } from '@/utils/pair'
+import { storeToRefs } from 'pinia'
+import { formatWeiValue } from '@/utils/common'
+import { asWei } from '@/core/kaikas'
+
+const store = useLiquidityRmStore()
+const { selected, amounts, selectedTokensData } = storeToRefs(store)
+
+const symbols = reactive(buildPair((type) => computed(() => selectedTokensData.value[type]?.symbol)))
+
+const amountsStr = computed(() => {
+  if (!amounts.value) return null
+  return buildPair((type) => asWei(amounts.value![type].toString()))
+})
+</script>
+
 <template>
-  <KlayCollapse>
+  <!-- FIXME broken style -->
+  <KlayCollapse v-if="selected && symbols.tokenA && symbols.tokenB && amountsStr">
     <template #head>
       <div class="rl--collapse-label">
         LP tokens details
       </div>
     </template>
     <template #main>
-      <div
-        v-if="selectedTokens.tokenA"
-        class="rl--row"
-      >
-        <div>{{ selectedTokens.tokenA.symbol }}</div>
+      <div class="rl--row">
+        <div>{{ symbols.tokenA }}</div>
         <div>
-          {{ removeLiquidityPair.amount0 && formatWeiValue(removeLiquidityPair.amount0) }}
+          {{ formatWeiValue(amountsStr.tokenA) }}
         </div>
       </div>
-      <div
-        v-if="selectedTokens.tokenB"
-        class="rl--row"
-      >
-        <div>{{ selectedTokens.tokenB.symbol }}</div>
+      <div class="rl--row">
+        <div>{{ symbols.tokenB }}</div>
         <div>
-          {{ removeLiquidityPair.amount1 && formatWeiValue(removeLiquidityPair.amount1) }}
+          {{ formatWeiValue(amountsStr.tokenB) }}
         </div>
       </div>
-      <div
-        v-if="selectedTokens.tokenA && selectedTokens.tokenB"
-        class="rl--row"
-      >
+      <div class="rl--row">
         <div>
-          {{ selectedTokens.tokenA.symbol }} per
-          {{ selectedTokens.tokenB.symbol }}
+          {{ symbols.tokenA }} per
+          {{ symbols.tokenB }}
         </div>
         <div>-</div>
       </div>
-      <div
-        v-if="selectedTokens.tokenA && selectedTokens.tokenB"
-        class="rl--row"
-      >
+      <div class="rl--row">
         <div>
-          {{ selectedTokens.tokenB.symbol }} per
-          {{ selectedTokens.tokenA.symbol }}
+          {{ symbols.tokenB }} per
+          {{ symbols.tokenA }}
         </div>
         <div>-</div>
       </div>

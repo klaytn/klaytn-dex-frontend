@@ -55,13 +55,15 @@ export default class Tokens {
   /**
    * Fails if there is no such a pair
    */
-  public async getPairBalance(pair: TokensPair<Address>): Promise<{ pairBalance: Balance; userBalance: Balance }> {
+  public async getPairBalanceOfUser(
+    pair: TokensPair<Address>,
+  ): Promise<{ totalSupply: ValueWei<string>; userBalance: ValueWei<string> }> {
     const pairContract = await this.createPairContract(pair)
 
-    const pairBalance = (await pairContract.methods.totalSupply().call()) as Balance
-    const userBalance = (await pairContract.methods.balanceOf(this.addr).call()) as Balance
+    const totalSupply = asWei(await pairContract.methods.totalSupply().call())
+    const userBalance = asWei(await pairContract.methods.balanceOf(this.addr).call())
 
-    return { pairBalance, userBalance }
+    return { totalSupply, userBalance }
   }
 
   /**
