@@ -136,17 +136,17 @@ wheneverDone(withdrawState, (result) => {
   }
 })
 
-async function handleStaked(amount: string) {
+function handleStaked(amount: string) {
   modalOperation.value = null
   emit('staked', amount)
 }
 
-async function handleUnstaked(amount: string) {
+function handleUnstaked(amount: string) {
   modalOperation.value = null
   emit('unstaked', amount)
 }
 
-async function handleModalClose() {
+function handleModalClose() {
   modalOperation.value = null
 }
 </script>
