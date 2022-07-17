@@ -35,8 +35,7 @@ const recentTokens = $computed(() => tokensFilteredBySearch.slice(0, 6))
 let searchAsAddress = $computed<null | Address>(() => (isAddress(search) ? search : null))
 
 const searchAsAddressSmartcontractCheckScope = useComputedScope($$(searchAsAddress), (addr) => {
-  const { set, state } = usePromise<boolean>()
-  set(kaikasStore.getKaikasAnyway().isSmartContract(addr))
+  const { state } = useTask(() => kaikasStore.getKaikasAnyway().cfg.isSmartContract(addr), { immediate: true })
   usePromiseLog(state, 'smartcontract-check-' + addr)
   return state
 })
@@ -49,8 +48,7 @@ const importLookupScope = useComputedScope(
     return null
   }),
   (addr) => {
-    const { state, set } = usePromise<null | Token>()
-    set(kaikasStore.getKaikasAnyway().getToken(addr))
+    const { state } = useTask(() => kaikasStore.getKaikasAnyway().tokens.getToken(addr) ?? null, { immediate: true })
     usePromiseLog(state, 'import-lookup')
     return state
   },

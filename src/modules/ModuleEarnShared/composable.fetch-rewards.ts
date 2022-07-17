@@ -57,8 +57,12 @@ export function useFetchRewards<T extends PoolId | Address>({
   const runDebounced = useDebounceFn(run, REFETCH_REWARDS_INTERVAL)
 
   watch(poolIds, run)
-  wheneverDone(state, runDebounced)
-  wheneverFulfilled(state, ({ blockNumber }) => updateBlockNumber(blockNumber))
+  wheneverDone(state, (result) => {
+    runDebounced()
+    if (result.fulfilled) {
+      updateBlockNumber(result.fulfilled.value.blockNumber)
+    }
+  })
   usePromiseLog(state, 'fetch-rewards-generic')
 
   const fulfilled = toRef(useStaleState(state), 'fulfilled') // getting stale rewards data

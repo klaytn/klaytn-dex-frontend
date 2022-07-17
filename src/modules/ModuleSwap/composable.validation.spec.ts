@@ -3,6 +3,7 @@ import { asWei } from '@/core/kaikas'
 import { WHITELIST_TOKENS } from '@/core/kaikas/const'
 import BigNumber from 'bignumber.js'
 import { useSwapValidation } from './composable.validation'
+import { PairAddressResult } from '../ModuleTradeShared/composable.pair-by-tokens'
 
 const getTwoTokens = () => WHITELIST_TOKENS.slice(2, 4)
 
@@ -13,7 +14,7 @@ describe('swap validation', () => {
     const validation = useSwapValidation({
       tokenA: shallowRef({ ...tokenA, balance: asWei(new BigNumber(0)), input: asWei('141234234000000') }),
       tokenB: shallowRef(null),
-      pairAddr: ref('unknown'),
+      pairAddr: ref(null),
     })
 
     expect(validation.value).toMatchInlineSnapshot(`
@@ -30,7 +31,7 @@ describe('swap validation', () => {
     const validation = useSwapValidation({
       tokenA: shallowRef({ ...tokenA, balance: asWei(new BigNumber(0)), input: asWei('0') }),
       tokenB: shallowRef(tokenB),
-      pairAddr: ref('unknown'),
+      pairAddr: ref(null),
     })
 
     expect(validation.value).toMatchInlineSnapshot(`
@@ -48,7 +49,7 @@ describe('swap validation', () => {
     const validation = useSwapValidation({
       tokenA: shallowRef({ ...tokenA, balance: asWei(new BigNumber(0)), input: asWei('0') }),
       tokenB: shallowRef(tokenB),
-      pairAddr: ref('empty'),
+      pairAddr: ref<PairAddressResult>({ kind: 'empty', tokens: { tokenA: tokenA.address, tokenB: tokenB.address } }),
     })
 
     expect(validation.value).toMatchInlineSnapshot(`

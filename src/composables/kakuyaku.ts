@@ -202,9 +202,23 @@ export function useScopeWithAdvancedKey<K extends string | number | symbol, P, S
   return computed(() => scope.value?.setup ?? null)
 }
 
-export function useTask<T>(fn: () => Promise<T>): { state: PromiseStateAtomic<T>; run: () => void; clear: () => void } {
+/**
+ * # Notes
+ *
+ * `this` context is not preserved (todo?)
+ */
+export function useTask<T>(
+  fn: () => Promise<T>,
+  options?: {
+    /**
+     * @default false
+     */
+    immediate: boolean
+  },
+): { state: PromiseStateAtomic<T>; run: () => void; clear: () => void } {
   const { state, set, clear } = usePromise<T>()
   const run = () => set(fn())
+  options?.immediate && run()
   return { state, run, clear }
 }
 

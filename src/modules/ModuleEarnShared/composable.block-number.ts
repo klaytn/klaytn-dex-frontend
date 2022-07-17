@@ -10,8 +10,7 @@ export function useBlockNumber(kaikas: Kaikas): Ref<number | null> {
   }
   const { resume } = useIntervalFn(inc, 1000, { immediate: false })
 
-  const { state, set } = usePromise<number>()
-  set(kaikas.cfg.caver.klay.getBlockNumber())
+  const { state } = useTask<number>(() => kaikas.cfg.caver.klay.getBlockNumber(), { immediate: true })
   wheneverFulfilled(state, (num) => {
     blockNumber.value = num
     resume()

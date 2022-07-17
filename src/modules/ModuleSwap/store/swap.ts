@@ -86,7 +86,7 @@ export const useSwapStore = defineStore('swap', () => {
     return { tokenA, tokenB, amountFor }
   }
 
-  async function swapFn() {
+  const { state: swapState, run: swap } = useTask(async () => {
     const kaikas = kaikasStore.getKaikasAnyway()
     const { tokenA, tokenB, amountFor } = getSwapPrerequisitesAnyway()
 
@@ -100,13 +100,11 @@ export const useSwapStore = defineStore('swap', () => {
 
     // TODO confirm!
     await send()
-  }
-  const { state: swapState, set: setSwapPromise } = usePromise()
+  })
   wheneverFulfilled(swapState, () => {
     tokensStore.touchUserBalance()
   })
   useNotifyOnError(swapState, 'Swap failed')
-  const swap = () => setSwapPromise(swapFn())
 
   function setToken(type: TokenType, addr: Address | null) {
     selection.input[type] = { addr, inputRaw: '' }

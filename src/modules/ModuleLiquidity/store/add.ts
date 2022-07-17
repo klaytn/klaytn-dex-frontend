@@ -9,10 +9,10 @@ import { buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
 import { Status } from '@soramitsu-ui/ui'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import Debug from 'debug'
+// import Debug from 'debug'
 import { Ref } from 'vue'
 
-const debug = Debug('liquidity-add-store')
+// const debug = Debug('liquidity-add-store')
 
 function useQuoting(props: {
   pair: Ref<null | PairAddressResult>
@@ -42,19 +42,20 @@ function useQuoting(props: {
       }
     }),
     ({ tokens: { tokenA, tokenB }, quoteFor, value }) => {
-      const { state, run } = useTask(() =>
-        kaikasStore
-          .getKaikasAnyway()
-          .tokens.getTokenQuote({
-            tokenA,
-            tokenB,
-            value,
-            quoteFor,
-          })
-          .then((value) => ({ exchangeRate: value })),
+      const { state } = useTask(
+        () =>
+          kaikasStore
+            .getKaikasAnyway()
+            .tokens.getTokenQuote({
+              tokenA,
+              tokenB,
+              value,
+              quoteFor,
+            })
+            .then((value) => ({ exchangeRate: value })),
+        { immediate: true },
       )
       usePromiseLog(state, 'rm-liquidity-quoting')
-      run()
 
       return flattenState(state)
     },

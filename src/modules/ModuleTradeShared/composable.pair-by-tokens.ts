@@ -30,21 +30,23 @@ export function usePairAddress(tokens: TokensPair<Address | null | undefined>): 
     (actualTokens) => {
       const kaikas = kaikasStore.getKaikasAnyway()
 
-      const { run, state } = useTask<PairAddressResult>(async () => {
-        const addr = await kaikas.tokens.getPairAddress(actualTokens)
-        const isEmpty = isEmptyAddress(addr)
-        if (isEmpty) return { kind: 'empty', tokens: actualTokens }
+      const { state } = useTask<PairAddressResult>(
+        async () => {
+          const addr = await kaikas.tokens.getPairAddress(actualTokens)
+          const isEmpty = isEmptyAddress(addr)
+          if (isEmpty) return { kind: 'empty', tokens: actualTokens }
 
-        const { totalSupply, userBalance } = await kaikas.tokens.getPairBalanceOfUser(actualTokens)
-        return {
-          kind: 'exist',
-          addr,
-          totalSupply,
-          userBalance,
-          tokens: actualTokens,
-        }
-      })
-      run()
+          const { totalSupply, userBalance } = await kaikas.tokens.getPairBalanceOfUser(actualTokens)
+          return {
+            kind: 'exist',
+            addr,
+            totalSupply,
+            userBalance,
+            tokens: actualTokens,
+          }
+        },
+        { immediate: true },
+      )
       usePromiseLog(state, 'pair-addr')
 
       return state
