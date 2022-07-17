@@ -2,7 +2,15 @@ import { Status } from '@soramitsu-ui/ui'
 import Debug from 'debug'
 import { Except } from 'type-fest'
 import { Ref, WatchOptions, WatchStopHandle } from 'vue'
-import { useDanglingScope as useDeferredScope, useScope } from '@vue-kakuyaku/core'
+import {
+  useDanglingScope as useDeferredScope,
+  useScope,
+  useErrorRetry as useErrorRetryLegacy,
+  Task as TaskLegacy,
+  TaskState as TaskLegacyState,
+  Result as ResultLegacy,
+  ErrorRetryOptions,
+} from '@vue-kakuyaku/core'
 
 export { useDeferredScope, useScope as useComputedScope }
 
@@ -247,4 +255,23 @@ export function flattenState<T>(state: PromiseStateAtomic<T>): PromiseStateAtomi
     fulfilled: computed(() => state.fulfilled?.value ?? null),
     rejected: computed(() => state.rejected?.reason ?? null),
   }) as PromiseStateAtomicFlat<T>
+}
+
+export function useErrorRetry<T>(state: PromiseStateAtomic<T>, retry: () => void, options?: ErrorRetryOptions): void {
+  // just a wrapper around truly working error retry
+
+  const task: TaskLegacy<T> = reactive({
+    state: computed<TaskLegacyState<T>>(() => {
+      if (state.pending) return { kind: 'pending' }
+      if (state.fulfilled) return { kind: 'ok', data: state.fulfilled.value }
+      if (state.rejected) return { kind: 'err', error: state.rejected.reason }
+      return { kind: 'uninit' }
+    }),
+    run: retry as () => Promise<ResultLegacy<T>>,
+    abort: () => {
+      throw new Error('abort in error retry is unexpected')
+    },
+  })
+
+  useErrorRetryLegacy(task)
 }

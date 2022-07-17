@@ -149,7 +149,9 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     isAddLiquidityPending,
     isEmptyPair,
     pair: gotPair,
+
     isQuotePendingFor,
+    quoteExchangeRate,
 
     isSubmitted,
     clearSubmittion,

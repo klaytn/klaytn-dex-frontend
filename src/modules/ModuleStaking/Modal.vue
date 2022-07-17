@@ -5,7 +5,6 @@ import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
 import BigNumber from 'bignumber.js'
 import { STAKING } from '@/core/kaikas/smartcontracts/abi'
-import { useScope, useTask } from '@vue-kakuyaku/core'
 import { tokenRawToWei, tokenWeiToRaw } from '@/core/kaikas'
 
 const kaikasStore = useKaikasStore()
@@ -36,19 +35,21 @@ watch(model, () => {
   value.value = '0'
 })
 
-const balanceScope = useScope(model, () => {
-  const task = useTask(async () => {
-    const token = pool.value.stakeToken
-    const balance = await kaikas.getTokenBalance(token.id)
-    return new BigNumber(tokenWeiToRaw(token, balance))
-  })
-  useTaskLog(task, 'get-balance')
-  task.run()
-  return task
+const balanceScope = useComputedScope(model, () => {
+  const { state } = useTask(
+    async () => {
+      const token = pool.value.stakeToken
+      const balance = await kaikas.getTokenBalance(token.id)
+      return new BigNumber(tokenWeiToRaw(token, balance))
+    },
+    { immediate: true },
+  )
+  usePromiseLog(state, 'get-balance')
+
+  return state
 })
 const balance = computed(() => {
-  const state = balanceScope.value?.setup.state
-  return state?.kind === 'ok' ? state.data : null
+  return balanceScope.value?.setup?.fulfilled?.value ?? null
 })
 
 const formattedStaked = computed(() => {
@@ -85,10 +86,8 @@ const disabled = computed(() => {
 })
 
 function setPercent(percent: number) {
-  if (operation.value === ModalOperation.Stake) 
-    value.value = `${balance.value?.multipliedBy(percent * 0.01)}`
-  else
-    value.value = `${pool.value.staked.multipliedBy(percent * 0.01)}`
+  if (operation.value === ModalOperation.Stake) value.value = `${balance.value?.multipliedBy(percent * 0.01)}`
+  else value.value = `${pool.value.staked.multipliedBy(percent * 0.01)}`
 }
 
 async function stake() {

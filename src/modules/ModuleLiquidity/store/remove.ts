@@ -2,7 +2,6 @@ import { Address, asWei, tokenRawToWei, tokenWeiToRaw, ValueWei, WeiNumStrBn } f
 import { LP_TOKEN_DECIMALS as LP_TOKEN_DECIMALS_VALUE } from '@/core/kaikas/const'
 import { usePairAddress } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { buildPair, TokensPair } from '@/utils/pair'
-import { useDanglingScope, useScope, useTask, wheneverTaskErrors } from '@vue-kakuyaku/core'
 import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -21,7 +20,7 @@ function useRemoveAmounts(
 } {
   const kaikasStore = useKaikasStore()
 
-  const taskScope = useScope(
+  const taskScope = useComputedScope(
     computed(() => {
       if (!tokens.value) return null
       const pairAddr = pair.value
@@ -33,35 +32,34 @@ function useRemoveAmounts(
       return key
     }),
     () => {
-      async function computeAmounts() {
-        const kaikas = kaikasStore.getKaikasAnyway()
-        invariant(tokens.value)
-        const { tokenA, tokenB } = tokens.value
-        const pairAddr = pair.value
-        const lpTokenValue = liquidity.value
-        invariant(pairAddr && lpTokenValue)
+      const { state } = useTask(
+        async () => {
+          const kaikas = kaikasStore.getKaikasAnyway()
+          invariant(tokens.value)
+          const { tokenA, tokenB } = tokens.value
+          const pairAddr = pair.value
+          const lpTokenValue = liquidity.value
+          invariant(pairAddr && lpTokenValue)
 
-        const { amounts } = await kaikas.liquidity.computeRmLiquidityAmounts({
-          tokens: { tokenA, tokenB },
-          pair: pairAddr,
-          lpTokenValue,
-        })
-        return amounts
-      }
+          const { amounts } = await kaikas.liquidity.computeRmLiquidityAmounts({
+            tokens: { tokenA, tokenB },
+            pair: pairAddr,
+            lpTokenValue,
+          })
+          return amounts
+        },
+        { immediate: true },
+      )
 
-      const task = useTask(computeAmounts)
-      useTaskLog(task, 'compute-remove-liquidity-amounts')
+      usePromiseLog(state, 'compute-remove-liquidity-amounts')
 
-      const pending = computed(() => task.state.kind === 'pending')
-      const amounts = computed(() => (task.state.kind === 'ok' ? task.state.data : null))
-
-      return reactive({ pending, amounts })
+      return flattenState(state)
     },
   )
 
   return {
     pending: computed(() => taskScope.value?.setup.pending ?? false),
-    amounts: computed(() => taskScope.value?.setup.amounts ?? null),
+    amounts: computed(() => taskScope.value?.setup.fulfilled ?? null),
   }
 }
 
@@ -73,10 +71,10 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     buildPair((type) => computed(() => selected.value && tokensStore.findTokenData(selected.value[type]))),
   )
 
-  const pair = usePairAddress(reactive(buildPair((type) => selected.value?.[type])))
-  const isPairPending = toRef(pair, 'pending')
-  const pairTotalSupply = computed(() => pair.pair?.totalSupply)
-  const pairUserBalance = computed(() => pair.pair?.userBalance)
+  const { pair, pending: isPairPending } = usePairAddress(reactive(buildPair((type) => selected.value?.[type])))
+  const existingPair = computed(() => (pair.value?.kind === 'exist' ? pair.value : null))
+  const pairTotalSupply = computed(() => existingPair.value?.totalSupply)
+  const pairUserBalance = computed(() => existingPair.value?.userBalance)
 
   const liquidityRaw = ref('')
   const liquidity = computed<ValueWei<string> | null>({
@@ -112,7 +110,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
   const { amounts, pending: isAmountsPending } = useRemoveAmounts(
     selected,
-    computed(() => pair.pair?.addr ?? null),
+    computed(() => existingPair.value?.addr ?? null),
     liquidity,
   )
 
@@ -120,7 +118,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     selected.value = tokens
   }
 
-  const supplyScope = useDanglingScope<{
+  const supplyScope = useDeferredScope<{
     pending: boolean
     ready: null | {
       gas: number
@@ -130,25 +128,27 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
   const kaikasStore = useKaikasStore()
   function prepareSupply() {
+    const { tokenA, tokenB } = selected.value ?? {}
+    const pairAddr = existingPair.value?.addr
+    const lpTokenValue = liquidity.value
+    invariant(tokenA && tokenB && lpTokenValue && pairAddr)
+
     supplyScope.setup(() => {
-      const task = useTask(() => {
-        invariant(selected.value)
-        const pairAddr = pair.pair?.addr
-        const lpTokenValue = liquidity.value
-        invariant(lpTokenValue && pairAddr)
+      const { state } = useTask(
+        () => {
+          return kaikasStore.getKaikasAnyway().liquidity.prepareRmLiquidity({
+            tokens: { tokenA, tokenB },
+            pair: pairAddr,
+            lpTokenValue,
+          })
+        },
+        { immediate: true },
+      )
 
-        return kaikasStore.getKaikasAnyway().liquidity.prepareRmLiquidity({
-          tokens: selected.value,
-          pair: pairAddr,
-          lpTokenValue,
-        })
-      })
-      task.run()
-      useNotifyOnError(task, 'Supply preparation failed')
-      wheneverTaskErrors(task, () => supplyScope.dispose())
+      useNotifyOnError(state, 'Supply preparation failed')
+      wheneverRejected(state, () => supplyScope.dispose())
 
-      const pending = computed(() => task.state.kind === 'pending')
-      const ready = computed(() => (task.state.kind === 'ok' ? task.state.data : null))
+      const { pending, fulfilled: ready } = toRefs(flattenState(state))
 
       return reactive({ pending, ready })
     })

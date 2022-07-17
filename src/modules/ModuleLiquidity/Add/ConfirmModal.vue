@@ -73,10 +73,10 @@ function supply() {
               {{ formatRate(wei.tokenB.input, wei.tokenA.input) }}
             </span>
           </DetailsRow>
-          <DetailsRow v-if="pair.pair">
+          <DetailsRow v-if="pair?.kind === 'exist'">
             <span>Share of pool</span>
             <span>
-              {{ formatPercent(pair.pair.totalSupply, pair.pair.userBalance) }}
+              {{ formatPercent(pair.totalSupply, pair.userBalance) }}
             </span>
           </DetailsRow>
         </Details>

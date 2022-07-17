@@ -145,6 +145,7 @@
     "useElementHover": true,
     "useElementSize": true,
     "useElementVisibility": true,
+    "useErrorRetry": true,
     "useEventBus": true,
     "useEventListener": true,
     "useEventSource": true,

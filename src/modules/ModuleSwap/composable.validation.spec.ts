@@ -3,7 +3,6 @@ import { asWei } from '@/core/kaikas'
 import { WHITELIST_TOKENS } from '@/core/kaikas/const'
 import BigNumber from 'bignumber.js'
 import { useSwapValidation } from './composable.validation'
-import { PairAddressResult } from '../ModuleTradeShared/composable.pair-by-tokens'
 
 const getTwoTokens = () => WHITELIST_TOKENS.slice(2, 4)
 
@@ -49,7 +48,7 @@ describe('swap validation', () => {
     const validation = useSwapValidation({
       tokenA: shallowRef({ ...tokenA, balance: asWei(new BigNumber(0)), input: asWei('0') }),
       tokenB: shallowRef(tokenB),
-      pairAddr: ref<PairAddressResult>({ kind: 'empty', tokens: { tokenA: tokenA.address, tokenB: tokenB.address } }),
+      pairAddr: ref('empty'),
     })
 
     expect(validation.value).toMatchInlineSnapshot(`
@@ -86,7 +85,7 @@ describe('swap validation', () => {
     const validation = useSwapValidation({
       tokenA: shallowRef({ ...tokenA, balance: asWei(new BigNumber(BALANCE)), input: INPUT }),
       tokenB: shallowRef(tokenB),
-      pairAddr: ref('not-empty'),
+      pairAddr: ref('exist'),
     })
 
     expect(validation.value).toMatchInlineSnapshot(`

@@ -7,7 +7,6 @@ import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPo
 import { RouteName } from '@/types'
 import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
-import { useTask, wheneverTaskSucceeds, wheneverTaskErrors } from '@vue-kakuyaku/core'
 import { STAKING } from '@/core/kaikas/smartcontracts/abi'
 
 const kaikas = useKaikasStore().getKaikasAnyway()
@@ -110,7 +109,7 @@ function goToSwapPage() {
   router.push({ name: RouteName.Swap })
 }
 
-const withdrawTask = useTask(async () => {
+const { state: withdrawState, run: withdraw } = useTask(async () => {
   const earned = pool.value.earned
   const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
   const withdraw = PoolContract.methods.withdraw(0)
@@ -126,15 +125,16 @@ const withdrawTask = useTask(async () => {
 
   return { earned }
 })
-useTaskLog(withdrawTask, 'staking-pool-withdraw')
-wheneverTaskSucceeds(withdrawTask, ({ earned }) => {
-  emit('withdrawn')
-  $notify({ status: Status.Success, description: `${earned} ${pool.value.rewardToken.symbol} tokens were withdrawn` })
+usePromiseLog(withdrawState, 'staking-pool-withdraw')
+wheneverDone(withdrawState, (result) => {
+  if (result.fulfilled) {
+    const { earned } = result.fulfilled.value
+    emit('withdrawn')
+    $notify({ status: Status.Success, description: `${earned} ${pool.value.rewardToken.symbol} tokens were withdrawn` })
+  } else {
+    $notify({ status: Status.Error, description: `Withdraw ${pool.value.rewardToken.symbol} tokens error` })
+  }
 })
-wheneverTaskErrors(withdrawTask, () => {
-  $notify({ status: Status.Error, description: `Withdraw ${pool.value.rewardToken.symbol} tokens error` })
-})
-const withdraw = () => withdrawTask.run()
 
 async function handleStaked(amount: string) {
   modalOperation.value = null

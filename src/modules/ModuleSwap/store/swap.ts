@@ -5,7 +5,7 @@ import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, buildPair, mirrorTokenType } from '@/utils/pair'
 import Debug from 'debug'
 import { useGetAmount, GetAmountProps } from '../composable.get-amount'
-import { usePairAddress } from '../../ModuleTradeShared/composable.pair-by-tokens'
+import { usePairAddress, useSimplifiedResult } from '../../ModuleTradeShared/composable.pair-by-tokens'
 import { useSwapValidation } from '../composable.validation'
 import { buildSwapProps } from '../util.swap-props'
 import { syncInputAddrsWithLocalStorage, useTokensInput } from '../../ModuleTradeShared/composable.tokens-input'
@@ -30,7 +30,7 @@ export const useSwapStore = defineStore('swap', () => {
       return balance && token && input ? { ...token, balance, input } : null
     }),
     tokenB: computed(() => selection.tokens.tokenB),
-    pairAddr: pairAddrResult,
+    pairAddr: useSimplifiedResult(pairAddrResult),
   })
 
   const isValid = computed(() => swapValidation.value.kind === 'ok')

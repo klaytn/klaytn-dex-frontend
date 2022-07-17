@@ -3,10 +3,9 @@ import { buildPair } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 
 const liquidityStore = useLiquidityAddStore()
-const { quoteForTask } = storeToRefs(liquidityStore)
+const { isQuotePendingFor, quoteExchangeRate } = storeToRefs(liquidityStore)
 
-const pendingQuoteFor = computed(() => (quoteForTask.value?.pending ? quoteForTask.value.quoteFor : null))
-const estimated = computed(() => (quoteForTask.value?.completed ? quoteForTask.value.quoteFor : null))
+const estimated = computed(() => quoteExchangeRate.value?.quoteFor ?? null)
 
 const models = reactive(
   buildPair((type) => ({
@@ -32,7 +31,7 @@ const models = reactive(
       <TokenInput
         v-model="models.tokenA.input"
         v-model:token="models.tokenA.addr"
-        :is-loading="pendingQuoteFor === 'tokenA'"
+        :is-loading="isQuotePendingFor === 'tokenA'"
         :estimated="estimated === 'tokenA'"
       />
 
@@ -43,7 +42,7 @@ const models = reactive(
       <TokenInput
         v-model="models.tokenB.input"
         v-model:token="models.tokenB.addr"
-        :is-loading="pendingQuoteFor === 'tokenB'"
+        :is-loading="isQuotePendingFor === 'tokenB'"
         :estimated="estimated === 'tokenB'"
       />
     </div>

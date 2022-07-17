@@ -5,9 +5,9 @@ import { FARMING_CONTRACT_ADDRESS, FORMATTED_BIG_INT_DECIMALS } from './const'
 import BigNumber from 'bignumber.js'
 import { Farming } from '@/types/typechain/farming'
 import { FARMING } from '@/core/kaikas/smartcontracts/abi'
-import { useTask, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
 import invariant from 'tiny-invariant'
 import { farmingToWei } from './utils'
+import { or } from '@vueuse/core'
 
 const kaikasStore = useKaikasStore()
 
@@ -78,13 +78,11 @@ const disabled = computed(() => {
 })
 
 function setMax() {
-  if (operation.value === ModalOperation.Stake) 
-    value.value = `${pool.value.balance}`
-  else
-    value.value = `${pool.value.staked}`
+  if (operation.value === ModalOperation.Stake) value.value = `${pool.value.balance}`
+  else value.value = `${pool.value.staked}`
 }
 
-const stakeTask = useTask(async () => {
+const { state: stakeState, run: stake } = useTask(async () => {
   const kaikas = kaikasStore.getKaikasAnyway()
   const FarmingContract = contractAnyway()
 
@@ -104,14 +102,13 @@ const stakeTask = useTask(async () => {
 
   return { amount }
 })
-wheneverTaskSucceeds(stakeTask, ({ amount }) => {
+wheneverFulfilled(stakeState, ({ amount }) => {
   $notify({ status: Status.Success, description: `${amount} LP tokens were staked` })
   emit('staked', amount)
 })
-useNotifyOnError(stakeTask, 'Stake LP tokens error')
-const stake = () => stakeTask.run()
+useNotifyOnError(stakeState, 'Stake LP tokens error')
 
-const unstakeTask = useTask(async () => {
+const { state: unstakeState, run: unstake } = useTask(async () => {
   const kaikas = kaikasStore.getKaikasAnyway()
   const FarmingContract = contractAnyway()
 
@@ -130,14 +127,13 @@ const unstakeTask = useTask(async () => {
 
   return { amount }
 })
-wheneverTaskSucceeds(unstakeTask, ({ amount }) => {
+wheneverFulfilled(unstakeState, ({ amount }) => {
   $notify({ status: Status.Success, description: `${amount} LP tokens were unstaked` })
   emit('unstaked', amount)
 })
-useNotifyOnError(unstakeTask, 'Unstake LP tokens error')
-const unstake = () => unstakeTask.run()
+useNotifyOnError(unstakeState, 'Unstake LP tokens error')
 
-const loading = computed(() => stakeTask.state.kind === 'pending' || unstakeTask.state.kind === 'pending')
+const loading = or(toRef(stakeState, 'pending'), toRef(unstakeState, 'pending'))
 
 function confirm() {
   switch (operation.value) {

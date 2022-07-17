@@ -58,3 +58,9 @@ export function usePairAddress(tokens: TokensPair<Address | null | undefined>): 
 
   return { pending, pair }
 }
+
+export type PairAddressResultSimplified = PairAddressResult['kind']
+
+export function useSimplifiedResult(result: Ref<null | PairAddressResult>): Ref<null | PairAddressResultSimplified> {
+  return computed(() => result.value?.kind ?? null)
+}
