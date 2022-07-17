@@ -11,7 +11,6 @@ declare module '@vue/runtime-core' {
     IconKlayBackArrow: typeof import('~icons/klay/back-arrow')['default']
     IconKlayCalculator: typeof import('~icons/klay/calculator')['default']
     IconKlayChevron: typeof import('~icons/klay/chevron')['default']
-    IconKlayClock: typeof import('~icons/klay/clock')['default']
     IconKlayClose: typeof import('~icons/klay/close')['default']
     IconKlayCollapseArrow: typeof import('~icons/klay/collapse-arrow')['default']
     IconKlayDexLogo: typeof import('~icons/klay/dex-logo')['default']

@@ -84,7 +84,7 @@ const {
   computed(() => pool.value.pairId),
   FARMING_CONTRACT_ADDRESS,
 )
-whenever(expanded, triggerCheckEnabled)
+whenever(() => expanded.value && !enabled.value, triggerCheckEnabled)
 
 const loading = computed(() => {
   // FIXME include "enableTask" pending here too?
