@@ -49,7 +49,7 @@ const { isBalancePending } = $(storeToRefs(tokensStore))
 const tokenData = $computed<null | Token>(() => (props.token && tokensStore.findTokenData(props.token)) ?? null)
 
 const balance = $computed<null | ValueWei<BigNumber>>(
-  () => (props.token && tokensStore.userBalanceMap?.get(props.token)) ?? null,
+  () => (props.token && tokensStore.lookupUserBalance(props.token)) ?? null,
 )
 const balanceRaw = $computed(() => {
   if (!balance || !tokenData) return null

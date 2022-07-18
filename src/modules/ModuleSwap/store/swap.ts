@@ -10,7 +10,8 @@ import { useGetAmount, GetAmountProps } from '../composable.get-amount'
 import { usePairAddress } from '../../ModuleTradeShared/composable.pair-by-tokens'
 import { useSwapValidation } from '../composable.validation'
 import { buildSwapProps } from '../util.swap-props'
-import { syncInputAddrsWithLocalStorage, useTokensInput } from '../../ModuleTradeShared/composable.tokens-input'
+import { useTokensInput } from '../../ModuleTradeShared/composable.tokens-input'
+import { useLocalStorageSync } from '../../ModuleTradeShared/composable.tokens-local-storage'
 
 const debugModule = Debug('swap-store')
 
@@ -19,9 +20,11 @@ export const useSwapStore = defineStore('swap', () => {
   const tokensStore = useTokensStore()
 
   const selection = useTokensInput()
-  syncInputAddrsWithLocalStorage(selection.input, 'swap-store-tokens-input')
+  const addrsReadonly = readonly(selection.addrsWritable)
 
-  const { result: pairAddrResult } = toRefs(usePairAddress(selection.addrs))
+  useLocalStorageSync(selection.addrsWritable, 'swap-store-tokens-input')
+
+  const { result: pairAddrResult } = toRefs(usePairAddress(addrsReadonly))
 
   const swapValidation = useSwapValidation({
     tokenA: computed(() => {
@@ -52,7 +55,7 @@ export const useSwapStore = defineStore('swap', () => {
       const referenceValue = selection.wei[mirrorTokenType(amountFor)]
       if (!referenceValue || new BigNumber(referenceValue.input).isLessThanOrEqualTo(0)) return null
 
-      const { tokenA, tokenB } = selection.addrs
+      const { tokenA, tokenB } = addrsReadonly
       if (!tokenA || !tokenB) return null
 
       if (pairAddrResult.value !== 'not-empty') return null

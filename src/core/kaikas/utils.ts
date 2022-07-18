@@ -25,8 +25,6 @@ export function parseAddress(raw: string): Address {
   throw new Error(`not a valid address: "${raw}"`)
 }
 
-export const { fromWei, toWei } = web3.utils
-
 export function asWei<T extends AnyNumber>(value: T): ValueWei<T> {
   return value as ValueWei<T>
 }

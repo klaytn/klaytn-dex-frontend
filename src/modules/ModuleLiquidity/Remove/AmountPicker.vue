@@ -2,7 +2,26 @@
 import { storeToRefs } from 'pinia'
 
 const store = useLiquidityRmStore()
-const { liquidityRelative: model } = storeToRefs(store)
+const { liquidityRelative: relativeTo1 } = storeToRefs(store)
+
+const relativeTo100 = computed({
+  get: () => (relativeTo1.value ?? 0) * 100,
+  set: (num) => {
+    relativeTo1.value = num / 100
+  },
+})
+
+const pickerValueDebounced = ref(relativeTo100.value)
+watch(relativeTo100, (val) => {
+  pickerValueDebounced.value = val
+})
+watchDebounced(
+  pickerValueDebounced,
+  (value) => {
+    relativeTo100.value = value
+  },
+  { debounce: 500 },
+)
 
 function formatPercent(value: number): string {
   return `${~~(value * 100)}%`
@@ -10,18 +29,14 @@ function formatPercent(value: number): string {
 </script>
 
 <template>
-  <div
-    v-if="model !== null"
-    class="space-y-2"
-  >
+  <div class="space-y-2">
     <div class="text-xl">
-      {{ formatPercent(model) }}
+      {{ ~~pickerValueDebounced }}%
     </div>
 
     <KlaySlider
-      v-model="model"
-      :min="0"
-      :max="1"
+      v-model="pickerValueDebounced"
+      :disabled="relativeTo1 === null"
     />
 
     <div class="grid grid-cols-5 gap-4">
@@ -29,7 +44,7 @@ function formatPercent(value: number): string {
         v-for="i in [0.1, 0.25, 0.5, 0.75]"
         :key="i"
         size="sm"
-        @click="model = i"
+        @click="relativeTo1 = i"
       >
         {{ formatPercent(i) }}
       </KlayButton>
@@ -37,7 +52,7 @@ function formatPercent(value: number): string {
       <KlayButton
         type="primary"
         size="sm"
-        @click="model = 1"
+        @click="relativeTo1 = 1"
       >
         MAX
       </KlayButton>

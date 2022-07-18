@@ -4,6 +4,7 @@ import { toRefs } from '@vueuse/core'
 import { LiquidityPairsPosition, LiquidityPairValueRaw } from '../query.liquidity-pairs'
 import BigNumber from 'bignumber.js'
 import { RouteName } from '@/types'
+import { buildPair } from '@/utils/pair'
 
 const props = defineProps<{
   data: LiquidityPairsPosition
@@ -11,6 +12,11 @@ const props = defineProps<{
 
 const { liquidityTokenBalance, pair } = $(toRefs(toRef(props, 'data')))
 const { name, reserve0, reserve1, reserveKLAY, reserveUSD, totalSupply, token0, token1 } = $(toRefs($$(pair)))
+
+const pairAddrs = computed(() => ({
+  tokenA: token0.id,
+  tokenB: token1.id,
+}))
 
 function formatValueRaw(value: LiquidityPairValueRaw) {
   return roundTo(Number(value), 5)
@@ -22,15 +28,19 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
   return `${new BigNumber(v2).dividedBy(percent).toFixed(2)}%`
 }
 
-const addLiquidityStore = useLiquidityAddStore()
 const router = useRouter()
+const addLiquidityStore = useLiquidityAddStore()
 
 function goToAddLiquidity() {
-  addLiquidityStore.setBoth({
-    tokenA: token0.id,
-    tokenB: token1.id,
-  })
+  addLiquidityStore.setBoth(pairAddrs.value)
   router.push({ name: RouteName.LiquidityAdd })
+}
+
+const rmLiquidityStore = useLiquidityRmStore()
+
+function goToRemoveLiquidity() {
+  rmLiquidityStore.setTokens(pairAddrs.value)
+  router.push({ name: RouteName.LiquidityRemove })
 }
 </script>
 
@@ -86,7 +96,7 @@ function goToAddLiquidity() {
           <KlayButton @click="goToAddLiquidity()">
             Add
           </KlayButton>
-          <KlayButton disabled>
+          <KlayButton @click="goToRemoveLiquidity()">
             Remove
           </KlayButton>
           <KlayButton

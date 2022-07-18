@@ -52,6 +52,8 @@ function useRemoveAmounts(
       const task = useTask(computeAmounts)
       useTaskLog(task, 'compute-remove-liquidity-amounts')
 
+      task.run()
+
       const pending = computed(() => task.state.kind === 'pending')
       const amounts = computed(() => (task.state.kind === 'ok' ? task.state.data : null))
 
@@ -65,14 +67,28 @@ function useRemoveAmounts(
   }
 }
 
+function useTokensSymbols(tokens: TokensPair<Address | null>) {
+  const store = useTokensStore()
+
+  return reactive(
+    buildPair((type) => computed(() => (tokens[type] && store.findTokenData(tokens[type]!)?.symbol) ?? null)),
+  )
+}
+
 export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
-  const selected = ref<null | TokensPair<Address>>(null)
+  const selectedInLs = useLocalStorage<null | TokensPair<Address>>('liquidity-remove-tokens', null, {
+    serializer: {
+      read: (raw) => JSON.parse(raw),
+      write: (parsed) => JSON.stringify(parsed),
+    },
+  })
+  const selected = ref<null | TokensPair<Address>>(selectedInLs.value)
+  syncRef(selected, selectedInLs, { direction: 'both' })
 
   const tokensStore = useTokensStore()
   const selectedTokensData = reactive(
     buildPair((type) => computed(() => selected.value && tokensStore.findTokenData(selected.value[type]))),
   )
-
   const pair = usePairAddress(reactive(buildPair((type) => selected.value?.[type])))
   const isPairPending = toRef(pair, 'pending')
   const pairTotalSupply = computed(() => pair.pair?.totalSupply)
@@ -97,9 +113,9 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
    */
   const liquidityRelative = computed<number | null>({
     get: () => {
-      const wei = liquidity.value
+      const wei = liquidity.value ?? '0'
       const total = pairUserBalance.value
-      if (!wei || !total) return null
+      if (!total) return null
       return new BigNumber(wei).div(total).toNumber()
     },
     set: (rel) => {
@@ -118,6 +134,11 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
   function setTokens(tokens: TokensPair<Address>) {
     selected.value = tokens
+  }
+
+  function setLiquidityToMax() {
+    invariant(pairUserBalance.value)
+    liquidity.value = pairUserBalance.value
   }
 
   const supplyScope = useDanglingScope<{
@@ -170,6 +191,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
     setTokens,
     prepareSupply,
+    setLiquidityToMax,
   }
 })
 

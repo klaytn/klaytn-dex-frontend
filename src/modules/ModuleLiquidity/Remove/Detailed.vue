@@ -1,60 +1,38 @@
 <script lang="ts" setup>
-import { ValueEther, ValueWei, fromWei } from '@/core/kaikas'
-import { formatWeiValue, formatRate } from '@/utils/common'
+import { asWei, tokenWeiToRaw } from '@/core/kaikas'
+import { TokensPair, TokenType } from '@/utils/pair'
+import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
-import invariant from 'tiny-invariant'
 
-const tokensStore = useTokensStore()
-const { selectedTokens } = $(storeToRefs(tokensStore))
+const store = useLiquidityRmStore()
+const { liquidityRaw, selectedTokensData: tokens, amounts } = storeToRefs(store)
 
-const liquidityStore = useLiquidityStore()
-const { removeLiquidityPair } = $(storeToRefs(liquidityStore))
+type BrokenAmountType = typeof amounts['value'] extends null | infer V
+  ? V extends TokensPair<any>
+    ? V[TokenType]
+    : never
+  : never
 
-let lpTokenValue = $ref<null | ValueEther<string>>(removeLiquidityPair.lpTokenValue)
-
-const onInputDebounced = useDebounceFn((value: ValueEther<string>) => {
-  liquidityStore.setRmLiqValue(value)
-  liquidityStore.calcRemoveLiquidityAmounts(value)
-}, 500)
-
-function onInput(e: Event) {
-  onInputDebounced((e.target as HTMLInputElement).value as ValueEther<string>)
-}
-
-function setMax() {
-  invariant(selectedTokens.userBalance)
-  const valueEther = fromWei(selectedTokens.userBalance) as ValueEther<string>
-  onInputDebounced(valueEther)
-  lpTokenValue = valueEther
-}
-
-function formatAmount(value: string) {
-  return formatWeiValue(value as ValueWei<string>)
+function formatAmount(value: BrokenAmountType | null | undefined, token: TokenType) {
+  const data = tokens.value[token]
+  if (!data || !value) return '-'
+  return new BigNumber(tokenWeiToRaw(data, asWei(value.toString()))).toFixed(4)
 }
 </script>
 
 <template>
-  <div
-    v-if="
-      selectedTokens.tokenA?.value &&
-        selectedTokens.tokenB?.value &&
-        removeLiquidityPair.amount0 &&
-        removeLiquidityPair.amount1
-    "
-    class="detailed"
-  >
+  <div class="detailed">
     <div class="detailed--input input-amount mt">
       <div class="input-amount--col">
         <input
-          v-model="lpTokenValue"
-          placeholder="0.345"
+          v-model="liquidityRaw"
+          placeholder="0"
           type="number"
           class="input-amount--value"
-          @input="onInput"
         >
-        <div class="input-amount--price">
+        <!-- <div class="input-amount--price">
           $284.22
-        </div>
+        </div> -->
       </div>
 
       <div class="input-amount--col">
@@ -62,19 +40,20 @@ function formatAmount(value: string) {
           <button
             type="button"
             class="input-amount--max"
-            @click="setMax"
+            @click="store.setLiquidityToMax()"
           >
-            max
+            MAX
           </button>
-          <!--          <img src="" alt=""> -->
-          <!--          <img src="" alt=""> -->
-          <span class="input-amount--tokens">
-            {{ selectedTokens.tokenA.symbol }}-{{ selectedTokens.tokenB.symbol }}
+          <span
+            v-if="tokens.tokenA && tokens.tokenB"
+            class="input-amount--tokens"
+          >
+            {{ tokens.tokenA.symbol }}-{{ tokens.tokenB.symbol }}
           </span>
         </div>
-        <div class="input-amount--price">
+        <!-- <div class="input-amount--price">
           -
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -88,7 +67,7 @@ function formatAmount(value: string) {
           type="text"
           class="input-amount--value"
         >
-          {{ formatAmount(removeLiquidityPair.amount0) }}
+          {{ formatAmount(amounts?.tokenA, 'tokenA') }}
         </div>
         <div class="input-amount--price">
           $284.22
@@ -98,7 +77,7 @@ function formatAmount(value: string) {
       <div class="input-amount--col">
         <div class="input-amount--row">
           <span class="input-amount--tokens">
-            {{ selectedTokens.tokenA.symbol }}
+            {{ tokens.tokenA?.symbol }}
           </span>
         </div>
       </div>
@@ -114,7 +93,8 @@ function formatAmount(value: string) {
           type="text"
           class="input-amount--value"
         >
-          {{ formatAmount(removeLiquidityPair.amount1) }}
+          <!-- {{ formatAmount(removeLiquidityPair.amount1) }} -->
+          amount b
         </div>
         <div class="input-amount--price">
           $284.22
@@ -123,31 +103,38 @@ function formatAmount(value: string) {
       <div class="input-amount--col">
         <div class="input-amount--row">
           <span class="input-amount--tokens">
-            {{ selectedTokens.tokenB.symbol }}
+            <!-- {{ selectedTokens.tokenB.symbol }} -->
+            symbol b
           </span>
         </div>
       </div>
     </div>
 
-    <div class="detailed--details">
+    <div
+      v-if="tokens.tokenA && tokens.tokenB"
+      class="detailed--details"
+    >
       <div class="detailed--details--row">
         <div>
-          {{ selectedTokens.tokenA.symbol }} per
-          {{ selectedTokens.tokenB.symbol }}
+          {{ tokens.tokenA.symbol }} per
+          {{ tokens.tokenB.symbol }}
         </div>
         <div>
-          {{ formatRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
-          {{ selectedTokens.tokenA.symbol }}
+          ?
+          <!-- {{ formatRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
+          {{ selectedTokens.tokenA.symbol }} -->
         </div>
       </div>
       <div class="detailed--details--row">
         <div>
-          {{ selectedTokens.tokenB.symbol }} per
-          {{ selectedTokens.tokenA.symbol }}
+          {{ tokens.tokenB.symbol }} per
+          {{ tokens.tokenA.symbol }}
         </div>
         <div>
-          {{ formatRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
-          {{ selectedTokens.tokenB.symbol }}
+          ?
+          <!-- TODO [almost] duplication of previous row -->
+          <!-- {{ formatRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
+          {{ selectedTokens.tokenB.symbol }} -->
         </div>
       </div>
     </div>

@@ -1,12 +1,13 @@
 import { ValueWei, deadlineFiveMinutesFromNow, tokenWeiToRaw, Address } from '@/core/kaikas'
 import { usePairAddress } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
-import { syncInputAddrsWithLocalStorage, useTokensInput } from '@/modules/ModuleTradeShared/composable.tokens-input'
+import { useTokensInput } from '@/modules/ModuleTradeShared/composable.tokens-input'
 import { buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
 import { Status } from '@soramitsu-ui/ui'
 import { useDanglingScope, useStaleIfErrorState, useTask, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import Debug from 'debug'
+import { useLocalStorageSync } from '@/modules/ModuleTradeShared/composable.tokens-local-storage'
 
 const debug = Debug('liquidity-add-store')
 
@@ -14,9 +15,10 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const kaikasStore = useKaikasStore()
 
   const selection = useTokensInput()
-  syncInputAddrsWithLocalStorage(selection.input, 'liquidity-store-input-tokens')
+  const addrsReadonly = readonly(selection.addrsWritable)
+  useLocalStorageSync(selection.addrsWritable, 'liquidity-store-input-tokens')
 
-  const pair = usePairAddress(selection.addrs)
+  const pair = usePairAddress(addrsReadonly)
   const isEmptyPair = computed(() => pair.result === 'empty')
 
   const quoteFor = ref<null | TokenType>(null)
@@ -26,7 +28,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   function doQuoteFor(value: ValueWei<string>, quoteFor: TokenType) {
     const kaikas = kaikasStore.getKaikasAnyway()
     invariant(pair.result === 'not-empty', 'Pair should exist')
-    const { tokenA, tokenB } = selection.addrs
+    const { tokenA, tokenB } = addrsReadonly
     invariant(tokenA && tokenB)
 
     doQuoteScope.setup(() => {
@@ -107,7 +109,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
     const { send } = await kaikas.liquidity.prepareAddLiquidity({
       tokens: buildPair((type) => {
-        const addr = selection.addrs[type]
+        const addr = addrsReadonly[type]
         const wei = selection.wei[type]
         invariant(addr && wei, `Addr and wei value for ${type} should exist`)
         return { addr, desired: wei.input }
@@ -134,7 +136,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     selection.input[token].inputRaw = raw
     quoteFor.value = mirrorTokenType(token)
 
-    if (selection.addrs.tokenA && selection.addrs.tokenB && selection.wei[token] && pair.result === 'not-empty') {
+    if (addrsReadonly.tokenA && addrsReadonly.tokenB && selection.wei[token] && pair.result === 'not-empty') {
       debouncedDoQuoteFor(selection.wei[token]!.input, quoteFor.value)
     }
   }

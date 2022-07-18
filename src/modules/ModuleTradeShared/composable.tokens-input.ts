@@ -19,7 +19,16 @@ export function useTokensInput() {
     Object.assign(input, newData)
   }
 
-  const addrs = readonly(buildPair((type) => computed(() => input[type]?.addr)))
+  const addrsWritable = reactive(
+    buildPair((type) =>
+      computed({
+        get: () => input[type].addr,
+        set: (v) => {
+          input[type].addr = v
+        },
+      }),
+    ),
+  )
 
   const tokens = readonly(
     reactive(
@@ -52,7 +61,7 @@ export function useTokensInput() {
         computed(() => {
           const addr = input[type]?.addr
           if (!addr) return null
-          return tokensStore.userBalanceMap?.get(addr) ?? null
+          return tokensStore.lookupUserBalance(addr)
         }),
       ),
     ),
@@ -62,25 +71,9 @@ export function useTokensInput() {
     input,
     resetInput,
 
-    addrs,
+    addrsWritable,
     tokens,
     wei,
     balance,
   }
-}
-
-export function syncInputAddrsWithLocalStorage(selection: TokensPair<TokenInput>, key: string) {
-  doForPair((type) => {
-    const ls = useLocalStorage<null | Address>(`${key}-${type}`, null)
-    const selectionWritable = computed({
-      get: () => selection[type].addr,
-      set: (v) => {
-        selection[type].addr = v
-      },
-    })
-    if (ls.value && !selectionWritable.value) {
-      selectionWritable.value = ls.value
-    }
-    syncRef(selectionWritable, ls)
-  })
 }
