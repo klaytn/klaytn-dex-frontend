@@ -1,6 +1,6 @@
 import { Address, asWei, tokenRawToWei, tokenWeiToRaw, ValueWei, WeiNumStrBn } from '@/core/kaikas'
 import { LP_TOKEN_DECIMALS as LP_TOKEN_DECIMALS_VALUE } from '@/core/kaikas/const'
-import { usePairAddress } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
+import { usePairAddress, usePairReserves } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { buildPair, TokensPair } from '@/utils/pair'
 import { useDanglingScope, useScope, useTask, wheneverTaskErrors } from '@vue-kakuyaku/core'
 import BigNumber from 'bignumber.js'
@@ -67,13 +67,13 @@ function useRemoveAmounts(
   }
 }
 
-function useTokensSymbols(tokens: TokensPair<Address | null>) {
-  const store = useTokensStore()
+// function useTokensSymbols(tokens: TokensPair<Address | null>) {
+//   const store = useTokensStore()
 
-  return reactive(
-    buildPair((type) => computed(() => (tokens[type] && store.findTokenData(tokens[type]!)?.symbol) ?? null)),
-  )
-}
+//   return reactive(
+//     buildPair((type) => computed(() => (tokens[type] && store.findTokenData(tokens[type]!)?.symbol) ?? null)),
+//   )
+// }
 
 export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   const selectedInLs = useLocalStorage<null | TokensPair<Address>>('liquidity-remove-tokens', null, {
@@ -93,6 +93,8 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   const isPairPending = toRef(pair, 'pending')
   const pairTotalSupply = computed(() => pair.pair?.totalSupply)
   const pairUserBalance = computed(() => pair.pair?.userBalance)
+
+  const pairReserves = usePairReserves(selected)
 
   const liquidityRaw = ref('')
   const liquidity = computed<ValueWei<string> | null>({
@@ -181,6 +183,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
     pairUserBalance,
     pairTotalSupply,
+    pairReserves,
     isPairPending,
 
     liquidity,

@@ -1,7 +1,7 @@
 <template>
   <div class="root">
     <ModuleLiquidityRemoveAmountPicker class="p-4" />
-    <hr>
+    <div class="divider" />
     <ModuleLiquidityRemoveAmountYouWillReceive class="p-4" />
   </div>
 </template>
@@ -12,5 +12,10 @@
 .root {
   border: 1px solid $gray5;
   border-radius: 8px;
+}
+
+.divider {
+  background: $gray5;
+  height: 1px;
 }
 </style>

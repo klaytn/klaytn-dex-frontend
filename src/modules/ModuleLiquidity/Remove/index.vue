@@ -22,8 +22,9 @@ if (!store.selected) {
     <ModuleLiquidityRemoveDetailed v-else />
 
     <KlayButton
-      type="button"
-      class="mt"
+      type="primary"
+      size="lg"
+      class="w-full"
       @click="openConfirm = true"
     >
       Remove

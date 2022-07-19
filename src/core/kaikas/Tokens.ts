@@ -12,6 +12,35 @@ export interface GetTokenQuoteProps extends TokensPair<Address> {
   quoteFor: TokenType
 }
 
+export interface PairReserves {
+  reserve0: ValueWei<string>
+  reserve1: ValueWei<string>
+}
+
+/**
+ * Depending on what token for we are going to compute `quote`,
+ * we might swap reserves with each other
+ */
+function sortReservesForQuote({
+  reserves,
+  token0,
+  tokenA,
+  quoteFor,
+}: {
+  reserves: PairReserves
+  token0: Address
+  tokenA: Address
+  quoteFor: TokenType
+}): PairReserves {
+  if (quoteFor === 'tokenB' && token0 === tokenA) return reserves
+  return { reserve0: reserves.reserve1, reserve1: reserves.reserve0 }
+}
+
+/**
+ * # Todo
+ *
+ * - optimize pair contract creation; use the same one for the set of operations
+ */
 export default class Tokens {
   private readonly cfg: Config
 
@@ -34,22 +63,29 @@ export default class Tokens {
   // eslint-disable-next-line max-params
   public async getTokenQuote({ tokenA, tokenB, value, quoteFor }: GetTokenQuoteProps): Promise<ValueWei<string>> {
     const pairContract = await this.createPairContract({ tokenA, tokenB })
-    const token0 = await pairContract.methods.token0().call({
+    const token0 = (await pairContract.methods.token0().call({
       from: this.addr,
-    })
-    const reserves = await pairContract.methods.getReserves().call({
-      from: this.addr,
-    })
+    })) as Address
+    const reserves = await this.getPairReserves({ tokenA, tokenB })
 
-    const sortedReserves = (quoteFor === 'tokenA' ? token0 !== tokenA : token0 === tokenA)
-      ? [reserves[0], reserves[1]]
-      : [reserves[1], reserves[0]]
+    const sortedReserves = sortReservesForQuote({ reserves, token0, tokenA, quoteFor })
 
     return asWei(
-      await this.routerContract.methods.quote(value, sortedReserves[0], sortedReserves[1]).call({
+      await this.routerContract.methods.quote(value, sortedReserves.reserve0, sortedReserves.reserve1).call({
         from: this.addr,
       }),
     )
+  }
+
+  public async getPairReserves(tokens: TokensPair<Address>): Promise<PairReserves> {
+    const contract = await this.createPairContract(tokens)
+    const reserves = await contract.methods.getReserves().call({
+      from: this.addr,
+    })
+    return {
+      reserve0: asWei(reserves[0]),
+      reserve1: asWei(reserves[1]),
+    }
   }
 
   /**
@@ -105,7 +141,7 @@ export default class Tokens {
     return balance
   }
 
-  private async createPairContract(pair: TokensPair<Address>): Promise<DexPair> {
+  public async createPairContract(pair: TokensPair<Address>): Promise<DexPair> {
     const pairAddr = await this.getPairAddress(pair)
     invariant(!isEmptyAddress(pairAddr), 'Empty address')
 
