@@ -1,12 +1,12 @@
 <template>
   <div class="root">
-    <ModuleLiquidityRemoveAmountPicker class="p-4" />
+    <ModuleLiquidityRemoveModeAmountPicker class="p-4" />
     <div class="divider" />
-    <ModuleLiquidityRemoveAmountYouWillReceive class="p-4" />
+    <ModuleLiquidityRemoveModeAmountYouWillReceive class="p-4" />
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '@/styles/vars';
 
 .root {

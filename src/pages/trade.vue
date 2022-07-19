@@ -133,8 +133,5 @@ h1 {
   align-items: center;
   justify-content: flex-start;
   margin-bottom: 18px;
-
-  &__btn {
-  }
 }
 </style>

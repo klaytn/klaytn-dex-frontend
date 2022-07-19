@@ -4,17 +4,20 @@ import { storeToRefs } from 'pinia'
 import { tokenWeiToRaw } from '@/core/kaikas'
 import { LP_TOKEN_DECIMALS } from '@/core/kaikas/const'
 import { roundTo } from 'round-to'
-import BigNumber from 'bignumber.js'
 
 const store = useLiquidityRmStore()
-const { selectedTokensData, pairReserves, pairTotalSupply, pairUserBalance } = storeToRefs(store)
-
-const symbols = reactive(buildPair((type) => computed(() => selectedTokensData.value[type]?.symbol)))
+const {
+  selectedTokensData,
+  pairReserves,
+  pairUserBalance,
+  selectedTokensSymbols: symbols,
+  formattedPoolShare,
+} = storeToRefs(store)
 
 const formattedReserves = computed(() => {
   const reserves = unref(pairReserves)
   const tokensData = unref(selectedTokensData)
-  if (!reserves || !tokensData.tokenA || !tokensData.tokenB) return null
+  if (!reserves || !tokensData) return null
   return buildPair((type) => {
     const wei = reserves[type === 'tokenA' ? 'reserve0' : 'reserve1']
     const data = tokensData[type]!
@@ -29,18 +32,10 @@ const formattedPoolTokens = computed(() => {
   const value = tokenWeiToRaw({ decimals: LP_TOKEN_DECIMALS }, wei)
   return roundTo(Number(value), 7)
 })
-
-const formattedPoolShare = computed(() => {
-  const total = unref(pairTotalSupply)
-  const user = unref(pairUserBalance)
-  if (!total || !user) return null
-  const num = new BigNumber(user).div(total).toNumber()
-  return `${roundTo(num, 2)}%`
-})
 </script>
 
 <template>
-  <KlayCollapse>
+  <KlayCollapse v-if="symbols">
     <template #head>
       <h3 class="py-2">
         LP tokens details
@@ -82,7 +77,7 @@ const formattedPoolShare = computed(() => {
   </KlayCollapse>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 h3 {
   font-size: 14px;
 }

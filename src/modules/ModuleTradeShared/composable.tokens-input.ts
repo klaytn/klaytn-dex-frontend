@@ -6,15 +6,36 @@ export interface TokenInput {
   inputRaw: string
 }
 
-export function useTokensInput() {
+function emptyInput(): TokensPair<TokenInput> {
+  return buildPair(() => ({
+    addr: null,
+    inputRaw: '',
+  }))
+}
+
+export function useTokensInput(options?: {
+  /**
+   * If specified, input data will be synced with local storage
+   */
+  localStorageKey?: string
+}) {
   const tokensStore = useTokensStore()
 
-  const input = reactive<TokensPair<TokenInput>>(
-    buildPair(() => ({
-      addr: null,
-      inputRaw: '',
-    })),
-  )
+  const input = options?.localStorageKey
+    ? toReactive(
+        useLocalStorage<TokensPair<TokenInput>>(options.localStorageKey, emptyInput(), {
+          serializer: {
+            read: (raw) => JSON.parse(raw),
+            write: (parsed) => JSON.stringify(parsed),
+          },
+        }),
+      )
+    : reactive<TokensPair<TokenInput>>(
+        buildPair(() => ({
+          addr: null,
+          inputRaw: '',
+        })),
+      )
   const resetInput = (newData: TokensPair<TokenInput>) => {
     Object.assign(input, newData)
   }

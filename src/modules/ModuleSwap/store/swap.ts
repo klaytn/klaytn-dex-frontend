@@ -11,7 +11,6 @@ import { usePairAddress } from '../../ModuleTradeShared/composable.pair-by-token
 import { useSwapValidation } from '../composable.validation'
 import { buildSwapProps } from '../util.swap-props'
 import { useTokensInput } from '../../ModuleTradeShared/composable.tokens-input'
-import { useLocalStorageSync } from '../../ModuleTradeShared/composable.tokens-local-storage'
 
 const debugModule = Debug('swap-store')
 
@@ -19,10 +18,8 @@ export const useSwapStore = defineStore('swap', () => {
   const kaikasStore = useKaikasStore()
   const tokensStore = useTokensStore()
 
-  const selection = useTokensInput()
+  const selection = useTokensInput({ localStorageKey: 'swap-selection' })
   const addrsReadonly = readonly(selection.addrsWritable)
-
-  useLocalStorageSync(selection.addrsWritable, 'swap-store-tokens-input')
 
   const { result: pairAddrResult } = toRefs(usePairAddress(addrsReadonly))
 

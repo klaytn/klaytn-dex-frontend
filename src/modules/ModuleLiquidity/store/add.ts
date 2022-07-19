@@ -7,16 +7,14 @@ import { useDanglingScope, useStaleIfErrorState, useTask, wheneverTaskSucceeds }
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import Debug from 'debug'
-import { useLocalStorageSync } from '@/modules/ModuleTradeShared/composable.tokens-local-storage'
 
 const debug = Debug('liquidity-add-store')
 
 export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const kaikasStore = useKaikasStore()
 
-  const selection = useTokensInput()
+  const selection = useTokensInput({ localStorageKey: 'liquidity-store-input' })
   const addrsReadonly = readonly(selection.addrsWritable)
-  useLocalStorageSync(selection.addrsWritable, 'liquidity-store-input-tokens')
 
   const pair = usePairAddress(addrsReadonly)
   const isEmptyPair = computed(() => pair.result === 'empty')

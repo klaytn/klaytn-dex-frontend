@@ -1,5 +1,6 @@
 import { asWei, ValueWei } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
+import BN from 'bn.js'
 import rfdc from 'rfdc'
 import { roundTo } from 'round-to'
 import { buildPair, TokensPair } from './pair'
@@ -37,19 +38,26 @@ export function stringHashForHsl(str: string): number {
 /**
  * Snake-case seems more suitable here
  */
-interface Rates {
+export interface Rates {
   a_per_b: ValueWei<BigNumber>
   b_per_a: ValueWei<BigNumber>
 }
 
-export function computeRates(pair: TokensPair<ValueWei<number | string | BigNumber>>): Rates {
-  const nums = buildPair((type) => new BigNumber(pair[type]))
+export type RatesRounded = {
+  [K in keyof Rates]: number
+}
+
+export function computeRates(pair: TokensPair<ValueWei<number | string | BigNumber | BN>>): Rates {
+  const nums = buildPair((type) => {
+    const value = pair[type]
+    return new BigNumber(value instanceof BN ? value.toString() : value)
+  })
   const a_per_b = asWei(nums.tokenA.dividedBy(nums.tokenB))
   const b_per_a = asWei(new BigNumber(1).dividedBy(a_per_b))
   return { a_per_b, b_per_a }
 }
 
-export function roundRates({ a_per_b, b_per_a }: Rates) {
+export function roundRates({ a_per_b, b_per_a }: Rates): RatesRounded {
   return {
     a_per_b: roundTo(a_per_b.toNumber(), 7),
     b_per_a: roundTo(b_per_a.toNumber(), 7),

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { formatAddress, Token, Address, ValueWei, tokenRawToWei, tokenWeiToRaw, asWei } from '@/core/kaikas'
+import { Token, Address, ValueWei, tokenWeiToRaw, asWei } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
@@ -75,52 +75,27 @@ function setToMax() {
 </script>
 
 <template>
-  <div
-    class="root space-y-3"
+  <InputTokenTemplate
+    v-model="model"
     :class="{ 'pointer-events-none': isLoading }"
+    :input-disabled="isDisabled"
+    :input-loading="isLoading"
+    bottom
+    :max-button="showMaxButton"
+    @click:max="setToMax()"
   >
-    <div class="flex items-center space-x-2">
-      <div class="flex-1">
-        <input
-          v-if="token"
-          v-bind="$attrs"
-          v-model="model"
-          :disabled="isDisabled || isLoading"
-          placeholder="0"
-          class="disabled:opacity-40"
-        >
-      </div>
+    <template #top-right>
+      <TokenSelect v-model:token="tokenModel" />
+    </template>
 
-      <KlayLoader
-        v-if="isLoading"
-        color="gray"
-        size="24"
-      />
-
-      <KlayButton
-        v-if="showMaxButton"
-        size="xs"
-        type="primary"
-        @click="setToMax()"
-      >
-        MAX
-      </KlayButton>
-
-      <div class="select-wrap">
-        <TokenSelect v-model:token="tokenModel" />
-      </div>
-    </div>
-
-    <div class="flex items-center">
-      <div
+    <template #bottom-left>
+      <span
         v-if="estimated"
         class="estimated"
-      >
-        estimated *
-      </div>
+      > estimated * </span>
+    </template>
 
-      <div class="flex-1" />
-
+    <template #bottom-right>
       <div
         :title="balance?.toFixed()"
         class="balance flex items-center space-x-2"
@@ -136,67 +111,12 @@ function setToMax() {
         />
         <IconKlayImportant />
       </div>
-
-      <!-- <div
-          v-if="tokenData"
-          class="token-info"
-        >
-          <p>{{ tokenData.name }} {{ `(${tokenData.symbol})` }}</p>
-          <span class="price"> - </span>
-          <span class="percent">0.26%</span>
-
-          <div
-            class="address"
-            @click="clipboard.copy(token!)"
-          >
-            <span class="address-name">{{ addrFormatted }}</span>
-            <IconKlayCopy />
-          </div>
-        </div>
-      </div> -->
-    </div>
-  </div>
+    </template>
+  </InputTokenTemplate>
 </template>
 
 <style scoped lang="scss">
 @import '@/styles/vars';
-
-.root {
-  background: $gray6;
-  padding: 16px 16px;
-  border-radius: 8px;
-
-  &--loading {
-    opacity: 0.4;
-  }
-}
-
-input {
-  font-style: normal;
-  font-weight: 600;
-  font-size: 30px;
-  line-height: 130%;
-  color: $dark2;
-  background: transparent;
-  border: none;
-  min-width: 0;
-  width: 100%;
-
-  &:focus {
-    outline: none;
-  }
-}
-
-button.max {
-  font-weight: 700;
-  font-size: 10px;
-  line-height: 16px;
-  background: $blue;
-  border-radius: 8px;
-  color: $white;
-  padding: 4px 8px;
-  cursor: pointer;
-}
 
 .balance {
   max-width: 200px;

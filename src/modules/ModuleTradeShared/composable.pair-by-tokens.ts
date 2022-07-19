@@ -1,7 +1,6 @@
 import { Address, isEmptyAddress, ValueWei } from '@/core/kaikas'
 import { TokensPair } from '@/utils/pair'
 import { useScope, useTask } from '@vue-kakuyaku/core'
-import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 
 export type PairAddressResult = 'unknown' | 'empty' | 'not-empty'
@@ -14,6 +13,7 @@ export function usePairAddress(pair: TokensPair<Address | null | undefined>): {
     totalSupply: ValueWei<string>
     userBalance: ValueWei<string>
   }
+  touch: () => void
 } {
   const kaikasStore = useKaikasStore()
 
@@ -55,7 +55,11 @@ export function usePairAddress(pair: TokensPair<Address | null | undefined>): {
 
   const loaded = computed(() => (taskState.value?.kind === 'ok' ? taskState.value.data : null))
 
-  return reactive({ pair: loaded, pending, result })
+  function touch() {
+    scope.value?.setup.run()
+  }
+
+  return reactive({ pair: loaded, pending, result, touch })
 }
 
 export function usePairReserves(tokens: TokensPair<Address | null> | Ref<null | TokensPair<null | Address>>) {
