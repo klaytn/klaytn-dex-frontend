@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
-import { Address, asWei, Balance, Kaikas, Token } from '@/core/kaikas'
+import { Address, asWei, Balance, Kaikas, Token, ValueWei } from '@/core/kaikas'
 import { useErrorRetry, useScope, useStaleIfErrorState, useTask } from '@vue-kakuyaku/core'
 import { WHITELIST_TOKENS } from '@/core/kaikas/const'
 import invariant from 'tiny-invariant'
@@ -108,7 +108,12 @@ function useUserBalance(tokens: Ref<null | Address[]>) {
 
       useTaskLog(task, 'user-balance')
       useErrorRetry(task)
-      watch(tokens, () => task.run(), { immediate: true })
+      watch(tokens, () => task.run())
+      whenever(
+        () => kaikasStore.isConnected,
+        () => task.run(),
+        { immediate: true },
+      )
 
       /**
        * Refetch balance
@@ -124,7 +129,8 @@ function useUserBalance(tokens: Ref<null | Address[]>) {
   const isPending = computed<boolean>(() => fetchScope.value?.setup.pending ?? false)
   const result = computed<null | Map<Address, Balance<BigNumber>>>(() => {
     const data = fetchScope.value?.setup.result?.some
-    if (data) return new Map([...data].map(([addr, balance]) => [addr, asWei(new BigNumber(balance))]))
+    if (data)
+      return new Map([...data].map(([addr, balance]) => [addr.toLowerCase() as Address, asWei(new BigNumber(balance))]))
     return null
   })
   const isLoaded = computed<boolean>(() => !!result.value)
@@ -133,10 +139,14 @@ function useUserBalance(tokens: Ref<null | Address[]>) {
     fetchScope.value?.setup.touch()
   }
 
-  return { isPending, isLoaded, result, touch }
+  function lookup(addr: Address): ValueWei<BigNumber> | null {
+    return result.value?.get(addr.toLowerCase() as Address) ?? null
+  }
+
+  return { isPending, isLoaded, lookup, touch }
 }
 
-function useTokensIndex(tokens: Ref<null | Token[]>) {
+function useTokensIndex(tokens: Ref<null | readonly Token[]>) {
   /**
    * All addresses are written in lower-case
    */
@@ -167,25 +177,24 @@ export const useTokensStore = defineStore('tokens', () => {
   } = useImportedTokens()
 
   const tokensLoaded = computed(() => {
-    return importedFetched.value ? [...importedFetched.value, ...WHITELIST_TOKENS] : null
+    return importedFetched.value ? [...importedFetched.value, ...WHITELIST_TOKENS] : WHITELIST_TOKENS
   })
   const tokensLoadedAddrs = computed(() => tokensLoaded.value?.map((x) => x.address) ?? null)
 
   const { findTokenData } = useTokensIndex(tokensLoaded)
 
   const {
-    result: userBalanceMap,
+    lookup: lookupUserBalance,
     isPending: isBalancePending,
     touch: touchUserBalance,
   } = useUserBalance(tokensLoadedAddrs)
 
   const tokensWithBalance = computed(() => {
-    const balanceMap = userBalanceMap.value
     return (
       tokensLoaded.value?.map<TokenWithOptionBalance>((x) => {
         return {
           ...x,
-          balance: balanceMap?.get(x.address) ?? null,
+          balance: lookupUserBalance(x.address),
         }
       }) ?? null
     )
@@ -197,10 +206,10 @@ export const useTokensStore = defineStore('tokens', () => {
     isImportedLoaded,
     tokensLoaded,
     tokensWithBalance,
-    userBalanceMap,
 
     importToken,
     findTokenData,
+    lookupUserBalance,
     touchUserBalance,
   }
 })

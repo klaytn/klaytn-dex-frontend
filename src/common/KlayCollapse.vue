@@ -1,4 +1,6 @@
-<script setup lang="ts" name="KlayCollapse">
+<script setup lang="ts">
+import { SCollapseTransition } from '@soramitsu-ui/ui'
+
 const isOpen = ref(false)
 </script>
 
@@ -16,10 +18,12 @@ const isOpen = ref(false)
         <IconKlayCollapseArrow />
       </div>
     </div>
-    <slot
-      v-if="isOpen"
-      name="main"
-    />
+
+    <SCollapseTransition>
+      <div v-if="isOpen">
+        <slot name="main" />
+      </div>
+    </SCollapseTransition>
   </div>
 </template>
 

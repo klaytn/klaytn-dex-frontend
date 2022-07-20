@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { toRefs } from '@vueuse/core'
+import { useLiquidityPairsQuery } from './query.liquidity-pairs'
 
-const liquidityPairsStore = useLiquidityPairsStore()
-liquidityPairsStore.setupQueryInTheComponent()
+const { loading: isLoading, result } = useLiquidityPairsQuery()
 
-const { isLoading, isUserEmpty } = toRefs(toRef(liquidityPairsStore, 'queryAnyway'))
+const isLoaded = computed(() => !!result.value)
+const isUserEmpty = computed(() => result.value && !result.value.user)
 </script>
 
 <template>
@@ -27,7 +27,10 @@ const { isLoading, isUserEmpty } = toRefs(toRef(liquidityPairsStore, 'queryAnywa
       Empty
     </div>
 
-    <ModuleLiquidityViewPairsList v-if="!isUserEmpty" />
+    <ModuleLiquidityViewPairsList
+      v-if="isLoaded && !isUserEmpty"
+      :positions="result!.user?.liquidityPositions"
+    />
   </div>
 </template>
 

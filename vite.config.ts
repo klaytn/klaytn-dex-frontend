@@ -64,7 +64,7 @@ export default defineConfig({
       onRoutesGenerated(routes: RouteRecordRaw[]) {
         // default route
         routes.push({
-          path: '/',
+          path: '/:catchAll(.*)*',
           redirect: '/swap',
         })
       },
