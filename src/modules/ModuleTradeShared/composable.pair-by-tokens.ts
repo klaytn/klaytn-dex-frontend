@@ -68,33 +68,24 @@ export function useSimplifiedResult(result: Ref<null | PairAddressResult>): Ref<
 export function usePairReserves(tokens: TokensPair<Address | null> | Ref<null | TokensPair<null | Address>>) {
   const kaikasStore = useKaikasStore()
 
-  const normalized = computed(() => {
-    const { tokenA, tokenB } = unref(tokens) ?? {}
-    if (!tokenA || !tokenB) return null
-    return { tokenA, tokenB }
-  })
-
-  const scope = useScope(
-    computed(() => !!normalized.value && kaikasStore.isConnected),
-    () => {
-      const { tokenA, tokenB } = normalized.value!
-
-      const task = useTask(async () => {
-        return kaikasStore.getKaikasAnyway().tokens.getPairReserves({ tokenA, tokenB })
-      })
-
-      useTaskLog(task, 'pair-reserves')
-      task.run()
-
-      return task
+  const scope = useScopeWithAdvancedKey(
+    computed(() => {
+      const { tokenA, tokenB } = unref(tokens) ?? {}
+      if (!tokenA || !tokenB) return null
+      return {
+        key: `${tokenA}-${tokenB}`,
+        payload: { tokenA, tokenB },
+      }
+    }),
+    (tokens) => {
+      const { state } = useTask(() => kaikasStore.getKaikasAnyway().tokens.getPairReserves(tokens), { immediate: true })
+      usePromiseLog(state, 'pair-reserves')
+      return flattenState(state)
     },
   )
 
-  const reserves = computed(() => {
-    const state = scope.value?.setup.state
-    if (!state) return null
-    return state.kind === 'ok' ? state.data : null
-  })
+  const pending = computed(() => scope.value?.expose.pending ?? false)
+  const result = computed(() => scope.value?.expose.fulfilled ?? null)
 
-  return reserves
+  return { pending, result }
 }

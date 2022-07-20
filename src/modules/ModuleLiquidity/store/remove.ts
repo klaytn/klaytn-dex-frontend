@@ -22,6 +22,89 @@ function useRates(amounts: MaybeRef<null | TokensPair<ValueWei<BN>>>) {
   })
 }
 
+function usePrepareSupply(props: {
+  tokens: Ref<null | TokensPair<Address>>
+  pairAddress: Ref<null | Address>
+  liquidity: Ref<ValueWei<string> | null>
+}) {
+  const kaikasStore = useKaikasStore()
+
+  const [active, setActive] = useToggle(false)
+
+  const isReadyToPrepareSupply = computed(
+    () => !!(props.tokens.value && props.pairAddress.value && props.liquidity.value),
+  )
+
+  const scope = useScopeWithAdvancedKey(
+    computed(() => {
+      if (!active.value) return null
+
+      const tokens = props.tokens.value
+      const pair = props.pairAddress.value
+      const liquidity = props.liquidity.value
+      if (!(tokens && pair && liquidity)) return null
+
+      return {
+        key: `${pair}-${liquidity}`,
+        payload: { tokens, pair, liquidity },
+      }
+    }),
+    ({ tokens, pair, liquidity: lpTokenValue }) => {
+      const { state: prepareState } = useTask(
+        () =>
+          kaikasStore.getKaikasAnyway().liquidity.prepareRmLiquidity({
+            tokens,
+            pair,
+            lpTokenValue,
+          }),
+        { immediate: true },
+      )
+
+      usePromiseLog(prepareState, 'liquidity-remove-prepare-supply')
+      useNotifyOnError(prepareState, 'Supply preparation failed')
+
+      const { state: supplyState, run: supply } = useTask(async () => {
+        const { send } = prepareState.fulfilled?.value ?? {}
+        invariant(send)
+        return send()
+      })
+
+      usePromiseLog(supplyState, 'liquidity-remove-supply')
+      useNotifyOnError(supplyState, 'Supply failed')
+
+      const isPrepareSupplyPending = toRef(prepareState, 'pending')
+      const supplyGas = computed(() => prepareState.fulfilled?.value?.gas)
+      const isSupplyReady = computed(() => !!prepareState.fulfilled)
+      const isSupplyPending = toRef(supplyState, 'pending')
+      const isSupplyOk = computed(() => !!supplyState.fulfilled)
+      const isSupplyErr = computed(() => !!supplyState.rejected)
+
+      return readonly({
+        supplyGas,
+        isPrepareSupplyPending,
+        isSupplyReady,
+        isSupplyPending,
+        isSupplyOk,
+        isSupplyErr,
+
+        supply,
+      })
+    },
+  )
+
+  return {
+    setActive,
+    supply: () => scope.value?.expose.supply(),
+    isReadyToPrepareSupply,
+    isPrepareSupplyPending: computed(() => scope.value?.expose.isPrepareSupplyPending ?? false),
+    supplyGas: computed(() => scope.value?.expose.supplyGas ?? null),
+    isSupplyReady: computed(() => scope.value?.expose.isSupplyReady ?? false),
+    isSupplyPending: computed(() => scope.value?.expose.isSupplyPending ?? false),
+    isSupplyOk: computed(() => scope.value?.expose.isSupplyOk ?? false),
+    isSupplyErr: computed(() => scope.value?.expose.isSupplyErr ?? false),
+  }
+}
+
 function useRemoveAmounts(
   tokens: Ref<null | TokensPair<Address>>,
   pair: Ref<null | Address>,
@@ -32,8 +115,9 @@ function useRemoveAmounts(
 } {
   const kaikasStore = useKaikasStore()
 
-  const taskScope = useComputedScope(
+  const taskScope = useScopeWithAdvancedKey(
     computed(() => {
+      if (!kaikasStore.isConnected) return null
       if (!tokens.value) return null
       const pairAddr = pair.value
       const lpTokenValue = liquidity.value
@@ -41,21 +125,17 @@ function useRemoveAmounts(
 
       const key = `${pairAddr}-${lpTokenValue}`
 
-      return key
+      return {
+        key,
+        payload: { pair: pairAddr, lpTokenValue, tokens: tokens.value, kaikas: kaikasStore.getKaikasAnyway() },
+      }
     }),
-    () => {
+    ({ pair, lpTokenValue, tokens, kaikas }) => {
       const { state } = useTask(
         async () => {
-          const kaikas = kaikasStore.getKaikasAnyway()
-          invariant(tokens.value)
-          const { tokenA, tokenB } = tokens.value
-          const pairAddr = pair.value
-          const lpTokenValue = liquidity.value
-          invariant(pairAddr && lpTokenValue)
-
           const { amounts } = await kaikas.liquidity.computeRmLiquidityAmounts({
-            tokens: { tokenA, tokenB },
-            pair: pairAddr,
+            tokens,
+            pair,
             lpTokenValue,
           })
           return amounts
@@ -70,8 +150,8 @@ function useRemoveAmounts(
   )
 
   return {
-    pending: computed(() => taskScope.value?.setup.pending ?? false),
-    amounts: computed(() => taskScope.value?.setup.fulfilled ?? null),
+    pending: computed(() => taskScope.value?.expose.pending ?? false),
+    amounts: computed(() => taskScope.value?.expose.fulfilled ?? null),
   }
 }
 
@@ -107,7 +187,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   const existingPair = computed(() => (pair.value?.kind === 'exist' ? pair.value : null))
   const pairTotalSupply = computed(() => existingPair.value?.totalSupply)
   const pairUserBalance = computed(() => existingPair.value?.userBalance)
-  const pairReserves = usePairReserves(selected)
+  const { result: pairReserves, pending: isReservesPending } = usePairReserves(selected)
 
   const poolShare = computed(() => {
     const total = unref(pairTotalSupply)
@@ -173,74 +253,28 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     liquidityRaw.value = ''
   }
 
-  const isReadyToPrepareSupply = computed(() => {
-    return !!(selected.value && liquidity.value && pair.pair?.addr)
+  const {
+    supplyGas,
+    isReadyToPrepareSupply,
+    isPrepareSupplyPending,
+    isSupplyErr,
+    isSupplyOk,
+    isSupplyPending,
+    isSupplyReady,
+    supply,
+    setActive: setSupplyActive,
+  } = usePrepareSupply({
+    tokens: selected,
+    pairAddress: computed(() => existingPair.value?.addr ?? null),
+    liquidity,
   })
 
-  const prepareSupplyScope = useDeferredScope<{
-    pending: boolean
-    ready: null | {
-      gas: number
-      send: () => Promise<void>
-    }
-  }>()
-
-  const kaikasStore = useKaikasStore()
   function prepareSupply() {
-    prepareSupplyScope.setup(() => {
-      const task = useTask(() => {
-        invariant(isReadyToPrepareSupply.value)
-        const pairAddr = pair.pair?.addr
-        const lpTokenValue = liquidity.value!
-
-        return kaikasStore.getKaikasAnyway().liquidity.prepareRmLiquidity({
-          tokens: selected.value!,
-          pair: pairAddr!,
-          lpTokenValue,
-        })
-      })
-      task.run()
-      useNotifyOnError(task, 'Supply preparation failed')
-
-      const pending = computed(() => task.state.kind === 'pending')
-      const ready = computed(() => (task.state.kind === 'ok' ? task.state.data : null))
-
-      return reactive({ pending, ready })
-    })
-  }
-
-  const isPrepareSupplyPending = computed(() => prepareSupplyScope.scope.value?.setup.pending ?? false)
-  const isSupplyReady = computed(() => !!prepareSupplyScope.scope.value?.setup.ready)
-  const supplyGas = computed(() => prepareSupplyScope.scope.value?.setup.ready?.gas ?? null)
-
-  const supplyScope = useScope(isSupplyReady, () => {
-    const { send } = prepareSupplyScope.scope.value!.setup.ready!
-
-    const task = useTask(send)
-
-    const pending = computed(() => task.state.kind === 'pending')
-    const ok = computed(() => task.state.kind === 'ok')
-    const err = computed(() => task.state.kind === 'err')
-
-    wheneverTaskSucceeds(task, () => {
-      pair.touch()
-    })
-
-    const { run } = task
-
-    return reactive({ pending, ok, err, run })
-  })
-
-  const isSupplyPending = computed(() => supplyScope.value?.setup.pending ?? false)
-  const isSupplyOk = computed(() => supplyScope.value?.setup.ok ?? false)
-  const isSupplyErr = computed(() => supplyScope.value?.setup.err ?? false)
-
-  function supply() {
-    supplyScope.value?.setup.run()
+    setSupplyActive(true)
   }
 
   function closeSupply() {
-    prepareSupplyScope.dispose()
+    setSupplyActive(false)
   }
 
   return {
@@ -251,6 +285,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     pairUserBalance,
     pairTotalSupply,
     pairReserves,
+    isReservesPending,
     isPairPending,
     poolShare,
     formattedPoolShare,

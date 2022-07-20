@@ -14,29 +14,29 @@ import {
 
 export { useDeferredScope, useScope as useComputedScope }
 
-type PromiseStateAtomic<T> = PromiseStateAtomicEmpty | PromiseStateAtomicPending | PromiseResultAtomic<T>
+type PromiseStateAtomic<T> = PromiseStateInvariantEmpty | PromiseStateInvariantPending | PromiseResultAtomic<T>
 
-type PromiseResultAtomic<T> = PromiseStateAtomicFulfilled<T> | PromiseStateAtomicRejected
+type PromiseResultAtomic<T> = PromiseStateInvariantFulfilled<T> | PromiseStateInvariantRejected
 
-interface PromiseStateAtomicPending {
+interface PromiseStateInvariantPending {
   pending: true
   fulfilled: null
   rejected: null
 }
 
-interface PromiseStateAtomicFulfilled<T> {
+interface PromiseStateInvariantFulfilled<T> {
   pending: false
   fulfilled: { value: T }
   rejected: null
 }
 
-interface PromiseStateAtomicRejected {
+interface PromiseStateInvariantRejected {
   pending: false
   fulfilled: null
   rejected: { reason: unknown }
 }
 
-interface PromiseStateAtomicEmpty {
+interface PromiseStateInvariantEmpty {
   pending: false
   fulfilled: null
   rejected: null
@@ -230,31 +230,52 @@ export function useTask<T>(
   return { state, run, clear }
 }
 
-interface PromiseStateAtomicFulfilledFlat<T> {
+type FlatMode = 'all' | 'fulfilled' | 'rejected'
+
+interface PromiseStateInvariantFulfilledFlat<T, M extends FlatMode> {
   pending: false
-  fulfilled: T
+  fulfilled: M extends 'all' | 'fulfilled' ? T : { value: T }
   rejected: null
 }
 
-interface PromiseStateAtomicRejectedFlat {
+interface PromiseStateInvariantRejectedFlat<M extends FlatMode> {
   pending: false
   fulfilled: null
-  rejected: unknown
+  rejected: M extends 'all' | 'rejected' ? unknown : { reason: unknown }
 }
 
-type PromiseStateAtomicFlat<T> =
-  | PromiseStateAtomicEmpty
-  | PromiseStateAtomicPending
-  | PromiseStateAtomicFulfilledFlat<T>
-  | PromiseStateAtomicRejectedFlat
+type PromiseStateAtomicFlat<T, M extends FlatMode> =
+  | PromiseStateInvariantEmpty
+  | PromiseStateInvariantPending
+  | PromiseStateInvariantFulfilledFlat<T, M>
+  | PromiseStateInvariantRejectedFlat<M>
 
-export function flattenState<T>(state: PromiseStateAtomic<T>): PromiseStateAtomicFlat<T> {
-  // TODO make just proxy?
+export function flattenState<T>(state: PromiseStateAtomic<T>): PromiseStateAtomicFlat<T, 'fulfilled'>
+
+export function flattenState<T, M extends FlatMode = 'fulfilled'>(
+  state: PromiseStateAtomic<T>,
+  mode: M,
+): PromiseStateAtomicFlat<T, M>
+
+export function flattenState<T, M extends FlatMode>(
+  state: PromiseStateAtomic<T>,
+  mode?: M,
+): PromiseStateAtomicFlat<T, M> {
+  // TODO implement with Proxy?
+
+  const definitelyMode = (mode ?? 'fulfilled') as M
+
   return reactive({
     pending: computed(() => state.pending),
-    fulfilled: computed(() => state.fulfilled?.value ?? null),
-    rejected: computed(() => state.rejected?.reason ?? null),
-  }) as PromiseStateAtomicFlat<T>
+    fulfilled:
+      definitelyMode === 'all' || definitelyMode === 'fulfilled'
+        ? computed(() => state.fulfilled?.value ?? null)
+        : toRef(state, 'fulfilled'),
+    rejected:
+      definitelyMode === 'all' || definitelyMode === 'rejected'
+        ? computed(() => state.rejected?.reason ?? null)
+        : toRef(state, 'rejected'),
+  }) as PromiseStateAtomicFlat<T, M>
 }
 
 export function useErrorRetry<T>(state: PromiseStateAtomic<T>, retry: () => void, options?: ErrorRetryOptions): void {
