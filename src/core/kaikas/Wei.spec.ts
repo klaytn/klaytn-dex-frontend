@@ -76,3 +76,18 @@ test('Wei in a reactive Vue tree is not reactive itself', () => {
 
   expect(isReactive(wei.value)).toBe(false)
 })
+
+// type tests
+
+declare function getWei(wei: Wei): void
+
+interface WeiLike {
+  readonly asStr: string
+  readonly asBigNum: BigNumber
+  readonly asBN: BN
+}
+
+declare const weiLike: WeiLike
+
+// @ts-expect-error
+getWei(weiLike)

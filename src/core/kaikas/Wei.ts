@@ -69,8 +69,12 @@ class EmptyWeiError extends Error {
   public readonly message = 'Wei value should not be constructed without initial value'
 }
 
+const WeiTag = Symbol('Wei')
+
 export default class Wei {
   #reprs = emptyReprMap()
+
+  private readonly [WeiTag]!: 'Wei'
 
   public constructor(value: WeiInputValue | Wei) {
     markRaw(this)
