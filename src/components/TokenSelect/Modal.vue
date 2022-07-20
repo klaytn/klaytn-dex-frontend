@@ -43,7 +43,7 @@ debouncedWatch(
 )
 
 const searchAsAddressSmartcontractCheckScope = useScope($$(searchAsAddress), (addr) => {
-  const task = useTask(() => kaikasStore.getKaikasAnyway().isSmartContract(addr))
+  const task = useTask(() => kaikasStore.getKaikasAnyway().cfg.isSmartContract(addr))
   useTaskLog(task, 'smartcontract-check-' + addr)
   task.run()
   return task
@@ -63,7 +63,7 @@ const importLookupScope = useScope(
     return false
   }),
   (addr) => {
-    const task = useTask<Token | null>(() => kaikasStore.getKaikasAnyway().getToken(addr))
+    const task = useTask<Token | null>(() => kaikasStore.getKaikasAnyway().tokens.getToken(addr))
     useTaskLog(task, 'import-lookup')
     task.run()
     return task

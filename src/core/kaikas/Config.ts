@@ -1,12 +1,11 @@
 import type { DexFactory, DexPair, DexRouter } from '@/types/typechain/swap'
 import type { WETH9 } from '@/types/typechain/tokens/WKLAY.sol'
 import Caver, { type AbiItem } from 'caver-js'
-import { type Klaytn, type Address, ValueWei, WeiNumStrBn } from './types'
+import type { Klaytn, Address } from './types'
 import { MAGIC_ROUTER_ADDR, MAGIC_FACTORY_ADDR, MAGIC_WETH_ADDR, MAGIC_GAS_PRICE } from './const'
 import { ROUTER, FACTORY, WETH, KIP7 as KIP7_ABI } from './smartcontracts/abi'
 import { KIP7 } from '@/types/typechain/tokens'
-import { asWei } from './utils'
-import BN from 'bn.js'
+import Wei from './Wei'
 
 export default class Config {
   public static async connectKaikas(params?: ConnectParams): Promise<ConnectResult> {
@@ -70,41 +69,38 @@ export default class Config {
   /**
    * Uses KIP7 by default
    */
-  public async getAllowance(addr: Address, contractAddr = this.addrs.router): Promise<ValueWei<string>> {
+  public async getAllowance(addr: Address, contractAddr = this.addrs.router): Promise<Wei> {
     const contract = this.createContract<KIP7>(addr, KIP7_ABI)
     return this.getAllowanceWithContract(contract, contractAddr)
   }
 
-  public async getAllowanceWithContract(
-    contract: KIP7 | DexPair,
-    contractAddr = this.addrs.router,
-  ): Promise<ValueWei<string>> {
+  public async getAllowanceWithContract(contract: KIP7 | DexPair, contractAddr = this.addrs.router): Promise<Wei> {
     const allowanceStr = await contract.methods.allowance(this.addrs.self, contractAddr).call({
       from: this.addrs.self,
     })
-    return asWei(allowanceStr)
+    return new Wei(allowanceStr)
   }
 
   /**
    * Uses KIP7 by default
    */
-  public async approveAmount(addr: Address, amount: WeiNumStrBn, contractAddr = this.addrs.router): Promise<void> {
+  public async approveAmount(addr: Address, amount: Wei, contractAddr = this.addrs.router): Promise<void> {
     const contract = this.createContract<KIP7>(addr, KIP7_ABI)
     await this.approveAmountWithContract(contract, amount, contractAddr)
   }
 
   public async approveAmountWithContract(
     contract: KIP7 | DexPair,
-    amount: WeiNumStrBn,
+    amount: Wei,
     contractAddr = this.addrs.router,
   ): Promise<void> {
-    const allowanceStr = await this.getAllowanceWithContract(contract, contractAddr)
+    const allowance = await this.getAllowanceWithContract(contract, contractAddr)
 
-    const nAmount = new BN(amount)
-    const nAllowance = new BN(allowanceStr)
+    const nAmount = amount.asBN
+    const nAllowance = allowance.asBN
     if (nAmount.lte(nAllowance)) return
 
-    const approveMethod = contract.methods.approve(this.addrs.router, amount)
+    const approveMethod = contract.methods.approve(this.addrs.router, nAmount)
 
     const gas = await approveMethod.estimateGas()
     await approveMethod.send({
@@ -114,9 +110,9 @@ export default class Config {
     })
   }
 
-  public async getGasPrice(): Promise<ValueWei<string>> {
+  public async getGasPrice(): Promise<Wei> {
     const gasPrice = await this.caver.klay.getGasPrice()
-    return asWei(gasPrice)
+    return new Wei(gasPrice)
   }
 
   public async isSmartContract(addr: Address): Promise<boolean> {

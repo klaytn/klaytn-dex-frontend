@@ -1,12 +1,12 @@
 import Config from './Config'
-import { type ValueWei, type Address, type Deadline, WeiNumStrBn } from './types'
-import BN from 'bn.js'
+import type { Address, Deadline } from './types'
 import { MAGIC_GAS_PRICE, NATIVE_TOKEN } from './const'
 import { buildPair, buildPairAsync, TokensPair } from '@/utils/pair'
-import { asWei, deadlineFiveMinutesFromNow, isNativeToken } from './utils'
+import { deadlineFiveMinutesFromNow, isNativeToken } from './utils'
 import { DexPair } from '@/types/typechain/swap'
 import { PAIR } from './smartcontracts/abi'
 import Tokens from './Tokens'
+import Wei from './Wei'
 
 export interface PrepareAddLiquidityProps {
   tokens: TokensPair<TokenAddressAndDesiredValue>
@@ -15,37 +15,37 @@ export interface PrepareAddLiquidityProps {
 
 export interface TokenAddressAndDesiredValue {
   addr: Address
-  desired: WeiNumStrBn
+  desired: Wei
 }
 
 export interface ComputeRemoveLiquidityAmountsProps {
   tokens: TokensPair<Address>
   pair: Address
-  lpTokenValue: WeiNumStrBn
+  lpTokenValue: Wei
 }
 
 export interface ComputeRemoveLiquidityAmountsResult {
-  amounts: TokensPair<ValueWei<BN>>
+  amounts: TokensPair<Wei>
 }
 
 export interface PrepareRemoveLiquidityProps {
   tokens: TokensPair<Address>
   pair: Address
-  lpTokenValue: WeiNumStrBn
+  lpTokenValue: Wei
 }
 
 export interface PrepareTransactionResult {
   /**
    * i.e. transaction fee
    */
-  gas: ValueWei<number>
+  gas: Wei
   send: () => Promise<void>
 }
 
-function minByDesired(desired: WeiNumStrBn): ValueWei<string> {
-  const nDesired = new BN(desired)
+function minByDesired(desired: Wei): Wei {
+  const nDesired = desired.asBN
 
-  return asWei(nDesired.sub(nDesired.divn(100)).toString())
+  return new Wei(nDesired.sub(nDesired.divn(100)))
 }
 
 function detectEth<T extends { addr: Address }>(
@@ -96,26 +96,26 @@ export default class Liquidity {
 
       const method = this.router.methods.addLiquidityETH(
         token.addr,
-        token.desired,
-        minByDesired(token.desired),
-        minByDesired(desiredEth),
+        token.desired.asStr,
+        minByDesired(token.desired).asStr,
+        minByDesired(desiredEth).asStr,
         this.addr,
         props.deadline,
       )
 
-      const lpTokenGas = asWei(
+      const lpTokenGas = new Wei(
         await method.estimateGas({
           from: this.cfg.addrs.self,
           gasPrice: MAGIC_GAS_PRICE,
-          value: desiredEth,
+          value: desiredEth.asStr,
         }),
       )
       const send = async () => {
         await method.send({
           from: this.addr,
-          gas: lpTokenGas,
+          gas: lpTokenGas.asStr,
           gasPrice: MAGIC_GAS_PRICE,
-          value: desiredEth,
+          value: desiredEth.asStr,
         })
       }
 
@@ -126,19 +126,19 @@ export default class Liquidity {
       const method = this.router.methods.addLiquidity(
         tokenA.addr,
         tokenB.addr,
-        tokenA.desired,
-        tokenB.desired,
-        minByDesired(tokenA.desired),
-        minByDesired(tokenB.desired),
+        tokenA.desired.asStr,
+        tokenB.desired.asStr,
+        minByDesired(tokenA.desired).asStr,
+        minByDesired(tokenB.desired).asStr,
         this.addr,
         props.deadline,
       )
 
-      const lpTokenGas = asWei(await method.estimateGas())
+      const lpTokenGas = new Wei(await method.estimateGas())
       const send = async () => {
         await method.send({
           from: this.addr,
-          gas: lpTokenGas,
+          gas: lpTokenGas.asStr,
           gasPrice: MAGIC_GAS_PRICE,
         })
       }
@@ -151,10 +151,9 @@ export default class Liquidity {
    * - Approves that pair has enought amount for `lpTokenValue`
    */
   public async prepareRmLiquidity(props: PrepareRemoveLiquidityProps): Promise<PrepareTransactionResult> {
-    const nLpToken = asWei(new BN(props.lpTokenValue))
-    await this.cfg.approveAmount(props.pair, nLpToken)
+    await this.cfg.approveAmount(props.pair, props.lpTokenValue)
 
-    const { amounts } = await this.computeRmLiquidityAmounts({ ...props, lpTokenValue: nLpToken })
+    const { amounts } = await this.computeRmLiquidityAmounts(props)
 
     const detectedEth = detectEth(
       buildPair((type) => ({
@@ -165,25 +164,25 @@ export default class Liquidity {
     const method = detectedEth
       ? this.router.methods.removeLiquidityETH(
           detectedEth.token.addr,
-          nLpToken,
-          detectedEth.token.computedAmount,
-          detectedEth.eth.computedAmount,
+          props.lpTokenValue.asStr,
+          detectedEth.token.computedAmount.asStr,
+          detectedEth.eth.computedAmount.asStr,
           this.addr,
           deadlineFiveMinutesFromNow(),
         )
       : this.router.methods.removeLiquidity(
           props.tokens.tokenA,
           props.tokens.tokenB,
-          nLpToken,
-          amounts.tokenA,
-          amounts.tokenB,
+          props.lpTokenValue.asStr,
+          amounts.tokenA.asStr,
+          amounts.tokenB.asStr,
           this.addr,
           deadlineFiveMinutesFromNow(),
         )
 
-    const gas = asWei(await method.estimateGas({ from: this.addr, gasPrice: MAGIC_GAS_PRICE }))
+    const gas = new Wei(await method.estimateGas({ from: this.addr, gasPrice: MAGIC_GAS_PRICE }))
     const send = async () => {
-      await method.send({ from: this.addr, gas, gasPrice: MAGIC_GAS_PRICE })
+      await method.send({ from: this.addr, gas: gas.asStr, gasPrice: MAGIC_GAS_PRICE })
     }
 
     return { gas, send }
@@ -194,13 +193,12 @@ export default class Liquidity {
   ): Promise<ComputeRemoveLiquidityAmountsResult> {
     const pairContract = this.cfg.createContract<DexPair>(props.pair, PAIR)
 
-    const nTotalSupply = asWei(new BN(await pairContract.methods.totalSupply().call()))
-    const nLpToken = asWei(new BN(props.lpTokenValue))
+    const totalSupply = new Wei(await pairContract.methods.totalSupply().call())
 
     const amounts = await buildPairAsync((type) =>
       this.tokenRmAmount({
-        lpToken: nLpToken,
-        totalSupply: nTotalSupply,
+        lpToken: props.lpTokenValue,
+        totalSupply,
         pair: props.pair,
         token: props.tokens[type],
       }),
@@ -212,16 +210,10 @@ export default class Liquidity {
   /**
    * amount = (lpTokenValue * tokenBalanceOfPair / totalSupply) - 1
    */
-  private async tokenRmAmount(props: {
-    token: Address
-    pair: Address
-    lpToken: ValueWei<BN>
-    totalSupply: ValueWei<BN>
-  }): Promise<ValueWei<BN>> {
+  private async tokenRmAmount(props: { token: Address; pair: Address; lpToken: Wei; totalSupply: Wei }): Promise<Wei> {
     const balance = await this.tokens.getTokenBalanceOfAddr(props.token, props.pair)
-    const nBalance = new BN(balance)
-    const amount = props.lpToken.mul(nBalance).div(props.totalSupply).subn(1)
-    return asWei(amount)
+    const amount = props.lpToken.asBN.mul(balance.asBN).div(props.totalSupply.asBN).subn(1)
+    return new Wei(amount)
   }
 }
 
@@ -230,11 +222,11 @@ if (import.meta.vitest) {
 
   describe('min by desired', () => {
     test('for 1_000_000', () => {
-      expect(minByDesired('1000000' as WeiNumStrBn)).toEqual('990000')
+      expect(minByDesired(new Wei('1000000')).asStr).toEqual('990000')
     })
 
     test('for 7', () => {
-      expect(minByDesired(7 as WeiNumStrBn)).toEqual('7')
+      expect(minByDesired(new Wei(7)).asStr).toEqual('7')
     })
   })
 
@@ -248,8 +240,8 @@ if (import.meta.vitest) {
     test('no native tokens', () => {
       expect(
         detectEth({
-          tokenA: { addr: tokens.test1, desired: asWei('123') },
-          tokenB: { addr: tokens.test2, desired: asWei('321') },
+          tokenA: { addr: tokens.test1, desired: new Wei('123') },
+          tokenB: { addr: tokens.test2, desired: new Wei('321') },
         }),
       ).toBe(null)
     })
@@ -257,8 +249,8 @@ if (import.meta.vitest) {
     test('native is the first', () => {
       expect(
         detectEth({
-          tokenA: { addr: NATIVE_TOKEN, amount: asWei('123') },
-          tokenB: { addr: tokens.test2, amount: asWei('321') },
+          tokenA: { addr: NATIVE_TOKEN, amount: new Wei('123') },
+          tokenB: { addr: tokens.test2, amount: new Wei('321') },
         }),
       ).toMatchInlineSnapshot(`
         {
@@ -277,8 +269,8 @@ if (import.meta.vitest) {
     test('native is the second', () => {
       expect(
         detectEth({
-          tokenA: { addr: tokens.test2, computedAmount: asWei('123') },
-          tokenB: { addr: NATIVE_TOKEN, amount: asWei('321') },
+          tokenA: { addr: tokens.test2, computedAmount: new Wei('123') },
+          tokenB: { addr: NATIVE_TOKEN, amount: new Wei('321') },
         }),
       ).toMatchInlineSnapshot(`
         {

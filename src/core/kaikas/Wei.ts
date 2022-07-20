@@ -109,4 +109,12 @@ export default class Wei {
     const num = this.asBigNum.dividedBy(new BigNumber(10).pow(decimals))
     return num.toFixed()
   }
+
+  public toString(): string {
+    return this.asStr
+  }
+
+  public toJSON(): string {
+    return this.asStr
+  }
 }

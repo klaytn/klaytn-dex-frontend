@@ -25,7 +25,7 @@ function listItemsFromMapOrNull<K, V>(keys: K[], map: Map<K, V>): null | V[] {
 async function loadTokens(kaikas: Kaikas, addrs: Address[]): Promise<Map<Address, Token>> {
   const pairs = await Promise.all(
     addrs.map(async (addr) => {
-      const token = await kaikas.getToken(addr)
+      const token = await kaikas.tokens.getToken(addr)
       return [addr, token] as [Address, Token]
     }),
   )
@@ -36,7 +36,7 @@ async function loadTokens(kaikas: Kaikas, addrs: Address[]): Promise<Map<Address
 async function loadBalances(kaikas: Kaikas, tokens: Address[]): Promise<Map<Address, Balance>> {
   const entries = await Promise.all(
     tokens.map(async (addr) => {
-      const balance = await kaikas.getTokenBalance(addr)
+      const balance = await kaikas.tokens.getTokenBalanceOfUser(addr)
       return [addr, balance] as [Address, Balance<string>]
     }),
   )

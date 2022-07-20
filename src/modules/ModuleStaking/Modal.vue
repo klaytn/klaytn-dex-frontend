@@ -39,7 +39,7 @@ watch(model, () => {
 const balanceScope = useScope(model, () => {
   const task = useTask(async () => {
     const token = pool.value.stakeToken
-    const balance = await kaikas.getTokenBalance(token.id)
+    const balance = await kaikas.tokens.getTokenBalanceOfUser(token.id)
     return new BigNumber(tokenWeiToRaw(token, balance))
   })
   useTaskLog(task, 'get-balance')
@@ -85,10 +85,8 @@ const disabled = computed(() => {
 })
 
 function setPercent(percent: number) {
-  if (operation.value === ModalOperation.Stake) 
-    value.value = `${balance.value?.multipliedBy(percent * 0.01)}`
-  else
-    value.value = `${pool.value.staked.multipliedBy(percent * 0.01)}`
+  if (operation.value === ModalOperation.Stake) value.value = `${balance.value?.multipliedBy(percent * 0.01)}`
+  else value.value = `${pool.value.staked.multipliedBy(percent * 0.01)}`
 }
 
 async function stake() {
