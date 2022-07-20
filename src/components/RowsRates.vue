@@ -1,3 +1,9 @@
+<script lang="ts">
+export default {
+  inheritAttrs: false,
+}
+</script>
+
 <script setup lang="ts">
 import { TokenSymbol } from '@/core/kaikas'
 import { TokensPair, TOKEN_TYPES, mirrorTokenType, TokenType } from '@/utils/pair'
@@ -17,23 +23,14 @@ function rateByTokenType(type: TokenType) {
   <div
     v-for="token in TOKEN_TYPES"
     :key="token"
-    class="row flex justify-between items-center"
+    class="flex justify-between items-center"
+    v-bind="$attrs"
   >
     <span>
       {{ symbols[token] }}
       per
       {{ symbols[mirrorTokenType(token)] }}
     </span>
-    <span> <ValueOrDash :value="rateByTokenType(token)" /></span>
+    <span> <ValueOrDash :value="rateByTokenType(token)" /> </span>
   </div>
 </template>
-
-<style lang="scss" scoped>
-@import '@/styles/vars';
-
-.row {
-  font-size: 12px;
-  font-weight: 500;
-  color: $gray2;
-}
-</style>

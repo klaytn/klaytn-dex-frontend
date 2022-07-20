@@ -35,6 +35,7 @@ declare module '@vue/runtime-core' {
     KlaySlider: typeof import('./common/KlaySlider/index.vue')['default']
     KlaySlippage: typeof import('./common/KlaySlippage.vue')['default']
     KlaySwitch: typeof import('./common/KlaySwitch.vue')['default']
+    KlaySymbolsPair: typeof import('./common/KlaySymbolsPair.vue')['default']
     KlayTextField: typeof import('./common/KlayTextField.vue')['default']
     ModuleFarming: typeof import('./modules/ModuleFarming/index.vue')['default']
     ModuleFarmingModal: typeof import('./modules/ModuleFarming/Modal.vue')['default']

@@ -15,6 +15,7 @@ defineProps<{
       v-for="item in positions"
       :key="item.pair.name"
       :data="item"
+      :always-opened="positions.length === 1"
     />
   </div>
 </template>

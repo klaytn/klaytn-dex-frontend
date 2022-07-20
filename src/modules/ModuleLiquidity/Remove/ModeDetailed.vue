@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { mirrorTokenType, TOKEN_TYPES } from '@/utils/pair'
+import { TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
+import cssRows from '../rows.module.scss'
 
 const store = useLiquidityRmStore()
 const {
@@ -45,10 +46,11 @@ const {
       </div>
     </template>
 
-    <div class="rates p-4 space-y-5 mt-4">
+    <div class="rates p-4 space-y-4 mt-4">
       <RowsRates
         :symbols="symbols"
         :rounded-rates="rates"
+        :class="[cssRows.rowSm, cssRows.rowSmDimmed]"
       />
     </div>
   </div>
