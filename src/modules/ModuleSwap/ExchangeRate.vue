@@ -28,7 +28,7 @@ const models = reactive(
 <template>
   <div class="space-y-4">
     <div class="space-y-1">
-      <TokenInput
+      <InputToken
         v-model="models.tokenA.input"
         v-model:token="models.tokenA.addr"
         set-by-balance
@@ -38,7 +38,7 @@ const models = reactive(
       <div class="w-full flex justify-center items-center h-0">
         <IconKlayArrowDown />
       </div>
-      <TokenInput
+      <InputToken
         v-model="models.tokenB.input"
         v-model:token="models.tokenB.addr"
         :is-loading="gettingAmountFor === 'tokenB'"

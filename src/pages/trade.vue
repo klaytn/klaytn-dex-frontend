@@ -85,14 +85,14 @@ function refresh() {
       </KlayButton>
     </div>
 
-    <RouterView v-if="isImportedLoaded" />
+    <RouterView />
 
-    <div
+    <!-- <div
       v-else-if="isImportedPending"
       class="p-8 flex items-center justify-center"
     >
       <KlayLoader />
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -133,8 +133,5 @@ h1 {
   align-items: center;
   justify-content: flex-start;
   margin-bottom: 18px;
-
-  &__btn {
-  }
 }
 </style>

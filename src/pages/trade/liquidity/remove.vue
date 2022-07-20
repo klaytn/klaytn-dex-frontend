@@ -2,4 +2,6 @@
 name: LiquidityRemove
 </route>
 
-<template>TODO</template>
+<template>
+  <ModuleLiquidityRemove />
+</template>

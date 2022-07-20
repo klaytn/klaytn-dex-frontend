@@ -1,19 +1,46 @@
 <script setup lang="ts" name="SwapModuleDetails">
-import { toRefs } from '@vueuse/core'
-import { formatRate, formatPercent } from '@/utils/common'
+import { storeToRefs } from 'pinia'
+import invariant from 'tiny-invariant'
+import { computeRates, roundRates } from '@/utils/common'
+import { buildPair } from '@/utils/pair'
+import { roundTo } from 'round-to'
 
-const tokensStore = useTokensStore()
-// FIXME
-const { tokenA, tokenB, userBalance, pairBalance } = $(toRefs(toRef(tokensStore, 'selectedTokens')))
+const store = useSwapStore()
+const {
+  gotAmountFor,
+  // FIXME maybe a bug? `selection` does not work for some reason. It should be a ref, but
+  // it is undefined. Maybe because it is a reactive object?
+  // selection,
+} = storeToRefs(store)
 
-const getRoute = computed(() => {
-  return tokenA && tokenB ? `${tokenA.symbol} > ${tokenB.symbol}` : ''
+const tokens = computed(() => {
+  const { tokenA, tokenB } = store.selection.tokens || {}
+  if (tokenA && tokenB) return { tokenA, tokenB }
+  return null
+})
+
+const rates = computed(() => {
+  if (gotAmountFor.value) {
+    const { tokenA, tokenB } = store.selection.wei || {}
+    invariant(tokenA && tokenB)
+
+    const rates = computeRates(buildPair((type) => store.selection.wei[type]!.input))
+    return roundRates(rates)
+  }
+
+  return null
+})
+
+const route = computed(() => {
+  const { tokenA, tokenB } = tokens.value || {}
+  if (!tokenA || !tokenB) return '-'
+  return `${tokenA.symbol} > ${tokenB.symbol}`
 })
 </script>
 
 <template>
   <div
-    v-if="tokenA?.value && tokenB?.value"
+    v-if="tokens"
     class="details--wrap"
   >
     <KlayCollapse>
@@ -23,44 +50,34 @@ const getRoute = computed(() => {
         </h3>
       </template>
       <template #main>
-        <div
-          v-if="pairBalance && userBalance"
-          class="details"
-        >
+        <div class="details">
           <div class="details--row">
             <span>
-              {{ tokenA.symbol }} per
-              {{ tokenB.symbol }}
+              {{ tokens.tokenA.symbol }} per
+              {{ tokens.tokenB.symbol }}
             </span>
             <span>
-              {{ formatRate(tokenA.value, tokenB.value) }}
+              {{ rates?.a_per_b ?? '-' }}
             </span>
           </div>
           <div class="details--row">
             <span>
-              {{ tokenB.symbol }} per
-              {{ tokenA.symbol }}
+              {{ tokens.tokenB.symbol }} per
+              {{ tokens.tokenA.symbol }}
             </span>
             <span>
-              {{ formatRate(tokenB.value, tokenA.value) }}
+              {{ rates?.b_per_a ?? '-' }}
             </span>
           </div>
-          <div
-            v-if="pairBalance"
-            class="details--row"
-          >
+          <div class="details--row">
             <span>Share of pool</span>
-            <span>{{ formatPercent(pairBalance, userBalance) }}</span>
+            <i>todo</i>
+            <!-- <span>{{ formatPercent(pairBalance, userBalance) }}</span> -->
           </div>
           <div class="details--row">
             <span>Route</span>
-            <span>{{ getRoute }}</span>
+            <span>{{ route }}</span>
           </div>
-
-          <!--          <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
-          <!--            <span>Transaction Fee</span> -->
-          <!--            <span>0.074 KLAY ($0.013)</span> -->
-          <!--          </div> -->
         </div>
       </template>
     </KlayCollapse>

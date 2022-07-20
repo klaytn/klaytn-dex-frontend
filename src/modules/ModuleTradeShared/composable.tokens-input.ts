@@ -1,5 +1,5 @@
 import { Address, tokenRawToWei, ValueWei } from '@/core/kaikas'
-import { buildPair, doForPair, TokensPair } from '@/utils/pair'
+import { buildPair, TokensPair } from '@/utils/pair'
 
 export interface TokenInput {
   addr: Address | null
@@ -11,20 +11,50 @@ export interface TokenInputWei {
   input: ValueWei<string>
 }
 
-export function useTokensInput() {
+function emptyInput(): TokensPair<TokenInput> {
+  return buildPair(() => ({
+    addr: null,
+    inputRaw: '',
+  }))
+}
+
+export function useTokensInput(options?: {
+  /**
+   * If specified, input data will be synced with local storage
+   */
+  localStorageKey?: string
+}) {
   const tokensStore = useTokensStore()
 
-  const input = reactive<TokensPair<TokenInput>>(
-    buildPair(() => ({
-      addr: null,
-      inputRaw: '',
-    })),
-  )
+  const input = options?.localStorageKey
+    ? toReactive(
+        useLocalStorage<TokensPair<TokenInput>>(options.localStorageKey, emptyInput(), {
+          serializer: {
+            read: (raw) => JSON.parse(raw),
+            write: (parsed) => JSON.stringify(parsed),
+          },
+        }),
+      )
+    : reactive<TokensPair<TokenInput>>(
+        buildPair(() => ({
+          addr: null,
+          inputRaw: '',
+        })),
+      )
   const resetInput = (newData: TokensPair<TokenInput>) => {
     Object.assign(input, newData)
   }
 
-  const addrs = readonly(buildPair((type) => computed(() => input[type]?.addr)))
+  const addrsWritable = reactive(
+    buildPair((type) =>
+      computed({
+        get: () => input[type].addr,
+        set: (v) => {
+          input[type].addr = v
+        },
+      }),
+    ),
+  )
 
   const tokens = readonly(
     reactive(
@@ -57,7 +87,7 @@ export function useTokensInput() {
         computed(() => {
           const addr = input[type]?.addr
           if (!addr) return null
-          return tokensStore.userBalanceMap?.get(addr) ?? null
+          return tokensStore.lookupUserBalance(addr)
         }),
       ),
     ),
@@ -67,25 +97,9 @@ export function useTokensInput() {
     input,
     resetInput,
 
-    addrs,
+    addrsWritable,
     tokens,
     wei,
     balance,
   }
-}
-
-export function syncInputAddrsWithLocalStorage(selection: TokensPair<TokenInput>, key: string) {
-  doForPair((type) => {
-    const ls = useLocalStorage<null | Address>(`${key}-${type}`, null)
-    const selectionWritable = computed({
-      get: () => selection[type].addr,
-      set: (v) => {
-        selection[type].addr = v
-      },
-    })
-    if (ls.value && !selectionWritable.value) {
-      selectionWritable.value = ls.value
-    }
-    syncRef(selectionWritable, ls)
-  })
 }

@@ -1,14 +1,26 @@
-import { Address, asWei, tokenRawToWei, tokenWeiToRaw, ValueWei, WeiNumStrBn } from '@/core/kaikas'
+import { Address, asWei, Token, tokenRawToWei, tokenWeiToRaw, ValueWei, WeiNumStrBn } from '@/core/kaikas'
 import { LP_TOKEN_DECIMALS as LP_TOKEN_DECIMALS_VALUE } from '@/core/kaikas/const'
-import { usePairAddress } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
-import { buildPair, TokensPair } from '@/utils/pair'
+import { usePairAddress, usePairReserves } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
+import { buildPair, TokensPair, TOKEN_TYPES } from '@/utils/pair'
 import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
+import { computeRates, roundRates } from '@/utils/common'
+import { MaybeRef } from '@vueuse/core'
+import { roundTo } from 'round-to'
 
 const LP_TOKENS_DECIMALS = Object.freeze({ decimals: LP_TOKEN_DECIMALS_VALUE })
+
+function useRates(amounts: MaybeRef<null | TokensPair<ValueWei<BN>>>) {
+  return computed(() => {
+    const { tokenA, tokenB } = unref(amounts) || {}
+    if (!tokenB || !tokenA) return null
+    const rates = computeRates({ tokenA, tokenB })
+    return roundRates(rates)
+  })
+}
 
 function useRemoveAmounts(
   tokens: Ref<null | TokensPair<Address>>,
@@ -64,17 +76,50 @@ function useRemoveAmounts(
 }
 
 export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
-  const selected = ref<null | TokensPair<Address>>(null)
+  const selected = useLocalStorage<null | TokensPair<Address>>('liquidity-remove-tokens', null, {
+    serializer: {
+      read: (raw) => JSON.parse(raw),
+      write: (parsed) => JSON.stringify(parsed),
+    },
+  })
 
   const tokensStore = useTokensStore()
-  const selectedTokensData = reactive(
-    buildPair((type) => computed(() => selected.value && tokensStore.findTokenData(selected.value[type]))),
-  )
+  const selectedTokensData = computed(() => {
+    if (!selected.value) return null
+
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    const tokens = {} as TokensPair<Token>
+    for (const type of TOKEN_TYPES) {
+      const data = tokensStore.findTokenData(selected.value[type])
+      if (!data) return null
+      tokens[type] = data
+    }
+
+    return tokens
+  })
+  const selectedTokensSymbols = computed(() => {
+    const tokens = selectedTokensData.value
+    if (!tokens) return null
+    return buildPair((type) => tokens[type].symbol)
+  })
 
   const { pair, pending: isPairPending } = usePairAddress(reactive(buildPair((type) => selected.value?.[type])))
   const existingPair = computed(() => (pair.value?.kind === 'exist' ? pair.value : null))
   const pairTotalSupply = computed(() => existingPair.value?.totalSupply)
   const pairUserBalance = computed(() => existingPair.value?.userBalance)
+  const pairReserves = usePairReserves(selected)
+
+  const poolShare = computed(() => {
+    const total = unref(pairTotalSupply)
+    const user = unref(pairUserBalance)
+    if (!total || !user) return null
+    return new BigNumber(user).div(total).toNumber()
+  })
+  const formattedPoolShare = computed(() => {
+    const value = poolShare.value
+    if (!value) return null
+    return `${roundTo(value * 100, 7)}%`
+  })
 
   const liquidityRaw = ref('')
   const liquidity = computed<ValueWei<string> | null>({
@@ -95,9 +140,9 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
    */
   const liquidityRelative = computed<number | null>({
     get: () => {
-      const wei = liquidity.value
+      const wei = liquidity.value ?? '0'
       const total = pairUserBalance.value
-      if (!wei || !total) return null
+      if (!total) return null
       return new BigNumber(wei).div(total).toNumber()
     },
     set: (rel) => {
@@ -114,62 +159,123 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     liquidity,
   )
 
+  const rates = useRates(amounts)
+
   function setTokens(tokens: TokensPair<Address>) {
     selected.value = tokens
   }
 
-  const supplyScope = useDeferredScope<{
+  function setLiquidityToMax() {
+    liquidityRelative.value = 1
+  }
+
+  function clear() {
+    liquidityRaw.value = ''
+  }
+
+  const isReadyToPrepareSupply = computed(() => {
+    return !!(selected.value && liquidity.value && pair.pair?.addr)
+  })
+
+  const prepareSupplyScope = useDeferredScope<{
     pending: boolean
     ready: null | {
       gas: number
-      send: () => void
+      send: () => Promise<void>
     }
   }>()
 
   const kaikasStore = useKaikasStore()
   function prepareSupply() {
-    const { tokenA, tokenB } = selected.value ?? {}
-    const pairAddr = existingPair.value?.addr
-    const lpTokenValue = liquidity.value
-    invariant(tokenA && tokenB && lpTokenValue && pairAddr)
+    prepareSupplyScope.setup(() => {
+      const task = useTask(() => {
+        invariant(isReadyToPrepareSupply.value)
+        const pairAddr = pair.pair?.addr
+        const lpTokenValue = liquidity.value!
 
-    supplyScope.setup(() => {
-      const { state } = useTask(
-        () => {
-          return kaikasStore.getKaikasAnyway().liquidity.prepareRmLiquidity({
-            tokens: { tokenA, tokenB },
-            pair: pairAddr,
-            lpTokenValue,
-          })
-        },
-        { immediate: true },
-      )
+        return kaikasStore.getKaikasAnyway().liquidity.prepareRmLiquidity({
+          tokens: selected.value!,
+          pair: pairAddr!,
+          lpTokenValue,
+        })
+      })
+      task.run()
+      useNotifyOnError(task, 'Supply preparation failed')
 
-      useNotifyOnError(state, 'Supply preparation failed')
-      wheneverRejected(state, () => supplyScope.dispose())
-
-      const { pending, fulfilled: ready } = toRefs(flattenState(state))
+      const pending = computed(() => task.state.kind === 'pending')
+      const ready = computed(() => (task.state.kind === 'ok' ? task.state.data : null))
 
       return reactive({ pending, ready })
     })
   }
 
+  const isPrepareSupplyPending = computed(() => prepareSupplyScope.scope.value?.setup.pending ?? false)
+  const isSupplyReady = computed(() => !!prepareSupplyScope.scope.value?.setup.ready)
+  const supplyGas = computed(() => prepareSupplyScope.scope.value?.setup.ready?.gas ?? null)
+
+  const supplyScope = useScope(isSupplyReady, () => {
+    const { send } = prepareSupplyScope.scope.value!.setup.ready!
+
+    const task = useTask(send)
+
+    const pending = computed(() => task.state.kind === 'pending')
+    const ok = computed(() => task.state.kind === 'ok')
+    const err = computed(() => task.state.kind === 'err')
+
+    wheneverTaskSucceeds(task, () => {
+      pair.touch()
+    })
+
+    const { run } = task
+
+    return reactive({ pending, ok, err, run })
+  })
+
+  const isSupplyPending = computed(() => supplyScope.value?.setup.pending ?? false)
+  const isSupplyOk = computed(() => supplyScope.value?.setup.ok ?? false)
+  const isSupplyErr = computed(() => supplyScope.value?.setup.err ?? false)
+
+  function supply() {
+    supplyScope.value?.setup.run()
+  }
+
+  function closeSupply() {
+    prepareSupplyScope.dispose()
+  }
+
   return {
     selected,
     selectedTokensData,
+    selectedTokensSymbols,
 
     pairUserBalance,
     pairTotalSupply,
+    pairReserves,
     isPairPending,
+    poolShare,
+    formattedPoolShare,
 
     liquidity,
     liquidityRaw,
     liquidityRelative,
     amounts,
+    rates,
     isAmountsPending,
+
+    isReadyToPrepareSupply,
+    isPrepareSupplyPending,
+    supplyGas,
+    isSupplyReady,
+    isSupplyPending,
+    isSupplyErr,
+    isSupplyOk,
 
     setTokens,
     prepareSupply,
+    setLiquidityToMax,
+    clear,
+    supply,
+    closeSupply,
   }
 })
 

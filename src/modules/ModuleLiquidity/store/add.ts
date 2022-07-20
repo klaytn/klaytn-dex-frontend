@@ -1,10 +1,6 @@
 import { ValueWei, deadlineFiveMinutesFromNow, tokenWeiToRaw, Address } from '@/core/kaikas'
-import { PairAddressResult, usePairAddress } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
-import {
-  syncInputAddrsWithLocalStorage,
-  TokenInputWei,
-  useTokensInput,
-} from '@/modules/ModuleTradeShared/composable.tokens-input'
+import { usePairAddress, PairAddressResult } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
+import { useTokensInput, TokenInputWei } from '@/modules/ModuleTradeShared/composable.tokens-input'
 import { buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
 import { Status } from '@soramitsu-ui/ui'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -79,9 +75,9 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const kaikasStore = useKaikasStore()
 
   const selection = useTokensInput()
-  syncInputAddrsWithLocalStorage(selection.input, 'liquidity-store-input-tokens')
+  const addrsReadonly = readonly(selection.addrsWritable)
 
-  const { pair: gotPair } = usePairAddress(selection.addrs)
+  const { pair: gotPair } = usePairAddress(addrsReadonly)
   const isEmptyPair = computed(() => gotPair.value?.kind === 'empty')
 
   const quoteFor = ref<null | TokenType>(null)
@@ -111,7 +107,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
     const { send } = await kaikas.liquidity.prepareAddLiquidity({
       tokens: buildPair((type) => {
-        const addr = selection.addrs[type]
+        const addr = addrsReadonly[type]
         const wei = selection.wei[type]
         invariant(addr && wei, `Addr and wei value for ${type} should exist`)
         return { addr, desired: wei.input }

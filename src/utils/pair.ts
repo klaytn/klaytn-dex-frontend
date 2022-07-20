@@ -1,4 +1,6 @@
-export type TokenType = 'tokenA' | 'tokenB'
+export const TOKEN_TYPES = ['tokenA', 'tokenB'] as const
+
+export type TokenType = typeof TOKEN_TYPES[number]
 
 export function mirrorTokenType(type: TokenType): TokenType {
   return type === 'tokenA' ? 'tokenB' : 'tokenA'

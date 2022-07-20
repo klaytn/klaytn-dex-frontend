@@ -8,7 +8,7 @@ import { useGetAmount, GetAmountProps } from '../composable.get-amount'
 import { usePairAddress, useSimplifiedResult } from '../../ModuleTradeShared/composable.pair-by-tokens'
 import { useSwapValidation } from '../composable.validation'
 import { buildSwapProps } from '../util.swap-props'
-import { syncInputAddrsWithLocalStorage, useTokensInput } from '../../ModuleTradeShared/composable.tokens-input'
+import { useTokensInput } from '../../ModuleTradeShared/composable.tokens-input'
 
 const debugModule = Debug('swap-store')
 
@@ -16,10 +16,10 @@ export const useSwapStore = defineStore('swap', () => {
   const kaikasStore = useKaikasStore()
   const tokensStore = useTokensStore()
 
-  const selection = useTokensInput()
-  syncInputAddrsWithLocalStorage(selection.input, 'swap-store-tokens-input')
+  const selection = useTokensInput({ localStorageKey: 'swap-selection' })
+  const addrsReadonly = readonly(selection.addrsWritable)
 
-  const { pair: pairAddrResult } = toRefs(usePairAddress(selection.addrs))
+  const { pair: pairAddrResult } = toRefs(usePairAddress(addrsReadonly))
 
   const swapValidation = useSwapValidation({
     tokenA: computed(() => {
@@ -46,7 +46,7 @@ export const useSwapStore = defineStore('swap', () => {
       const referenceValue = selection.wei[mirrorTokenType(amountFor)]
       if (!referenceValue || new BigNumber(referenceValue.input).isLessThanOrEqualTo(0)) return null
 
-      const { tokenA, tokenB } = selection.addrs
+      const { tokenA, tokenB } = addrsReadonly
       if (!tokenA || !tokenB) return null
 
       if (pairAddrResult.value?.kind !== 'exist') return null

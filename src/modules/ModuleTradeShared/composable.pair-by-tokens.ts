@@ -64,3 +64,37 @@ export type PairAddressResultSimplified = PairAddressResult['kind']
 export function useSimplifiedResult(result: Ref<null | PairAddressResult>): Ref<null | PairAddressResultSimplified> {
   return computed(() => result.value?.kind ?? null)
 }
+
+export function usePairReserves(tokens: TokensPair<Address | null> | Ref<null | TokensPair<null | Address>>) {
+  const kaikasStore = useKaikasStore()
+
+  const normalized = computed(() => {
+    const { tokenA, tokenB } = unref(tokens) ?? {}
+    if (!tokenA || !tokenB) return null
+    return { tokenA, tokenB }
+  })
+
+  const scope = useScope(
+    computed(() => !!normalized.value && kaikasStore.isConnected),
+    () => {
+      const { tokenA, tokenB } = normalized.value!
+
+      const task = useTask(async () => {
+        return kaikasStore.getKaikasAnyway().tokens.getPairReserves({ tokenA, tokenB })
+      })
+
+      useTaskLog(task, 'pair-reserves')
+      task.run()
+
+      return task
+    },
+  )
+
+  const reserves = computed(() => {
+    const state = scope.value?.setup.state
+    if (!state) return null
+    return state.kind === 'ok' ? state.data : null
+  })
+
+  return reserves
+}
