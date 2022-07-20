@@ -7,17 +7,17 @@ const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidityRaw,
 </script>
 
 <template>
-  <div class="details p-4 space-y-4">
+  <div class="details p-4">
     <h3>Transaction details</h3>
 
-    <div class="space-y-4">
-      <div :class="cssRows.rowMd">
+    <div class="space-y-4 mt-6">
+      <div :class="cssRows.rowSm">
         <span>LP {{ symbols?.tokenA }}-{{ symbols?.tokenB }} </span>
         <!-- TODO format value -->
         <span>{{ liquidityRaw }}</span>
       </div>
 
-      <div :class="cssRows.rowMd">
+      <div :class="cssRows.rowSm">
         <span>Share of pool</span>
         <span>{{ formattedPoolShare }}</span>
       </div>
@@ -25,16 +25,17 @@ const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidityRaw,
       <RowsRates
         :symbols="symbols!"
         :rounded-rates="rates!"
+        :class="[cssRows.rowSm, cssRows.rowSmDimmed]"
       />
 
-      <div :class="[cssRows.rowMd, cssRows.rowMdDimmed]">
+      <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
         <span>Transaction Fee</span>
         <!-- TODO format -->
         <span> {{ supplyGas }}</span>
       </div>
     </div>
 
-    <div class="klay-divider" />
+    <div class="klay-divider my-3" />
 
     <p>Output is estimated. If the price changes by more than 0.8% your transaction will revert.</p>
   </div>

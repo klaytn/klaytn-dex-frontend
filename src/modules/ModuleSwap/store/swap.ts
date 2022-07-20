@@ -97,6 +97,7 @@ export const useSwapStore = defineStore('swap', () => {
     const { tokenA, tokenB, amountFor } = getSwapPrerequisitesAnyway()
 
     // 1. Approve amount of the tokenA
+    // TODO move into Swap
     await kaikas.cfg.approveAmount(tokenA.addr, tokenA.input)
 
     // 2. Perform swap according to which token is "exact" and if

@@ -23,7 +23,6 @@ function rateByTokenType(type: TokenType) {
   <div
     v-for="token in TOKEN_TYPES"
     :key="token"
-    class="flex justify-between items-center"
     v-bind="$attrs"
   >
     <span>
