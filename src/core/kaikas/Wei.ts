@@ -1,6 +1,7 @@
 import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
 import invariant from 'tiny-invariant'
+import { Token } from './types'
 
 export type WeiInputValue = number | string | BigNumber | BN
 
@@ -71,7 +72,14 @@ class EmptyWeiError extends Error {
 
 const WeiTag = Symbol('Wei')
 
+type TokenDecimals = Pick<Token, 'decimals'>
+
 export default class Wei {
+  public static fromTokenRelative({ decimals }: TokenDecimals, value: string): Wei {
+    const num = new BigNumber(value).multipliedBy(new BigNumber(10).pow(decimals))
+    return new Wei(num)
+  }
+
   #reprs = emptyReprMap()
 
   private readonly [WeiTag]!: 'Wei'
@@ -95,5 +103,10 @@ export default class Wei {
 
   public get asBN(): BN {
     return getAndWriteRepr(this.#reprs, 'BN')
+  }
+
+  public toTokenRelative({ decimals }: TokenDecimals): string {
+    const num = this.asBigNum.dividedBy(new BigNumber(10).pow(decimals))
+    return num.toFixed()
   }
 }

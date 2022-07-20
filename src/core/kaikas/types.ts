@@ -77,22 +77,6 @@ export type Address = Opaque<string, 'Address'>
 export type TokenSymbol = Opaque<string, 'TokenSymbol'>
 
 /**
- * `BigNumber` (from `bignumber.js` package) as a string
- *
- * **upd**: from the context of `src/components/TokenInput/index.vue`, it seems to be a
- * Wei value, because it is passed into `fromWei` function
- *
- * **upd**: also see `src/components/TokenSelect/Modal.vue`
- */
-export type Balance<T extends AnyNumber = string> = ValueWei<T>
-
-export type AnyNumber = number | string | BN | BigNumber
-
-export type ValueEther<T extends AnyNumber = AnyNumber> = Opaque<T, 'ValueEther'>
-
-export type ValueWei<T extends AnyNumber = AnyNumber> = Opaque<T, 'ValueWei'>
-
-/**
  * FIXME in liquidity store it is usually computed as:
  *
  * ```ts

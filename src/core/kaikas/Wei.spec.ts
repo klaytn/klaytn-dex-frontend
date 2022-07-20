@@ -65,6 +65,20 @@ describe('Construction from a number', () => {
   })
 })
 
+describe('Wei <-> Token-Relative value', () => {
+  test(`'123.42' to wei`, () => {
+    expect(Wei.fromTokenRelative({ decimals: 18 }, '123.42').asStr).toEqual(123420000000000000000n.toString())
+  })
+
+  test(`'4123' to wei`, () => {
+    expect(Wei.fromTokenRelative({ decimals: 18 }, '4123').asStr).toEqual((4123n * 10n ** 18n).toString())
+  })
+
+  test(`wei to '123.42`, () => {
+    expect(new Wei(123420000000000000000n.toString()).toTokenRelative({ decimals: 18 })).toEqual('123.42')
+  })
+})
+
 test('Wei in a reactive Vue tree works', () => {
   const wei = ref(new Wei(512))
 
@@ -79,7 +93,7 @@ test('Wei in a reactive Vue tree is not reactive itself', () => {
 
 // type tests
 
-declare function getWei(wei: Wei): void
+type OnlyWei<T extends Wei> = T
 
 interface WeiLike {
   readonly asStr: string
@@ -87,7 +101,5 @@ interface WeiLike {
   readonly asBN: BN
 }
 
-declare const weiLike: WeiLike
-
 // @ts-expect-error
-getWei(weiLike)
+type Error1 = OnlyWei<WeiLike>
