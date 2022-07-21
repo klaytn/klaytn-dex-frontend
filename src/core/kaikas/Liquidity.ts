@@ -28,10 +28,11 @@ export interface ComputeRemoveLiquidityAmountsResult {
   amounts: TokensPair<ValueWei<BN>>
 }
 
-export interface PrepareRemoveLiquidityProps {
-  tokens: TokensPair<Address>
-  pair: Address
-  lpTokenValue: WeiNumStrBn
+export interface PrepareRemoveLiquidityProps extends ComputeRemoveLiquidityAmountsProps {
+  /**
+   * Should be the same amounts that were computed by {@link Liquidity['computeRmLiquidityAmounts']}
+   */
+  amounts: TokensPair<ValueWei<BN>>
 }
 
 export interface PrepareTransactionResult {
@@ -154,7 +155,7 @@ export default class Liquidity {
     const nLpToken = asWei(new BN(props.lpTokenValue))
     await this.cfg.approveAmount(props.pair, nLpToken)
 
-    const { amounts } = await this.computeRmLiquidityAmounts({ ...props, lpTokenValue: nLpToken })
+    const { amounts } = props
 
     const detectedEth = detectEth(
       buildPair((type) => ({

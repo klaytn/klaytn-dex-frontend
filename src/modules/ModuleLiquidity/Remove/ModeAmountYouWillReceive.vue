@@ -6,7 +6,13 @@ import { tokenWeiToRaw, asWei } from '@/core/kaikas'
 import cssRows from '../rows.module.scss'
 
 const store = useLiquidityRmStore()
-const { amounts, selectedTokensData: tokens, selectedTokensSymbols: symbols, rates } = storeToRefs(store)
+const {
+  amounts,
+  selectedTokensData: tokens,
+  selectedTokensSymbols: symbols,
+  rates,
+  isAmountsPending,
+} = storeToRefs(store)
 
 const formattedAmounts = computed(() => {
   if (!amounts.value || !tokens.value) return null
@@ -22,6 +28,11 @@ const formattedAmounts = computed(() => {
     <h4 class="flex items-center space-x-2 mb-4">
       <span> You will receive </span>
       <IconKlayImportant />
+
+      <KlayLoader
+        v-if="isAmountsPending"
+        size="16"
+      />
     </h4>
 
     <div class="space-y-3 mb-4">

@@ -109,6 +109,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
   const pair = usePairAddress(reactive(buildPair((type) => selected.value?.[type])))
   const isPairPending = toRef(pair, 'pending')
+  const isPairLoaded = computed(() => !!pair.pair)
   const pairTotalSupply = computed(() => pair.pair?.totalSupply)
   const pairUserBalance = computed(() => pair.pair?.userBalance)
   const pairReserves = usePairReserves(selected)
@@ -178,7 +179,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   }
 
   const isReadyToPrepareSupply = computed(() => {
-    return !!(selected.value && liquidity.value && pair.pair?.addr)
+    return !!(selected.value && liquidity.value && pair.pair?.addr && amounts.value)
   })
 
   const prepareSupplyScope = useDanglingScope<{
@@ -196,11 +197,13 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
         invariant(isReadyToPrepareSupply.value)
         const pairAddr = pair.pair?.addr
         const lpTokenValue = liquidity.value!
+        const amountsValue = amounts.value!
 
         return kaikasStore.getKaikasAnyway().liquidity.prepareRmLiquidity({
           tokens: selected.value!,
           pair: pairAddr!,
           lpTokenValue,
+          amounts: amountsValue,
         })
       })
       task.run()
@@ -256,6 +259,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     pairTotalSupply,
     pairReserves,
     isPairPending,
+    isPairLoaded,
     poolShare,
     formattedPoolShare,
 

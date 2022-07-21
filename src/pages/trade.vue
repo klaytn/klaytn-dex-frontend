@@ -7,7 +7,7 @@ import { RouteName } from '@/types'
 import { storeToRefs } from 'pinia'
 
 const tokensStore = useTokensStore()
-const { isBalancePending, isImportedPending, isImportedLoaded } = $(storeToRefs(tokensStore))
+const { isBalancePending, isImportedPending } = $(storeToRefs(tokensStore))
 
 const route = useRoute()
 const isOnLiquidityAdd = $computed(() => route.name === RouteName.LiquidityAdd)
