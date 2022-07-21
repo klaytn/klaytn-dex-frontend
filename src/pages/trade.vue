@@ -7,10 +7,25 @@ import { RouteName } from '@/types'
 import { storeToRefs } from 'pinia'
 
 const tokensStore = useTokensStore()
-const { isBalancePending, isImportedPending, isImportedLoaded } = $(storeToRefs(tokensStore))
+const { isBalancePending, isImportedPending } = storeToRefs(tokensStore)
+
+const removeStore = useLiquidityRmStore()
 
 const route = useRoute()
-const isOnLiquidityAdd = $computed(() => route.name === RouteName.LiquidityAdd)
+
+const liquiditySubSection = computed(() => {
+  if (route.name === RouteName.LiquidityAdd) {
+    return { kind: 'add', label: 'Add Liquidity' }
+  }
+  if (route.name === RouteName.LiquidityRemove) {
+    const symbols = removeStore.selectedTokensSymbols
+
+    return {
+      kind: 'remove',
+      label: `Remove ${symbols ? `${symbols.tokenA}-${symbols.tokenB}` : '...'} liquidity`,
+    }
+  }
+})
 
 const headLinks: {
   toName: RouteName
@@ -34,7 +49,7 @@ function refresh() {
 <template>
   <div class="wrap mx-auto pb-5">
     <div class="flex items-center mb-4 space-x-4 pt-5 px-4">
-      <template v-if="isOnLiquidityAdd">
+      <template v-if="liquiditySubSection">
         <RouterLink :to="{ name: RouteName.Liquidity }">
           <KlayButton
             type="action"
@@ -46,7 +61,9 @@ function refresh() {
           </KlayButton>
         </RouterLink>
 
-        <h1>Add Liquidity</h1>
+        <h1>
+          {{ liquiditySubSection.label }}
+        </h1>
       </template>
 
       <template v-else>
@@ -73,26 +90,9 @@ function refresh() {
           <IconKlayRefresh />
         </template>
       </KlayButton>
-
-      <KlayButton
-        type="action"
-        rounded
-        disabled
-      >
-        <template #icon>
-          <IconKlayFilters />
-        </template>
-      </KlayButton>
     </div>
 
-    <RouterView v-if="isImportedLoaded" />
-
-    <div
-      v-else-if="isImportedPending"
-      class="p-8 flex items-center justify-center"
-    >
-      <KlayLoader />
-    </div>
+    <RouterView />
   </div>
 </template>
 
@@ -133,8 +133,5 @@ h1 {
   align-items: center;
   justify-content: flex-start;
   margin-bottom: 18px;
-
-  &__btn {
-  }
 }
 </style>

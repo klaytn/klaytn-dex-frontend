@@ -1,0 +1,29 @@
+@import '@/styles/vars';
+
+.row-md {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  font-size: 14px;
+  color: $dark2;
+
+  & > :last-child {
+    font-weight: 600;
+  }
+}
+
+.row-sm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-size: 12px;
+  font-weight: 600;
+  color: $dark2;
+
+  &--dimmed {
+    font-weight: 500;
+    color: $gray2;
+  }
+}

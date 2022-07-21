@@ -64,7 +64,7 @@ export default defineConfig({
       onRoutesGenerated(routes: RouteRecordRaw[]) {
         // default route
         routes.push({
-          path: '/',
+          path: '/:catchAll(.*)*',
           redirect: '/swap',
         })
       },
@@ -175,6 +175,12 @@ export default defineConfig({
     environment: 'jsdom',
     deps: {
       inline: ['@vue', '@vueuse', 'vue-demi'],
+    },
+  },
+
+  css: {
+    modules: {
+      localsConvention: 'camelCaseOnly',
     },
   },
 })

@@ -1,209 +1,298 @@
 import Config from './Config'
-import { type ValueWei, type Address, type Deadline } from './types'
-import BigNumber from 'bignumber.js'
+import { type ValueWei, type Address, type Deadline, WeiNumStrBn } from './types'
 import BN from 'bn.js'
-import { MAGIC_GAS_PRICE } from './const'
+import { MAGIC_GAS_PRICE, NATIVE_TOKEN } from './const'
+import { buildPair, buildPairAsync, TokensPair } from '@/utils/pair'
+import { asWei, deadlineFiveMinutesFromNow, isNativeToken } from './utils'
+import { DexPair } from '@/types/typechain/swap'
+import { PAIR } from './smartcontracts/abi'
+import Tokens from './Tokens'
 
-type WeiNumStrBn = ValueWei<number | string | BN>
-
-export interface TokenAddrAndValue {
-  addr: Address
-  value: WeiNumStrBn
-}
-
-export interface AddLiquidityAmountPropsBase {
-  tokenA: TokenAddrAndValue
-  tokenB: TokenAddrAndValue
+export interface PrepareAddLiquidityProps {
+  tokens: TokensPair<TokenAddressAndDesiredValue>
   deadline: Deadline
 }
 
-export interface AddLiquidityAmountOutProps extends AddLiquidityAmountPropsBase {
-  mode: 'out'
-  amountAMin: WeiNumStrBn
+export interface TokenAddressAndDesiredValue {
+  addr: Address
+  desired: WeiNumStrBn
 }
 
-export interface AddLiquidityAmountInProps extends AddLiquidityAmountPropsBase {
-  mode: 'in'
-  amountBMin: WeiNumStrBn
+export interface ComputeRemoveLiquidityAmountsProps {
+  tokens: TokensPair<Address>
+  pair: Address
+  lpTokenValue: WeiNumStrBn
 }
 
-type AddLiquidityAmountProps = AddLiquidityAmountOutProps | AddLiquidityAmountInProps
+export interface ComputeRemoveLiquidityAmountsResult {
+  amounts: TokensPair<ValueWei<BN>>
+}
 
-export interface AddLiquidityResult {
+export interface PrepareRemoveLiquidityProps extends ComputeRemoveLiquidityAmountsProps {
+  /**
+   * Should be the same amounts that were computed by {@link Liquidity['computeRmLiquidityAmounts']}
+   */
+  amounts: TokensPair<ValueWei<BN>>
+}
+
+export interface PrepareTransactionResult {
+  /**
+   * i.e. transaction fee
+   */
   gas: ValueWei<number>
-  send: () => Promise<unknown>
+  send: () => Promise<void>
 }
 
-/**
- * FIXME why is this needed?
- */
-function computeAmountByTokenValue(tokenValue: WeiNumStrBn): ValueWei<string> {
-  return new BN(tokenValue).divn(100).toString() as ValueWei<string>
+function minByDesired(desired: WeiNumStrBn): ValueWei<string> {
+  const nDesired = new BN(desired)
+
+  return asWei(nDesired.sub(nDesired.divn(100)).toString())
+}
+
+function detectEth<T extends { addr: Address }>(
+  pair: TokensPair<T>,
+): null | {
+  token: T
+  eth: T
+} {
+  if (isNativeToken(pair.tokenA.addr)) return { token: pair.tokenB, eth: pair.tokenA }
+  if (isNativeToken(pair.tokenB.addr)) return { token: pair.tokenA, eth: pair.tokenB }
+  return null
+}
+
+export default class Liquidity {
+  private readonly cfg: Config
+  private readonly tokens: Tokens
+
+  public constructor(deps: { cfg: Config; tokens: Tokens }) {
+    this.cfg = deps.cfg
+    this.tokens = deps.tokens
+  }
+
+  private get router() {
+    return this.cfg.contracts.router
+  }
+
+  private get addr() {
+    return this.cfg.addrs.self
+  }
+
+  /**
+   * - Approves that user has enough of each token
+   * - Detects whether to add liquidity for ETH or not
+   * - Computes minimal amount as 99% of desired value
+   */
+  public async prepareAddLiquidity(props: PrepareAddLiquidityProps): Promise<PrepareTransactionResult> {
+    for (const type of ['tokenA', 'tokenB'] as const) {
+      const { addr, desired } = props.tokens[type]
+      await this.cfg.approveAmount(addr, desired)
+    }
+
+    const detectedEth = detectEth(props.tokens)
+    if (detectedEth) {
+      const {
+        token,
+        eth: { desired: desiredEth },
+      } = detectedEth
+
+      const method = this.router.methods.addLiquidityETH(
+        token.addr,
+        token.desired,
+        minByDesired(token.desired),
+        minByDesired(desiredEth),
+        this.addr,
+        props.deadline,
+      )
+
+      const lpTokenGas = asWei(
+        await method.estimateGas({
+          from: this.cfg.addrs.self,
+          gasPrice: MAGIC_GAS_PRICE,
+          value: desiredEth,
+        }),
+      )
+      const send = async () => {
+        await method.send({
+          from: this.addr,
+          gas: lpTokenGas,
+          gasPrice: MAGIC_GAS_PRICE,
+          value: desiredEth,
+        })
+      }
+
+      return { gas: lpTokenGas, send }
+    } else {
+      const { tokenA, tokenB } = props.tokens
+
+      const method = this.router.methods.addLiquidity(
+        tokenA.addr,
+        tokenB.addr,
+        tokenA.desired,
+        tokenB.desired,
+        minByDesired(tokenA.desired),
+        minByDesired(tokenB.desired),
+        this.addr,
+        props.deadline,
+      )
+
+      const lpTokenGas = asWei(await method.estimateGas())
+      const send = async () => {
+        await method.send({
+          from: this.addr,
+          gas: lpTokenGas,
+          gasPrice: MAGIC_GAS_PRICE,
+        })
+      }
+
+      return { gas: lpTokenGas, send }
+    }
+  }
+
+  /**
+   * - Approves that pair has enought amount for `lpTokenValue`
+   */
+  public async prepareRmLiquidity(props: PrepareRemoveLiquidityProps): Promise<PrepareTransactionResult> {
+    const nLpToken = asWei(new BN(props.lpTokenValue))
+    await this.cfg.approveAmount(props.pair, nLpToken)
+
+    const { amounts } = props
+
+    const detectedEth = detectEth(
+      buildPair((type) => ({
+        addr: props.tokens[type],
+        computedAmount: amounts[type],
+      })),
+    )
+    const method = detectedEth
+      ? this.router.methods.removeLiquidityETH(
+          detectedEth.token.addr,
+          nLpToken,
+          detectedEth.token.computedAmount,
+          detectedEth.eth.computedAmount,
+          this.addr,
+          deadlineFiveMinutesFromNow(),
+        )
+      : this.router.methods.removeLiquidity(
+          props.tokens.tokenA,
+          props.tokens.tokenB,
+          nLpToken,
+          amounts.tokenA,
+          amounts.tokenB,
+          this.addr,
+          deadlineFiveMinutesFromNow(),
+        )
+
+    const gas = asWei(await method.estimateGas({ from: this.addr, gasPrice: MAGIC_GAS_PRICE }))
+    const send = async () => {
+      await method.send({ from: this.addr, gas, gasPrice: MAGIC_GAS_PRICE })
+    }
+
+    return { gas, send }
+  }
+
+  public async computeRmLiquidityAmounts(
+    props: ComputeRemoveLiquidityAmountsProps,
+  ): Promise<ComputeRemoveLiquidityAmountsResult> {
+    const pairContract = this.cfg.createContract<DexPair>(props.pair, PAIR)
+
+    const nTotalSupply = asWei(new BN(await pairContract.methods.totalSupply().call()))
+    const nLpToken = asWei(new BN(props.lpTokenValue))
+
+    const amounts = await buildPairAsync((type) =>
+      this.tokenRmAmount({
+        lpToken: nLpToken,
+        totalSupply: nTotalSupply,
+        pair: props.pair,
+        token: props.tokens[type],
+      }),
+    )
+
+    return { amounts }
+  }
+
+  /**
+   * amount = (lpTokenValue * tokenBalanceOfPair / totalSupply) - 1
+   */
+  private async tokenRmAmount(props: {
+    token: Address
+    pair: Address
+    lpToken: ValueWei<BN>
+    totalSupply: ValueWei<BN>
+  }): Promise<ValueWei<BN>> {
+    const balance = await this.tokens.getTokenBalanceOfAddr(props.token, props.pair)
+    const nBalance = new BN(balance)
+    const amount = props.lpToken.mul(nBalance).div(props.totalSupply).subn(1)
+    return asWei(amount)
+  }
 }
 
 if (import.meta.vitest) {
   const { describe, test, expect } = import.meta.vitest
 
-  describe('computing amount by token value', () => {
-    test('when token value is 1423, amount is 14', () => {
-      expect(computeAmountByTokenValue(1423 as WeiNumStrBn)).toEqual('14')
+  describe('min by desired', () => {
+    test('for 1_000_000', () => {
+      expect(minByDesired('1000000' as WeiNumStrBn)).toEqual('990000')
+    })
+
+    test('for 7', () => {
+      expect(minByDesired(7 as WeiNumStrBn)).toEqual('7')
     })
   })
-}
 
-export default class Liquidity {
-  private readonly cfg: Config
-
-  public constructor(cfg: Config) {
-    this.cfg = cfg
-  }
-
-  public async addLiquidityAmountForExistingPair(props: AddLiquidityAmountProps): Promise<AddLiquidityResult> {
-    interface NormalizedProps {
-      tokenAAddr: Address
-      tokenBAddr: Address
-      tokenAValue: WeiNumStrBn
-      tokenBValue: WeiNumStrBn
-      amountAMin: WeiNumStrBn
-      amountBMin: WeiNumStrBn
+  describe('detecting eth', () => {
+    const tokens = {
+      native: NATIVE_TOKEN,
+      test1: '0xb9920BD871e39C6EF46169c32e7AC4C698688881' as Address,
+      test2: '0x1CDcD477994e86A11E21C27ca907bEA266EA3A0a' as Address,
     }
 
-    const normalized: NormalizedProps =
-      props.mode === 'out'
-        ? {
-            tokenAAddr: props.tokenA.addr,
-            tokenBAddr: props.tokenB.addr,
-            tokenAValue: props.tokenA.value,
-            tokenBValue: props.tokenB.value,
-            amountAMin: props.amountAMin,
-            amountBMin: computeAmountByTokenValue(props.tokenB.value),
-          }
-        : {
-            tokenAAddr: props.tokenB.addr,
-            tokenBAddr: props.tokenA.addr,
-            tokenAValue: props.tokenB.value,
-            tokenBValue: props.tokenA.value,
-            amountAMin: computeAmountByTokenValue(props.tokenA.value),
-            amountBMin: props.amountBMin,
-          }
-
-    const addLiquidityMethod = this.cfg.contracts.router.methods.addLiquidity(
-      normalized.tokenBAddr,
-      normalized.tokenAAddr,
-      normalized.tokenBValue,
-      normalized.tokenAValue,
-      normalized.amountBMin,
-      normalized.amountAMin,
-      this.cfg.addrs.self,
-      props.deadline,
-    )
-
-    const lqGas = await addLiquidityMethod.estimateGas()
-    const send = () =>
-      addLiquidityMethod.send({
-        from: this.cfg.addrs.self,
-        gas: lqGas,
-        gasPrice: MAGIC_GAS_PRICE,
-      })
-
-    return { gas: lqGas as ValueWei<number>, send }
-  }
-
-  public async addLiquidityKlayForExistingPair({
-    tokenAValue,
-    tokenBValue,
-    addressA,
-    amountAMin,
-    deadline,
-  }: {
-    tokenBValue: BigNumber
-    tokenAValue: BigNumber
-    addressA: Address
-    amountAMin: BigNumber
-    deadline: Deadline
-  }) {
-    const params = {
-      addressA,
-      tokenAValue: tokenAValue.toFixed(0),
-      amountAMin: amountAMin.toFixed(0),
-      amountBMin: tokenBValue.minus(tokenBValue.dividedToIntegerBy(100).toFixed(0)).toFixed(0),
-      address: this.cfg.addrs.self,
-      deadline,
-    }
-
-    const addLiquidityMethod = this.cfg.contracts.router.methods.addLiquidityETH(
-      params.addressA,
-      params.tokenAValue,
-      params.amountAMin,
-      params.amountBMin,
-      params.address,
-      params.deadline,
-    )
-
-    const lqETHGas = await addLiquidityMethod.estimateGas({
-      from: this.cfg.addrs.self,
-      gasPrice: MAGIC_GAS_PRICE,
-      value: tokenBValue.toFixed(0),
+    test('no native tokens', () => {
+      expect(
+        detectEth({
+          tokenA: { addr: tokens.test1, desired: asWei('123') },
+          tokenB: { addr: tokens.test2, desired: asWei('321') },
+        }),
+      ).toBe(null)
     })
 
-    const send = async () =>
-      await addLiquidityMethod.send({
-        from: this.cfg.addrs.self,
-        gasPrice: MAGIC_GAS_PRICE,
-        gas: lqETHGas,
-        value: tokenBValue.toFixed(0),
-      })
-
-    return { gas: lqETHGas, send }
-  }
-
-  public async addLiquidityKlay({
-    addressA,
-    tokenAValue,
-    tokenBValue,
-    amountAMin,
-    amountBMin,
-    deadline,
-  }: {
-    addressA: Address
-    tokenAValue: BigNumber
-    tokenBValue: BigNumber
-    amountAMin: BigNumber
-    amountBMin: BigNumber
-    deadline: Deadline
-  }) {
-    const params = {
-      addressA,
-      tokenAValue: tokenAValue.toFixed(0),
-      amountAMin: amountAMin.toFixed(0),
-      amountBMin: amountBMin.toFixed(0), // KLAY
-      deadline,
-      address: this.cfg.addrs.self,
-    }
-
-    const addLiquidityMethod = this.cfg.contracts.router.methods.addLiquidityETH(
-      params.addressA,
-      params.tokenAValue,
-      params.amountAMin,
-      params.amountBMin,
-      params.address,
-      params.deadline,
-    )
-
-    const lqETHGas = await addLiquidityMethod.estimateGas({
-      from: this.cfg.addrs.self,
-      gasPrice: MAGIC_GAS_PRICE,
-      value: tokenBValue.toFixed(0),
+    test('native is the first', () => {
+      expect(
+        detectEth({
+          tokenA: { addr: NATIVE_TOKEN, amount: asWei('123') },
+          tokenB: { addr: tokens.test2, amount: asWei('321') },
+        }),
+      ).toMatchInlineSnapshot(`
+        {
+          "eth": {
+            "addr": "0xae3a8a1D877a446b22249D8676AFeB16F056B44e",
+            "amount": "123",
+          },
+          "token": {
+            "addr": "0x1CDcD477994e86A11E21C27ca907bEA266EA3A0a",
+            "amount": "321",
+          },
+        }
+      `)
     })
 
-    const send = async () =>
-      await addLiquidityMethod.send({
-        from: this.cfg.addrs.self,
-        gasPrice: MAGIC_GAS_PRICE,
-        value: tokenBValue.toFixed(0),
-        gas: lqETHGas,
-      })
-
-    return { gas: lqETHGas, send }
-  }
+    test('native is the second', () => {
+      expect(
+        detectEth({
+          tokenA: { addr: tokens.test2, computedAmount: asWei('123') },
+          tokenB: { addr: NATIVE_TOKEN, amount: asWei('321') },
+        }),
+      ).toMatchInlineSnapshot(`
+        {
+          "eth": {
+            "addr": "0xae3a8a1D877a446b22249D8676AFeB16F056B44e",
+            "amount": "321",
+          },
+          "token": {
+            "addr": "0x1CDcD477994e86A11E21C27ca907bEA266EA3A0a",
+            "computedAmount": "123",
+          },
+        }
+      `)
+    })
+  })
 }

@@ -1,18 +1,21 @@
 <script setup lang="ts">
-const store = useLiquidityPairsStore()
+import { LiquidityPairsPosition } from '../query.liquidity-pairs'
 
-const pairs = computed(() => store.queryAnyway.result?.user?.liquidityPositions ?? null)
+defineProps<{
+  positions: LiquidityPairsPosition[]
+}>()
 </script>
 
 <template>
   <div
-    v-if="pairs"
+    v-if="positions"
     class="px-4 space-y-4"
   >
     <ModuleLiquidityViewPairsListItem
-      v-for="item in pairs"
+      v-for="item in positions"
       :key="item.pair.name"
       :data="item"
+      :always-opened="positions.length === 1"
     />
   </div>
 </template>

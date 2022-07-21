@@ -1,33 +1,25 @@
 <script setup lang="ts">
 import { roundTo } from 'round-to'
 import { toRefs } from '@vueuse/core'
-import { LiquidityPairsPosition, LiquidityPairValueRaw } from '@/store/liquidity'
-import invariant from 'tiny-invariant'
+import { LiquidityPairsPosition, LiquidityPairValueRaw } from '../query.liquidity-pairs'
 import BigNumber from 'bignumber.js'
+import { RouteName } from '@/types'
+import cssRows from '../rows.module.scss'
+
+const cssRowMd = cssRows.rowMd
 
 const props = defineProps<{
   data: LiquidityPairsPosition
+  alwaysOpened?: boolean
 }>()
 
 const { liquidityTokenBalance, pair } = $(toRefs(toRef(props, 'data')))
-const { name, reserve0, reserve1, reserveKLAY, reserveUSD, id: pairId, totalSupply } = $(toRefs($$(pair)))
+const { name, reserve0, reserve1, reserveKLAY, reserveUSD, totalSupply, token0, token1 } = $(toRefs($$(pair)))
 
-const tokensStore = useTokensStore()
-
-const useTokenAnyway = (which: 'token0' | 'token1') =>
-  computed(() => {
-    const token = tokensStore.findTokenData(pair[which].id)
-    invariant(token, () => `Cannot find data for "${which}" (${pair[which].id})`)
-    return token
-  })
-const tokensResolved = reactive({
-  token0: useTokenAnyway('token0'),
-  token1: useTokenAnyway('token1'),
-})
-
-function getTokenSymbol(which: 'token0' | 'token1'): string {
-  return tokensResolved[which].symbol
-}
+const pairAddrs = computed(() => ({
+  tokenA: token0.id,
+  tokenB: token1.id,
+}))
 
 function formatValueRaw(value: LiquidityPairValueRaw) {
   return roundTo(Number(value), 5)
@@ -38,61 +30,69 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
   const percent = new BigNumber(v1).dividedToIntegerBy(100)
   return `${new BigNumber(v2).dividedBy(percent).toFixed(2)}%`
 }
+
+const router = useRouter()
+const addLiquidityStore = useLiquidityAddStore()
+
+function goToAddLiquidity() {
+  addLiquidityStore.setBoth(pairAddrs.value)
+  router.push({ name: RouteName.LiquidityAdd })
+}
+
+const rmLiquidityStore = useLiquidityRmStore()
+
+function goToRemoveLiquidity() {
+  rmLiquidityStore.setTokens(pairAddrs.value)
+  router.push({ name: RouteName.LiquidityRemove })
+}
 </script>
 
 <template>
-  <KlayCollapse>
+  <KlayCollapse v-bind="{ alwaysOpened }">
     <template #head>
-      <div class="pair--head">
-        <div class="pair--icon-f">
-          <KlayCharAvatar :symbol="getTokenSymbol('token0')" />
-        </div>
-        <div class="pair--icon-s">
-          <KlayCharAvatar :symbol="getTokenSymbol('token1')" />
-        </div>
-
-        <span class="pair--names"> {{ name }} </span>
-        <span class="pair--rate">
-          {{ formatValueRaw(totalSupply) }}
-          <span class="pair--rate-gray">(${{ formatValueRaw(reserveUSD) }}) </span>
-        </span>
+      <div class="head flex items-center space-x-2">
+        <KlaySymbolsPair
+          :token-a="token0.symbol"
+          :token-b="token1.symbol"
+        />
+        <span>{{ name }}</span>
+        <span>{{ formatValueRaw(reserveUSD) }}</span>
+        <span class="reserve-usd">(${{ formatValueRaw(reserveUSD) }})</span>
       </div>
     </template>
 
     <template #main>
-      <div class="pair--main">
-        <div class="pair--info">
-          <div class="pair--row">
-            <span>Pooled {{ tokensResolved.token0.name }}</span>
-            <span>
-              {{ formatValueRaw(reserve0) }}
-            </span>
-          </div>
-          <div class="pair--row">
-            <span>Pooled {{ tokensResolved.token1.name }}</span>
-            <span>
-              {{ formatValueRaw(reserve1) }}
-            </span>
-          </div>
-          <div class="pair--row">
-            <span>Your pool tokens:</span>
-            <span>
-              {{ formatValueRaw(liquidityTokenBalance) }}
-            </span>
-          </div>
-          <div class="pair--row">
-            <span>Your pool share:</span>
-            <span>
-              {{ formatPercent(reserveKLAY, liquidityTokenBalance) }}
-            </span>
-          </div>
+      <div class="space-y-4 pt-4">
+        <div :class="cssRowMd">
+          <span>Pooled {{ token0.name }}</span>
+          <span>
+            {{ formatValueRaw(reserve0) }}
+          </span>
+        </div>
+        <div :class="cssRowMd">
+          <span>Pooled {{ token1.name }}</span>
+          <span>
+            {{ formatValueRaw(reserve1) }}
+          </span>
+        </div>
+        <div :class="cssRowMd">
+          <span>Your pool tokens:</span>
+          <span>
+            {{ formatValueRaw(liquidityTokenBalance) }}
+          </span>
+        </div>
+        <div :class="cssRowMd">
+          <span>Your pool share:</span>
+          <span>
+            {{ formatPercent(reserveKLAY, liquidityTokenBalance) }}
+          </span>
         </div>
 
         <div class="grid grid-cols-3 gap-4 mt-4">
-          <KlayButton disabled>
+          <KlayButton @click="goToAddLiquidity()">
             Add
           </KlayButton>
-          <KlayButton disabled>
+          <KlayButton @click="goToRemoveLiquidity()">
             Remove
           </KlayButton>
           <KlayButton
@@ -110,55 +110,15 @@ function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
 <style lang="scss" scoped>
 @import '@/styles/vars';
 
-.pair {
-  &--head {
-    display: flex;
-    align-items: center;
-    padding: 5px 0;
-    cursor: pointer;
-    width: 100%;
-  }
-  &--icon-f,
-  &--icon-s {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: block;
-  }
-  &--icon-s {
-    margin-left: -10px;
-    margin-right: 10px;
-  }
-  &--names {
-    font-style: normal;
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 17px;
-    color: $dark;
-    margin-right: 8px;
-  }
-  &--rate {
-    font-style: normal;
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 17px;
-    color: $dark;
-    &-gray {
-      color: $gray4;
-    }
-  }
-  &--info {
-    margin-top: 11px;
-  }
-  &--row {
-    font-style: normal;
-    font-weight: 500;
-    font-size: 14px;
-    line-height: 230%;
-    color: $dark;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+.head {
+  font-size: 14px;
+  font-weight: 600;
+  color: $dark2;
+  user-select: none;
+}
+
+.reserve-usd {
+  color: $gray2;
+  font-weight: 500;
 }
 </style>

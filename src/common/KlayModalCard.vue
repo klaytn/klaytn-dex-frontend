@@ -27,7 +27,7 @@ const api = useModalApi()
     </div>
 
     <slot name="body">
-      <div class="px-4 py-5">
+      <div class="px-4 pb-5">
         <slot />
       </div>
     </slot>

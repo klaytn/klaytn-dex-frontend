@@ -1,6 +1,9 @@
-import { ValueWei, fromWei } from '@/core/kaikas'
+import { asWei, ValueWei } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
+import BN from 'bn.js'
 import rfdc from 'rfdc'
+import { roundTo } from 'round-to'
+import { buildPair, TokensPair } from './pair'
 
 const reallyFastDeepClone = rfdc()
 
@@ -21,12 +24,6 @@ export function formatPercent(v1: string, v2: string) {
   return `${bigNB.dividedBy(percent).toFixed(2)}%`
 }
 
-export function formatWeiValue(value: ValueWei<string>): string {
-  if (!value) return '-'
-  const bn = new BigNumber(fromWei(value))
-  return bn.toFixed(4)
-}
-
 export function deepClone<T>(object: T): T {
   return reallyFastDeepClone(object)
 }
@@ -36,6 +33,35 @@ export function stringHashForHsl(str: string): number {
     const h = c.charCodeAt(0) + ((a << 4) - a)
     return h % 360
   }, 0)
+}
+
+/**
+ * Snake-case seems more suitable here
+ */
+export interface Rates {
+  a_per_b: ValueWei<BigNumber>
+  b_per_a: ValueWei<BigNumber>
+}
+
+export type RatesRounded = {
+  [K in keyof Rates]: number
+}
+
+export function computeRates(pair: TokensPair<ValueWei<number | string | BigNumber | BN>>): Rates {
+  const nums = buildPair((type) => {
+    const value = pair[type]
+    return new BigNumber(value instanceof BN ? value.toString() : value)
+  })
+  const a_per_b = asWei(nums.tokenA.dividedBy(nums.tokenB))
+  const b_per_a = asWei(new BigNumber(1).dividedBy(a_per_b))
+  return { a_per_b, b_per_a }
+}
+
+export function roundRates({ a_per_b, b_per_a }: Rates): RatesRounded {
+  return {
+    a_per_b: roundTo(a_per_b.toNumber(), 7),
+    b_per_a: roundTo(b_per_a.toNumber(), 7),
+  }
 }
 
 if (import.meta.vitest) {
@@ -58,12 +84,6 @@ if (import.meta.vitest) {
 
     test('case 2', () => {
       expect(formatPercent('1000', '3.5')).toMatchInlineSnapshot('"0.35%"')
-    })
-  })
-
-  describe('format wei value', () => {
-    test('case 1', () => {
-      expect(formatWeiValue('1523515128848712348' as ValueWei<string>)).toMatchInlineSnapshot('"1.5235"')
     })
   })
 }

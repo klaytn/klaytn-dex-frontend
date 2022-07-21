@@ -1,25 +1,38 @@
-<script setup lang="ts" name="KlayCollapse">
+<script setup lang="ts">
+import { SCollapseTransition } from '@soramitsu-ui/ui'
+
+defineProps<{
+  alwaysOpened?: boolean
+}>()
+
 const isOpen = ref(false)
 </script>
 
 <template>
-  <div class="collapse">
+  <div class="collapse px-4">
     <div
-      class="collapse--head"
+      class="flex items-center cursor-pointer py-2"
       @click="isOpen = !isOpen"
     >
       <slot name="head" />
       <div
-        class="icon-wrap"
-        :style="{ transform: `rotate(${isOpen ? 180 : 0}deg)` }"
+        v-if="!alwaysOpened"
+        class="ml-auto"
+        :class="{
+          'chevron--opened rotate-180': isOpen,
+        }"
       >
         <IconKlayCollapseArrow />
       </div>
     </div>
-    <slot
-      v-if="isOpen"
-      name="main"
-    />
+
+    <SCollapseTransition>
+      <div v-if="isOpen || alwaysOpened">
+        <div class="mb-4">
+          <slot name="main" />
+        </div>
+      </div>
+    </SCollapseTransition>
   </div>
 </template>
 
@@ -28,22 +41,11 @@ const isOpen = ref(false)
 
 .collapse {
   border: 1px solid $gray6;
-  box-sizing: border-box;
   border-radius: 8px;
-  padding: 8px 16px;
   background: $white;
-  text-align: left;
+}
 
-  &--head {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-  }
-
-  & .icon-wrap {
-    margin-left: auto;
-    display: flex;
-  }
+.chevron--opened {
+  color: $blue;
 }
 </style>

@@ -28,42 +28,8 @@ export interface Klaytn {
 export interface Token {
   address: Address
   name: string
-
-  /**
-   * FIXME describe. What is the difference between `value` and `balance`?
-   * Is it ether value?
-   *
-   * TODO should be removed from here completely
-   */
-  // value?: string
-
-  /**
-   * FIXME describe
-   */
-  symbol: string
-
+  symbol: TokenSymbol
   decimals: number
-
-  /**
-   * TODO should be removed from here too
-   * it is a temporary value, but `Token` seems to be generally static
-   */
-  // balance: Balance
-
-  // /**
-  //  * FIXME what is a price? Why it is `-`? Should be typed stricter
-  //  * maybe from CoinMarketCap too
-  //  */
-  // price?: string
-
-  // rudiment from CoinMarketCap integration
-  // logo?: string
-  // slug?: string
-
-  // /**
-  //  * Address too? Usually is the same as `address` field
-  //  */
-  // id?: Address
 }
 
 /**
@@ -88,8 +54,6 @@ export type Balance<T extends AnyNumber = string> = ValueWei<T>
 
 export type AnyNumber = number | string | BN | BigNumber
 
-export type ValueEther<T extends AnyNumber = AnyNumber> = Opaque<T, 'ValueEther'>
-
 export type ValueWei<T extends AnyNumber = AnyNumber> = Opaque<T, 'ValueWei'>
 
 /**
@@ -103,24 +67,4 @@ export type ValueWei<T extends AnyNumber = AnyNumber> = Opaque<T, 'ValueWei'>
  */
 export type Deadline = Opaque<number, 'Deadline'>
 
-// /**
-//  * FIXME describe all internals
-//  *
-//  */
-// export interface Pair {
-//   userBalance: Balance
-//   pairBalance: Balance
-//   symbol: string
-//   name: string
-//   reserves: {
-//     _reserve0: string
-//     _reserve1: string
-//     _blockTimestampLast: string
-//     0: string
-//     1: string
-//     2: string
-//   }
-//   address: Address
-//   symbolA?: string | undefined
-//   symbolB?: string | undefined
-// }
+export type WeiNumStrBn = ValueWei<number | string | BN>
