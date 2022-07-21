@@ -3,6 +3,8 @@ const modal = ref(false)
 </script>
 
 <template>
+  <ModuleLiquidityAddConfirmModal v-model="modal" />
+
   <div class="space-y-4 px-4">
     <ModuleLiquidityAddExchangeRate />
 
@@ -15,7 +17,7 @@ const modal = ref(false)
       Supply
     </KlayButton>
 
-    <ModuleLiquidityAddConfirmModal v-model="modal" />
+    <ModuleLiquidityAddDetails />
 
     <!-- TODO -->
     <!-- <Details v-if="false && selectedTokens.tokenA?.value && selectedTokens.tokenB?.value">

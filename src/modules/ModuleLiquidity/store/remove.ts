@@ -2,26 +2,16 @@ import { Address, asWei, Token, tokenRawToWei, tokenWeiToRaw, ValueWei, WeiNumSt
 import { LP_TOKEN_DECIMALS as LP_TOKEN_DECIMALS_VALUE } from '@/core/kaikas/const'
 import { usePairAddress, usePairReserves } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { buildPair, TokensPair, TOKEN_TYPES } from '@/utils/pair'
-import { useDanglingScope, useScope, useTask, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
+import { useDanglingScope, useScope, useTask, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
 import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
-import { computeRates, roundRates } from '@/utils/common'
-import { MaybeRef } from '@vueuse/core'
 import { roundTo } from 'round-to'
+import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 
 const LP_TOKENS_DECIMALS = Object.freeze({ decimals: LP_TOKEN_DECIMALS_VALUE })
-
-function useRates(amounts: MaybeRef<null | TokensPair<ValueWei<BN>>>) {
-  return computed(() => {
-    const { tokenA, tokenB } = unref(amounts) || {}
-    if (!tokenB || !tokenA) return null
-    const rates = computeRates({ tokenA, tokenB })
-    return roundRates(rates)
-  })
-}
 
 function useRemoveAmounts(
   tokens: Ref<null | TokensPair<Address>>,
@@ -114,12 +104,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   const pairUserBalance = computed(() => pair.pair?.userBalance)
   const pairReserves = usePairReserves(selected)
 
-  const poolShare = computed(() => {
-    const total = unref(pairTotalSupply)
-    const user = unref(pairUserBalance)
-    if (!total || !user) return null
-    return new BigNumber(user).div(total).toNumber()
-  })
+  const poolShare = toRef(pair, 'poolShare')
   const formattedPoolShare = computed(() => {
     const value = poolShare.value
     if (!value) return null

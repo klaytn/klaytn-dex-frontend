@@ -1,5 +1,5 @@
-import { ValueWei, deadlineFiveMinutesFromNow, tokenWeiToRaw, Address } from '@/core/kaikas'
-import { usePairAddress } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
+import { ValueWei, deadlineFiveMinutesFromNow, tokenWeiToRaw, Address, asWei } from '@/core/kaikas'
+import { usePairAddress, usePairReserves } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { useTokensInput } from '@/modules/ModuleTradeShared/composable.tokens-input'
 import { buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
 import { Status } from '@soramitsu-ui/ui'
@@ -7,6 +7,8 @@ import { useDanglingScope, useStaleIfErrorState, useTask, wheneverTaskSucceeds }
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import Debug from 'debug'
+import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
+import BN from 'bn.js'
 
 const debug = Debug('liquidity-add-store')
 
@@ -14,10 +16,20 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const kaikasStore = useKaikasStore()
 
   const selection = useTokensInput({ localStorageKey: 'liquidity-store-input' })
+  const { tokens: selectionTokens } = selection
+  const selectionTokensSymbols = computed(() => {
+    if (!selectionTokens.tokenA || !selectionTokens.tokenB) return null
+    return buildPair((type) => selectionTokens[type]!.symbol)
+  })
+
   const addrsReadonly = readonly(selection.addrsWritable)
 
   const pair = usePairAddress(addrsReadonly)
   const isEmptyPair = computed(() => pair.result === 'empty')
+  const { poolShare } = toRefs(pair)
+  const formattedPoolShare = useFormattedPercent(poolShare, 7)
+
+  const pairReserves = usePairReserves(addrsReadonly)
 
   const quoteFor = ref<null | TokenType>(null)
 
@@ -102,6 +114,18 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     { immediate: true, deep: true },
   )
 
+  const rates = useRates(
+    computed(() => {
+      if (!selection.wei.tokenA || !selection.wei.tokenB) return null
+      if (!quoteForTask.value?.completed) return null
+      return buildPair((type) => {
+        const wei = selection.wei[type]!.input
+        const bn = asWei(new BN(wei))
+        return bn
+      })
+    }),
+  )
+
   const addLiquidityTask = useTask(async () => {
     const kaikas = kaikasStore.getKaikasAnyway()
 
@@ -149,15 +173,20 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   return {
     selection,
-    addLiquidity: () => addLiquidityTask.run(),
+    selectionTokensSymbols,
     isAddLiquidityPending,
     isEmptyPair,
     pair,
+    poolShare,
+    formattedPoolShare,
     quoteForTask,
+    rates,
+    pairReserves,
 
     isSubmitted,
-    clearSubmittion,
 
+    clearSubmittion,
+    addLiquidity: () => addLiquidityTask.run(),
     input,
     setToken,
     setBoth,
