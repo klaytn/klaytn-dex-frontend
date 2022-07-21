@@ -50,13 +50,10 @@ const formattedBalance = computed(() => {
         v-if="tokensNormalized"
         class="space-x-2 flex items-center"
       >
-        <div class="flex">
-          <KlayCharAvatar :symbol="tokensNormalized.tokenA.symbol" />
-          <KlayCharAvatar
-            :symbol="tokensNormalized.tokenB.symbol"
-            class="-ml-1"
-          />
-        </div>
+        <KlaySymbolsPair
+          :token-a="tokensNormalized.tokenA.symbol"
+          :token-b="tokensNormalized.tokenB.symbol"
+        />
 
         <span class="pair-symbols"> {{ tokensNormalized.tokenA.symbol }}-{{ tokensNormalized.tokenB.symbol }} </span>
       </div>

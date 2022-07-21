@@ -3,9 +3,16 @@ import { storeToRefs } from 'pinia'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { roundTo } from 'round-to'
 import { tokenWeiToRaw, asWei } from '@/core/kaikas'
+import cssRows from '../rows.module.scss'
 
 const store = useLiquidityRmStore()
-const { amounts, selectedTokensData: tokens, selectedTokensSymbols: symbols, rates } = storeToRefs(store)
+const {
+  amounts,
+  selectedTokensData: tokens,
+  selectedTokensSymbols: symbols,
+  rates,
+  isAmountsPending,
+} = storeToRefs(store)
 
 const formattedAmounts = computed(() => {
   if (!amounts.value || !tokens.value) return null
@@ -21,13 +28,19 @@ const formattedAmounts = computed(() => {
     <h4 class="flex items-center space-x-2 mb-4">
       <span> You will receive </span>
       <IconKlayImportant />
+
+      <KlayLoader
+        v-if="isAmountsPending"
+        size="16"
+      />
     </h4>
 
     <div class="space-y-3 mb-4">
       <div
         v-for="token in TOKEN_TYPES"
         :key="token"
-        class="row flex items-center justify-between"
+        class="flex items-center justify-between"
+        :class="cssRows.rowSm"
       >
         <div class="flex items-center space-x-2">
           <KlayCharAvatar :symbol="symbols[token]" />
@@ -41,18 +54,12 @@ const formattedAmounts = computed(() => {
       </div>
     </div>
 
-    <div class="space-y-5">
+    <div class="space-y-4">
       <RowsRates
         :symbols="symbols"
         :rounded-rates="rates"
+        :class="[cssRows.rowSm, cssRows.rowSmDimmed]"
       />
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.row {
-  font-size: 12px;
-  font-weight: 500;
-}
-</style>

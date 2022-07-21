@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia'
 import { tokenWeiToRaw } from '@/core/kaikas'
 import { LP_TOKEN_DECIMALS } from '@/core/kaikas/const'
 import { roundTo } from 'round-to'
+import cssRows from '../rows.module.scss'
 
 const store = useLiquidityRmStore()
 const {
@@ -46,7 +47,7 @@ const formattedPoolTokens = computed(() => {
         <div
           v-for="token in TOKEN_TYPES"
           :key="token"
-          class="row"
+          :class="cssRows.rowMd"
         >
           <span>Pooled {{ symbols[token] }}</span>
           <span>
@@ -57,7 +58,7 @@ const formattedPoolTokens = computed(() => {
           </span>
         </div>
 
-        <div class="row">
+        <div :class="cssRows.rowMd">
           <span>Your pool tokens:</span>
           <span>
             <template v-if="formattedPoolTokens">{{ formattedPoolTokens }}</template>
@@ -65,7 +66,7 @@ const formattedPoolTokens = computed(() => {
           </span>
         </div>
 
-        <div class="row">
+        <div :class="cssRows.rowMd">
           <span>Your pool share:</span>
           <span>
             <template v-if="formattedPoolShare">{{ formattedPoolShare }}</template>
@@ -80,17 +81,5 @@ const formattedPoolTokens = computed(() => {
 <style lang="scss" scoped>
 h3 {
   font-size: 14px;
-}
-
-.row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
-  font-weight: 500;
-
-  & > :last-child {
-    font-weight: 600;
-  }
 }
 </style>

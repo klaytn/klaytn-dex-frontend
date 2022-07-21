@@ -162,12 +162,10 @@ function handleModalClose() {
           <KlayCharAvatar
             v-bem="'icon'"
             :symbol="pool.rewardToken.symbol"
-            :lightness="65"
           />
           <KlayCharAvatar
             v-bem="'icon'"
             :symbol="pool.stakeToken.symbol"
-            :lightness="75"
           />
         </div>
         <div v-bem="'title'">

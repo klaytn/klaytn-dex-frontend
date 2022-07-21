@@ -7,25 +7,16 @@ import BN from 'bn.js'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
-import { computeRates, roundRates } from '@/utils/common'
-import { MaybeRef } from '@vueuse/core'
 import { roundTo } from 'round-to'
+import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 
 const LP_TOKENS_DECIMALS = Object.freeze({ decimals: LP_TOKEN_DECIMALS_VALUE })
-
-function useRates(amounts: MaybeRef<null | TokensPair<ValueWei<BN>>>) {
-  return computed(() => {
-    const { tokenA, tokenB } = unref(amounts) || {}
-    if (!tokenB || !tokenA) return null
-    const rates = computeRates({ tokenA, tokenB })
-    return roundRates(rates)
-  })
-}
 
 function usePrepareSupply(props: {
   tokens: Ref<null | TokensPair<Address>>
   pairAddress: Ref<null | Address>
   liquidity: Ref<ValueWei<string> | null>
+  // TODO amounts
 }) {
   const kaikasStore = useKaikasStore()
 
@@ -188,13 +179,12 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   const pairTotalSupply = computed(() => existingPair.value?.totalSupply)
   const pairUserBalance = computed(() => existingPair.value?.userBalance)
   const { result: pairReserves, pending: isReservesPending } = usePairReserves(selected)
+  // const pair = usePairAddress(reactive(buildPair((type) => selected.value?.[type])))
+  const isPairLoaded = computed(() => !!existingPair.value)
 
-  const poolShare = computed(() => {
-    const total = unref(pairTotalSupply)
-    const user = unref(pairUserBalance)
-    if (!total || !user) return null
-    return new BigNumber(user).div(total).toNumber()
-  })
+  // TODO
+  const poolShare = ref(0)
+
   const formattedPoolShare = computed(() => {
     const value = poolShare.value
     if (!value) return null
@@ -287,6 +277,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     pairReserves,
     isReservesPending,
     isPairPending,
+    isPairLoaded,
     poolShare,
     formattedPoolShare,
 

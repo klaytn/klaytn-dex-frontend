@@ -1,4 +1,4 @@
-import { ValueWei, deadlineFiveMinutesFromNow, tokenWeiToRaw, Address } from '@/core/kaikas'
+import { ValueWei, deadlineFiveMinutesFromNow, tokenWeiToRaw, Address, asWei } from '@/core/kaikas'
 import { usePairAddress, PairAddressResult } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { useTokensInput, TokenInputWei } from '@/modules/ModuleTradeShared/composable.tokens-input'
 import { buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
@@ -71,7 +71,28 @@ function useQuoting(props: {
   return { pendingFor, exchangeRate }
 }
 
+import Debug from 'debug'
+import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
+import BN from 'bn.js'
+
+const debug = Debug('liquidity-add-store')
+
 export const useLiquidityAddStore = defineStore('liquidity-add', () => {
+  // const { tokens: selectionTokens } = selection
+  // const selectionTokensSymbols = computed(() => {
+  //   if (!selectionTokens.tokenA || !selectionTokens.tokenB) return null
+  //   return buildPair((type) => selectionTokens[type]!.symbol)
+  // })
+
+  // const addrsReadonly = readonly(selection.addrsWritable)
+
+  // const pair = usePairAddress(addrsReadonly)
+  // const isEmptyPair = computed(() => pair.result === 'empty')
+  // const { poolShare } = toRefs(pair)
+  // const formattedPoolShare = useFormattedPercent(poolShare, 7)
+
+  // const pairReserves = usePairReserves(addrsReadonly)
+
   const kaikasStore = useKaikasStore()
 
   const selection = useTokensInput()
@@ -96,6 +117,18 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
       }
     },
     { immediate: true, deep: true },
+  )
+
+  const rates = useRates(
+    computed(() => {
+      if (!selection.wei.tokenA || !selection.wei.tokenB) return null
+      if (!quoteForTask.value?.completed) return null
+      return buildPair((type) => {
+        const wei = selection.wei[type]!.input
+        const bn = asWei(new BN(wei))
+        return bn
+      })
+    }),
   )
 
   const {
@@ -141,7 +174,6 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   return {
     selection,
-    addLiquidity,
     isAddLiquidityPending,
     isEmptyPair,
     pair: gotPair,
@@ -150,8 +182,9 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     quoteExchangeRate,
 
     isSubmitted,
-    clearSubmittion,
 
+    addLiquidity,
+    clearSubmittion,
     input,
     setToken,
     setBoth,
