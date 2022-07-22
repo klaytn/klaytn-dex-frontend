@@ -9,6 +9,7 @@ describe.each([0n, 42n, 15n * 10n ** 18n, 99n * 10n ** 40n])('Wei creation & cas
 
     const wei = new Wei(str)
 
+    expect(wei.asBigInt).toEqual(NUMBER)
     expect(wei.asBigNum.toFixed()).toEqual(str)
     expect(wei.asBN.toString()).toEqual(str)
     expect(wei.asStr).toEqual(str)
@@ -22,6 +23,7 @@ describe.each([0n, 42n, 15n * 10n ** 18n, 99n * 10n ** 40n])('Wei creation & cas
       const wei = new Wei(num)
 
       expect(wei.asStr).toEqual(numStr)
+      expect(wei.asBigInt).toEqual(NUMBER)
       expect(wei.asBigNum.toString()).toEqual(new BigNumber(num).toString())
       expect(wei.asBN.toString()).toEqual(new BN(num).toString())
     })
@@ -32,6 +34,7 @@ describe.each([0n, 42n, 15n * 10n ** 18n, 99n * 10n ** 40n])('Wei creation & cas
 
     const wei = new Wei(num)
 
+    expect(wei.asBigInt).toEqual(NUMBER)
     expect(wei.asStr).toEqual(NUMBER.toString())
     expect(wei.asBigNum.toFixed()).toEqual(NUMBER.toString())
     expect(wei.asBN.toString()).toEqual(NUMBER.toString())
@@ -42,6 +45,7 @@ describe.each([0n, 42n, 15n * 10n ** 18n, 99n * 10n ** 40n])('Wei creation & cas
 
     const wei = new Wei(num)
 
+    expect(wei.asBigInt).toEqual(NUMBER)
     expect(wei.asStr).toEqual(NUMBER.toString())
     expect(wei.asBigNum.toFixed()).toEqual(NUMBER.toString())
     expect(wei.asBN.toString()).toEqual(NUMBER.toString())
@@ -50,6 +54,7 @@ describe.each([0n, 42n, 15n * 10n ** 18n, 99n * 10n ** 40n])('Wei creation & cas
   test('from bigint', () => {
     const wei = new Wei(NUMBER)
 
+    expect(wei.asBigInt).toEqual(NUMBER)
     expect(wei.asStr).toEqual(NUMBER.toString())
     expect(wei.asBigNum.toFixed()).toEqual(NUMBER.toString())
     expect(wei.asBN.toString()).toEqual(NUMBER.toString())
@@ -97,6 +102,27 @@ test('Wei in a reactive Vue tree is not reactive itself', () => {
   const wei = ref(new Wei(0))
 
   expect(isReactive(wei.value)).toBe(false)
+})
+
+test('Constructing Wei from "0x" number', () => {
+  const wei = new Wei('0x4321')
+
+  expect(wei.asBigInt).toEqual(0x4321n)
+  expect(wei.asStr).toEqual((0x4321).toString())
+})
+
+test('Constructing Wei from "0o" number', () => {
+  const wei = new Wei('0o5512')
+
+  expect(wei.asBigInt).toEqual(0o5512n)
+  expect(wei.asStr).toEqual((0o5512).toString())
+})
+
+test('Constructing Wei from "0b" number', () => {
+  const wei = new Wei('0b111010')
+
+  expect(wei.asBigInt).toEqual(0b111010n)
+  expect(wei.asStr).toEqual((0b111010).toString())
 })
 
 // type tests

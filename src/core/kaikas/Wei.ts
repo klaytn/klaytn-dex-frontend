@@ -40,14 +40,20 @@ function convert<R extends Representation>(value: ReprValue, repr: R): Represent
   // naive impl: convert value to bigint, then bigint to repr
 
   const bi =
-    typeof value === 'string' || typeof value === 'number'
+    typeof value === 'string' || typeof value === 'number' || typeof value === 'bigint'
       ? BigInt(value)
       : BigNumber.isBigNumber(value)
       ? BigInt(value.toFixed())
       : BigInt(value.toString())
 
   return (
-    repr === 'string' ? bi.toString() : repr === 'BigNumber' ? new BigNumber(bi.toString()) : new BN(bi.toString())
+    repr === 'bigint'
+      ? bi
+      : repr === 'string'
+      ? bi.toString()
+      : repr === 'BigNumber'
+      ? new BigNumber(bi.toString())
+      : new BN(bi.toString())
   ) as RepresentationMap[R]
 }
 
@@ -71,10 +77,9 @@ function setRepr(map: RepresentationMapNullable, value: WeiInputValue): void {
     invariant(Number.isInteger(value), () => `number should be an integer, got: ${value}`)
     invariant(Number.isSafeInteger(value), 'number should be a safe integer')
     map.string = String(value)
-  } else if (typeof value === 'string') {
-    map.string = value
-  } else if (typeof value === 'bigint') {
-    map.bigint = value
+  } else if (typeof value === 'string' || typeof value === 'bigint') {
+    // it may be a number in a form like `0x4123`, so let BigInt parse it
+    map.bigint = BigInt(value)
   } else if (BigNumber.isBigNumber(value)) {
     map.BigNumber = value
   } else {
