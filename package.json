@@ -21,7 +21,7 @@
     "@soramitsu-ui/theme": "^0.3.0",
     "@soramitsu-ui/ui": "^0.6.1",
     "@soramitsu-ui/vite-plugin-svg": "^0.1.0",
-    "@vue-kakuyaku/core": "^0.1.1",
+    "@vue-kakuyaku/core": "^0.2.0",
     "@vue/apollo-composable": "^4.0.0-alpha.18",
     "@vue/apollo-option": "^4.0.0-alpha.18",
     "@vueuse/core": "^8.6.0",
