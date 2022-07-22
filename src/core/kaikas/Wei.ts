@@ -1,16 +1,29 @@
 import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
 import invariant from 'tiny-invariant'
+import { Opaque } from 'type-fest'
 import { Token } from './types'
 
-export type WeiInputValue = number | string | BigNumber | BN
+export type WeiInputValue = number | string | BigNumber | BN | bigint
 
-type Representation = 'string' | 'BigNumber' | 'BN'
+/**
+ * It is a number constructed from Wei using token decimals.
+ */
+export type WeiAsToken = Opaque<string, 'TokenValue'>
+
+/**
+ * Useful for typing in cases you need to mark value as wei
+ * when it comes from external, i.e. from apollo
+ */
+export type WeiRaw<T extends WeiInputValue> = Opaque<T, 'WeiRaw'>
+
+type Representation = 'string' | 'BigNumber' | 'BN' | 'bigint'
 
 interface RepresentationMap {
   string: string
   BigNumber: BigNumber
   BN: BN
+  bigint: bigint
 }
 
 type ReprValue = RepresentationMap[Representation]
@@ -20,7 +33,7 @@ type RepresentationMapNullable = {
 }
 
 function emptyReprMap(): RepresentationMapNullable {
-  return { string: null, BigNumber: null, BN: null }
+  return { string: null, BigNumber: null, BN: null, bigint: null }
 }
 
 function convert<R extends Representation>(value: ReprValue, repr: R): RepresentationMap[R] {
@@ -40,6 +53,7 @@ function convert<R extends Representation>(value: ReprValue, repr: R): Represent
 
 function convertFromExisting<R extends Representation>(map: RepresentationMapNullable, repr: R): RepresentationMap[R] {
   if (map[repr] !== null) return map[repr]!
+  if (map.bigint !== null) return convert(map.bigint, repr)
   if (map.string !== null) return convert(map.string, repr)
   if (map.BigNumber !== null) return convert(map.BigNumber, repr)
   if (map.BN !== null) return convert(map.BN, repr)
@@ -59,6 +73,8 @@ function setRepr(map: RepresentationMapNullable, value: WeiInputValue): void {
     map.string = String(value)
   } else if (typeof value === 'string') {
     map.string = value
+  } else if (typeof value === 'bigint') {
+    map.bigint = value
   } else if (BigNumber.isBigNumber(value)) {
     map.BigNumber = value
   } else {
@@ -75,8 +91,8 @@ const WeiTag = Symbol('Wei')
 type TokenDecimals = Pick<Token, 'decimals'>
 
 export default class Wei {
-  public static fromTokenRelative({ decimals }: TokenDecimals, value: string): Wei {
-    const num = new BigNumber(value).multipliedBy(new BigNumber(10).pow(decimals))
+  public static fromToken({ decimals }: TokenDecimals, token: WeiAsToken): Wei {
+    const num = new BigNumber(token).multipliedBy(new BigNumber(10).pow(decimals))
     return new Wei(num)
   }
 
@@ -105,9 +121,13 @@ export default class Wei {
     return getAndWriteRepr(this.#reprs, 'BN')
   }
 
-  public toTokenRelative({ decimals }: TokenDecimals): string {
+  public get asBigInt(): bigint {
+    return getAndWriteRepr(this.#reprs, 'bigint')
+  }
+
+  public toToken({ decimals }: TokenDecimals): WeiAsToken {
     const num = this.asBigNum.dividedBy(new BigNumber(10).pow(decimals))
-    return num.toFixed()
+    return num.toFixed() as WeiAsToken
   }
 
   public toString(): string {

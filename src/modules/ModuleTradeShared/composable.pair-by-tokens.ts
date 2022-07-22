@@ -1,4 +1,4 @@
-import { Address, isEmptyAddress, ValueWei } from '@/core/kaikas'
+import { Address, isEmptyAddress, Wei } from '@/core/kaikas'
 import { TokensPair } from '@/utils/pair'
 import { useScope, useTask } from '@vue-kakuyaku/core'
 import BigNumber from 'bignumber.js'
@@ -11,8 +11,8 @@ export function usePairAddress(pair: TokensPair<Address | null | undefined>): {
   result: PairAddressResult
   pair: null | {
     addr: Address
-    totalSupply: ValueWei<string>
-    userBalance: ValueWei<string>
+    totalSupply: Wei
+    userBalance: Wei
   }
   touch: () => void
   poolShare: null | number
@@ -64,7 +64,7 @@ export function usePairAddress(pair: TokensPair<Address | null | undefined>): {
   const poolShare = computed(() => {
     const { userBalance, totalSupply } = loaded.value || {}
     if (!userBalance || !totalSupply) return null
-    return new BigNumber(userBalance).dividedBy(totalSupply).toNumber()
+    return userBalance.asBigNum.dividedBy(totalSupply.asBigNum).toNumber()
   })
 
   return reactive({ pair: loaded, pending, result, touch, poolShare })

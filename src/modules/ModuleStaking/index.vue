@@ -6,7 +6,7 @@ import { usePoolsQuery } from './query.pools'
 import { PAGE_SIZE } from './const'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { useFetchStakingRewards } from './composable.fetch-rewards'
-import { tokenWeiToRaw, asWei, tokenRawToWei } from '@/core/kaikas'
+import { Wei, WeiAsToken, WeiRaw } from '@/core/kaikas'
 import { deepClone } from '@/utils/common'
 
 const kaikasStore = useKaikasStore()
@@ -62,10 +62,9 @@ const pools = computed<Pool[] | null>(() => {
     const reward = rewards.value[pool.id]
     const earned = reward
       ? new BigNumber(
-          tokenWeiToRaw(
+          reward.toToken(
             // FIXME which decimals?
             { decimals: 18 },
-            reward,
           ),
         )
       : null
@@ -82,10 +81,9 @@ const pools = computed<Pool[] | null>(() => {
     }
 
     const staked = new BigNumber(
-      tokenWeiToRaw(
+      new Wei(pool.users[0]?.amount ?? '0').toToken(
         // FIXME which decimals?
         { decimals: 18 },
-        asWei(pool.users[0]?.amount ?? '0'),
       ),
     )
 
@@ -168,23 +166,21 @@ const loading = computed(() => {
 function updateStaked(poolId: Pool['id'], diff: BigNumber) {
   if (!PoolsQuery.result.value) return
 
-  const diffInWei = new BigNumber(
-    tokenRawToWei(
-      // FIXME which decimals?
-      { decimals: 18 },
-      diff.toString(),
-    ),
+  const diffInWei = Wei.fromToken(
+    // FIXME which decimals?
+    { decimals: 18 },
+    diff.toFixed() as WeiAsToken,
   )
   const clonedQueryResult = deepClone(PoolsQuery.result.value)
   const pool = clonedQueryResult.pools.find((pool) => pool.id === poolId)
   if (!pool) return
 
-  pool.totalTokensStaked = new BigNumber(pool.totalTokensStaked).plus(diffInWei).toFixed(0)
+  pool.totalTokensStaked = new BigNumber(pool.totalTokensStaked).plus(diffInWei.asBigNum).toFixed(0) as WeiRaw<string>
 
   const user = pool.users[0] ?? null
   if (!user) return
 
-  user.amount = new BigNumber(user.amount).plus(diffInWei).toFixed(0)
+  user.amount = new BigNumber(user.amount).plus(diffInWei.asBigNum).toFixed(0) as WeiRaw<string>
   PoolsQuery.result.value = clonedQueryResult
 }
 

@@ -1,7 +1,6 @@
-import { Address, asWei } from '@/core/kaikas'
+import { Address, Wei } from '@/core/kaikas'
 import { useTask, wheneverTaskErrors } from '@vue-kakuyaku/core'
 import { Status } from '@soramitsu-ui/ui'
-import BigNumber from 'bignumber.js'
 import { MAX_UINT256 } from './const'
 import { MaybeRef } from '@vueuse/core'
 
@@ -10,7 +9,7 @@ export function useEnableState(addr: MaybeRef<Address>, contractAddr: MaybeRef<A
 
   const checkEnabledTask = useTask(async () => {
     const allowance = await kaikasStore.getKaikasAnyway().cfg.getAllowance(unref(addr), unref(contractAddr))
-    const isEnabled = new BigNumber(allowance).isEqualTo(MAX_UINT256)
+    const isEnabled = allowance.asBigInt === MAX_UINT256
     return isEnabled
   })
   useTaskLog(checkEnabledTask, 'use-enable-state-check')
@@ -21,7 +20,7 @@ export function useEnableState(addr: MaybeRef<Address>, contractAddr: MaybeRef<A
 
   const enableTask = useTask(async () => {
     const kaikas = kaikasStore.getKaikasAnyway()
-    await kaikas.cfg.approveAmount(unref(addr), asWei(MAX_UINT256.toFixed()), unref(contractAddr))
+    await kaikas.cfg.approveAmount(unref(addr), new Wei(MAX_UINT256), unref(contractAddr))
   })
   useTaskLog(enableTask, 'use-enable-state-enable')
   wheneverTaskErrors(enableTask, () => {

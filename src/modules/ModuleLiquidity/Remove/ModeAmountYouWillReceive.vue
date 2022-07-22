@@ -2,7 +2,6 @@
 import { storeToRefs } from 'pinia'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { roundTo } from 'round-to'
-import { tokenWeiToRaw, asWei } from '@/core/kaikas'
 import cssRows from '../rows.module.scss'
 
 const store = useLiquidityRmStore()
@@ -18,7 +17,7 @@ const formattedAmounts = computed(() => {
   if (!amounts.value || !tokens.value) return null
   return buildPair((type) => {
     const data = tokens.value![type]
-    return roundTo(Number(tokenWeiToRaw(data, asWei(amounts.value![type].toString()))), 7)
+    return roundTo(Number(amounts.value![type].toToken(data)), 7)
   })
 })
 </script>

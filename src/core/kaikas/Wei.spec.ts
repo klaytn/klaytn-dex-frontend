@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
 import { test, describe, expect } from 'vitest'
-import Wei from './Wei'
+import Wei, { WeiAsToken } from './Wei'
 
 describe.each([0n, 42n, 15n * 10n ** 18n, 99n * 10n ** 40n])('Wei creation & cast: %s', (NUMBER) => {
   test('from string', () => {
@@ -46,6 +46,14 @@ describe.each([0n, 42n, 15n * 10n ** 18n, 99n * 10n ** 40n])('Wei creation & cas
     expect(wei.asBigNum.toFixed()).toEqual(NUMBER.toString())
     expect(wei.asBN.toString()).toEqual(NUMBER.toString())
   })
+
+  test('from bigint', () => {
+    const wei = new Wei(NUMBER)
+
+    expect(wei.asStr).toEqual(NUMBER.toString())
+    expect(wei.asBigNum.toFixed()).toEqual(NUMBER.toString())
+    expect(wei.asBN.toString()).toEqual(NUMBER.toString())
+  })
 })
 
 describe('Construction from a number', () => {
@@ -67,15 +75,15 @@ describe('Construction from a number', () => {
 
 describe('Wei <-> Token-Relative value', () => {
   test(`'123.42' to wei`, () => {
-    expect(Wei.fromTokenRelative({ decimals: 18 }, '123.42').asStr).toEqual(123420000000000000000n.toString())
+    expect(Wei.fromToken({ decimals: 18 }, '123.42' as WeiAsToken).asStr).toEqual(123420000000000000000n.toString())
   })
 
   test(`'4123' to wei`, () => {
-    expect(Wei.fromTokenRelative({ decimals: 18 }, '4123').asStr).toEqual((4123n * 10n ** 18n).toString())
+    expect(Wei.fromToken({ decimals: 18 }, '4123' as WeiAsToken).asStr).toEqual((4123n * 10n ** 18n).toString())
   })
 
   test(`wei to '123.42`, () => {
-    expect(new Wei(123420000000000000000n.toString()).toTokenRelative({ decimals: 18 })).toEqual('123.42')
+    expect(new Wei(123420000000000000000n.toString()).toToken({ decimals: 18 })).toEqual('123.42')
   })
 })
 

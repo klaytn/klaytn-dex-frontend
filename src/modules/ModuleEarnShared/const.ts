@@ -1,7 +1,6 @@
 import { Address } from '@/core/kaikas'
-import BigNumber from 'bignumber.js'
 
-export const MAX_UINT256 = new BigNumber(2).pow(256).minus(1)
+export const MAX_UINT256 = 2n ** 256n - 1n
 
 export const FORMATTED_BIG_INT_DECIMALS = 6
 
