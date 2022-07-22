@@ -78,10 +78,8 @@ const disabled = computed(() => {
 })
 
 function setMax() {
-  if (operation.value === ModalOperation.Stake) 
-    value.value = `${pool.value.balance}`
-  else
-    value.value = `${pool.value.staked}`
+  if (operation.value === ModalOperation.Stake) value.value = `${pool.value.balance}`
+  else value.value = `${pool.value.staked}`
 }
 
 const stakeTask = useTask(async () => {

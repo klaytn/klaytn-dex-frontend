@@ -40,7 +40,7 @@ export function getBemClasses(props: Props, blockParam?: string): Set<string> {
         if (typeof value === 'boolean') {
           if (value) classList.push(`${classList[0]}--${toSnakeCase(key)}`)
         } else {
-          classList.push(`${classList[0]}--${toSnakeCase(key)}-${value}`)
+          classList.push(`${classList[0]}--${toSnakeCase(key)}--${value}`)
         }
       })
     }
