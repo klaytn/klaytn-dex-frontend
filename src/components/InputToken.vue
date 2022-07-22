@@ -56,7 +56,7 @@ const balanceRaw = $computed(() => {
   return tokenWeiToRaw(tokenData, asWei(balance.toString()))
 })
 const balanceFormatted = $computed(() => {
-  if (!balanceRaw) return '—'
+  if (!balanceRaw) return null
   return roundTo(Number(balanceRaw), 5)
 })
 
@@ -101,7 +101,10 @@ function setToMax() {
         class="balance flex items-center space-x-2"
       >
         <span>
-          <template v-if="isKaikasConnected"> Balance: {{ balanceFormatted }} </template>
+          <template v-if="isKaikasConnected">
+            Balance:
+            <ValueOrDash :value="balanceFormatted" />
+          </template>
           <template v-else> Balance: Connect Wallet </template>
         </span>
         <KlayLoader
