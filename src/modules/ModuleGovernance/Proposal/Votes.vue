@@ -122,7 +122,7 @@ $padding-bottom: 19px
     height: 54px
     border-bottom: 1px solid $gray5
     &-voter, &-vp
-      width: calc(50% - 50px)
+      width: calc(50% - 150px)
     &-vp
       text-align: right
   &__view-more

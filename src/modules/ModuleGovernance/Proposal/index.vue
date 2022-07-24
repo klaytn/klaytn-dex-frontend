@@ -1,8 +1,8 @@
 <script setup lang="ts" name="ModuleGovernanceProposal">
-import { Address } from '@/core/kaikas';
-import { POSITIVE_CHOICES } from '../const'
+import { Address } from '@/core/kaikas'
 import { useProposalQuery } from '../query.proposal'
-import { Proposal, ProposalState } from '../types'
+import { Proposal } from '../types'
+import { getProposalStatus } from '../utils'
 
 const vBem = useBemClass()
 const route = useRoute()
@@ -17,33 +17,20 @@ const rawProposal = computed(() => {
 const proposal = computed<Proposal | null>(() => {
   if (rawProposal.value === null) return null
 
-  const { id, title, start, end, choices, scores, body } = rawProposal.value
-  let state: ProposalState | null = null
-  if (rawProposal.value.state === 'active')
-    state = ProposalState.Active
-  else {
-    const positiveChoices = POSITIVE_CHOICES.map(choice => choice.toLocaleLowerCase())
-    const proposalChoicesInLowerCase = [...choices].map(choice => choice.toLowerCase())
-    const hasPositiveChoice = positiveChoices.some(positiveChoice => proposalChoicesInLowerCase.includes(positiveChoice))
-    if (hasPositiveChoice) {
-      const maxScore = Math.max(...scores)
-      const resultChoice = choices[scores.indexOf(maxScore)]
-      if (positiveChoices.includes(resultChoice.toLocaleLowerCase()))
-        state = ProposalState.Executed
-      else
-        state = ProposalState.Defeated
-    } else
-      state = ProposalState.Finished
-  }
+  const { id, title, state, start, end, choices, scores, scores_total, body, author, snapshot } = rawProposal.value
+  const status = getProposalStatus({ state, scores, choices })
   return {
     id,
     title,
     start,
     end,
-    state,
+    status,
     choices,
     scores,
+    scoresTotal: scores_total,
     body,
+    author,
+    snapshot
   }
 })
 
@@ -90,6 +77,7 @@ const loading = ProposalQuery.loading
   box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05)
   &__body
     display: flex
+    flex: 1
   &__content
     flex: 1
     min-width: 0

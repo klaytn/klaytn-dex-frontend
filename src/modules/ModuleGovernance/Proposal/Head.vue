@@ -28,7 +28,7 @@ function share() {
     >
       {{ t('ModuleGovernanceProposalHead.share') }}
     </KlayButton>
-    <ModuleGovernanceProposalState :state="proposal.state" />
+    <ModuleGovernanceProposalStatus :status="proposal.status" />
   </div>
 </template>
 
@@ -47,5 +47,5 @@ function share() {
     font-size: 20px
     font-weight: 600
   &__share
-    margin-right: 16px
+    margin: 0 16px
 </style>

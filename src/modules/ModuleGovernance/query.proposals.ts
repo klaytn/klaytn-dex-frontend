@@ -3,6 +3,7 @@ import gql from 'graphql-tag'
 import { Ref } from 'vue'
 import { Address } from '@/core/kaikas'
 import { PAGE_SIZE } from './const'
+import { ProposalState } from './types'
 
 export interface ProposalsQueryResult {
   proposals: {
@@ -10,7 +11,7 @@ export interface ProposalsQueryResult {
     title: string
     start: number
     end: number
-    state: 'active' | 'closed'
+    state: ProposalState
     choices: string[]
     scores: number[]
   }[]
