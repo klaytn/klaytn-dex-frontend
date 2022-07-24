@@ -83,3 +83,9 @@ if (import.meta.vitest) {
     })
   })
 }
+
+export function shortenStringInTheMiddle(string: string) {
+  const stringLength = string.length
+  return `${string.slice(2, 6)}...${string.slice(stringLength - 6, stringLength - 2)}`
+}
+

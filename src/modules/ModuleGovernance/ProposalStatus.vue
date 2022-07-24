@@ -1,25 +1,25 @@
-<script setup lang="ts" name="ModuleGovernanceProposalState">
-import { ProposalState } from './types'
+<script setup lang="ts" name="ModuleGovernanceProposalStatus">
+import { ProposalStatus } from './types'
 
 const { t } = useI18n()
 const vBem = useBemClass()
 
 const props = defineProps<{
-  state: ProposalState
+  status: ProposalStatus
 }>()
-const { state } = toRefs(props)
+const { status } = toRefs(props)
 </script>
 
 <template>
-  <div v-bem="{ type: state }">
-    {{ t(`common.proposalState.${state}`) }}
+  <div v-bem="{ type: status }">
+    {{ t(`common.proposalState.${status}`) }}
   </div>
 </template>
 
 <style lang="sass">
 @import '@/styles/vars.sass'
 
-.module-governance-proposal-state
+.module-governance-proposal-status
   display: flex
   justify-content: center
   align-items: center

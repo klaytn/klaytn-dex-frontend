@@ -65,7 +65,6 @@ export function useBemClass() {
       if (oldClassList) {
         oldClassList.forEach((item) => {
           if (!newClassList.has(item)) {
-            console.log(newClassList, item)
             el.classList.remove(item)
           }
         })

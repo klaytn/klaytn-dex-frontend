@@ -2,6 +2,7 @@ import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { Ref } from 'vue'
 import { Address } from '@/core/kaikas'
+import { ProposalState } from './types'
 
 export interface ProposalQueryResult {
   proposal: {
@@ -9,10 +10,13 @@ export interface ProposalQueryResult {
     title: string
     start: number
     end: number
-    state: 'active' | 'closed'
+    state: ProposalState
     choices: string[]
     scores: number[],
+    scores_total: number,
     body: string
+    author: Address,
+    snapshot: number
   }
 }
 
@@ -30,7 +34,10 @@ export function useProposalQuery(id: Ref<Address>) {
           state
           choices
           scores
+          scores_total
           body
+          author
+          snapshot
         }
       }
     `,

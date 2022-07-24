@@ -44,7 +44,7 @@ const formattedEndDate = computed(() => {
         {{ formattedEndDate }}
       </div>
     </div>
-    <ModuleGovernanceProposalState :state="proposal.state" />
+    <ModuleGovernanceProposalStatus :status="proposal.status" />
   </router-link>
 </template>
 
