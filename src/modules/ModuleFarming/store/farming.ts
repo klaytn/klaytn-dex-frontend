@@ -6,7 +6,6 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { FARMING_CONTRACT_ADDRESS, REFETCH_FARMING_INTERVAL } from '../const'
 import { Pool, Sorting } from '../types'
 import invariant from 'tiny-invariant'
-import { useDanglingScope } from '@vue-kakuyaku/core'
 import { Ref } from 'vue'
 import { deepClone } from '@/utils/common'
 import { not, or } from '@vueuse/core'
@@ -276,7 +275,7 @@ export const useFarmingStore = defineStore('farming', () => {
   const searchQuery = ref('')
   const sorting = ref<Sorting>(Sorting.Default)
 
-  const queryScope = useDanglingScope<ReturnType<typeof setupQueries>>()
+  const queryScope = useDeferredScope<ReturnType<typeof setupQueries>>()
 
   function setupQueriesScope() {
     const kaikas = kaikasStore.getKaikasAnyway()
@@ -284,7 +283,7 @@ export const useFarmingStore = defineStore('farming', () => {
   }
 
   function useQueryScopeAnyway() {
-    const setup = queryScope.scope.value?.setup
+    const setup = queryScope.scope.value?.expose
     invariant(setup)
     return setup
   }

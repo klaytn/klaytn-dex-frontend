@@ -34,7 +34,7 @@ async function getAmount(props: GetAmountProps & { kaikas: Kaikas }): Promise<Va
 export function useGetAmount(props: Ref<null | GetAmountProps>) {
   const kaikasStore = useKaikasStore()
 
-  const scope = useScopeWithAdvancedKey(
+  const scope = useParamScope(
     computed(() => {
       const val = props.value
       if (!val) return null

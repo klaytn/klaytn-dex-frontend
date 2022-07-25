@@ -35,7 +35,7 @@ watch(model, () => {
   value.value = '0'
 })
 
-const balanceScope = useComputedScope(model, () => {
+const balanceScope = useParamScope(model, () => {
   const { state } = useTask(
     async () => {
       const token = pool.value.stakeToken
@@ -49,7 +49,7 @@ const balanceScope = useComputedScope(model, () => {
   return state
 })
 const balance = computed(() => {
-  return balanceScope.value?.setup?.fulfilled?.value ?? null
+  return balanceScope.value?.expose?.fulfilled?.value ?? null
 })
 
 const formattedStaked = computed(() => {

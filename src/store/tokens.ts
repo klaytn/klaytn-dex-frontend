@@ -49,7 +49,8 @@ function useImportedTokens() {
 
   const tokens = useLocalStorage<Address[]>('klaytn-dex-imported-tokens', [])
 
-  const fetchScope = useComputedScope(isConnected, () => {
+  const fetchScope = useParamScope(isConnected, () => {
+    console.log('is connected?')
     const { state, run } = useTask(
       async () => {
         const kaikas = kaikasStore.getKaikasAnyway()
@@ -64,8 +65,8 @@ function useImportedTokens() {
     return useStaleState(state)
   })
 
-  const isPending = computed(() => fetchScope.value?.setup.pending ?? false)
-  const result = computed(() => fetchScope.value?.setup.fulfilled?.value ?? null)
+  const isPending = computed(() => fetchScope.value?.expose.pending ?? false)
+  const result = computed(() => fetchScope.value?.expose.fulfilled?.value ?? null)
   const isLoaded = computed(() => !!result.value)
 
   const tokensFetched = computed<null | Token[]>(() => {
@@ -96,8 +97,8 @@ function useImportedTokens() {
 function useUserBalance(tokens: Ref<null | Address[]>) {
   const kaikasStore = useKaikasStore()
 
-  const fetchScope = useComputedScope(
-    computed(() => !!tokens.value),
+  const fetchScope = useParamScope(
+    computed(() => !!tokens.value && kaikasStore.isConnected),
     () => {
       const { state, run } = useTask<Map<Address, Balance<string>>>(
         async () => {
@@ -125,9 +126,9 @@ function useUserBalance(tokens: Ref<null | Address[]>) {
     },
   )
 
-  const isPending = computed<boolean>(() => fetchScope.value?.setup.pending ?? false)
+  const isPending = computed<boolean>(() => fetchScope.value?.expose.pending ?? false)
   const result = computed<null | Map<Address, Balance<BigNumber>>>(() => {
-    const data = fetchScope.value?.setup.fulfilled?.value
+    const data = fetchScope.value?.expose.fulfilled?.value
     if (data)
       return new Map([...data].map(([addr, balance]) => [addr.toLowerCase() as Address, asWei(new BigNumber(balance))]))
     return null
@@ -135,7 +136,7 @@ function useUserBalance(tokens: Ref<null | Address[]>) {
   const isLoaded = computed<boolean>(() => !!result.value)
 
   function touch() {
-    fetchScope.value?.setup.touch()
+    fetchScope.value?.expose.touch()
   }
 
   function lookup(addr: Address): ValueWei<BigNumber> | null {

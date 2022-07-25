@@ -14,7 +14,9 @@ const cssRowClassForBottomLines = computed(() => {
 })
 
 const store = useLiquidityAddStore()
-const { rates, selectionTokensSymbols: symbols, formattedPoolShare, pairReserves: reserves } = storeToRefs(store)
+const { rates, symbols, formattedPoolShare, pairReserves: reserves, supplyScope } = storeToRefs(store)
+
+const gas = computed(() => supplyScope.value?.supplyGas ?? null)
 
 const formattedComission = `${roundTo(POOL_COMISSION * 100, 2)}%`
 </script>
@@ -59,7 +61,13 @@ const formattedComission = `${roundTo(POOL_COMISSION * 100, 2)}%`
         <span>{{ formattedComission }}</span>
       </div>
 
-      <!-- TODO: gas price, or transaction fee -->
+      <div
+        v-if="inModal && gas !== null"
+        :class="cssRowClassForBottomLines"
+      >
+        <span>Transaction fee</span>
+        <span>{{ gas }}</span>
+      </div>
     </div>
   </div>
 </template>

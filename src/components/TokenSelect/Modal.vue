@@ -34,16 +34,16 @@ const recentTokens = $computed(() => tokensFilteredBySearch.slice(0, 6))
  */
 let searchAsAddress = $computed<null | Address>(() => (isAddress(search) ? search : null))
 
-const searchAsAddressSmartcontractCheckScope = useComputedScope($$(searchAsAddress), (addr) => {
+const searchAsAddressSmartcontractCheckScope = useParamScope($$(searchAsAddress), (addr) => {
   const { state } = useTask(() => kaikasStore.getKaikasAnyway().cfg.isSmartContract(addr), { immediate: true })
   usePromiseLog(state, 'smartcontract-check-' + addr)
   return state
 })
 
-const importLookupScope = useComputedScope(
+const importLookupScope = useParamScope(
   computed(() => {
     const addr = searchAsAddress
-    const addrSmartcontractCheckState = searchAsAddressSmartcontractCheckScope.value?.setup
+    const addrSmartcontractCheckState = searchAsAddressSmartcontractCheckScope.value?.expose
     if (addr && addrSmartcontractCheckState?.fulfilled?.value && !tokensStore.findTokenData(addr)) return addr
     return null
   }),
@@ -55,10 +55,10 @@ const importLookupScope = useComputedScope(
 )
 
 const isImportLookupPending = $computed<boolean>(
-  () => !!importLookupScope.value?.setup.pending || !!searchAsAddressSmartcontractCheckScope.value?.setup.pending,
+  () => !!importLookupScope.value?.expose.pending || !!searchAsAddressSmartcontractCheckScope.value?.expose.pending,
 )
 
-const tokenToImport = $computed<Token | null>(() => importLookupScope.value?.setup.fulfilled?.value ?? null)
+const tokenToImport = $computed<Token | null>(() => importLookupScope.value?.expose.fulfilled?.value ?? null)
 
 const nothingFound = $computed(() => {
   if (tokensFilteredBySearch.length) return false

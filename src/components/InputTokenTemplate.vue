@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-  modelValue?: string
+  modelValue?: string | number
   inputDisabled?: boolean
   inputLoading?: boolean
   inputReadonly?: boolean

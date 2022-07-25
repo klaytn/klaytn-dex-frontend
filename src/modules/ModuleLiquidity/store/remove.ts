@@ -1,13 +1,17 @@
 import { Address, asWei, Token, tokenRawToWei, tokenWeiToRaw, ValueWei, WeiNumStrBn } from '@/core/kaikas'
 import { LP_TOKEN_DECIMALS as LP_TOKEN_DECIMALS_VALUE } from '@/core/kaikas/const'
-import { usePairAddress, usePairReserves } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
+import {
+  useNullablePairBalanceComponents,
+  usePairAddress,
+  usePairBalance,
+  usePairReserves,
+} from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { buildPair, TokensPair, TOKEN_TYPES } from '@/utils/pair'
 import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
-import { roundTo } from 'round-to'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 
 const LP_TOKENS_DECIMALS = Object.freeze({ decimals: LP_TOKEN_DECIMALS_VALUE })
@@ -16,7 +20,7 @@ function usePrepareSupply(props: {
   tokens: Ref<null | TokensPair<Address>>
   pairAddress: Ref<null | Address>
   liquidity: Ref<ValueWei<string> | null>
-  // TODO amounts
+  amounts: Ref<null | TokensPair<ValueWei<BN>>>
 }) {
   const kaikasStore = useKaikasStore()
 
@@ -26,27 +30,33 @@ function usePrepareSupply(props: {
     () => !!(props.tokens.value && props.pairAddress.value && props.liquidity.value),
   )
 
-  const scope = useScopeWithAdvancedKey(
+  const scope = useParamScope(
     computed(() => {
       if (!active.value) return null
 
       const tokens = props.tokens.value
       const pair = props.pairAddress.value
       const liquidity = props.liquidity.value
-      if (!(tokens && pair && liquidity)) return null
+      const amounts = props.amounts.value
+      if (!(tokens && pair && liquidity && amounts)) return null
 
       return {
-        key: `${pair}-${liquidity}`,
-        payload: { tokens, pair, liquidity },
+        key:
+          // `pair` also represents both `tokenA` + `tokenB`
+          // `liquidity` also **should** strictly represent `amounts`
+          `${pair}-${liquidity}`,
+        payload: { tokens, pair, liquidity, amounts },
       }
     }),
-    ({ tokens, pair, liquidity: lpTokenValue }) => {
+    ({ tokens, pair, liquidity: lpTokenValue, amounts }) => {
       const { state: prepareState } = useTask(
         () =>
           kaikasStore.getKaikasAnyway().liquidity.prepareRmLiquidity({
             tokens,
             pair,
             lpTokenValue,
+            // we want to burn it all for sure
+            minAmounts: amounts,
           }),
         { immediate: true },
       )
@@ -87,12 +97,29 @@ function usePrepareSupply(props: {
     setActive,
     supply: () => scope.value?.expose.supply(),
     isReadyToPrepareSupply,
-    isPrepareSupplyPending: computed(() => scope.value?.expose.isPrepareSupplyPending ?? false),
-    supplyGas: computed(() => scope.value?.expose.supplyGas ?? null),
-    isSupplyReady: computed(() => scope.value?.expose.isSupplyReady ?? false),
-    isSupplyPending: computed(() => scope.value?.expose.isSupplyPending ?? false),
-    isSupplyOk: computed(() => scope.value?.expose.isSupplyOk ?? false),
-    isSupplyErr: computed(() => scope.value?.expose.isSupplyErr ?? false),
+    ...toRefs(
+      toReactive(
+        computed(() => {
+          const {
+            isPrepareSupplyPending = false,
+            supplyGas = null,
+            isSupplyPending = false,
+            isSupplyErr = false,
+            isSupplyOk = false,
+            isSupplyReady = false,
+          } = scope.value?.expose ?? {}
+
+          return {
+            isPrepareSupplyPending,
+            supplyGas,
+            isSupplyPending,
+            isSupplyErr,
+            isSupplyOk,
+            isSupplyReady,
+          }
+        }),
+      ),
+    ),
   }
 }
 
@@ -106,7 +133,7 @@ function useRemoveAmounts(
 } {
   const kaikasStore = useKaikasStore()
 
-  const taskScope = useScopeWithAdvancedKey(
+  const taskScope = useParamScope(
     computed(() => {
       if (!kaikasStore.isConnected) return null
       if (!tokens.value) return null
@@ -174,22 +201,19 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     return buildPair((type) => tokens[type].symbol)
   })
 
-  const { pair, pending: isPairPending } = usePairAddress(reactive(buildPair((type) => selected.value?.[type])))
-  const existingPair = computed(() => (pair.value?.kind === 'exist' ? pair.value : null))
-  const pairTotalSupply = computed(() => existingPair.value?.totalSupply)
-  const pairUserBalance = computed(() => existingPair.value?.userBalance)
-  const { result: pairReserves, pending: isReservesPending } = usePairReserves(selected)
-  // const pair = usePairAddress(reactive(buildPair((type) => selected.value?.[type])))
+  const { pair: pairResult, pending: isPairPending } = usePairAddress(selected)
+  const existingPair = computed(() => (pairResult.value?.kind === 'exist' ? pairResult.value : null))
   const isPairLoaded = computed(() => !!existingPair.value)
 
-  // TODO
-  const poolShare = ref(0)
+  const { result: pairBalanceResult, pending: isPairBalancePending } = usePairBalance(selected, isPairLoaded)
+  const {
+    totalSupply: pairTotalSupply,
+    userBalance: pairUserBalance,
+    poolShare: pairPoolShare,
+  } = toRefs(useNullablePairBalanceComponents(pairBalanceResult))
+  const formattedPoolShare = useFormattedPercent(pairPoolShare, 7)
 
-  const formattedPoolShare = computed(() => {
-    const value = poolShare.value
-    if (!value) return null
-    return `${roundTo(value * 100, 7)}%`
-  })
+  const { result: pairReserves, pending: isReservesPending } = usePairReserves(selected)
 
   const liquidityRaw = ref('')
   const liquidity = computed<ValueWei<string> | null>({
@@ -257,6 +281,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     tokens: selected,
     pairAddress: computed(() => existingPair.value?.addr ?? null),
     liquidity,
+    amounts,
   })
 
   function prepareSupply() {
@@ -274,12 +299,13 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
     pairUserBalance,
     pairTotalSupply,
+    pairPoolShare,
+    formattedPoolShare,
     pairReserves,
     isReservesPending,
+    isPairBalancePending,
     isPairPending,
     isPairLoaded,
-    poolShare,
-    formattedPoolShare,
 
     liquidity,
     liquidityRaw,

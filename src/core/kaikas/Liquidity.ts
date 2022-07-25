@@ -32,7 +32,7 @@ export interface PrepareRemoveLiquidityProps extends ComputeRemoveLiquidityAmoun
   /**
    * Should be the same amounts that were computed by {@link Liquidity['computeRmLiquidityAmounts']}
    */
-  amounts: TokensPair<ValueWei<BN>>
+  minAmounts: TokensPair<ValueWei<BN>>
 }
 
 export interface PrepareTransactionResult {
@@ -155,20 +155,20 @@ export default class Liquidity {
     const nLpToken = asWei(new BN(props.lpTokenValue))
     await this.cfg.approveAmount(props.pair, nLpToken)
 
-    const { amounts } = props
+    const { minAmounts } = props
 
     const detectedEth = detectEth(
       buildPair((type) => ({
         addr: props.tokens[type],
-        computedAmount: amounts[type],
+        minAmount: minAmounts[type],
       })),
     )
     const method = detectedEth
       ? this.router.methods.removeLiquidityETH(
           detectedEth.token.addr,
           nLpToken,
-          detectedEth.token.computedAmount,
-          detectedEth.eth.computedAmount,
+          detectedEth.token.minAmount,
+          detectedEth.eth.minAmount,
           this.addr,
           deadlineFiveMinutesFromNow(),
         )
@@ -176,8 +176,8 @@ export default class Liquidity {
           props.tokens.tokenA,
           props.tokens.tokenB,
           nLpToken,
-          amounts.tokenA,
-          amounts.tokenB,
+          minAmounts.tokenA,
+          minAmounts.tokenB,
           this.addr,
           deadlineFiveMinutesFromNow(),
         )

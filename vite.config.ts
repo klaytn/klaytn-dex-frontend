@@ -75,7 +75,28 @@ export default defineConfig({
 
     // https://github.com/antfu/unplugin-auto-import
     AutoImport({
-      imports: ['vue', 'vue-router', 'vue-i18n', 'vue/macros', '@vueuse/head', '@vueuse/core'],
+      imports: [
+        'vue',
+        'vue-router',
+        'vue-i18n',
+        'vue/macros',
+        '@vueuse/head',
+        '@vueuse/core',
+        {
+          '@vue-kakuyaku/core': [
+            'useParamScope',
+            'useDeferredScope',
+            'useErrorRetry',
+            'usePromise',
+            'wheneverDone',
+            'wheneverFulfilled',
+            'wheneverRejected',
+            'useStaleState',
+            'flattenState',
+            'useTask',
+          ],
+        },
+      ],
       dts: 'src/auto-imports.d.ts',
       dirs: [
         'src/composables',
