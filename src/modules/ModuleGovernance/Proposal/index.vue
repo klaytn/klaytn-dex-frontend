@@ -1,5 +1,5 @@
 <script setup lang="ts" name="ModuleGovernanceProposal">
-import { Address } from '@/core/kaikas'
+import { Address, parseAddress } from '@/core/kaikas'
 import { useProposalQuery } from '../query.proposal'
 import { Proposal } from '../types'
 import { getProposalStatus } from '../utils'
@@ -7,7 +7,7 @@ import { getProposalStatus } from '../utils'
 const vBem = useBemClass()
 const route = useRoute()
 
-const proposalId = computed(() => route.params.id as Address)
+const proposalId = computed(() => parseAddress(route.params.id as Address))
 
 const ProposalQuery = useProposalQuery(proposalId)
 const rawProposal = computed(() => {
