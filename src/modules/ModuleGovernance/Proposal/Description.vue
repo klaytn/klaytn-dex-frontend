@@ -35,7 +35,7 @@ const parcedBody = computed(() => {
   return marked(proposal.value.body)
 })
 
-let cleanBody = computed(() => {
+const cleanBody = computed(() => {
   return DOMPurify.sanitize(parcedBody.value)
 })
 </script>
