@@ -76,12 +76,12 @@ function usePrepareSupply(props: {
         tokensStore.touchUserBalance()
       })
 
-      const supplyGas = computed(() => prepareState.fulfilled?.value?.gas)
+      const fee = computed(() => prepareState.fulfilled?.value?.fee)
 
       return readonly({
         prepare,
         supply,
-        supplyGas,
+        fee,
         prepareState: promiseStateToFlags(prepareState),
         supplyState: promiseStateToFlags(supplyState),
       })
@@ -91,7 +91,7 @@ function usePrepareSupply(props: {
   return {
     isReadyToPrepareSupply,
     prepareState: computed(() => scope.value?.expose.prepareState ?? null),
-    supplyGas: computed(() => scope.value?.expose.supplyGas ?? null),
+    fee: computed(() => scope.value?.expose.fee ?? null),
     supplyState: computed(() => scope.value?.expose.supplyState ?? null),
     supply: () => scope.value?.expose.supply(),
     prepare: () => {
@@ -262,7 +262,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   }
 
   const {
-    supplyGas,
+    fee,
     isReadyToPrepareSupply,
     supplyState,
     prepareState: prepareSupplyState,
@@ -309,7 +309,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     isAmountsPending,
 
     isReadyToPrepareSupply,
-    supplyGas,
+    fee,
     prepareSupplyState,
     supplyState,
 

@@ -3,7 +3,9 @@ import { storeToRefs } from 'pinia'
 import { roundTo } from 'round-to'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
 import { POOL_COMISSION } from './const'
-import { TOKEN_TYPES } from '@/utils/pair'
+import { buildPair, TOKEN_TYPES } from '@/utils/pair'
+import { NATIVE_TOKEN_DECIMALS } from '@/core/kaikas/const'
+import { tokenWeiToRaw } from '@/core/kaikas'
 
 const props = defineProps<{
   inModal?: boolean
@@ -14,10 +16,24 @@ const cssRowClassForBottomLines = computed(() => {
 })
 
 const store = useLiquidityAddStore()
-const { rates, symbols, formattedPoolShare, pairReserves: reserves, supplyScope } = storeToRefs(store)
+const { rates, symbols, tokens, formattedPoolShare, pairReserves: reserves, supplyScope } = storeToRefs(store)
 
-const gas = computed(() => supplyScope.value?.supplyGas ?? null)
+const formattedReserves = reactive(
+  buildPair((type) => {
+    return computed(() => {
+      if (reserves.value && tokens.value) {
+        const token = tokens.value[type]!
+        const reserve = reserves.value[type === 'tokenA' ? 'reserve0' : 'reserve1']
+        const num = tokenWeiToRaw(token, reserve)
+        return String(roundTo(Number(num), 7))
+      }
+      return null
+    })
+  }),
+)
 
+const fee = computed(() => supplyScope.value?.fee ?? null)
+const formattedFee = useFormattedToken(fee, { decimals: NATIVE_TOKEN_DECIMALS }, 7)
 const formattedComission = `${roundTo(POOL_COMISSION * 100, 2)}%`
 </script>
 
@@ -29,14 +45,14 @@ const formattedComission = `${roundTo(POOL_COMISSION * 100, 2)}%`
     <h3>Prices and pool share</h3>
 
     <div class="space-y-4">
-      <template v-if="inModal && reserves">
+      <template v-if="inModal && formattedReserves.tokenA && formattedReserves.tokenB">
         <div
           v-for="token in TOKEN_TYPES"
           :key="token"
           :class="cssRows.rowSm"
         >
           <span>{{ symbols[token] }} Deposited</span>
-          <span>{{ reserves[token === 'tokenA' ? 'reserve0' : 'reserve1'] }}</span>
+          <span>{{ formattedReserves[token] }}</span>
         </div>
       </template>
 
@@ -62,11 +78,11 @@ const formattedComission = `${roundTo(POOL_COMISSION * 100, 2)}%`
       </div>
 
       <div
-        v-if="inModal && gas !== null"
+        v-if="inModal && fee !== null"
         :class="cssRowClassForBottomLines"
       >
         <span>Transaction fee</span>
-        <span>{{ gas }}</span>
+        <span>{{ formattedFee }} KLAY</span>
       </div>
     </div>
   </div>

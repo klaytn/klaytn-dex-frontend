@@ -1,4 +1,6 @@
+import { asWei, tokenWeiToRaw, ValueWei } from '@/core/kaikas'
 import { MaybeRef } from '@vueuse/core'
+import BigNumber from 'bignumber.js'
 import { roundTo } from 'round-to'
 import { Ref } from 'vue'
 
@@ -12,5 +14,20 @@ export function useFormattedPercent(
       return `${roundTo(num * 100, unref(precision))}%`
     }
     return null
+  })
+}
+
+export function useFormattedToken(
+  value: MaybeRef<null | undefined | ValueWei<string | number | BigNumber>>,
+  decimals: MaybeRef<null | undefined | { decimals: number }>,
+  round: MaybeRef<number>,
+): Ref<null | string> {
+  return computed(() => {
+    const val = unref(value)
+    const dec = unref(decimals)
+    if (!val || !dec) return null
+    const r = unref(round)
+    const token = tokenWeiToRaw(dec, asWei(new BigNumber(val).toFixed()))
+    return String(roundTo(Number(token), r))
   })
 }

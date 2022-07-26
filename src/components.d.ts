@@ -68,6 +68,8 @@ declare module '@vue/runtime-core' {
     ModuleSwapDetails: typeof import('./modules/ModuleSwap/Details.vue')['default']
     ModuleSwapExchangeRate: typeof import('./modules/ModuleSwap/ExchangeRate.vue')['default']
     ModuleSwapModalConfirm: typeof import('./modules/ModuleSwap/ModalConfirm.vue')['default']
+    ModuleSwapModalConfirmDetails: typeof import('./modules/ModuleSwap/ModalConfirmDetails.vue')['default']
+    ModuleSwapModalConfirmTokens: typeof import('./modules/ModuleSwap/ModalConfirmTokens.vue')['default']
     'ModuleTradeSharedSlippage.todo': typeof import('./modules/ModuleTradeShared/Slippage.todo.vue')['default']
     NotificationsInit: typeof import('./components/NotificationsInit.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

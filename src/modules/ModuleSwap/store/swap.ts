@@ -46,9 +46,9 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
           // 2. Perform swap according to which token is "exact" and if
           // some of them is native
           const swapProps = buildSwapProps({ tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
-          const { send, gas } = await kaikas.swap.swap(swapProps)
+          const { send, fee } = await kaikas.swap.swap(swapProps)
 
-          return { send, gas }
+          return { send, fee }
         },
         { immediate: true },
       )
@@ -70,7 +70,7 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
       return {
         prepare,
         swap,
-        gas: computed(() => prepareState.fulfilled?.value.gas ?? null),
+        fee: computed(() => prepareState.fulfilled?.value.fee ?? null),
         prepareState: promiseStateToFlags(prepareState),
         swapState: promiseStateToFlags(swapState),
       }
@@ -82,7 +82,7 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
       scope.value ? scope.value.expose.prepare() : setActive(true)
     },
     clear: () => setActive(false),
-    swapGas: computed(() => scope.value?.expose.gas ?? null),
+    swapFee: computed(() => scope.value?.expose.fee ?? null),
     prepareState: computed(() => scope.value?.expose.prepareState ?? null),
     swapState: computed(() => scope.value?.expose.swapState ?? null),
     swap: () => scope.value?.expose.swap(),
@@ -183,7 +183,7 @@ export const useSwapStore = defineStore('swap', () => {
   const isValid = computed(() => swapValidation.value.kind === 'ok')
   const validationMessage = computed(() => (swapValidation.value.kind === 'err' ? swapValidation.value.message : null))
 
-  const { prepare, prepareState, swapState, swapGas, swap, clear: clearSwap } = useSwap(normalizedWeiInputs)
+  const { prepare, prepareState, swapState, swapFee, swap, clear: clearSwap } = useSwap(normalizedWeiInputs)
 
   function setToken(type: TokenType, addr: Address | null) {
     selection.addrs[type] = addr
@@ -218,7 +218,7 @@ export const useSwapStore = defineStore('swap', () => {
     swapState,
     prepareState,
     prepare,
-    swapGas,
+    swapFee,
     gettingAmountFor,
     gotAmountFor,
     clearSwap,

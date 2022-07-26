@@ -1,7 +1,8 @@
 import web3 from 'web3'
-import { type Address, type Token, type Deadline, ValueWei, AnyNumber } from './types'
-import { NATIVE_TOKEN } from './const'
+import type { Address, Token, Deadline, ValueWei, AnyNumber } from './types'
+import { MAGIC_GAS_PRICE, NATIVE_TOKEN } from './const'
 import BigNumber from 'bignumber.js'
+import BN from 'bn.js'
 
 export function formatAddress(address: Address): string {
   const addressLength = address.length
@@ -44,6 +45,14 @@ export function tokenWeiToRaw({ decimals }: Pick<Token, 'decimals'>, wei: ValueW
   return new BigNumber(wei).dividedBy(new BigNumber(10).pow(decimals)).toString()
 }
 
+/**
+ * @param gasPrice price for one gas unit, in **wei**
+ * @param gas amount of gas units
+ */
+export function computeTransactionFee(gasPrice: ValueWei<number | string | BN>, gas: number): ValueWei<string> {
+  return asWei(new BN(gasPrice).mul(new BN(gas)).toString())
+}
+
 if (import.meta.vitest) {
   const { describe, test, expect } = import.meta.vitest
 
@@ -76,6 +85,13 @@ if (import.meta.vitest) {
 
     test('wei to raw', () => {
       expect(tokenWeiToRaw({ decimals: 18 }, 123420000000000000000n.toString() as ValueWei<string>)).toEqual('123.42')
+    })
+  })
+
+  describe('compute transaction fee', () => {
+    test('fee for 31000 gas', () => {
+      // https://www.klaytnfinder.io/tx/0x2200c24c6495372dce76203a9c06661e3524cc7f84e6574d40d604ac629509a9
+      expect(tokenWeiToRaw({ decimals: 18 }, computeTransactionFee(MAGIC_GAS_PRICE, 31_000))).toEqual('0.00775')
     })
   })
 }

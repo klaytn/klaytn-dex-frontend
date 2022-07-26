@@ -20,13 +20,10 @@ const show = computed({
       <KlayModalTemplateSubmitted v-if="swapState?.fulfilled" />
       <KlayModalTemplateError v-else-if="swapState?.rejected" />
 
-      <div
-        v-else
-        class="space-y-4"
-      >
-        <div>tokens here</div>
+      <div v-else>
+        <ModuleSwapModalConfirmTokens />
 
-        <div>details here</div>
+        <ModuleSwapModalConfirmDetails class="mt-8 mb-4" />
 
         <KlayButton
           class="w-full"

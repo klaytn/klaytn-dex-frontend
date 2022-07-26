@@ -25,18 +25,8 @@ function supply() {
       title="Remove LP Tokens"
       class="w-[420px]"
     >
-      <div
-        v-if="supplyState?.fulfilled"
-        class="p-8 flex flex-col items-center space-y-4"
-      >
-        <p class="text-xl">
-          Ok!
-        </p>
-
-        <KlayButton @click="show = false">
-          Close
-        </KlayButton>
-      </div>
+      <KlayModalTemplateSubmitted v-if="supplyState?.fulfilled" />
+      <KlayModalTemplateError v-else-if="supplyState?.rejected" />
       <div
         v-else
         class="space-y-4"

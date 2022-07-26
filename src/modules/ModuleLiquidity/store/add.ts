@@ -97,11 +97,11 @@ function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSup
       const { state: statePrepare, run: runPrepare } = useTask(
         async () => {
           const kaikas = kaikasStore.getKaikasAnyway()
-          const { send, gas } = await kaikas.liquidity.prepareAddLiquidity({
+          const { send, fee } = await kaikas.liquidity.prepareAddLiquidity({
             tokens: buildPair((type) => ({ addr: tokens[type].addr, desired: tokens[type].input })),
             deadline: deadlineFiveMinutesFromNow(),
           })
-          return { send, gas }
+          return { send, fee }
         },
         { immediate: true },
       )
@@ -125,13 +125,13 @@ function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSup
         $notify({ status: Status.Success, description: 'Liquidity addition succeeded!' })
       })
 
-      const supplyGas = computed(() => statePrepare.fulfilled?.value.gas ?? null)
+      const fee = computed(() => statePrepare.fulfilled?.value.fee ?? null)
       const statePrepareFlags = promiseStateToFlags(statePrepare)
       const stateSupplyFlags = promiseStateToFlags(stateSupply)
 
       return readonly({
         prepare,
-        supplyGas,
+        fee,
         prepareState: statePrepareFlags,
         supplyState: stateSupplyFlags,
         supply,
@@ -156,7 +156,8 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const selection = useExchangeRateInput({ localStorageKey: 'liquidity-add-selection' })
   const selectionInput = useInertExchangeRateInput({ input: selection.input })
   const { rates: inputRates } = selectionInput
-  const symbols = computed(() => buildPair((type) => selection.tokens[type]?.symbol ?? null))
+  const { tokens } = selection
+  const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
   const addrsReadonly = readonly(selection.addrs)
 
   const { pair: gotPair } = usePairAddress(addrsReadonly)
@@ -256,6 +257,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     inputRates,
     addrs: addrsReadonly,
     symbols,
+    tokens,
     isEmptyPair,
     pair: gotPair,
     pairUserBalance,

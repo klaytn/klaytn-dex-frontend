@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { NATIVE_TOKEN_DECIMALS } from '@/core/kaikas/const'
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
 
 const store = useLiquidityRmStore()
-const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidityRaw, supplyGas } = storeToRefs(store)
+const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidityRaw, fee } = storeToRefs(store)
 
+const formattedFee = useFormattedToken(fee, { decimals: NATIVE_TOKEN_DECIMALS }, 7)
 const formattedLiquidity = computed(() => new BigNumber(liquidityRaw.value).toFixed(7))
 </script>
 
@@ -32,8 +34,7 @@ const formattedLiquidity = computed(() => new BigNumber(liquidityRaw.value).toFi
 
       <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
         <span>Transaction Fee</span>
-        <!-- TODO format -->
-        <span> {{ supplyGas }}</span>
+        <span>{{ formattedFee }} KLAY</span>
       </div>
     </div>
 

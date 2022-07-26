@@ -1,7 +1,7 @@
 import { type ValueWei, type Address, type Deadline, WeiNumStrBn } from './types'
 import Config from './Config'
 import { MAGIC_GAS_PRICE } from './const'
-import { deadlineFiveMinutesFromNow } from './utils'
+import { computeTransactionFee, deadlineFiveMinutesFromNow } from './utils'
 
 export interface AddrsPair {
   addressA: Address
@@ -39,7 +39,7 @@ export type SwapProps = SwapPropsBase &
   )
 
 export interface SwapResult {
-  gas: ValueWei<number>
+  fee: ValueWei<string>
   send: () => Promise<unknown>
 }
 
@@ -83,6 +83,7 @@ export default class Swap {
   public async swap(props: SwapProps): Promise<SwapResult> {
     const routerMethods = this.cfg.contracts.router.methods
     const deadline = props.deadline ?? deadlineFiveMinutesFromNow()
+    const gasPrice = MAGIC_GAS_PRICE
     let gas: number
     let send: () => Promise<unknown>
 
@@ -100,7 +101,7 @@ export default class Swap {
           swapMethod.send({
             from: this.addr,
             gas,
-            gasPrice: MAGIC_GAS_PRICE,
+            gasPrice,
           })
 
         break
@@ -119,7 +120,7 @@ export default class Swap {
           swapMethod.send({
             from: this.addr,
             gas,
-            gasPrice: MAGIC_GAS_PRICE,
+            gasPrice,
           })
 
         break
@@ -134,13 +135,13 @@ export default class Swap {
         )
         gas = await swapMethod.estimateGas({
           from: this.addr,
-          gasPrice: MAGIC_GAS_PRICE,
+          gasPrice,
         })
         send = () =>
           swapMethod.send({
             from: this.addr,
             gas,
-            gasPrice: MAGIC_GAS_PRICE,
+            gasPrice,
           })
 
         break
@@ -156,14 +157,14 @@ export default class Swap {
           // FIXME?
           value: props.amountIn,
           from: this.addr,
-          gasPrice: MAGIC_GAS_PRICE,
+          gasPrice,
         })
         send = () =>
           swapMethod.send({
             value: props.amountIn,
             from: this.addr,
             gas,
-            gasPrice: MAGIC_GAS_PRICE,
+            gasPrice,
           })
 
         break
@@ -178,14 +179,14 @@ export default class Swap {
         gas = await swapMethod.estimateGas({
           value: props.amountInMax,
           from: this.addr,
-          gasPrice: MAGIC_GAS_PRICE,
+          gasPrice,
         })
         send = () =>
           swapMethod.send({
             value: props.amountInMax,
             gas,
             from: this.addr,
-            gasPrice: MAGIC_GAS_PRICE,
+            gasPrice,
           })
 
         break
@@ -200,13 +201,13 @@ export default class Swap {
         )
         gas = await swapMethod.estimateGas({
           from: this.addr,
-          gasPrice: MAGIC_GAS_PRICE,
+          gasPrice,
         })
         send = () =>
           swapMethod.send({
             gas,
             from: this.addr,
-            gasPrice: MAGIC_GAS_PRICE,
+            gasPrice,
           })
 
         break
@@ -218,8 +219,10 @@ export default class Swap {
       }
     }
 
+    const fee = computeTransactionFee(gasPrice, gas)
+
     return {
-      gas: gas as ValueWei<number>,
+      fee,
       send,
     }
   }
