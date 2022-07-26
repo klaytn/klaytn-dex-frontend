@@ -17,41 +17,6 @@ const debugModule = Debug('swap-store')
 
 type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { amountFor: TokenType }
 
-function useNormalizedWeiInputs({
-  addrs,
-  inputNormalized,
-  gotAmount,
-}: {
-  addrs: TokensPair<null | Address>
-  inputNormalized: Ref<null | { wei: ValueWei<string>; type: TokenType }>
-  gotAmount: Ref<null | { type: TokenType; amount: ValueWei<string> }>
-}): Ref<null | NormalizedWeiInput> {
-  return computed(() => {
-    if (
-      addrs.tokenA &&
-      addrs.tokenB &&
-      inputNormalized.value &&
-      gotAmount.value &&
-      inputNormalized.value.type === mirrorTokenType(gotAmount.value.type)
-    ) {
-      const inputType = inputNormalized.value.type
-      const amountForType = mirrorTokenType(inputType)
-
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const tokens = {
-        [inputType]: { addr: addrs[inputType], input: inputNormalized.value.wei },
-        [amountForType]: { addr: addrs[amountForType], input: gotAmount.value.amount },
-      } as TokensPair<TokenAddrAndWeiInput>
-
-      return {
-        ...tokens,
-        amountFor: amountForType,
-      }
-    }
-    return null
-  })
-}
-
 function useSwap(input: Ref<null | NormalizedWeiInput>) {
   const kaikasStore = useKaikasStore()
   const tokensStore = useTokensStore()
@@ -162,12 +127,14 @@ export const useSwapStore = defineStore('swap', () => {
       }
     }),
   )
-  // const
   watch(
     [gotAmountFor, selection.tokens],
     ([result]) => {
       if (result) {
-        const { type: amountFor, amount } = result
+        const {
+          props: { amountFor },
+          amount,
+        } = result
         const tokenData = selection.tokens[amountFor]
         if (tokenData) {
           debugModule('Setting computed amount %o for %o', amount, amountFor)
@@ -179,11 +146,20 @@ export const useSwapStore = defineStore('swap', () => {
     { deep: true },
   )
 
-  const normalizedWeiInputs = useNormalizedWeiInputs({
-    addrs: addrsReadonly,
-    inputNormalized: selection.inputNormalized,
-    gotAmount: gotAmountFor,
+  const normalizedWeiInputs = computed<NormalizedWeiInput | null>(() => {
+    if (gotAmountFor.value) {
+      const {
+        amount,
+        props: { amountFor, referenceValue, ...addrs },
+      } = gotAmountFor.value
+      return {
+        ...buildPair((type) => ({ addr: addrs[type], input: amountFor === type ? amount : referenceValue })),
+        amountFor,
+      }
+    }
+    return null
   })
+
   const rates = useRates(
     computed(() => {
       const wei = normalizedWeiInputs.value

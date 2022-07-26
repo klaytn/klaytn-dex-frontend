@@ -68,13 +68,13 @@ export function useGetAmount(props: Ref<null | GetAmountProps>) {
     return x?.expose.pending ? x.payload.amountFor : null
   })
 
-  const gotFor = computed<null | { type: TokenType; amount: ValueWei<string> }>(() => {
+  const gotFor = computed(() => {
     const x = scope.value
 
     return x?.expose.fulfilled
       ? {
           amount: x.expose.fulfilled.value,
-          type: x.payload.amountFor,
+          props: x.payload,
         }
       : null
   })

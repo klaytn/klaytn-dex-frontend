@@ -5,7 +5,6 @@ import {
   usePairBalance,
   usePairReserves,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
-import { useTokensInput, TokenInputWei } from '@/modules/ModuleTradeShared/composable.tokens-input'
 import { buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
 import { Status } from '@soramitsu-ui/ui'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -13,16 +12,15 @@ import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 import BN from 'bn.js'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
+import {
+  InputWei,
+  useExchangeRateInput,
+  useInertExchangeRateInput,
+} from '@/modules/ModuleTradeShared/composable.exchange-rate-input'
 
-function useQuoting(props: {
-  pair: Ref<null | PairAddressResult>
-  quoteFor: Ref<null | TokenType>
-  wei: TokensPair<null | TokenInputWei>
-}): {
-  pendingFor: Ref<null | TokenType>
-  exchangeRate: Ref<null | { quoteFor: TokenType; value: ValueWei<string> }>
-  touch: () => void
-} {
+type NormalizedWeiInput = TokensPair<{ addr: Address; input: ValueWei<string> }>
+
+function useQuoting(props: { pair: Ref<null | PairAddressResult>; input: Ref<null | InputWei> }) {
   const kaikasStore = useKaikasStore()
 
   const scope = useParamScope(
@@ -30,12 +28,9 @@ function useQuoting(props: {
       if (props.pair.value?.kind !== 'exist') return null
       const { tokens, addr: pair } = props.pair.value
 
-      const quoteFor = props.quoteFor.value
-      if (!quoteFor) return null
-
-      const quoteFrom = mirrorTokenType(quoteFor)
-      const value = props.wei[quoteFrom]?.input
-      if (!value) return null
+      const { type: quoteFrom, wei: value } = props.input.value ?? {}
+      if (!quoteFrom || !value) return null
+      const quoteFor = mirrorTokenType(quoteFrom)
 
       return {
         key: `${pair}-${quoteFor}-${value}`,
@@ -66,20 +61,20 @@ function useQuoting(props: {
   const exchangeRate = computed(() => {
     if (!scope.value) return null
     const {
-      payload: { quoteFor },
+      payload: props,
       expose: {
         state: { fulfilled },
       },
     } = scope.value
     if (!fulfilled) return null
-    return { quoteFor, value: fulfilled.exchangeRate }
+    return { props, value: fulfilled.exchangeRate }
   })
   const touch = () => scope.value?.expose.run()
 
   return { pendingFor, exchangeRate, touch }
 }
 
-function usePrepareSupply(props: { tokens: TokensPair<TokenInputWei | null>; onSupply: () => void }) {
+function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSupply: () => void }) {
   const kaikasStore = useKaikasStore()
   const tokensStore = useTokensStore()
 
@@ -87,9 +82,7 @@ function usePrepareSupply(props: { tokens: TokensPair<TokenInputWei | null>; onS
 
   const scope = useParamScope(
     computed(() => {
-      const {
-        tokens: { tokenA, tokenB },
-      } = props
+      const { tokenA, tokenB } = props.tokens.value ?? {}
 
       return (
         active.value &&
@@ -160,9 +153,11 @@ function usePrepareSupply(props: { tokens: TokensPair<TokenInputWei | null>; onS
 }
 
 export const useLiquidityAddStore = defineStore('liquidity-add', () => {
-  const selection = useTokensInput({ localStorageKey: 'liquidity-add-selection' })
+  const selection = useExchangeRateInput({ localStorageKey: 'liquidity-add-selection' })
+  const selectionInput = useInertExchangeRateInput({ input: selection.input })
+  const { rates: inputRates } = selectionInput
   const symbols = computed(() => buildPair((type) => selection.tokens[type]?.symbol ?? null))
-  const addrsReadonly = readonly(selection.addrsWritable)
+  const addrsReadonly = readonly(selection.addrs)
 
   const { pair: gotPair } = usePairAddress(addrsReadonly)
   const isEmptyPair = computed(() => gotPair.value?.kind === 'empty')
@@ -185,34 +180,45 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   )
   const formattedPoolShare = useFormattedPercent(poolShare, 7)
 
-  const quoteFor = ref<null | TokenType>(null)
-
   const {
     pendingFor: isQuotePendingFor,
     exchangeRate: quoteExchangeRate,
     touch: touchQuote,
   } = useQuoting({
     pair: gotPair,
-    quoteFor,
-    wei: selection.wei,
+    input: selection.inputNormalized,
   })
 
   watch(
     [quoteExchangeRate, selection.tokens],
     ([rate, tokens]) => {
-      if (rate && tokens[rate.quoteFor]) {
-        selection.input[rate.quoteFor].inputRaw = tokenWeiToRaw(tokens[rate.quoteFor]!, rate.value)
+      if (rate && tokens[rate.props.quoteFor]) {
+        const token = tokenWeiToRaw(tokens[rate.props.quoteFor]!, rate.value)
+        selectionInput.setEstimated(token)
       }
     },
     { immediate: true, deep: true },
   )
 
+  const weiNormalized = computed<null | NormalizedWeiInput>(() => {
+    if (quoteExchangeRate.value) {
+      const {
+        value: amount,
+        props: { quoteFor, value: referenceValue, tokens },
+      } = quoteExchangeRate.value
+      return {
+        ...buildPair((type) => ({ addr: tokens[type], input: quoteFor === type ? amount : referenceValue })),
+      }
+    }
+    return null
+  })
+
   const rates = useRates(
     computed(() => {
-      if (!selection.wei.tokenA || !selection.wei.tokenB) return null
+      if (!weiNormalized.value) return null
       if (!quoteExchangeRate.value) return null
       return buildPair((type) => {
-        const wei = selection.wei[type]!.input
+        const wei = weiNormalized.value![type].input
         const bn = asWei(new BN(wei))
         return bn
       })
@@ -224,7 +230,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     clear: clearSupply,
     scope: supplyScope,
   } = usePrepareSupply({
-    tokens: selection.wei,
+    tokens: weiNormalized,
     onSupply() {
       touchPairBalance()
       touchPairReserves()
@@ -234,20 +240,21 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const isValid = computed(() => !!rates.value)
 
   function input(token: TokenType, raw: string) {
-    selection.input[token].inputRaw = raw
-    quoteFor.value = mirrorTokenType(token)
+    selectionInput.set(token, raw)
   }
 
   function setToken(token: TokenType, addr: Address) {
-    selection.input[token].addr = addr
+    selection.addrs[token] = addr
   }
 
   function setBoth(tokens: TokensPair<Address>) {
-    selection.resetInput(buildPair((type) => ({ addr: tokens[type], inputRaw: '' })))
+    selection.setAddrs(tokens)
+    selection.input.value = null
   }
 
   return {
-    selection,
+    inputRates,
+    addrs: addrsReadonly,
     symbols,
     isEmptyPair,
     pair: gotPair,

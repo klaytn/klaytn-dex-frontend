@@ -1,8 +1,10 @@
 import { asWei, ValueWei } from '@/core/kaikas'
+import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
 import rfdc from 'rfdc'
 import { roundTo } from 'round-to'
+import { JsonValue } from 'type-fest'
 import { buildPair, TokensPair } from './pair'
 
 const reallyFastDeepClone = rfdc()
@@ -62,6 +64,11 @@ export function roundRates({ a_per_b, b_per_a }: Rates): RatesRounded {
     a_per_b: roundTo(a_per_b.toNumber(), 7),
     b_per_a: roundTo(b_per_a.toNumber(), 7),
   }
+}
+
+export const JSON_SERIALIZER: Serializer<JsonValue> = {
+  read: (raw) => JSON.parse(raw),
+  write: (parsed) => JSON.stringify(parsed),
 }
 
 if (import.meta.vitest) {

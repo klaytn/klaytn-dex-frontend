@@ -1,10 +1,22 @@
-import { Address, tokenRawToWei } from '@/core/kaikas'
+import { Address, tokenRawToWei, ValueWei } from '@/core/kaikas'
+import { JSON_SERIALIZER } from '@/utils/common'
 import { buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
+import { Serializer } from '@vueuse/core'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 
 function emptyAddrs(): TokensPair<Address | null> {
   return buildPair(() => null)
+}
+
+interface InputTypeValue {
+  type: TokenType
+  value: string
+}
+
+export interface InputWei {
+  type: TokenType
+  wei: ValueWei<string>
 }
 
 export function useExchangeRateInput(options?: {
@@ -17,16 +29,17 @@ export function useExchangeRateInput(options?: {
 
   const addrs = options?.localStorageKey
     ? useLocalStorage<TokensPair<Address | null>>(options.localStorageKey + '-addrs', emptyAddrs(), {
-        serializer: {
-          read: (raw) => JSON.parse(raw),
-          write: (parsed) => JSON.stringify(parsed),
-        },
+        serializer: JSON_SERIALIZER as Serializer<any>,
       })
     : ref<TokensPair<Address | null>>(emptyAddrs())
   const addrsReactive = toReactive(addrs)
 
   // TODO local storage sync
-  const input = ref<null | { type: TokenType; value: string }>(null)
+  const input = options?.localStorageKey
+    ? useLocalStorage<null | InputTypeValue>(options.localStorageKey + '-input', null, {
+        serializer: JSON_SERIALIZER as Serializer<any>,
+      })
+    : ref<null | InputTypeValue>(null)
   const inputToken = computed(() => input.value?.type ?? null)
 
   function setAddrs(value: TokensPair<Address>) {
@@ -49,7 +62,7 @@ export function useExchangeRateInput(options?: {
     ),
   )
 
-  const inputNormalized = computed(() => {
+  const inputNormalized = computed<InputWei | null>(() => {
     const token = input.value
     if (!token) return null
     const tokenData = tokens[token.type]
@@ -87,7 +100,7 @@ interface ExchangeRateInput {
   type: 'active' | 'outdated' | 'estimated'
 }
 
-export function useInertExchangeRateInput({ input }: { input: Ref<null | { type: TokenType; value: string }> }): {
+export function useInertExchangeRateInput({ input }: { input: Ref<null | InputTypeValue> }): {
   rates: TokensPair<ExchangeRateInput | null>
   exchangeRateFor: Ref<null | TokenType>
   set: (type: TokenType, value: string) => void
@@ -142,8 +155,3 @@ export function useInertExchangeRateInput({ input }: { input: Ref<null | { type:
     setEstimated,
   }
 }
-
-// export function useExchangeRateWei(props: {
-//   rates: TokensPair<ExchangeRateInput | null>
-//   tokens: TokensPair<Token | null>
-// }): TokensPair<TokenInputWei> {}

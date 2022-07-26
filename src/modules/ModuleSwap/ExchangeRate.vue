@@ -3,9 +3,7 @@ import { storeToRefs } from 'pinia'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 
 const swapStore = useSwapStore()
-const { gettingAmountFor, gotAmountFor, inputRates } = $(storeToRefs(swapStore))
-
-const estimated = $computed(() => gotAmountFor?.type)
+const { gettingAmountFor, inputRates } = $(storeToRefs(swapStore))
 
 const models = reactive(
   buildPair((type) => {
@@ -37,7 +35,7 @@ const models = reactive(
           v-model:token="models[type].addr"
           set-by-balance
           :is-loading="gettingAmountFor === type"
-          :estimated="estimated === type"
+          :estimated="inputRates[type]?.type === 'estimated'"
         />
 
         <div
