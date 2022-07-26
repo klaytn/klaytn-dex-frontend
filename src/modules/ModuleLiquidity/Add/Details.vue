@@ -23,7 +23,7 @@ const formattedComission = `${roundTo(POOL_COMISSION * 100, 2)}%`
 
 <template>
   <div
-    v-if="symbols"
+    v-if="symbols.tokenA && symbols.tokenB"
     class="details p-4 space-y-4"
   >
     <h3>Prices and pool share</h3>

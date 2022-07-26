@@ -12,7 +12,9 @@ const store = useLiquidityAddStore()
       class="w-full"
       size="lg"
       type="primary"
-      @click="store.activateSupply()"
+      :disabled="!store.isValid"
+      :loading="store.supplyScope?.prepareState.pending"
+      @click="store.prepareSupply()"
     >
       Supply
     </KlayButton>

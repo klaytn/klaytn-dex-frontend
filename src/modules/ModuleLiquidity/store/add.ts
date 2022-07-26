@@ -21,6 +21,7 @@ function useQuoting(props: {
 }): {
   pendingFor: Ref<null | TokenType>
   exchangeRate: Ref<null | { quoteFor: TokenType; value: ValueWei<string> }>
+  touch: () => void
 } {
   const kaikasStore = useKaikasStore()
 
@@ -31,8 +32,8 @@ function useQuoting(props: {
 
       const quoteFor = props.quoteFor.value
       if (!quoteFor) return null
-      const quoteFrom = mirrorTokenType(quoteFor)
 
+      const quoteFrom = mirrorTokenType(quoteFor)
       const value = props.wei[quoteFrom]?.input
       if (!value) return null
 
@@ -42,7 +43,7 @@ function useQuoting(props: {
       }
     }),
     ({ tokens: { tokenA, tokenB }, quoteFor, value }) => {
-      const { state } = useTask(
+      const { state, run } = useTask(
         () =>
           kaikasStore
             .getKaikasAnyway()
@@ -55,28 +56,32 @@ function useQuoting(props: {
             .then((value) => ({ exchangeRate: value })),
         { immediate: true },
       )
-      usePromiseLog(state, 'rm-liquidity-quoting')
+      usePromiseLog(state, 'add-liquidity-quoting')
 
-      return flattenState(state)
+      return { state: flattenState(state), run }
     },
   )
 
-  const pendingFor = computed(() => (scope.value?.expose.pending ? scope.value.payload.quoteFor : null))
+  const pendingFor = computed(() => (scope.value?.expose.state.pending ? scope.value.payload.quoteFor : null))
   const exchangeRate = computed(() => {
     if (!scope.value) return null
     const {
       payload: { quoteFor },
-      expose: { fulfilled },
+      expose: {
+        state: { fulfilled },
+      },
     } = scope.value
     if (!fulfilled) return null
     return { quoteFor, value: fulfilled.exchangeRate }
   })
+  const touch = () => scope.value?.expose.run()
 
-  return { pendingFor, exchangeRate }
+  return { pendingFor, exchangeRate, touch }
 }
 
-function usePrepareSupply(props: { tokens: TokensPair<TokenInputWei | null> }) {
+function usePrepareSupply(props: { tokens: TokensPair<TokenInputWei | null>; onSupply: () => void }) {
   const kaikasStore = useKaikasStore()
+  const tokensStore = useTokensStore()
 
   const [active, setActive] = useToggle(false)
 
@@ -96,7 +101,7 @@ function usePrepareSupply(props: { tokens: TokensPair<TokenInputWei | null> }) {
       )
     }),
     (tokens) => {
-      const { state: statePrepare } = useTask(
+      const { state: statePrepare, run: runPrepare } = useTask(
         async () => {
           const kaikas = kaikasStore.getKaikasAnyway()
           const { send, gas } = await kaikas.liquidity.prepareAddLiquidity({
@@ -108,6 +113,10 @@ function usePrepareSupply(props: { tokens: TokensPair<TokenInputWei | null> }) {
         { immediate: true },
       )
 
+      function prepare() {
+        !statePrepare.pending && runPrepare()
+      }
+
       const { state: stateSupply, run: supply } = useTask(async () => {
         invariant(statePrepare.fulfilled)
         await statePrepare.fulfilled.value.send()
@@ -115,9 +124,11 @@ function usePrepareSupply(props: { tokens: TokensPair<TokenInputWei | null> }) {
 
       usePromiseLog(statePrepare, 'add-liquidity-prepare')
       usePromiseLog(stateSupply, 'add-liquidity-supply')
-      useNotifyOnError(stateSupply, 'Preparation failed')
+      useNotifyOnError(statePrepare, 'Preparation failed')
       useNotifyOnError(stateSupply, 'Liquidity addition failed')
       wheneverFulfilled(stateSupply, () => {
+        tokensStore.touchUserBalance()
+        props.onSupply()
         $notify({ status: Status.Success, description: 'Liquidity addition succeeded!' })
       })
 
@@ -126,6 +137,7 @@ function usePrepareSupply(props: { tokens: TokensPair<TokenInputWei | null> }) {
       const stateSupplyFlags = promiseStateToFlags(stateSupply)
 
       return readonly({
+        prepare,
         supplyGas,
         prepareState: statePrepareFlags,
         supplyState: stateSupplyFlags,
@@ -135,24 +147,30 @@ function usePrepareSupply(props: { tokens: TokensPair<TokenInputWei | null> }) {
   )
 
   return {
-    activate: () => setActive(true),
-    reset: () => setActive(false),
+    prepare: () => {
+      if (scope.value) {
+        scope.value.expose.prepare()
+      } else {
+        setActive(true)
+      }
+    },
+    clear: () => setActive(false),
     scope: computed(() => scope.value?.expose),
   }
 }
 
 export const useLiquidityAddStore = defineStore('liquidity-add', () => {
-  const selection = useTokensInput()
+  const selection = useTokensInput({ localStorageKey: 'liquidity-add-selection' })
   const symbols = computed(() => buildPair((type) => selection.tokens[type]?.symbol ?? null))
   const addrsReadonly = readonly(selection.addrsWritable)
 
   const { pair: gotPair } = usePairAddress(addrsReadonly)
   const isEmptyPair = computed(() => gotPair.value?.kind === 'empty')
-  const { result: pairBalance } = usePairBalance(
+  const { result: pairBalance, touch: touchPairBalance } = usePairBalance(
     addrsReadonly,
     computed(() => gotPair.value?.kind === 'exist'),
   )
-  const { result: pairReserves } = usePairReserves(addrsReadonly)
+  const { result: pairReserves, touch: touchPairReserves } = usePairReserves(addrsReadonly)
   const {
     userBalance: pairUserBalance,
     totalSupply: pairTotalSupply,
@@ -169,7 +187,11 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   const quoteFor = ref<null | TokenType>(null)
 
-  const { pendingFor: isQuotePendingFor, exchangeRate: quoteExchangeRate } = useQuoting({
+  const {
+    pendingFor: isQuotePendingFor,
+    exchangeRate: quoteExchangeRate,
+    touch: touchQuote,
+  } = useQuoting({
     pair: gotPair,
     quoteFor,
     wei: selection.wei,
@@ -198,10 +220,18 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   )
 
   const {
-    activate: activateSupply,
-    reset: resetSupply,
+    prepare: prepareSupply,
+    clear: clearSupply,
     scope: supplyScope,
-  } = usePrepareSupply({ tokens: selection.wei })
+  } = usePrepareSupply({
+    tokens: selection.wei,
+    onSupply() {
+      touchPairBalance()
+      touchPairReserves()
+      touchQuote()
+    },
+  })
+  const isValid = computed(() => !!rates.value)
 
   function input(token: TokenType, raw: string) {
     selection.input[token].inputRaw = raw
@@ -236,9 +266,10 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     setToken,
     setBoth,
 
-    activateSupply,
-    resetSupply,
+    prepareSupply,
+    clearSupply,
     supplyScope,
+    isValid,
   }
 })
 

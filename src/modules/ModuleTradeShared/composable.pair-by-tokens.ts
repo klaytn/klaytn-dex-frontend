@@ -82,18 +82,19 @@ export function usePairReserves(tokens: NullableReactiveTokens) {
   const scope = useParamScope(
     computed(() => kaikasStore.isConnected && nullableReactiveTokensToComposedKey(tokens)),
     (actualTokens) => {
-      const { state } = useTask(() => kaikasStore.getKaikasAnyway().tokens.getPairReserves(actualTokens), {
+      const { state, run } = useTask(() => kaikasStore.getKaikasAnyway().tokens.getPairReserves(actualTokens), {
         immediate: true,
       })
       usePromiseLog(state, 'pair-reserves')
-      return flattenState(state)
+      return { state: flattenState(state), run }
     },
   )
 
-  const pending = computed(() => scope.value?.expose.pending ?? false)
-  const result = computed(() => scope.value?.expose.fulfilled ?? null)
+  const pending = computed(() => scope.value?.expose.state.pending ?? false)
+  const result = computed(() => scope.value?.expose.state.fulfilled ?? null)
+  const touch = () => scope.value?.expose.run()
 
-  return { pending, result }
+  return { pending, result, touch }
 }
 
 interface PairBalance {

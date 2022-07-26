@@ -8,20 +8,32 @@ const { isQuotePendingFor, quoteExchangeRate } = storeToRefs(liquidityStore)
 const estimated = computed(() => quoteExchangeRate.value?.quoteFor ?? null)
 
 const models = reactive(
-  buildPair((type) => ({
-    addr: computed({
-      get: () => liquidityStore.selection.input[type].addr,
-      set: (addr) => {
-        if (addr) {
-          liquidityStore.setToken(type, addr)
-        }
+  buildPair((type) => {
+    const inputInStore = computed(() => liquidityStore.selection.input[type].inputRaw)
+    const input = ref<string>()
+    watch(
+      inputInStore,
+      (val) => {
+        input.value = val
       },
-    }),
-    input: computed({
-      get: () => liquidityStore.selection.input[type].inputRaw,
-      set: (raw) => liquidityStore.input(type, raw),
-    }),
-  })),
+      { immediate: true },
+    )
+    watchDebounced(input, (value) => value && value !== inputInStore.value && liquidityStore.input(type, value), {
+      debounce: 500,
+    })
+
+    return {
+      addr: computed({
+        get: () => liquidityStore.selection.input[type].addr,
+        set: (addr) => {
+          if (addr) {
+            liquidityStore.setToken(type, addr)
+          }
+        },
+      }),
+      input,
+    }
+  }),
 )
 </script>
 

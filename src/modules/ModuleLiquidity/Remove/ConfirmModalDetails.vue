@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import cssRows from '../rows.module.scss'
 
 const store = useLiquidityRmStore()
 const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidityRaw, supplyGas } = storeToRefs(store)
+
+const formattedLiquidity = computed(() => new BigNumber(liquidityRaw.value).toFixed(7))
 </script>
 
 <template>
@@ -13,8 +16,7 @@ const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidityRaw,
     <div class="space-y-4 mt-6">
       <div :class="cssRows.rowSm">
         <span>LP {{ symbols?.tokenA }}-{{ symbols?.tokenB }} </span>
-        <!-- TODO format value -->
-        <span>{{ liquidityRaw }}</span>
+        <span>{{ formattedLiquidity }}</span>
       </div>
 
       <div :class="cssRows.rowSm">

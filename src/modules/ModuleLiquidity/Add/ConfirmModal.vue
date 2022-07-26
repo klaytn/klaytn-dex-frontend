@@ -16,7 +16,7 @@ const show = computed({
   get: () => supplyScope.value?.prepareState.fulfilled ?? false,
   set: (flag) => {
     if (!flag) {
-      liquidityStore.resetSupply()
+      liquidityStore.clearSupply()
     }
   },
 })
