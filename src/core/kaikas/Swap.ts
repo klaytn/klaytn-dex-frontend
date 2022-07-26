@@ -107,8 +107,9 @@ export default class Swap {
       }
       case 'tokens-for-exact-tokens': {
         const swapMethod = routerMethods.swapTokensForExactTokens(
-          props.amountOut,
+          // FIXME?
           props.amountInMax,
+          props.amountOut,
           [props.addressA, props.addressB],
           this.addr,
           deadline,

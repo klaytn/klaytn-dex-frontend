@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
-import cssRows from '../rows.module.scss'
+import cssRows from '../../ModuleTradeShared/rows.module.scss'
 
 const store = useLiquidityRmStore()
 const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidityRaw, supplyGas } = storeToRefs(store)

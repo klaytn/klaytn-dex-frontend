@@ -6,7 +6,7 @@ name: Swap
 import { storeToRefs } from 'pinia'
 
 const swapStore = useSwapStore()
-const { isValid, validationMessage, swapState, gotAmountFor } = $(storeToRefs(swapStore))
+const { isValid, validationMessage, prepareState, gotAmountFor } = $(storeToRefs(swapStore))
 
 const swapButtonLabel = $computed(() => {
   if (isValid) return 'Swap'
@@ -27,12 +27,14 @@ const isSwapDisabled = $computed(() => {
       size="lg"
       :type="isSwapDisabled ? 'secondary' : 'primary'"
       :disabled="isSwapDisabled"
-      :loading="swapState.pending"
-      @click="swapStore.swap"
+      :loading="prepareState?.pending"
+      @click="swapStore.prepare()"
     >
       {{ swapButtonLabel }}
     </KlayButton>
 
     <ModuleSwapDetails />
   </div>
+
+  <ModuleSwapModalConfirm />
 </template>

@@ -26,7 +26,7 @@ export default defineConfig({
     alias: {
       '@/': `${path.resolve(__dirname, 'src')}/`,
       web3: 'web3/dist/web3.min.js',
-      '@popperjs/core': '@popperjs/core/dist/esm/index.js',
+      '@popperjs/core': '@popperjs/core/lib/index',
     },
   },
 
@@ -124,7 +124,7 @@ export default defineConfig({
       resolvers: [
         IconResolver({
           prefix: 'icon',
-          enabledCollections: [],
+          enabledCollections: ['material-symbols', 'ic'],
           customCollections: ['klay'],
         }),
       ],

@@ -8,7 +8,8 @@ import { roundTo } from 'round-to'
 const props = withDefaults(
   defineProps<{
     token?: Address
-    modelValue?: string
+    modelValue?: string | number
+    valueDebounce?: number
     isLoading?: boolean
     isDisabled?: boolean
     setByBalance?: boolean
@@ -20,21 +21,36 @@ const props = withDefaults(
     isDisabled: false,
     setByBalance: false,
     estimated: false,
+    valueDebounce: 500,
   },
 )
 
 const emit = defineEmits(['update:modelValue', 'update:token'])
 
-let model = $computed({
+let model = computed({
   get: () => {
     const value = props.modelValue
     if (!value) return ''
     const num = Number(props.modelValue)
     if (Number.isNaN(num)) return ''
-    return roundTo(num, 5)
+    return String(roundTo(num, 5))
   },
   set: (v) => emit('update:modelValue', v),
 })
+
+let modelDebounced = ref(model.value)
+watch(model, (value) => {
+  modelDebounced.value = value
+})
+watchDebounced(
+  modelDebounced,
+  (value) => {
+    if (value !== model.value) {
+      model.value = value
+    }
+  },
+  { debounce: toRef(props, 'valueDebounce') },
+)
 
 // const addrFormatted = $computed(() => {
 //   return props.token && formatAddress(props.token)
@@ -76,7 +92,7 @@ function setToMax() {
 
 <template>
   <InputTokenTemplate
-    v-model="model"
+    v-model="modelDebounced"
     :class="{ 'pointer-events-none': isLoading }"
     :input-disabled="isDisabled"
     :input-loading="isLoading"

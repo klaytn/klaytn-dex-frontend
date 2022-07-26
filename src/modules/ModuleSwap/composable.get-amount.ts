@@ -1,6 +1,9 @@
 import { Address, Kaikas, ValueWei } from '@/core/kaikas'
 import { TokensPair, TokenType } from '@/utils/pair'
 import { Ref } from 'vue'
+import Debug from 'debug'
+
+const debug = Debug('swap-amounts')
 
 export interface GetAmountProps extends TokensPair<Address> {
   amountFor: TokenType
@@ -44,8 +47,11 @@ export function useGetAmount(props: Ref<null | GetAmountProps>) {
       }
     }),
     (actualProps) => {
+      debug('setting amounts: %o', actualProps)
+
       const { set, state } = usePromise<ValueWei<string>>()
       usePromiseLog(state, 'swap-get-amount')
+      useNotifyOnError(state, 'Failed to compute amount')
 
       function run() {
         set(getAmount({ ...actualProps, kaikas: kaikasStore.getKaikasAnyway() }))

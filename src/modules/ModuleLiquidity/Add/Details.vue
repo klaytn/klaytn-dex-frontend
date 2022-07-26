@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { roundTo } from 'round-to'
-import cssRows from '../rows.module.scss'
+import cssRows from '../../ModuleTradeShared/rows.module.scss'
 import { POOL_COMISSION } from './const'
 import { TOKEN_TYPES } from '@/utils/pair'
 

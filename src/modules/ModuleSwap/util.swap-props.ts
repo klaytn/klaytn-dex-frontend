@@ -4,7 +4,7 @@ import { TokenType } from '@/utils/pair'
 import invariant from 'tiny-invariant'
 import { Except } from 'type-fest'
 
-interface TokenAddAndWeiInput {
+export interface TokenAddrAndWeiInput {
   addr: Address
   input: ValueWei<string>
 }
@@ -14,8 +14,8 @@ export function buildSwapProps({
   tokenB,
   referenceToken,
 }: {
-  tokenA: TokenAddAndWeiInput
-  tokenB: TokenAddAndWeiInput
+  tokenA: TokenAddrAndWeiInput
+  tokenB: TokenAddrAndWeiInput
   referenceToken: TokenType
 }): SwapProps {
   invariant(tokenA.addr !== tokenB.addr, 'Cannot swap token for itself')

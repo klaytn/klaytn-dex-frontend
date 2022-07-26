@@ -1,50 +1,52 @@
 <script setup lang="ts" name="SwapModuleExchangeRate">
 import { storeToRefs } from 'pinia'
-import { buildPair } from '@/utils/pair'
+import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 
 const swapStore = useSwapStore()
-const { gettingAmountFor, gotAmountFor } = $(storeToRefs(swapStore))
+const { gettingAmountFor, gotAmountFor, inputRates } = $(storeToRefs(swapStore))
 
 const estimated = $computed(() => gotAmountFor?.type)
 
 const models = reactive(
-  buildPair((type) => ({
-    input: computed({
-      get: () => swapStore.selection.input[type].inputRaw,
-      set: (raw) => {
-        swapStore.setTokenValue(type, raw)
-      },
-    }),
-    addr: computed({
-      get: () => swapStore.selection.input[type].addr,
-      set: (addr) => {
-        swapStore.setToken(type, addr)
-      },
-    }),
-  })),
+  buildPair((type) => {
+    return {
+      input: computed({
+        get: () => inputRates[type]?.value,
+        set: (v) => v && swapStore.setTokenValue(type, v),
+      }),
+      addr: computed({
+        get: () => swapStore.addrs[type],
+        set: (addr) => {
+          swapStore.setToken(type, addr)
+        },
+      }),
+    }
+  }),
 )
 </script>
 
 <template>
   <div class="space-y-4">
     <div class="space-y-1">
-      <InputToken
-        v-model="models.tokenA.input"
-        v-model:token="models.tokenA.addr"
-        set-by-balance
-        :is-loading="gettingAmountFor === 'tokenA'"
-        :estimated="estimated === 'tokenA'"
-      />
-      <div class="w-full flex justify-center items-center h-0">
-        <IconKlayArrowDown />
-      </div>
-      <InputToken
-        v-model="models.tokenB.input"
-        v-model:token="models.tokenB.addr"
-        :is-loading="gettingAmountFor === 'tokenB'"
-        :is-disabled="!models.tokenA.addr"
-        :estimated="estimated === 'tokenB'"
-      />
+      <template
+        v-for="(type, i) in TOKEN_TYPES"
+        :key="type"
+      >
+        <InputToken
+          v-model="models[type].input"
+          v-model:token="models[type].addr"
+          set-by-balance
+          :is-loading="gettingAmountFor === type"
+          :estimated="estimated === type"
+        />
+
+        <div
+          v-if="i === 0"
+          class="w-full flex justify-center items-center h-0"
+        >
+          <IconKlayArrowDown />
+        </div>
+      </template>
     </div>
   </div>
 </template>

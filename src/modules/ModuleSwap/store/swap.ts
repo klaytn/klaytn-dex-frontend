@@ -1,50 +1,153 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, tokenWeiToRaw, ValueWei } from '@/core/kaikas'
+import { Address, asWei, tokenWeiToRaw, ValueWei } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
-import { TokenType, TokensPair, buildPair, mirrorTokenType } from '@/utils/pair'
+import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
 import { useGetAmount, GetAmountProps } from '../composable.get-amount'
-import { usePairAddress, useSimplifiedResult } from '../../ModuleTradeShared/composable.pair-by-tokens'
+import { usePairAddress, usePairBalance, useSimplifiedResult } from '../../ModuleTradeShared/composable.pair-by-tokens'
 import { useSwapValidation } from '../composable.validation'
-import { buildSwapProps } from '../util.swap-props'
-import { useTokensInput } from '../../ModuleTradeShared/composable.tokens-input'
+import { buildSwapProps, TokenAddrAndWeiInput } from '../util.swap-props'
+import { useExchangeRateInput, useInertExchangeRateInput } from '../../ModuleTradeShared/composable.exchange-rate-input'
+import { Ref } from 'vue'
+import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
+import BN from 'bn.js'
 
 const debugModule = Debug('swap-store')
 
-export const useSwapStore = defineStore('swap', () => {
+type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { amountFor: TokenType }
+
+function useNormalizedWeiInputs({
+  addrs,
+  inputNormalized,
+  gotAmount,
+}: {
+  addrs: TokensPair<null | Address>
+  inputNormalized: Ref<null | { wei: ValueWei<string>; type: TokenType }>
+  gotAmount: Ref<null | { type: TokenType; amount: ValueWei<string> }>
+}): Ref<null | NormalizedWeiInput> {
+  return computed(() => {
+    if (
+      addrs.tokenA &&
+      addrs.tokenB &&
+      inputNormalized.value &&
+      gotAmount.value &&
+      inputNormalized.value.type === mirrorTokenType(gotAmount.value.type)
+    ) {
+      const inputType = inputNormalized.value.type
+      const amountForType = mirrorTokenType(inputType)
+
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      const tokens = {
+        [inputType]: { addr: addrs[inputType], input: inputNormalized.value.wei },
+        [amountForType]: { addr: addrs[amountForType], input: gotAmount.value.amount },
+      } as TokensPair<TokenAddrAndWeiInput>
+
+      return {
+        ...tokens,
+        amountFor: amountForType,
+      }
+    }
+    return null
+  })
+}
+
+function useSwap(input: Ref<null | NormalizedWeiInput>) {
   const kaikasStore = useKaikasStore()
   const tokensStore = useTokensStore()
 
-  const selection = useTokensInput({ localStorageKey: 'swap-selection' })
-  const addrsReadonly = readonly(selection.addrsWritable)
+  const [active, setActive] = useToggle(false)
 
-  const { pair: pairAddrResult } = toRefs(usePairAddress(addrsReadonly))
-
-  const swapValidation = useSwapValidation({
-    tokenA: computed(() => {
-      const balance = selection.balance.tokenA as ValueWei<BigNumber> | null
-      const token = selection.tokens.tokenA
-      const input = selection.wei.tokenA?.input
-
-      return balance && token && input ? { ...token, balance, input } : null
-    }),
-    tokenB: computed(() => selection.tokens.tokenB),
-    pairAddr: useSimplifiedResult(pairAddrResult),
+  const swapKey = computed(() => {
+    if (!input.value) return null
+    const { tokenA, tokenB, amountFor } = input.value
+    return {
+      key: `${tokenA.addr}-${tokenA.input}-${tokenB.addr}-${tokenB.input}-${amountFor}`,
+      payload: { tokenA, tokenB, amountFor },
+    }
   })
+  watch(swapKey, () => setActive(false))
 
-  const isValid = computed(() => swapValidation.value.kind === 'ok')
-  const validationMessage = computed(() => (swapValidation.value.kind === 'err' ? swapValidation.value.message : null))
+  const scope = useParamScope(
+    computed(() => active.value && swapKey.value),
+    ({ tokenA, tokenB, amountFor }) => {
+      const { state: prepareState, run: prepare } = useTask(
+        async () => {
+          const kaikas = kaikasStore.getKaikasAnyway()
 
-  const getAmountFor = ref<null | TokenType>(null)
+          // 1. Approve amount of the tokenA
+          await kaikas.cfg.approveAmount(tokenA.addr, tokenA.input)
+
+          // 2. Perform swap according to which token is "exact" and if
+          // some of them is native
+          const swapProps = buildSwapProps({ tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
+          const { send, gas } = await kaikas.swap.swap(swapProps)
+
+          return { send, gas }
+        },
+        { immediate: true },
+      )
+
+      usePromiseLog(prepareState, 'prepare-swap')
+
+      const { state: swapState, run: swap } = useTask(async () => {
+        invariant(prepareState.fulfilled)
+        const { send } = prepareState.fulfilled.value
+        await send()
+      })
+
+      usePromiseLog(swapState, 'swap')
+      wheneverFulfilled(swapState, () => {
+        tokensStore.touchUserBalance()
+      })
+      useNotifyOnError(swapState, 'Swap failed')
+
+      return {
+        prepare,
+        swap,
+        gas: computed(() => prepareState.fulfilled?.value.gas ?? null),
+        prepareState: promiseStateToFlags(prepareState),
+        swapState: promiseStateToFlags(swapState),
+      }
+    },
+  )
+
+  return {
+    prepare: () => {
+      scope.value ? scope.value.expose.prepare() : setActive(true)
+    },
+    clear: () => setActive(false),
+    swapGas: computed(() => scope.value?.expose.gas ?? null),
+    prepareState: computed(() => scope.value?.expose.prepareState ?? null),
+    swapState: computed(() => scope.value?.expose.swapState ?? null),
+    swap: () => scope.value?.expose.swap(),
+  }
+}
+
+export const useSwapStore = defineStore('swap', () => {
+  const selection = useExchangeRateInput({ localStorageKey: 'swap-selection' })
+  const selectionInput = useInertExchangeRateInput({ input: selection.input })
+  const { rates: inputRates } = selectionInput
+  const { tokens } = selection
+  const addrsReadonly = readonly(selection.addrs)
+
+  const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
+
+  const { pair: pairAddrResult } = usePairAddress(addrsReadonly)
+  const { result: pairBalance } = usePairBalance(
+    addrsReadonly,
+    computed(() => pairAddrResult.value?.kind === 'exist'),
+  )
+  const poolShare = computed(() => pairBalance.value?.poolShare ?? null)
+  const formattedPoolShare = useFormattedPercent(poolShare, 7)
 
   const { gotAmountFor, gettingAmountFor } = useGetAmount(
     computed<GetAmountProps | null>(() => {
-      const amountFor = getAmountFor.value
+      const amountFor = selectionInput.exchangeRateFor.value
       if (!amountFor) return null
 
-      const referenceValue = selection.wei[mirrorTokenType(amountFor)]
-      if (!referenceValue || new BigNumber(referenceValue.input).isLessThanOrEqualTo(0)) return null
+      const referenceValue = selection.inputNormalized.value?.wei
+      if (!referenceValue || new BigNumber(referenceValue).isLessThanOrEqualTo(0)) return null
 
       const { tokenA, tokenB } = addrsReadonly
       if (!tokenA || !tokenB) return null
@@ -55,7 +158,7 @@ export const useSwapStore = defineStore('swap', () => {
         tokenA,
         tokenB,
         amountFor,
-        referenceValue: referenceValue.input,
+        referenceValue: referenceValue,
       }
     }),
   )
@@ -69,73 +172,80 @@ export const useSwapStore = defineStore('swap', () => {
         if (tokenData) {
           debugModule('Setting computed amount %o for %o', amount, amountFor)
           const raw = tokenWeiToRaw(tokenData, amount)
-          selection.input[amountFor].inputRaw = new BigNumber(raw).toFixed(5)
+          selectionInput.setEstimated(new BigNumber(raw).toFixed(5))
         }
       }
     },
     { deep: true },
   )
 
-  function getSwapPrerequisitesAnyway() {
-    const { tokenA, tokenB } = selection.wei
-    invariant(tokenA && tokenB, 'Both tokens should be selected')
-
-    const amountFor = getAmountFor.value
-    invariant(amountFor, '"Amount for" should be set')
-
-    return { tokenA, tokenB, amountFor }
-  }
-
-  const { state: swapState, run: swap } = useTask(async () => {
-    const kaikas = kaikasStore.getKaikasAnyway()
-    const { tokenA, tokenB, amountFor } = getSwapPrerequisitesAnyway()
-
-    // 1. Approve amount of the tokenA
-    // TODO move into Swap
-    await kaikas.cfg.approveAmount(tokenA.addr, tokenA.input)
-
-    // 2. Perform swap according to which token is "exact" and if
-    // some of them is native
-    const swapProps = buildSwapProps({ tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
-    const { send } = await kaikas.swap.swap(swapProps)
-
-    // TODO confirm!
-    await send()
+  const normalizedWeiInputs = useNormalizedWeiInputs({
+    addrs: addrsReadonly,
+    inputNormalized: selection.inputNormalized,
+    gotAmount: gotAmountFor,
   })
-  wheneverFulfilled(swapState, () => {
-    tokensStore.touchUserBalance()
+  const rates = useRates(
+    computed(() => {
+      const wei = normalizedWeiInputs.value
+      if (!wei) return null
+      return buildPair((type) => asWei(new BN(wei[type].input)))
+    }),
+  )
+
+  const swapValidation = useSwapValidation({
+    tokenA: computed(() => {
+      const balance = selection.balance.tokenA as ValueWei<BigNumber> | null
+      const token = selection.tokens.tokenA
+      const input = normalizedWeiInputs.value?.tokenA?.input
+
+      return balance && token && input ? { ...token, balance, input } : null
+    }),
+    tokenB: computed(() => selection.tokens.tokenB),
+    pairAddr: useSimplifiedResult(pairAddrResult),
   })
-  useNotifyOnError(swapState, 'Swap failed')
+
+  const isValid = computed(() => swapValidation.value.kind === 'ok')
+  const validationMessage = computed(() => (swapValidation.value.kind === 'err' ? swapValidation.value.message : null))
+
+  const { prepare, prepareState, swapState, swapGas, swap, clear: clearSwap } = useSwap(normalizedWeiInputs)
 
   function setToken(type: TokenType, addr: Address | null) {
-    selection.input[type] = { addr, inputRaw: '' }
+    selection.addrs[type] = addr
   }
 
   function setBothTokens(pair: TokensPair<Address>) {
-    selection.resetInput(buildPair((type) => ({ inputRaw: '', addr: pair[type] })))
-    getAmountFor.value = null
+    selection.setAddrs(pair)
+    selection.input.value = null
   }
 
-  function setTokenValue(type: TokenType, raw: string) {
-    selection.input[type].inputRaw = raw
-    getAmountFor.value = mirrorTokenType(type)
+  function setTokenValue(type: TokenType, value: string) {
+    selectionInput.set(type, value)
   }
 
   function reset() {
-    selection.input.tokenA.addr = selection.input.tokenB.addr = getAmountFor.value = null
-    selection.input.tokenA.inputRaw = selection.input.tokenB.inputRaw = ''
+    selection.reset()
   }
 
   return {
-    selection,
+    inputRates,
+    rates,
+    addrs: addrsReadonly,
+    normalizedWeiInputs,
+    tokens,
+    symbols,
+    formattedPoolShare,
 
     isValid,
     validationMessage,
 
     swap,
     swapState,
+    prepareState,
+    prepare,
+    swapGas,
     gettingAmountFor,
     gotAmountFor,
+    clearSwap,
 
     setToken,
     setTokenValue,
