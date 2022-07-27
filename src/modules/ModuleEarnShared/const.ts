@@ -11,6 +11,12 @@ export const REFETCH_FARMING_INTERVAL = 10_000
 /** Defines the update interval of rewards in milliseconds */
 export const REFETCH_REWARDS_INTERVAL = 10_000
 
+/** Defines the update interval of tokens in milliseconds */
+export const REFETCH_TOKENS_INTERVAL = 10_000
+
 export const PAGE_SIZE = 10
+
+export const BLOCK_TIME_IN_SECONDS = 60
+export const BLOCKS_PER_YEAR = (60 / BLOCK_TIME_IN_SECONDS) * 60 * 24 * 365
 
 export const MULTICALL_CONTRACT_ADDRESS = '0xc88098CEaE07D1FE443372a0accC464A5fb94668' as Address

@@ -10,6 +10,7 @@ export interface FarmingQueryResult {
     id: Address
     poolCount: number
     totalAllocPoint: string
+    rewardRate: string
     pools: {
       id: PoolId
       pair: Address
@@ -36,6 +37,7 @@ export function useFarmingQuery(userId: MaybeRef<Address>) {
             id
             poolCount
             totalAllocPoint
+            rewardRate
             pools {
               id
               pair

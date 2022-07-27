@@ -14,7 +14,7 @@ export interface LiquidityPositionsQueryResult {
   }
 }
 
-export function useLiquidityPairsQuery(userId: MaybeRef<Address>) {
+export function useLiquidityPositionsQuery(userId: MaybeRef<Address>) {
   return useQuery<LiquidityPositionsQueryResult>(
     gql`
       query LiquidityPositionsQuery($userId: String!) {

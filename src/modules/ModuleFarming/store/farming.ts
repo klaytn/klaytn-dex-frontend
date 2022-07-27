@@ -1,9 +1,7 @@
 import { Address, asWei, Kaikas } from '@/core/kaikas'
-import { useLazyQuery, useQuery } from '@vue/apollo-composable'
 import BigNumber from 'bignumber.js'
-import gql from 'graphql-tag'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { FARMING_CONTRACT_ADDRESS, REFETCH_FARMING_INTERVAL } from '../const'
+import { BLOCKS_PER_YEAR } from '../const'
 import { Pool, Sorting } from '../types'
 import invariant from 'tiny-invariant'
 import { useDanglingScope } from '@vue-kakuyaku/core'
@@ -15,8 +13,8 @@ import { Status } from '@soramitsu-ui/ui'
 import { useFetchFarmingRewards } from '../composable.fetch-rewards'
 import { useBlockNumber } from '@/modules/ModuleEarnShared/composable.block-number'
 import { useFarmingQuery } from '../query.farming'
-import { usePairsQuery } from '../query.pairs'
-import { useLiquidityPairsQuery } from '../query.liquidity-pairs'
+import { usePairsAndRewardTokenQuery } from '../query.pairs-and-reward-token'
+import { useLiquidityPositionsQuery } from '../query.liquidity-positions'
 
 function useSortedPools(pools: Ref<Pool[] | null>, sort: Ref<Sorting>) {
   const sorted = computed<Pool[] | null>(() => {
@@ -77,21 +75,25 @@ function setupQueries({
     return farming.value?.pools.map((pool) => pool.pair) ?? []
   })
 
-  const pairsQueryVariables = ref<{ pairIds: Address[] }>({
+  const pairsAndRewardTokenQueryVariables = ref<{ pairIds: Address[] }>({
     pairIds: [],
   })
-  const PairsQuery = usePairsQuery(computed(() => pairsQueryVariables.value.pairIds))
+  const PairsAndRewardTokenQuery = usePairsAndRewardTokenQuery(computed(() => pairsAndRewardTokenQueryVariables.value.pairIds))
 
   const pairs = computed(() => {
-    return PairsQuery.result.value?.pairs ?? null
+    return PairsAndRewardTokenQuery.result.value?.pairs ?? null
+  })
+
+  const rewardToken = computed(() => {
+    return PairsAndRewardTokenQuery.result.value?.token ?? null
   })
 
   function handleFarmingQueryResult() {
-    pairsQueryVariables.value.pairIds = poolPairIds.value
+    pairsAndRewardTokenQueryVariables.value.pairIds = poolPairIds.value
 
-    PairsQuery.load()
+    PairsAndRewardTokenQuery.load()
 
-    if (PairsQuery.result) PairsQuery.refetch()
+    if (PairsAndRewardTokenQuery.result) PairsAndRewardTokenQuery.refetch()
   }
 
   // Workaround for cached results: https://github.com/vuejs/apollo/issues/1154
@@ -107,7 +109,7 @@ function setupQueries({
     updateBlockNumber,
   })
 
-  const LiquidityPositionsQuery = useLiquidityPairsQuery(kaikas.selfAddress)
+  const LiquidityPositionsQuery = useLiquidityPositionsQuery(kaikas.selfAddress)
 
   const liquidityPositions = computed(() => {
     if (!LiquidityPositionsQuery.result.value) return null
@@ -115,9 +117,9 @@ function setupQueries({
   })
 
   const pools = computed<Pool[] | null>(() => {
-    if (farming.value === null || pairs.value === null || blockNumber.value === null) return null
+    if (farming.value === null || pairs.value === null || blockNumber.value === null || rewardToken.value === null) return null
 
-    const pools = [] as Pool[]
+    let pools = [] as Pool[]
 
     farming.value.pools.forEach((pool) => {
       if (!farming.value || !pairs.value || !blockNumber.value || !rewards.value) return
@@ -138,12 +140,13 @@ function setupQueries({
       const liquidityPosition = liquidityPositions.value?.find((position) => position.pair.id === pairId) ?? null
       const balance = new BigNumber(liquidityPosition?.liquidityTokenBalance ?? 0)
 
-      const annualPercentageRate = new BigNumber(0)
-
       const reserveUSD = new BigNumber(pair.reserveUSD)
       const totalSupply = new BigNumber(pair.totalSupply)
       const totalTokensStaked = new BigNumber(farmingFromWei(asWei(pool.totalTokensStaked)))
       const liquidity = reserveUSD.dividedBy(totalSupply).multipliedBy(totalTokensStaked)
+
+      const annualPercentageRate = new BigNumber(0)
+      const lpAnnualPercentageRate = new BigNumber(0)
 
       const bonusEndBlock = Number(pool.bonusEndBlock)
       const allocPoint = new BigNumber(pool.allocPoint)
@@ -163,10 +166,28 @@ function setupQueries({
         staked,
         balance,
         annualPercentageRate,
+        lpAnnualPercentageRate,
         liquidity,
         multiplier,
         createdAtBlock,
       })
+    })
+
+    const sumOfMultipliers = pools.reduce(
+      (acc, pool) => acc.plus(pool.multiplier),
+      new BigNumber(0)
+    );
+
+    pools = pools.map(pool => {
+      if (!farming.value || !rewardToken.value) return pool
+      const farmingRewardRate = new BigNumber(farmingFromWei(asWei(farming.value.rewardRate)))
+      const poolRewardRate = farmingRewardRate.times(pool.multiplier.div(sumOfMultipliers))
+      const totalRewardPricePerYear = poolRewardRate.times(BLOCKS_PER_YEAR).times(rewardToken.value.derivedUSD)
+      const annualPercentageRate = !pool.liquidity.isZero() ? totalRewardPricePerYear.div(pool.liquidity).times(100) : new BigNumber(0)
+      return {
+        ...pool,
+        annualPercentageRate
+      }
     })
 
     return pools
@@ -192,11 +213,11 @@ function setupQueries({
   const isLoading = or(
     FarmingQuery.loading,
     LiquidityPositionsQuery.loading,
-    PairsQuery.loading,
+    PairsAndRewardTokenQuery.loading,
     not(areRewardsFetched),
   )
 
-  for (const [QueryName, Query] of Object.entries({ FarmingQuery, LiquidityPositionsQuery, PairsQuery })) {
+  for (const [QueryName, Query] of Object.entries({ FarmingQuery, LiquidityPositionsQuery, PairsAndRewardTokenQuery })) {
     Query.onError((param) => {
       console.error('query error', param)
       $notify({ status: Status.Error, description: `Apollo error (${QueryName}): ${String(param)}` })

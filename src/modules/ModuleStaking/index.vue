@@ -3,7 +3,8 @@ import { SButton } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
 import { Pool, Sorting } from './types'
 import { usePoolsQuery } from './query.pools'
-import { PAGE_SIZE } from './const'
+import { useTokensQuery } from './query.tokens'
+import { PAGE_SIZE, BLOCKS_PER_YEAR } from './const'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { useFetchStakingRewards } from './composable.fetch-rewards'
 import { tokenWeiToRaw, asWei, tokenRawToWei } from '@/core/kaikas'
@@ -31,6 +32,32 @@ const rawPoolIds = computed(() => {
   return rawPools.value.map((pool) => pool.id)
 })
 
+const stakeAndRewardTokenIds = computed(() => {
+  if (!rawPools.value) return null
+  return Array.from(new Set([
+    ...rawPools.value.map(pool => pool.stakeToken.id),
+    ...rawPools.value.map(pool => pool.rewardToken.id),
+  ]))
+})
+
+const TokensQuery = useTokensQuery(computed(() => stakeAndRewardTokenIds.value || []))
+const tokens = computed(() => {
+  return TokensQuery.result.value?.tokens ?? null
+})
+
+function handlePoolsQueryResult() {
+  TokensQuery.load()
+
+  if (TokensQuery.result)
+    TokensQuery.refetch()
+}
+PoolsQuery.onResult(() => {
+  handlePoolsQueryResult()
+})
+// Workaround for cached results: https://github.com/vuejs/apollo/issues/1154
+if (PoolsQuery.result.value)
+  handlePoolsQueryResult()
+
 const { rewards, areRewardsFetched } = useFetchStakingRewards({
   kaikas,
   poolIds: rawPoolIds,
@@ -50,12 +77,12 @@ function viewMore() {
 }
 
 const pools = computed<Pool[] | null>(() => {
-  if (rawPools.value === null || blockNumber.value === null) return null
+  if (rawPools.value === null || blockNumber.value === null || rewards.value === null || tokens.value === null) return null
 
-  const pools = [] as Pool[]
+  let pools = [] as Pool[]
 
   rawPools.value.forEach((pool) => {
-    if (!blockNumber.value || !rawPools.value || !rewards.value) return
+    if (!rawPools.value ||!blockNumber.value || !rewards.value || !tokens.value) return
 
     const id = pool.id
 
@@ -83,20 +110,30 @@ const pools = computed<Pool[] | null>(() => {
 
     const staked = new BigNumber(
       tokenWeiToRaw(
-        // FIXME which decimals?
-        { decimals: 18 },
+        { decimals: Number(pool.stakeToken.decimals) },
         asWei(pool.users[0]?.amount ?? '0'),
       ),
     )
 
-    const annualPercentageRate = new BigNumber(0)
+    const stakeTokenFromTokensQuery = tokens.value.find(token => token.id === pool.stakeToken.id)
+    const rewardTokenFromTokensQuery = tokens.value.find(token => token.id === pool.rewardToken.id)
+
+    if (!stakeTokenFromTokensQuery || !rewardTokenFromTokensQuery) return
+    
+    const stakeTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD)
+    const rewardTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD)
+
+    const totalTokensStaked = new BigNumber(tokenWeiToRaw(
+      { decimals: stakeToken.decimals },
+      asWei(pool.totalTokensStaked)
+    ))
+    const totalStaked = stakeTokenPrice.times(totalTokensStaked)
+
+    const rewardRate = new BigNumber(pool.rewardRate)
+    const totalRewardPricePerYear = rewardRate.times(BLOCKS_PER_YEAR).times(rewardTokenPrice)
+    const annualPercentageRate = !totalStaked.isZero() ? totalRewardPricePerYear.div(totalStaked).times(100) : new BigNumber(0)
 
     const createdAtBlock = Number(pool.createdAtBlock)
-
-    const totalTokensStaked = new BigNumber(pool.totalTokensStaked).multipliedBy(
-      new BigNumber(0.1).exponentiatedBy(pool.stakeToken.decimals),
-    )
-    const totalStaked = totalTokensStaked // TODO: finish
 
     const endsIn = Number(pool.endBlock) - blockNumber.value
 

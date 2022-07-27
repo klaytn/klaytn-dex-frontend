@@ -32,3 +32,15 @@ export interface HeaderMenuItem {
   routeName: RouteName
   activeWith?: RouteName[]
 }
+
+export const RoiType = {
+  Farming: 'farming',
+  Staking: 'staking',
+} as const
+
+export type RoiType = typeof RoiType[keyof typeof RoiType]
+
+export interface Tab {
+  id: string,
+  label: string
+}

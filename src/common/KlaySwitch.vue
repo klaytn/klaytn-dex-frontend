@@ -21,6 +21,11 @@ import { SSwitch } from '@soramitsu-ui/ui'
         background-color: $blue !important;
       }
     }
+    &__label {
+      margin-left: 10px;
+      font-weight: 700;
+      font-size: 14px;
+    }
   }
 }
 </style>

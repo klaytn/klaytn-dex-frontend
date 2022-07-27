@@ -30,7 +30,8 @@
     "Pausable",
     "multicall",
     "Initializable",
-    "exponentiated"
+    "exponentiated",
+    "KDEX"
   ],
   "i18n-ally.sourceLanguage": "en",
   "i18n-ally.keystyle": "nested",

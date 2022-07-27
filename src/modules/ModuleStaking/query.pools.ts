@@ -19,6 +19,7 @@ export interface PoolsQueryResult {
       symbol: TokenSymbol
       name: string
     }
+    rewardRate: string
     createdAtBlock: string
     totalTokensStaked: string
     endBlock: string
@@ -46,6 +47,7 @@ export function usePoolsQuery(userId: Ref<Address | null>) {
             symbol
             name
           }
+          rewardRate
           createdAtBlock
           totalTokensStaked
           endBlock
