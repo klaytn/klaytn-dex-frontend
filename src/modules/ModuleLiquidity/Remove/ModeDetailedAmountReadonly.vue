@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { Token, tokenWeiToRaw, ValueWei } from '@/core/kaikas'
+import { Token, Wei } from '@/core/kaikas'
 import { roundTo } from 'round-to'
 
 const props = defineProps<{
   token?: Token | null
-  amount?: ValueWei<string> | null
+  amount?: Wei | null
   isLoading?: boolean
 }>()
 
 const roundedTokenRelativeAmount = computed(() => {
   const { token, amount } = props
   if (token && amount) {
-    const value = tokenWeiToRaw(token, amount)
+    const value = amount.toToken(token)
     return roundTo(Number(value), 7)
   }
   return null

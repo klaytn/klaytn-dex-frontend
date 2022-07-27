@@ -1,5 +1,3 @@
-import BigNumber from 'bignumber.js'
-import BN from 'bn.js'
 import { Opaque } from 'type-fest'
 
 export interface Klaytn {
@@ -43,20 +41,6 @@ export type Address = Opaque<string, 'Address'>
 export type TokenSymbol = Opaque<string, 'TokenSymbol'>
 
 /**
- * `BigNumber` (from `bignumber.js` package) as a string
- *
- * **upd**: from the context of `src/components/TokenInput/index.vue`, it seems to be a
- * Wei value, because it is passed into `fromWei` function
- *
- * **upd**: also see `src/components/TokenSelect/Modal.vue`
- */
-export type Balance<T extends AnyNumber = string> = ValueWei<T>
-
-export type AnyNumber = number | string | BN | BigNumber
-
-export type ValueWei<T extends AnyNumber = AnyNumber> = Opaque<T, 'ValueWei'>
-
-/**
  * FIXME in liquidity store it is usually computed as:
  *
  * ```ts
@@ -66,5 +50,3 @@ export type ValueWei<T extends AnyNumber = AnyNumber> = Opaque<T, 'ValueWei'>
  * So... it seems to be a unix epoch time in seconds
  */
 export type Deadline = Opaque<number, 'Deadline'>
-
-export type WeiNumStrBn = ValueWei<number | string | BN>

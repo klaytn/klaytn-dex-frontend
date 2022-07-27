@@ -2,14 +2,14 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { Status } from '@soramitsu-ui/ui'
 import invariant from 'tiny-invariant'
 import { useTask, useStaleIfErrorState, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
-import { Address, tokenWeiToRaw, ValueWei } from '@/core/kaikas'
+import { Address, Wei, WeiAsToken } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, buildPair, mirrorTokenType } from '@/utils/pair'
 import Debug from 'debug'
 import { useGetAmount, GetAmountProps } from '../composable.get-amount'
 import { usePairAddress } from '../../ModuleTradeShared/composable.pair-by-tokens'
 import { useSwapValidation } from '../composable.validation'
-import { buildSwapProps } from '../util.swap-props'
+import { buildSwapProps, TokenAddrAndWeiInput } from '../util.swap-props'
 import { useTokensInput } from '../../ModuleTradeShared/composable.tokens-input'
 
 const debugModule = Debug('swap-store')
@@ -25,7 +25,7 @@ export const useSwapStore = defineStore('swap', () => {
 
   const swapValidation = useSwapValidation({
     tokenA: computed(() => {
-      const balance = selection.balance.tokenA as ValueWei<BigNumber> | null
+      const balance = selection.balance.tokenA
       const token = selection.tokens.tokenA
       const input = selection.wei.tokenA?.input
 
@@ -50,7 +50,7 @@ export const useSwapStore = defineStore('swap', () => {
       if (!amountFor) return null
 
       const referenceValue = selection.wei[mirrorTokenType(amountFor)]
-      if (!referenceValue || new BigNumber(referenceValue.input).isLessThanOrEqualTo(0)) return null
+      if (!referenceValue || referenceValue.input.asBigInt <= 0) return null
 
       const { tokenA, tokenB } = addrsReadonly
       if (!tokenA || !tokenB) return null
@@ -61,7 +61,7 @@ export const useSwapStore = defineStore('swap', () => {
         tokenA,
         tokenB,
         amountFor,
-        referenceValue: referenceValue.input,
+        referenceValue: referenceValue.input as Wei,
       }
     }),
   )
@@ -74,8 +74,8 @@ export const useSwapStore = defineStore('swap', () => {
         const tokenData = selection.tokens[amountFor]
         if (tokenData) {
           debugModule('Setting computed amount %o for %o', amount, amountFor)
-          const raw = tokenWeiToRaw(tokenData, amount)
-          selection.input[amountFor].inputRaw = new BigNumber(raw).toFixed(5)
+          const token = amount.toToken(tokenData)
+          selection.input[amountFor].inputRaw = new BigNumber(token).toFixed(5) as WeiAsToken
         }
       }
     },
@@ -83,7 +83,7 @@ export const useSwapStore = defineStore('swap', () => {
   )
 
   function getSwapPrerequisitesAnyway() {
-    const { tokenA, tokenB } = selection.wei
+    const { tokenA, tokenB } = selection.wei as TokensPair<TokenAddrAndWeiInput>
     invariant(tokenA && tokenB, 'Both tokens should be selected')
 
     const amountFor = getAmountFor.value
@@ -126,23 +126,23 @@ export const useSwapStore = defineStore('swap', () => {
   const swapState = useStaleIfErrorState(swapTask)
 
   function setToken(type: TokenType, addr: Address | null) {
-    selection.input[type] = { addr, inputRaw: '' }
+    selection.input[type] = { addr, inputRaw: '' as WeiAsToken }
     triggerGetAmount(true)
   }
 
   function setBothTokens(pair: TokensPair<Address>) {
-    selection.resetInput(buildPair((type) => ({ inputRaw: '', addr: pair[type] })))
+    selection.resetInput(pair)
     getAmountFor.value = null
   }
 
-  function setTokenValue(type: TokenType, raw: string) {
-    selection.input[type].inputRaw = raw
+  function setTokenValue(type: TokenType, value: WeiAsToken) {
+    selection.input[type].inputRaw = value
     getAmountFor.value = mirrorTokenType(type)
   }
 
   function reset() {
     selection.input.tokenA.addr = selection.input.tokenB.addr = getAmountFor.value = null
-    selection.input.tokenA.inputRaw = selection.input.tokenB.inputRaw = ''
+    selection.input.tokenA.inputRaw = selection.input.tokenB.inputRaw = '' as WeiAsToken
   }
 
   return {

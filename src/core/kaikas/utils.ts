@@ -1,7 +1,6 @@
 import web3 from 'web3'
-import { type Address, type Token, type Deadline, ValueWei, AnyNumber } from './types'
+import type { Address, Token, Deadline } from './types'
 import { NATIVE_TOKEN } from './const'
-import BigNumber from 'bignumber.js'
 import { shortenStringInTheMiddle } from '@/utils/common'
 
 export function formatAddress(address: Address): string {
@@ -25,23 +24,14 @@ export function parseAddress(raw: string): Address {
   throw new Error(`not a valid address: "${raw}"`)
 }
 
-export function asWei<T extends AnyNumber>(value: T): ValueWei<T> {
-  return value as ValueWei<T>
+export function sortKlayPair(tokenA: Token, tokenB: Token) {
+  if (isNativeToken(tokenA.address)) return [tokenB, tokenA]
+
+  return [tokenA, tokenB]
 }
 
 export function deadlineFiveMinutesFromNow(): Deadline {
   return (~~(Date.now() / 1000) + 300) as Deadline
-}
-
-export function tokenRawToWei({ decimals }: Pick<Token, 'decimals'>, valueRaw: string): ValueWei<string> {
-  const result = new BigNumber(valueRaw ?? 0)
-    .multipliedBy(new BigNumber(10).pow(decimals))
-    .toFixed(0) as ValueWei<string>
-  return result
-}
-
-export function tokenWeiToRaw({ decimals }: Pick<Token, 'decimals'>, wei: ValueWei<string>): string {
-  return new BigNumber(wei).dividedBy(new BigNumber(10).pow(decimals)).toString()
 }
 
 if (import.meta.vitest) {
@@ -62,20 +52,6 @@ if (import.meta.vitest) {
 
     test('zero addr is empty', () => {
       expect(isEmptyAddress(parseAddress('0x0000000000000000000000000000000000000000'))).toBe(true)
-    })
-  })
-
-  describe('Token Wei <-> Raw', () => {
-    test('raw with decimals to wei', () => {
-      expect(tokenRawToWei({ decimals: 18 }, '123.42')).toEqual(123420000000000000000n.toString())
-    })
-
-    test('raw with decimals to wei', () => {
-      expect(tokenRawToWei({ decimals: 18 }, '4123')).toEqual((4123n * 10n ** 18n).toString())
-    })
-
-    test('wei to raw', () => {
-      expect(tokenWeiToRaw({ decimals: 18 }, 123420000000000000000n.toString() as ValueWei<string>)).toEqual('123.42')
     })
   })
 }
