@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { Token, tokenWeiToRaw, ValueWei } from '@/core/kaikas'
+import { Token, Wei, WeiAsToken } from '@/core/kaikas'
 import { LP_TOKEN_DECIMALS } from '@/core/kaikas/const'
 import { TokensPair } from '@/utils/pair'
 import { roundTo } from 'round-to'
 
 const props = defineProps<{
-  liquidityRaw?: string
-  balance?: null | ValueWei<string>
+  liquidityRaw?: WeiAsToken
+  balance?: null | Wei
   tokens?: null | TokensPair<Token | null>
 }>()
 
@@ -33,7 +33,7 @@ const tokensNormalized = computed(() => {
 const formattedBalance = computed(() => {
   const value = props.balance
   if (!value) return null
-  const num = Number(tokenWeiToRaw({ decimals: LP_TOKEN_DECIMALS }, value))
+  const num = Number(value.toToken({ decimals: LP_TOKEN_DECIMALS }))
   return roundTo(num, 7)
 })
 </script>

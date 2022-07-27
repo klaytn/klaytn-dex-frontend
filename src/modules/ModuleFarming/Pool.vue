@@ -84,7 +84,7 @@ const {
   computed(() => pool.value.pairId),
   FARMING_CONTRACT_ADDRESS,
 )
-whenever(expanded, triggerCheckEnabled)
+whenever(() => expanded.value && !enabled.value, triggerCheckEnabled)
 
 const loading = computed(() => {
   // FIXME include "enableTask" pending here too?
@@ -105,12 +105,12 @@ const withdrawTask = useTask(async () => {
   const withdraw = FarmingContract.methods.withdraw(props.pool.id, 0)
   const estimateGas = await withdraw.estimateGas({
     from: kaikas.selfAddress,
-    gasPrice,
+    gasPrice: gasPrice.asBN,
   })
   await withdraw.send({
     from: kaikas.selfAddress,
     gas: estimateGas,
-    gasPrice,
+    gasPrice: gasPrice.asBN,
   })
 
   return { earned }
