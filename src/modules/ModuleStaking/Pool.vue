@@ -4,7 +4,7 @@ import { KlayIconCalculator, KlayIconClock, KlayIconLink } from '~klay-icons'
 import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
-import { RouteName } from '@/types'
+import { RouteName, RoiType } from '@/types'
 import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { STAKING } from '@/core/kaikas/smartcontracts/abi'
@@ -14,6 +14,9 @@ const kaikas = useKaikasStore().getKaikasAnyway()
 const vBem = useBemClass()
 const router = useRouter()
 const { t } = useI18n()
+const showRoiCalculator = ref(false)
+const roiType = RoiType.Farming
+const roiPool = ref<Pool | null>(null)
 
 const props = defineProps<{
   pool: Pool
@@ -49,11 +52,12 @@ const formattedStaked = computed(() => {
 })
 
 const formattedTotalStaked = computed(() => {
-  return new BigNumber(pool.value.totalStaked.toFixed(FORMATTED_BIG_INT_DECIMALS))
+  return '$' + new BigNumber(pool.value.totalStaked.toFixed(0, BigNumber.ROUND_UP))
 })
 
 const formattedAnnualPercentageRate = computed(() => {
-  return '%' + new BigNumber(pool.value.annualPercentageRate.toFixed(FORMATTED_BIG_INT_DECIMALS))
+  if (pool.value.annualPercentageRate.isZero()) return '—'
+  return '%' + new BigNumber(pool.value.annualPercentageRate.toFixed(2, BigNumber.ROUND_UP))
 })
 
 const formattedEndsIn = computed(() => {
@@ -149,6 +153,12 @@ function handleUnstaked(amount: string) {
 function handleModalClose() {
   modalOperation.value = null
 }
+
+function openRoiCalculator(event: Event, pool: Pool) {
+  event.stopPropagation()
+  showRoiCalculator.value = true
+  roiPool.value = pool
+}
 </script>
 
 <template>
@@ -180,10 +190,10 @@ function handleModalClose() {
           <div v-bem="'stats-item-label'">
             {{ t(`ModuleStakingPool.stats.${label}`, { symbol: pool.rewardToken.symbol }) }}
           </div>
-          <div v-bem="['stats-item-value', { zero: value == '0' }]">
+          <div v-bem="['stats-item-value', { zero: ['0', '$0'].includes(`${value}`) }]">
             {{ value }}
             <KlayIconCalculator
-              v-if="label === 'annualPercentageRate'"
+              v-if="label === 'annualPercentageRate' && value !== '—'"
               v-bem="'stats-item-calculator'"
             />
             <KlayIconClock
@@ -317,6 +327,15 @@ function handleModalClose() {
     @update:mode="handleModalClose"
     @staked="handleStaked"
     @unstaked="handleUnstaked"
+  />
+
+  <RoiCalculator
+    v-if="roiPool"
+    v-model:show="showRoiCalculator"
+    :type="roiType"
+    :staked="roiPool.staked"
+    :apr="roiPool.annualPercentageRate"
+    :lp-apr="roiPool.lpAnnualPercentageRate"
   />
 </template>
 

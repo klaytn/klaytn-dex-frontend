@@ -11,6 +11,7 @@ export interface Pool {
   earned: BigNumber
   balance: BigNumber
   annualPercentageRate: BigNumber
+  lpAnnualPercentageRate: BigNumber
   liquidity: BigNumber
   multiplier: BigNumber
   createdAtBlock: number
