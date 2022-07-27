@@ -1,5 +1,5 @@
 <script setup lang="ts" name="ModuleGovernanceListProposal">
-import moment from 'moment'
+import dayjs from 'dayjs'
 import { RouteName } from '@/types'
 import { Proposal } from '../types'
 
@@ -11,12 +11,16 @@ const props = defineProps<{
 }>()
 const { proposal } = toRefs(props)
 
+function formatDate(timestamp: number) {
+  return dayjs(timestamp * 1000).format('DD.MM.YYYY')
+}
+
 const formattedStartDate = computed(() => {
-  return moment(proposal.value.start * 1000).format('DD.MM.YYYY')
+  return formatDate(proposal.value.start)
 })
 
 const formattedEndDate = computed(() => {
-  return moment(proposal.value.end * 1000).format('DD.MM.YYYY')
+  return formatDate(proposal.value.end)
 })
 </script>
 

@@ -26,6 +26,17 @@ const rawProposals = computed(() => {
   return ProposalsQuery.result.value?.proposals ?? null
 })
 
+function setInitShowViewMore() {
+  showViewMore.value = ProposalsQuery.result.value?.proposals.length === PAGE_SIZE
+}
+setInitShowViewMore()
+ProposalsQuery.onResult(() => {
+  setInitShowViewMore()
+})
+
+if (ProposalsQuery.result.value)
+  page.value = Math.ceil(ProposalsQuery.result.value.proposals.length / PAGE_SIZE)
+
 const proposals = computed<ListProposal[] | null>(() => {
   if (rawProposals.value === null) return null
 
@@ -58,7 +69,7 @@ function viewMore() {
     // Transform the previous result with new data
     updateQuery: (previousResult, { fetchMoreResult }) => {
       if (!fetchMoreResult) return previousResult
-      showViewMore.value = fetchMoreResult.proposals.length !== 0
+      showViewMore.value = fetchMoreResult.proposals.length === PAGE_SIZE
       return {
         proposals: [...previousResult.proposals, ...fetchMoreResult.proposals],
       }

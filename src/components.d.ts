@@ -33,7 +33,6 @@ declare module '@vue/runtime-core' {
     ModuleGovernanceProposalDescription: typeof import('./modules/ModuleGovernance/Proposal/Description.vue')['default']
     ModuleGovernanceProposalHead: typeof import('./modules/ModuleGovernance/Proposal/Head.vue')['default']
     ModuleGovernanceProposalSideColumn: typeof import('./modules/ModuleGovernance/Proposal/SideColumn.vue')['default']
-    ModuleGovernanceProposalState: typeof import('./modules/ModuleGovernance/ProposalStatus.vue')['default']
     ModuleGovernanceProposalStatus: typeof import('./modules/ModuleGovernance/ProposalStatus.vue')['default']
     ModuleGovernanceProposalVotes: typeof import('./modules/ModuleGovernance/Proposal/Votes.vue')['default']
     ModuleLiquidityAdd: typeof import('./modules/ModuleLiquidity/Add/index.vue')['default']

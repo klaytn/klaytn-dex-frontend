@@ -1,5 +1,4 @@
 <script setup lang="ts" name="ModuleGovernanceListWrap">
-import { useGovernanceStore } from '../store/governance'
 import { Sorting } from '../types'
 
 const { t } = useI18n()

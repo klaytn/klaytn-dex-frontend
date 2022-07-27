@@ -31,6 +31,7 @@ specifiers:
   change-case: ^4.1.2
   critters: ^0.0.16
   cypress: ^9.7.0
+  dayjs: ^1.11.4
   debounce: ^1.2.1
   debug: ^4.3.4
   dompurify: ^2.3.10
@@ -48,7 +49,6 @@ specifiers:
   markdown-it-link-attributes: ^4.0.0
   markdown-it-prism: ^2.2.4
   marked: ^4.0.18
-  moment: ^2.29.4
   nprogress: ^0.2.0
   pinia: ^2.0.14
   prettier: ^2.7.1
@@ -96,6 +96,7 @@ dependencies:
   bn.js: 5.2.1
   bulma: 0.9.4
   caver-js: 1.8.2
+  dayjs: 1.11.4
   debounce: 1.2.1
   debug: 4.3.4
   dompurify: 2.3.10
@@ -103,7 +104,6 @@ dependencies:
   graphql: 16.5.0
   graphql-tag: 2.12.6_graphql@16.5.0
   lodash: 4.17.21
-  moment: 2.29.4
   nprogress: 0.2.0
   pinia: 2.0.14_vcmyupim4cga7k7f5hngmth5py
   prism-theme-vars: 0.2.3
@@ -4294,7 +4294,7 @@ packages:
       cli-table3: 0.6.2
       commander: 5.1.0
       common-tags: 1.8.2
-      dayjs: 1.11.3
+      dayjs: 1.11.4
       debug: 4.3.4_supports-color@8.1.1
       enquirer: 2.3.6
       eventemitter2: 6.4.5
@@ -4344,9 +4344,8 @@ packages:
       whatwg-url: 11.0.0
     dev: true
 
-  /dayjs/1.11.3:
-    resolution: {integrity: sha512-xxwlswWOlGhzgQ4TKzASQkUhqERI3egRNqgV4ScR8wlANA/A9tZ7miXa44vTTKEq5l7vWoL5G57bG3zA+Kow0A==}
-    dev: true
+  /dayjs/1.11.4:
+    resolution: {integrity: sha512-Zj/lPM5hOvQ1Bf7uAvewDaUcsJoI6JmNqmHhHl3nyumwe0XHwt8sWdOVAPACJzCebL8gQCi+K49w7iKWnGwX9g==}
 
   /debounce/1.2.1:
     resolution: {integrity: sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==}
@@ -7419,10 +7418,6 @@ packages:
 
   /mock-fs/4.14.0:
     resolution: {integrity: sha512-qYvlv/exQ4+svI3UOvPUpLDF0OMX5euvUH0Ny4N5QyRyhNdgAgUrVH3iUINSzEPLvx0kbo/Bp28GJKIqvE7URw==}
-    dev: false
-
-  /moment/2.29.4:
-    resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
     dev: false
 
   /mrmime/1.0.1:

@@ -27,7 +27,7 @@ export type ProposalStatus = typeof ProposalStatus[keyof typeof ProposalStatus]
 export type RawProposal = ProposalQueryResult['proposal']
 
 export interface ListProposal {
-  id: Address
+  id: string
   title: string
   start: number
   end: number
@@ -35,7 +35,7 @@ export interface ListProposal {
 }
 
 export interface Proposal {
-  id: Address
+  id: string
   title: string
   start: number
   end: number

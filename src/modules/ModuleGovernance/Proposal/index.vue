@@ -1,5 +1,4 @@
 <script setup lang="ts" name="ModuleGovernanceProposal">
-import { Address, parseAddress } from '@/core/kaikas'
 import { useProposalQuery } from '../query.proposal'
 import { Proposal } from '../types'
 import { getProposalStatus } from '../utils'
@@ -7,9 +6,12 @@ import { getProposalStatus } from '../utils'
 const vBem = useBemClass()
 const route = useRoute()
 
-const proposalId = computed(() => parseAddress(route.params.id as Address))
+const proposalId = route.params.id
 
-const ProposalQuery = useProposalQuery(proposalId)
+if (typeof proposalId !== 'string')
+  throw new Error('Wrong id parameter')
+
+const ProposalQuery = useProposalQuery(computed(() => proposalId))
 const rawProposal = computed(() => {
   return ProposalQuery.result.value?.proposal ?? null
 })

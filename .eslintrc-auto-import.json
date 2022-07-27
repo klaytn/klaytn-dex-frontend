@@ -157,6 +157,7 @@
     "useFullscreen": true,
     "useGamepad": true,
     "useGeolocation": true,
+    "useGovernanceStore": true,
     "useHead": true,
     "useI18n": true,
     "useIdle": true,

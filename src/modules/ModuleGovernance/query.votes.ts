@@ -13,7 +13,7 @@ export interface VotesQueryResult {
   }[]
 }
 
-export function useVotesQuery(props: Ref<{ skip: number, proposalId: Address }>) {
+export function useVotesQuery(props: Ref<{ skip: number, proposalId: string }>) {
   return useQuery<VotesQueryResult>(
     gql`
       query VotesQuery($skip: Int!, $proposal: String!) {

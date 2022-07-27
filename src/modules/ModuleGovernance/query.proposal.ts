@@ -6,7 +6,7 @@ import { ProposalState } from './types'
 
 export interface ProposalQueryResult {
   proposal: {
-    id: Address
+    id: string
     title: string
     start: number
     end: number
@@ -20,7 +20,7 @@ export interface ProposalQueryResult {
   }
 }
 
-export function useProposalQuery(id: Ref<Address>) {
+export function useProposalQuery(id: Ref<string>) {
   return useQuery<ProposalQueryResult>(
     gql`
       query ProposalQuery($id: String!) {
