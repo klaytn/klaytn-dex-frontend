@@ -93,7 +93,7 @@ export const useSwapStore = defineStore('swap', () => {
   const selection = useExchangeRateInput({ localStorageKey: 'swap-selection' })
   const selectionInput = useInertExchangeRateInput({ input: selection.input })
   const { rates: inputRates } = selectionInput
-  const { tokens } = selection
+  const { tokens, resetInput } = selection
   const addrsReadonly = readonly(selection.addrs)
 
   const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
@@ -198,10 +198,6 @@ export const useSwapStore = defineStore('swap', () => {
     selectionInput.set(type, value)
   }
 
-  function reset() {
-    selection.reset()
-  }
-
   return {
     inputRates,
     rates,
@@ -226,7 +222,7 @@ export const useSwapStore = defineStore('swap', () => {
     setToken,
     setTokenValue,
     setBothTokens,
-    reset,
+    resetInput,
   }
 })
 

@@ -34,12 +34,7 @@ export function useExchangeRateInput(options?: {
     : ref<TokensPair<Address | null>>(emptyAddrs())
   const addrsReactive = toReactive(addrs)
 
-  // TODO local storage sync
-  const input = options?.localStorageKey
-    ? useLocalStorage<null | InputTypeValue>(options.localStorageKey + '-input', null, {
-        serializer: JSON_SERIALIZER as Serializer<any>,
-      })
-    : ref<null | InputTypeValue>(null)
+  const input = ref<null | InputTypeValue>(null)
   const inputToken = computed(() => input.value?.type ?? null)
 
   function setAddrs(value: TokensPair<Address>) {
@@ -48,6 +43,10 @@ export function useExchangeRateInput(options?: {
 
   function reset() {
     addrs.value = emptyAddrs()
+    resetInput()
+  }
+
+  function resetInput() {
     input.value = null
   }
 
@@ -87,6 +86,7 @@ export function useExchangeRateInput(options?: {
     addrs: addrsReactive,
     setAddrs,
     reset,
+    resetInput,
     input,
     inputToken,
     inputNormalized,

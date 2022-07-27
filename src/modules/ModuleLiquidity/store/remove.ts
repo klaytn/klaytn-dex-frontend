@@ -13,6 +13,8 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
+import { JSON_SERIALIZER } from '@/utils/common'
+import { Serializer } from '@vueuse/core'
 
 const LP_TOKENS_DECIMALS = Object.freeze({ decimals: LP_TOKEN_DECIMALS_VALUE })
 
@@ -161,10 +163,7 @@ function useRemoveAmounts(
 
 export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   const selected = useLocalStorage<null | TokensPair<Address>>('liquidity-remove-tokens', null, {
-    serializer: {
-      read: (raw) => JSON.parse(raw),
-      write: (parsed) => JSON.stringify(parsed),
-    },
+    serializer: JSON_SERIALIZER as Serializer<any>,
   })
 
   const tokensStore = useTokensStore()

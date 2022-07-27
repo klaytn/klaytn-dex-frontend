@@ -16,6 +16,8 @@ const swapButtonLabel = $computed(() => {
 const isSwapDisabled = $computed(() => {
   return !isValid || !gotAmountFor
 })
+
+onUnmounted(() => swapStore.resetInput())
 </script>
 
 <template>

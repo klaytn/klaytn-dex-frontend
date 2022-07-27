@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 const store = useLiquidityAddStore()
+
+onUnmounted(() => store.resetInput())
 </script>
 
 <template>

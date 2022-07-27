@@ -80,19 +80,21 @@ function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSup
 
   const [active, setActive] = useToggle(false)
 
-  const scope = useParamScope(
-    computed(() => {
-      const { tokenA, tokenB } = props.tokens.value ?? {}
+  const scopeKey = computed(() => {
+    const { tokenA, tokenB } = props.tokens.value ?? {}
 
-      return (
-        active.value &&
-        tokenA &&
-        tokenB && {
-          key: `${tokenA.addr}-${tokenA.input}-${tokenB.addr}-${tokenB.input}`,
-          payload: { tokenA, tokenB },
-        }
-      )
-    }),
+    return (
+      tokenA &&
+      tokenB && {
+        key: `${tokenA.addr}-${tokenA.input}-${tokenB.addr}-${tokenB.input}`,
+        payload: { tokenA, tokenB },
+      }
+    )
+  })
+  watch(scopeKey, () => setActive(false))
+
+  const scope = useParamScope(
+    computed(() => active.value && scopeKey.value),
     (tokens) => {
       const { state: statePrepare, run: runPrepare } = useTask(
         async () => {
@@ -156,7 +158,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const selection = useExchangeRateInput({ localStorageKey: 'liquidity-add-selection' })
   const selectionInput = useInertExchangeRateInput({ input: selection.input })
   const { rates: inputRates } = selectionInput
-  const { tokens } = selection
+  const { tokens, resetInput } = selection
   const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
   const addrsReadonly = readonly(selection.addrs)
 
@@ -274,6 +276,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     input,
     setToken,
     setBoth,
+    resetInput,
 
     prepareSupply,
     clearSupply,
