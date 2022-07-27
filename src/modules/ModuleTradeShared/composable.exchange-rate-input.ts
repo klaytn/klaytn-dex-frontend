@@ -136,6 +136,13 @@ export function useInertExchangeRateInput({ input }: { input: Ref<null | InputTy
     ),
   )
 
+  whenever(
+    () => !input.value,
+    () => {
+      values.tokenA = values.tokenB = null
+    },
+  )
+
   function set(type: TokenType, value: WeiAsToken) {
     input.value = { type, value }
     values[type] = value
