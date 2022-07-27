@@ -34,7 +34,7 @@ const {
     >
       <ModuleLiquidityRemoveModeDetailedAmountReadonly
         :token="tokens[token]"
-        :amount="amounts?.[token]?.toString()"
+        :amount="amounts?.[token]"
         :is-loading="isAmountsPending"
       />
 
