@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { Token, tokenWeiToRaw, ValueWei } from '@/core/kaikas'
+import { Token, Wei } from '@/core/kaikas'
 import { roundTo } from 'round-to'
 
 const props = defineProps<{
   token: Token
   disabled?: boolean
-  balance?: ValueWei<string>
+  balance?: Wei
   forImport?: boolean
 }>()
 
 const emit = defineEmits(['click:import'])
 
 const balanceFormatted = computed(() => {
-  if (!props.balance) return '—' /* mdash */
-  return roundTo(Number(tokenWeiToRaw(props.token, props.balance)), 7)
+  if (!props.balance) return null
+  return roundTo(Number(props.balance.toToken(props.token)), 7)
 })
 </script>
 
@@ -43,7 +43,7 @@ const balanceFormatted = computed(() => {
       v-else
       class="balance"
     >
-      {{ balanceFormatted }}
+      <ValueOrDash :value="balanceFormatted" />
     </span>
   </div>
 </template>
