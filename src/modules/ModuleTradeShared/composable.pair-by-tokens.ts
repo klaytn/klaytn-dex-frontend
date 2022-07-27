@@ -1,4 +1,4 @@
-import { Address, isEmptyAddress, ValueWei } from '@/core/kaikas'
+import { Address, isEmptyAddress, Wei } from '@/core/kaikas'
 import { TokensPair } from '@/utils/pair'
 import { MaybeRef } from '@vueuse/core'
 import BigNumber from 'bignumber.js'

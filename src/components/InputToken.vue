@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { Token, Address, ValueWei, tokenWeiToRaw, asWei } from '@/core/kaikas'
-import BigNumber from 'bignumber.js'
+import { Token, Address, Wei, WeiAsToken } from '@/core/kaikas'
 import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 import { roundTo } from 'round-to'
@@ -8,7 +7,7 @@ import { roundTo } from 'round-to'
 const props = withDefaults(
   defineProps<{
     token?: Address
-    modelValue?: string | number
+    modelValue?: WeiAsToken
     valueDebounce?: number
     isLoading?: boolean
     isDisabled?: boolean
@@ -64,12 +63,10 @@ const { isBalancePending } = $(storeToRefs(tokensStore))
 
 const tokenData = $computed<null | Token>(() => (props.token && tokensStore.findTokenData(props.token)) ?? null)
 
-const balance = $computed<null | ValueWei<BigNumber>>(
-  () => (props.token && tokensStore.lookupUserBalance(props.token)) ?? null,
-)
+const balance = $computed<null | Wei>(() => (props.token && tokensStore.lookupUserBalance(props.token)) ?? null)
 const balanceRaw = $computed(() => {
   if (!balance || !tokenData) return null
-  return tokenWeiToRaw(tokenData, asWei(balance.toString()))
+  return balance.toToken(tokenData)
 })
 const balanceFormatted = $computed(() => {
   if (!balanceRaw) return null
@@ -113,7 +110,7 @@ function setToMax() {
 
     <template #bottom-right>
       <div
-        :title="balance?.toFixed()"
+        :title="balance?.asStr"
         class="balance flex items-center space-x-2"
       >
         <span>

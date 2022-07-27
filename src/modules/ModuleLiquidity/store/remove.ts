@@ -1,4 +1,4 @@
-import { Address, asWei, Token, tokenRawToWei, tokenWeiToRaw, ValueWei, WeiNumStrBn } from '@/core/kaikas'
+import { Address, Token, Wei, WeiAsToken } from '@/core/kaikas'
 import { LP_TOKEN_DECIMALS as LP_TOKEN_DECIMALS_VALUE } from '@/core/kaikas/const'
 import {
   useNullablePairBalanceComponents,
@@ -7,8 +7,6 @@ import {
   usePairReserves,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { buildPair, TokensPair, TOKEN_TYPES } from '@/utils/pair'
-import BigNumber from 'bignumber.js'
-import BN from 'bn.js'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -21,8 +19,8 @@ const LP_TOKENS_DECIMALS = Object.freeze({ decimals: LP_TOKEN_DECIMALS_VALUE })
 function usePrepareSupply(props: {
   tokens: Ref<null | TokensPair<Address>>
   pairAddress: Ref<null | Address>
-  liquidity: Ref<ValueWei<string> | null>
-  amounts: Ref<null | TokensPair<ValueWei<BN>>>
+  liquidity: Ref<Wei | null>
+  amounts: Ref<null | TokensPair<Wei>>
 }) {
   const kaikasStore = useKaikasStore()
   const tokensStore = useTokensStore()
@@ -112,10 +110,10 @@ function usePrepareSupply(props: {
 function useRemoveAmounts(
   tokens: Ref<null | TokensPair<Address>>,
   pair: Ref<null | Address>,
-  liquidity: Ref<null | WeiNumStrBn>,
+  liquidity: Ref<null | Wei>,
 ): {
   pending: Ref<boolean>
-  amounts: Ref<null | TokensPair<ValueWei<BN>>>
+  amounts: Ref<null | TokensPair<Wei>>
   touch: () => void
 } {
   const kaikasStore = useKaikasStore()
@@ -204,16 +202,16 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
   const { result: pairReserves, pending: isReservesPending, touch: touchPairReserves } = usePairReserves(selected)
 
-  const liquidityRaw = ref('')
-  const liquidity = computed<ValueWei<string> | null>({
+  const liquidityRaw = ref('' as WeiAsToken)
+  const liquidity = computed<Wei | null>({
     get: () => {
       const raw = liquidityRaw.value
       if (!raw) return null
-      return tokenRawToWei(LP_TOKENS_DECIMALS, raw)
+      return Wei.fromToken(LP_TOKENS_DECIMALS, raw)
     },
     set: (wei) => {
       if (wei) {
-        liquidityRaw.value = tokenWeiToRaw(LP_TOKENS_DECIMALS, wei)
+        liquidityRaw.value = wei.toToken(LP_TOKENS_DECIMALS)
       }
     },
   })
@@ -223,16 +221,16 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
    */
   const liquidityRelative = computed<number | null>({
     get: () => {
-      const wei = liquidity.value ?? '0'
+      const wei = liquidity.value ?? new Wei(0)
       const total = pairUserBalance.value
       if (!total) return null
-      return new BigNumber(wei).div(total).toNumber()
+      return wei.asBigNum.div(total.asBigNum).toNumber()
     },
     set: (rel) => {
       if (rel === null) return
       const total = pairUserBalance.value
       if (!total) return
-      liquidity.value = asWei(new BigNumber(total).multipliedBy(rel).toString())
+      liquidity.value = new Wei(total.asBigNum.multipliedBy(rel))
     },
   })
 
@@ -257,7 +255,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   }
 
   function clear() {
-    liquidityRaw.value = ''
+    liquidityRaw.value = '' as WeiAsToken
   }
 
   const {

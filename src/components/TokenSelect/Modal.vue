@@ -48,7 +48,7 @@ const importLookupScope = useParamScope(
     return null
   }),
   (addr) => {
-    const { state } = useTask(() => kaikasStore.getKaikasAnyway().tokens.getToken(addr) ?? null, { immediate: true })
+    const { state } = useTask(() => kaikasStore.getKaikasAnyway().tokens.getToken(addr), { immediate: true })
     usePromiseLog(state, 'import-lookup')
     return state
   },

@@ -1,4 +1,4 @@
-import { ValueWei, deadlineFiveMinutesFromNow, tokenWeiToRaw, Address, asWei } from '@/core/kaikas'
+import { deadlineFiveMinutesFromNow, Address, Wei } from '@/core/kaikas'
 import {
   usePairAddress,
   PairAddressResult,
@@ -10,7 +10,6 @@ import { Status } from '@soramitsu-ui/ui'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
-import BN from 'bn.js'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import {
   InputWei,
@@ -18,7 +17,7 @@ import {
   useInertExchangeRateInput,
 } from '@/modules/ModuleTradeShared/composable.exchange-rate-input'
 
-type NormalizedWeiInput = TokensPair<{ addr: Address; input: ValueWei<string> }>
+type NormalizedWeiInput = TokensPair<{ addr: Address; input: Wei }>
 
 function useQuoting(props: { pair: Ref<null | PairAddressResult>; input: Ref<null | InputWei> }) {
   const kaikasStore = useKaikasStore()
@@ -196,7 +195,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     [quoteExchangeRate, selection.tokens],
     ([rate, tokens]) => {
       if (rate && tokens[rate.props.quoteFor]) {
-        const token = tokenWeiToRaw(tokens[rate.props.quoteFor]!, rate.value)
+        const token = rate.value.toToken(tokens[rate.props.quoteFor]!)
         selectionInput.setEstimated(token)
       }
     },
@@ -222,8 +221,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
       if (!quoteExchangeRate.value) return null
       return buildPair((type) => {
         const wei = weiNormalized.value![type].input
-        const bn = asWei(new BN(wei))
-        return bn
+        return wei
       })
     }),
   )

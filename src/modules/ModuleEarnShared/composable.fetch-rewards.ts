@@ -1,4 +1,4 @@
-import { Kaikas, Address, asWei } from '@/core/kaikas'
+import { Kaikas, Address, Wei } from '@/core/kaikas'
 import { MULTICALL } from '@/core/kaikas/smartcontracts/abi'
 import { Multicall } from '@/types/typechain/farming/MultiCall.sol'
 import invariant from 'tiny-invariant'
@@ -31,7 +31,7 @@ export function useFetchRewards<T extends PoolId | Address>({
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const rewards = {} as Rewards<T>
     aggrResult.returnData.forEach((hex, idx) => {
-      rewards[ids[idx]] = asWei(kaikas.cfg.caver.klay.abi.decodeParameter('uint256', hex))
+      rewards[ids[idx]] = new Wei(kaikas.cfg.caver.klay.abi.decodeParameter('uint256', hex))
     })
 
     return {

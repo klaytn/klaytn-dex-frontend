@@ -18,7 +18,7 @@ const formattedAmounts = computed(() => {
   if (!amounts.value || !tokens.value) return null
   return buildPair((type) => {
     const data = tokens.value![type]
-    return roundTo(Number(tokenWeiToRaw(data, asWei(amounts.value![type].toString()))), 7)
+    return roundTo(Number(amounts.value![type].toToken(data)), 7)
   })
 })
 </script>

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { TOKEN_TYPES } from '@/utils/pair'
-import { asWei, tokenWeiToRaw } from '@/core/kaikas'
 import { roundTo } from 'round-to'
 
 const { selectedTokensData: tokens, amounts } = $(storeToRefs(useLiquidityRmStore()))
@@ -9,7 +8,7 @@ const { selectedTokensData: tokens, amounts } = $(storeToRefs(useLiquidityRmStor
 const rows = computed(() => {
   if (!amounts || !tokens) return null
   return TOKEN_TYPES.map((type) => {
-    const relative = tokenWeiToRaw(tokens[type], asWei(amounts[type].toString()))
+    const relative = amounts[type].toToken(tokens[type])
     return { symbol: tokens[type].symbol, value: roundTo(Number(relative), 7) }
   })
 })

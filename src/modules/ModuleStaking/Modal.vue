@@ -32,7 +32,7 @@ const PoolContract = kaikas.cfg.createContract<StakingInitializable>(pool.value.
 const value = ref('0')
 
 watch(model, () => {
-  value.value = '0'
+  value.value = '0' as WeiAsToken
 })
 
 const balanceScope = useParamScope(model, () => {

@@ -1,4 +1,4 @@
-import { Address, tokenRawToWei, ValueWei } from '@/core/kaikas'
+import { Address, Wei, WeiAsToken } from '@/core/kaikas'
 import { describe, test, expect } from 'vitest'
 import { buildSwapProps } from './util.swap-props'
 
@@ -11,11 +11,11 @@ describe('Building swap props', () => {
       buildSwapProps({
         tokenA: {
           addr: someNonNativeToken1,
-          input: tokenRawToWei({ decimals: 18 }, '1.423'),
+          input: Wei.fromToken({ decimals: 18 }, '1.423' as WeiAsToken),
         },
         tokenB: {
           addr: someNonNativeToken2,
-          input: tokenRawToWei({ decimals: 18 }, '45.42'),
+          input: Wei.fromToken({ decimals: 18 }, '45.42' as WeiAsToken),
         },
         referenceToken: 'tokenA',
       }),
@@ -37,11 +37,11 @@ describe('Building swap props', () => {
       buildSwapProps({
         tokenA: {
           addr: someNonNativeToken1,
-          input: '0' as ValueWei<string>,
+          input: new Wei(0),
         },
         tokenB: {
           addr: someNonNativeToken1,
-          input: '0' as ValueWei<string>,
+          input: new Wei(0),
         },
         referenceToken: 'tokenA',
       }),

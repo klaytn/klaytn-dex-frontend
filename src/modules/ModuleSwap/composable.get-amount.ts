@@ -1,4 +1,4 @@
-import { Address, Kaikas, ValueWei } from '@/core/kaikas'
+import { Address, Kaikas, Wei } from '@/core/kaikas'
 import { TokensPair, TokenType } from '@/utils/pair'
 import { Ref } from 'vue'
 import Debug from 'debug'
@@ -7,10 +7,10 @@ const debug = Debug('swap-amounts')
 
 export interface GetAmountProps extends TokensPair<Address> {
   amountFor: TokenType
-  referenceValue: ValueWei<string>
+  referenceValue: Wei
 }
 
-async function getAmount(props: GetAmountProps & { kaikas: Kaikas }): Promise<ValueWei<string>> {
+async function getAmount(props: GetAmountProps & { kaikas: Kaikas }): Promise<Wei> {
   const addrsPair = { addressA: props.tokenA, addressB: props.tokenB }
 
   const refValue = props.referenceValue

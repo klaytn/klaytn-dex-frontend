@@ -2,11 +2,10 @@ import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
 import { Address, asWei, Balance, Kaikas, Token, ValueWei } from '@/core/kaikas'
 import { WHITELIST_TOKENS } from '@/core/kaikas/const'
 import invariant from 'tiny-invariant'
-import BigNumber from 'bignumber.js'
 import { Ref } from 'vue'
 
 export interface TokenWithOptionBalance extends Token {
-  balance: null | Balance<BigNumber>
+  balance: null | Wei
 }
 
 function listItemsFromMapOrNull<K, V>(keys: K[], map: Map<K, V>): null | V[] {
@@ -24,7 +23,7 @@ function listItemsFromMapOrNull<K, V>(keys: K[], map: Map<K, V>): null | V[] {
 async function loadTokens(kaikas: Kaikas, addrs: Address[]): Promise<Map<Address, Token>> {
   const pairs = await Promise.all(
     addrs.map(async (addr) => {
-      const token = await kaikas.getToken(addr)
+      const token = await kaikas.tokens.getToken(addr)
       return [addr, token] as [Address, Token]
     }),
   )
@@ -32,11 +31,11 @@ async function loadTokens(kaikas: Kaikas, addrs: Address[]): Promise<Map<Address
   return new Map(pairs)
 }
 
-async function loadBalances(kaikas: Kaikas, tokens: Address[]): Promise<Map<Address, Balance>> {
+async function loadBalances(kaikas: Kaikas, tokens: Address[]): Promise<Map<Address, Wei>> {
   const entries = await Promise.all(
     tokens.map(async (addr) => {
-      const balance = await kaikas.getTokenBalance(addr)
-      return [addr, balance] as [Address, Balance<string>]
+      const balance = await kaikas.tokens.getTokenBalanceOfUser(addr)
+      return [addr, balance] as [Address, Wei]
     }),
   )
 
@@ -139,7 +138,7 @@ function useUserBalance(tokens: Ref<null | Address[]>) {
     fetchScope.value?.expose.touch()
   }
 
-  function lookup(addr: Address): ValueWei<BigNumber> | null {
+  function lookup(addr: Address): Wei | null {
     return result.value?.get(addr.toLowerCase() as Address) ?? null
   }
 

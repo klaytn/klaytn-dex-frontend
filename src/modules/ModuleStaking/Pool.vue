@@ -80,7 +80,7 @@ const {
   computed(() => pool.value.stakeToken.id),
   computed(() => pool.value.id),
 )
-whenever(expanded, triggerCheckEnabled)
+whenever(() => expanded.value && !enabled.value, triggerCheckEnabled)
 
 function stake() {
   modalOperation.value = ModalOperation.Stake

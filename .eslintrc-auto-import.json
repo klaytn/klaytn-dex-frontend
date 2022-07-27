@@ -251,7 +251,6 @@
     "useWebSocket": true,
     "useWebWorker": true,
     "useWebWorkerFn": true,
-    "useWei": true,
     "useWindowFocus": true,
     "useWindowScroll": true,
     "useWindowSize": true,

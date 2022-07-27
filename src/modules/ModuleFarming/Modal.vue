@@ -8,6 +8,7 @@ import { FARMING } from '@/core/kaikas/smartcontracts/abi'
 import invariant from 'tiny-invariant'
 import { farmingToWei } from './utils'
 import { or } from '@vueuse/core'
+import { WeiAsToken } from '@/core/kaikas'
 
 const kaikasStore = useKaikasStore()
 
@@ -34,10 +35,10 @@ const emit = defineEmits<{
 }>()
 
 const show = useVModel(props, 'modelValue', emit)
-const value = ref('0')
+const value = ref('0' as WeiAsToken)
 
 watch(show, () => {
-  value.value = '0'
+  value.value = '0' as WeiAsToken
 })
 
 const iconChars = computed(() => {
@@ -78,8 +79,8 @@ const disabled = computed(() => {
 })
 
 function setMax() {
-  if (operation.value === ModalOperation.Stake) value.value = `${pool.value.balance}`
-  else value.value = `${pool.value.staked}`
+  if (operation.value === ModalOperation.Stake) value.value = `${pool.value.balance}` as WeiAsToken
+  else value.value = `${pool.value.staked}` as WeiAsToken
 }
 
 const { state: stakeState, run: stake } = useTask(async () => {
@@ -88,15 +89,15 @@ const { state: stakeState, run: stake } = useTask(async () => {
 
   const amount = value.value
   const gasPrice = await kaikas.cfg.getGasPrice()
-  const deposit = FarmingContract.methods.deposit(props.pool.id, farmingToWei(amount))
+  const deposit = FarmingContract.methods.deposit(props.pool.id, farmingToWei(amount).asBN)
   const estimateGas = await deposit.estimateGas({
     from: kaikas.selfAddress,
-    gasPrice,
+    gasPrice: gasPrice.asBN,
   })
   const receipt = await deposit.send({
     from: kaikas.selfAddress,
     gas: estimateGas,
-    gasPrice,
+    gasPrice: gasPrice.asBN,
   })
   if (receipt.status === false) throw new Error('Transaction error')
 
@@ -114,15 +115,15 @@ const { state: unstakeState, run: unstake } = useTask(async () => {
 
   const amount = value.value
   const gasPrice = await kaikas.cfg.getGasPrice()
-  const withdraw = FarmingContract.methods.withdraw(props.pool.id, farmingToWei(amount))
+  const withdraw = FarmingContract.methods.withdraw(props.pool.id, farmingToWei(amount).asBN)
   const estimateGas = await withdraw.estimateGas({
     from: kaikas.selfAddress,
-    gasPrice,
+    gasPrice: gasPrice.asBN,
   })
   await withdraw.send({
     from: kaikas.selfAddress,
     gas: estimateGas,
-    gasPrice,
+    gasPrice: gasPrice.asBN,
   })
 
   return { amount }

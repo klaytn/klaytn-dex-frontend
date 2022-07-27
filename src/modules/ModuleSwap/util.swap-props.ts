@@ -1,4 +1,4 @@
-import { Address, isNativeToken, ValueWei } from '@/core/kaikas'
+import { Address, isNativeToken, Wei } from '@/core/kaikas'
 import { SwapProps, SwapExactAForB, SwapAForExactB } from '@/core/kaikas/Swap'
 import { TokenType } from '@/utils/pair'
 import invariant from 'tiny-invariant'
@@ -6,7 +6,7 @@ import { Except } from 'type-fest'
 
 export interface TokenAddrAndWeiInput {
   addr: Address
-  input: ValueWei<string>
+  input: Wei
 }
 
 export function buildSwapProps({

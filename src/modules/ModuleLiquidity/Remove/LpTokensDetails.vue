@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
-import { tokenWeiToRaw } from '@/core/kaikas'
 import { LP_TOKEN_DECIMALS } from '@/core/kaikas/const'
 import { roundTo } from 'round-to'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
@@ -22,7 +21,7 @@ const formattedReserves = computed(() => {
   return buildPair((type) => {
     const wei = reserves[type === 'tokenA' ? 'reserve0' : 'reserve1']
     const data = tokensData[type]!
-    const value = tokenWeiToRaw(data, wei)
+    const value = wei.toToken(data)
     return roundTo(Number(value), 7)
   })
 })
@@ -30,7 +29,7 @@ const formattedReserves = computed(() => {
 const formattedPoolTokens = computed(() => {
   const wei = unref(pairUserBalance)
   if (!wei) return null
-  const value = tokenWeiToRaw({ decimals: LP_TOKEN_DECIMALS }, wei)
+  const value = wei.toToken({ decimals: LP_TOKEN_DECIMALS })
   return roundTo(Number(value), 7)
 })
 </script>

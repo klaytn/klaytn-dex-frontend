@@ -204,4 +204,8 @@ export default defineConfig({
       localsConvention: 'camelCaseOnly',
     },
   },
+
+  build: {
+    target: 'esnext',
+  },
 })
