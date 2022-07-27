@@ -1,4 +1,5 @@
-import type { Token, Address, ValueWei } from './types'
+import type { Token, Address } from './types'
+import Wei from './Wei'
 
 /**
  * Klay token address
@@ -20,7 +21,7 @@ export const LP_TOKEN_DECIMALS = 18
  * FIXME use `caver.klay.getGasPrice` instead
  * @deprecated
  */
-export const MAGIC_GAS_PRICE = 250000000000 as ValueWei<number>
+export const MAGIC_GAS_PRICE = new Wei(250000000000)
 
 export const WHITELIST_TOKENS = Object.freeze([
   {

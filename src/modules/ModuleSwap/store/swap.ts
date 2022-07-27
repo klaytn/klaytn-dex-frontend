@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, Wei } from '@/core/kaikas'
+import { Address, Wei, WeiAsToken } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
@@ -112,7 +112,7 @@ export const useSwapStore = defineStore('swap', () => {
       if (!amountFor) return null
 
       const referenceValue = selection.inputNormalized.value?.wei
-      if (!referenceValue || new BigNumber(referenceValue).isLessThanOrEqualTo(0)) return null
+      if (!referenceValue || referenceValue.asBigInt <= 0) return null
 
       const { tokenA, tokenB } = addrsReadonly
       if (!tokenA || !tokenB) return null
@@ -138,8 +138,8 @@ export const useSwapStore = defineStore('swap', () => {
         const tokenData = selection.tokens[amountFor]
         if (tokenData) {
           debugModule('Setting computed amount %o for %o', amount, amountFor)
-          const raw = tokenWeiToRaw(tokenData, amount)
-          selectionInput.setEstimated(new BigNumber(raw).toFixed(5))
+          const raw = amount.toToken(tokenData)
+          selectionInput.setEstimated(new BigNumber(raw).toFixed(5) as WeiAsToken)
         }
       }
     },
@@ -164,13 +164,13 @@ export const useSwapStore = defineStore('swap', () => {
     computed(() => {
       const wei = normalizedWeiInputs.value
       if (!wei) return null
-      return buildPair((type) => asWei(new BN(wei[type].input)))
+      return buildPair((type) => wei[type].input)
     }),
   )
 
   const swapValidation = useSwapValidation({
     tokenA: computed(() => {
-      const balance = selection.balance.tokenA as ValueWei<BigNumber> | null
+      const balance = selection.balance.tokenA as Wei | null
       const token = selection.tokens.tokenA
       const input = normalizedWeiInputs.value?.tokenA?.input
 
@@ -194,7 +194,7 @@ export const useSwapStore = defineStore('swap', () => {
     selection.input.value = null
   }
 
-  function setTokenValue(type: TokenType, value: string) {
+  function setTokenValue(type: TokenType, value: WeiAsToken) {
     selectionInput.set(type, value)
   }
 

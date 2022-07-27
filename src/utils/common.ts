@@ -1,11 +1,10 @@
-import { asWei, ValueWei } from '@/core/kaikas'
+import { Wei } from '@/core/kaikas'
 import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'
-import BN from 'bn.js'
 import rfdc from 'rfdc'
 import { roundTo } from 'round-to'
 import { JsonValue } from 'type-fest'
-import { buildPair, TokensPair } from './pair'
+import { TokensPair } from './pair'
 
 const reallyFastDeepClone = rfdc()
 

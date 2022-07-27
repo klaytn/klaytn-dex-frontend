@@ -1,4 +1,4 @@
-import { Address, tokenRawToWei, ValueWei } from '@/core/kaikas'
+import { Address, Wei, WeiAsToken } from '@/core/kaikas'
 import { JSON_SERIALIZER } from '@/utils/common'
 import { buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
 import { Serializer } from '@vueuse/core'
@@ -11,12 +11,12 @@ function emptyAddrs(): TokensPair<Address | null> {
 
 interface InputTypeValue {
   type: TokenType
-  value: string
+  value: WeiAsToken
 }
 
 export interface InputWei {
   type: TokenType
-  wei: ValueWei<string>
+  wei: Wei
 }
 
 export function useExchangeRateInput(options?: {
@@ -66,7 +66,7 @@ export function useExchangeRateInput(options?: {
     if (!token) return null
     const tokenData = tokens[token.type]
     if (!tokenData) return null
-    const wei = tokenRawToWei(tokenData, token.value)
+    const wei = Wei.fromToken(tokenData, token.value)
     return { wei, type: token.type }
   })
 
@@ -96,25 +96,25 @@ export function useExchangeRateInput(options?: {
 }
 
 interface ExchangeRateInput {
-  value: string
+  value: WeiAsToken
   type: 'active' | 'outdated' | 'estimated'
 }
 
 export function useInertExchangeRateInput({ input }: { input: Ref<null | InputTypeValue> }): {
   rates: TokensPair<ExchangeRateInput | null>
   exchangeRateFor: Ref<null | TokenType>
-  set: (type: TokenType, value: string) => void
+  set: (type: TokenType, value: WeiAsToken) => void
   /**
    * Implying this value is set for `exchangeRateFor`
    */
-  setEstimated: (value: string) => void
+  setEstimated: (value: WeiAsToken) => void
 } {
   const exchangeFor = computed(() => {
     const inputType = input.value?.type ?? null
     return inputType && mirrorTokenType(inputType)
   })
 
-  const values = reactive<TokensPair<null | string>>(
+  const values = reactive<TokensPair<null | WeiAsToken>>(
     buildPair((type) => (type === input.value?.type ? input.value.value : null)),
   )
 
@@ -136,13 +136,13 @@ export function useInertExchangeRateInput({ input }: { input: Ref<null | InputTy
     ),
   )
 
-  function set(type: TokenType, value: string) {
+  function set(type: TokenType, value: WeiAsToken) {
     input.value = { type, value }
     values[type] = value
     estimated.value = false
   }
 
-  function setEstimated(value: string) {
+  function setEstimated(value: WeiAsToken) {
     invariant(exchangeFor.value)
     values[exchangeFor.value] = value
     estimated.value = true

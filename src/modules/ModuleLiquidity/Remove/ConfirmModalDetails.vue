@@ -1,13 +1,15 @@
 <script setup lang="ts">
+import { Wei } from '@/core/kaikas'
 import { NATIVE_TOKEN_DECIMALS } from '@/core/kaikas/const'
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
+import { Ref } from 'vue'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
 
 const store = useLiquidityRmStore()
 const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidityRaw, fee } = storeToRefs(store)
 
-const formattedFee = useFormattedToken(fee, { decimals: NATIVE_TOKEN_DECIMALS }, 7)
+const formattedFee = useFormattedToken(fee as Ref<null | Wei>, { decimals: NATIVE_TOKEN_DECIMALS }, 7)
 const formattedLiquidity = computed(() => new BigNumber(liquidityRaw.value).toFixed(7))
 </script>
 

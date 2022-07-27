@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Wei } from '@/core/kaikas'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 
@@ -8,7 +9,7 @@ const { normalizedWeiInputs, tokens, symbols } = storeToRefs(store)
 const formatted = reactive(
   buildPair((type) =>
     useFormattedToken(
-      computed(() => normalizedWeiInputs.value?.[type].input),
+      computed(() => normalizedWeiInputs.value?.[type].input as Wei | undefined),
       computed(() => tokens.value[type]),
       7,
     ),

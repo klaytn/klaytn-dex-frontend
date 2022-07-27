@@ -5,8 +5,8 @@ import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
 import BigNumber from 'bignumber.js'
 import { STAKING } from '@/core/kaikas/smartcontracts/abi'
-import { tokenRawToWei, tokenWeiToRaw } from '@/core/kaikas'
 import { or } from '@vueuse/core'
+import { Wei, WeiAsToken } from '@/core/kaikas'
 
 const kaikasStore = useKaikasStore()
 const kaikas = kaikasStore.getKaikasAnyway()
@@ -29,7 +29,7 @@ const model = useVModel(props, 'modelValue', emit, { passive: true })
 
 const PoolContract = kaikas.cfg.createContract<StakingInitializable>(pool.value.id, STAKING)
 
-const value = ref('0')
+const value = ref<WeiAsToken>('0' as WeiAsToken)
 
 watch(model, () => {
   value.value = '0' as WeiAsToken
@@ -39,8 +39,8 @@ const balanceScope = useParamScope(model, () => {
   const { state } = useTask(
     async () => {
       const token = pool.value.stakeToken
-      const balance = await kaikas.getTokenBalance(token.id)
-      return new BigNumber(tokenWeiToRaw(token, balance))
+      const balance = await kaikas.tokens.getTokenBalanceOfUser(token.id)
+      return new BigNumber(balance.toToken(token))
     },
     { immediate: true },
   )
@@ -86,19 +86,20 @@ const disabled = computed(() => {
 })
 
 function setPercent(percent: number) {
-  if (operation.value === ModalOperation.Stake) value.value = `${balance.value?.multipliedBy(percent * 0.01)}`
-  else value.value = `${pool.value.staked.multipliedBy(percent * 0.01)}`
+  if (operation.value === ModalOperation.Stake)
+    value.value = `${balance.value?.multipliedBy(percent * 0.01)}` as WeiAsToken
+  else value.value = `${pool.value.staked.multipliedBy(percent * 0.01)}` as WeiAsToken
 }
 
 const { state: stakeState, run: stake } = useTask(async () => {
   const amount = value.value
   const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
   const deposit = PoolContract.methods.deposit(
-    tokenRawToWei(
+    Wei.fromToken(
       // FIXME stake token or reward token?
       pool.value.stakeToken,
       amount,
-    ),
+    ).asBN,
   )
   const estimateGas = await deposit.estimateGas({
     from: kaikas.selfAddress,
@@ -127,7 +128,7 @@ wheneverDone(stakeState, (result) => {
 const { state: unstakeState, run: unstake } = useTask(async () => {
   const amount = value.value
   const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
-  const withdraw = PoolContract.methods.withdraw(tokenRawToWei(pool.value.stakeToken, amount))
+  const withdraw = PoolContract.methods.withdraw(Wei.fromToken(pool.value.stakeToken, amount).asBN)
   const estimateGas = await withdraw.estimateGas({
     from: kaikas.selfAddress,
     gasPrice,

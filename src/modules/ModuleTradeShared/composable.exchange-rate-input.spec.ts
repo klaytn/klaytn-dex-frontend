@@ -1,10 +1,13 @@
 import { useInertExchangeRateInput } from './composable.exchange-rate-input'
 import { describe, expect, test } from 'vitest'
 import { TokenType } from '@/utils/pair'
+import { WeiAsToken } from '@/core/kaikas'
 
 describe('inert exchange rate', () => {
-  function inputFactory<T extends { type: TokenType; value: string } | null>(value: T): T {
-    return value
+  function inputFactory<T extends { type: TokenType; value: string } | null>(
+    value: T,
+  ): T extends null ? null : T & { value: WeiAsToken } {
+    return value as any
   }
 
   test('initial state is null', () => {
@@ -32,7 +35,7 @@ describe('inert exchange rate', () => {
     const input = ref(inputFactory({ type: 'tokenA', value: '123' }))
     const { rates, set, exchangeRateFor } = useInertExchangeRateInput({ input })
 
-    set('tokenB', '456')
+    set('tokenB', '456' as WeiAsToken)
 
     expect(exchangeRateFor.value).toEqual('tokenA')
     expect(input.value).toEqual(inputFactory({ type: 'tokenB', value: '456' }))
@@ -46,8 +49,8 @@ describe('inert exchange rate', () => {
     const input = ref(inputFactory(null))
     const { rates, set, exchangeRateFor } = useInertExchangeRateInput({ input })
 
-    set('tokenB', '456')
-    set('tokenA', '789')
+    set('tokenB', '456' as WeiAsToken)
+    set('tokenA', '789' as WeiAsToken)
 
     expect(exchangeRateFor.value).toEqual('tokenB')
     expect(input.value).toEqual(inputFactory({ type: 'tokenA', value: '789' }))
@@ -61,8 +64,8 @@ describe('inert exchange rate', () => {
     const input = ref(inputFactory(null))
     const { rates, set, setEstimated } = useInertExchangeRateInput({ input })
 
-    set('tokenA', '123')
-    setEstimated('456')
+    set('tokenA', '123' as WeiAsToken)
+    setEstimated('456' as WeiAsToken)
 
     expect(input.value).toEqual(inputFactory({ type: 'tokenA', value: '123' }))
     expect(rates).toEqual({
@@ -75,9 +78,9 @@ describe('inert exchange rate', () => {
     const input = ref(inputFactory(null))
     const { rates, set, setEstimated } = useInertExchangeRateInput({ input })
 
-    set('tokenA', '123')
-    setEstimated('456')
-    set('tokenA', '321')
+    set('tokenA', '123' as WeiAsToken)
+    setEstimated('456' as WeiAsToken)
+    set('tokenA', '321' as WeiAsToken)
 
     expect(input.value).toEqual(inputFactory({ type: 'tokenA', value: '321' }))
     expect(rates).toEqual({
@@ -90,6 +93,6 @@ describe('inert exchange rate', () => {
     const input = ref(inputFactory(null))
     const { setEstimated } = useInertExchangeRateInput({ input })
 
-    expect(() => setEstimated('456')).toThrow()
+    expect(() => setEstimated('456' as WeiAsToken)).toThrow()
   })
 })

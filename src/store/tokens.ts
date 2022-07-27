@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
-import { Address, asWei, Balance, Kaikas, Token, ValueWei } from '@/core/kaikas'
+import { Address, Kaikas, Token, Wei } from '@/core/kaikas'
 import { WHITELIST_TOKENS } from '@/core/kaikas/const'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -99,7 +99,7 @@ function useUserBalance(tokens: Ref<null | Address[]>) {
   const fetchScope = useParamScope(
     computed(() => !!tokens.value && kaikasStore.isConnected),
     () => {
-      const { state, run } = useTask<Map<Address, Balance<string>>>(
+      const { state, run } = useTask<Map<Address, Wei>>(
         async () => {
           const kaikas = kaikasStore.getKaikasAnyway()
           invariant(tokens.value)
@@ -126,10 +126,9 @@ function useUserBalance(tokens: Ref<null | Address[]>) {
   )
 
   const isPending = computed<boolean>(() => fetchScope.value?.expose.pending ?? false)
-  const result = computed<null | Map<Address, Balance<BigNumber>>>(() => {
+  const result = computed<null | Map<Address, Wei>>(() => {
     const data = fetchScope.value?.expose.fulfilled?.value
-    if (data)
-      return new Map([...data].map(([addr, balance]) => [addr.toLowerCase() as Address, asWei(new BigNumber(balance))]))
+    if (data) return new Map([...data].map(([addr, balance]) => [addr.toLowerCase() as Address, balance]))
     return null
   })
   const isLoaded = computed<boolean>(() => !!result.value)

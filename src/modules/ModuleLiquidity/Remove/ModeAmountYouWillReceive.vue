@@ -2,7 +2,6 @@
 import { storeToRefs } from 'pinia'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { roundTo } from 'round-to'
-import { tokenWeiToRaw, asWei } from '@/core/kaikas'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
 
 const store = useLiquidityRmStore()

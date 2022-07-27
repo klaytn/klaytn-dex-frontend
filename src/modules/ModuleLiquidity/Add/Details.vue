@@ -5,7 +5,8 @@ import cssRows from '../../ModuleTradeShared/rows.module.scss'
 import { POOL_COMISSION } from './const'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { NATIVE_TOKEN_DECIMALS } from '@/core/kaikas/const'
-import { tokenWeiToRaw } from '@/core/kaikas'
+import { Ref } from 'vue'
+import { Wei } from '@/core/kaikas'
 
 const props = defineProps<{
   inModal?: boolean
@@ -24,7 +25,7 @@ const formattedReserves = reactive(
       if (reserves.value && tokens.value) {
         const token = tokens.value[type]!
         const reserve = reserves.value[type === 'tokenA' ? 'reserve0' : 'reserve1']
-        const num = tokenWeiToRaw(token, reserve)
+        const num = reserve.toToken(token)
         return String(roundTo(Number(num), 7))
       }
       return null
@@ -33,7 +34,7 @@ const formattedReserves = reactive(
 )
 
 const fee = computed(() => supplyScope.value?.fee ?? null)
-const formattedFee = useFormattedToken(fee, { decimals: NATIVE_TOKEN_DECIMALS }, 7)
+const formattedFee = useFormattedToken(fee as Ref<null | Wei>, { decimals: NATIVE_TOKEN_DECIMALS }, 7)
 const formattedComission = `${roundTo(POOL_COMISSION * 100, 2)}%`
 </script>
 

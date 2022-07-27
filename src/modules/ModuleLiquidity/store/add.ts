@@ -1,4 +1,4 @@
-import { deadlineFiveMinutesFromNow, Address, Wei } from '@/core/kaikas'
+import { deadlineFiveMinutesFromNow, Address, Wei, WeiAsToken } from '@/core/kaikas'
 import {
   usePairAddress,
   PairAddressResult,
@@ -240,7 +240,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   })
   const isValid = computed(() => !!rates.value)
 
-  function input(token: TokenType, raw: string) {
+  function input(token: TokenType, raw: WeiAsToken) {
     selectionInput.set(token, raw)
   }
 

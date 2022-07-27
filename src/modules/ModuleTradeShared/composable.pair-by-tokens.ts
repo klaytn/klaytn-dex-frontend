@@ -1,7 +1,6 @@
 import { Address, isEmptyAddress, Wei } from '@/core/kaikas'
 import { TokensPair } from '@/utils/pair'
 import { MaybeRef } from '@vueuse/core'
-import BigNumber from 'bignumber.js'
 import { Except } from 'type-fest'
 import { Ref } from 'vue'
 
@@ -98,8 +97,8 @@ export function usePairReserves(tokens: NullableReactiveTokens) {
 }
 
 interface PairBalance {
-  totalSupply: ValueWei<string>
-  userBalance: ValueWei<string>
+  totalSupply: Wei
+  userBalance: Wei
   poolShare: number
 }
 
@@ -120,7 +119,7 @@ export function usePairBalance(
         async () => {
           const kaikas = kaikasStore.getKaikasAnyway()
           const { totalSupply, userBalance } = await kaikas.tokens.getPairBalanceOfUser(actualTokens)
-          const poolShare = new BigNumber(userBalance).dividedBy(totalSupply).toNumber()
+          const poolShare = userBalance.asBigNum.dividedBy(totalSupply.asBigNum).toNumber()
 
           return {
             totalSupply,

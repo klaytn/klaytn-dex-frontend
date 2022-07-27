@@ -49,7 +49,7 @@ export function useGetAmount(props: Ref<null | GetAmountProps>) {
     (actualProps) => {
       debug('setting amounts: %o', actualProps)
 
-      const { set, state } = usePromise<ValueWei<string>>()
+      const { set, state } = usePromise<Wei>()
       usePromiseLog(state, 'swap-get-amount')
       useNotifyOnError(state, 'Failed to compute amount')
 
