@@ -82,6 +82,7 @@ export default defineConfig({
         'src/store',
         'src/modules/ModuleFarming/store',
         'src/modules/ModuleStaking/store',
+        'src/modules/ModuleGovernance/store',
         'src/modules/ModuleSwap/store',
         'src/modules/ModuleLiquidity/store',
       ],

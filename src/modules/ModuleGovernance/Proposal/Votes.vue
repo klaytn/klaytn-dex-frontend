@@ -16,6 +16,7 @@ const page = ref(1)
 const skip = computed(() => {
   return (page.value - 1) * PAGE_SIZE
 })
+const expanded = ref(true)
 const showViewMore = ref(true)
 
 const VotesQuery = useVotesQuery(computed(() => ({
@@ -24,6 +25,14 @@ const VotesQuery = useVotesQuery(computed(() => ({
 })))
 const votes = computed(() => {
   return VotesQuery.result.value?.votes ?? null
+})
+
+function setInitShowViewMore() {
+  showViewMore.value = VotesQuery.result.value?.votes.length === PAGE_SIZE
+}
+setInitShowViewMore()
+VotesQuery.onResult(() => {
+  setInitShowViewMore()
 })
 
 const loading = VotesQuery.loading
@@ -40,7 +49,7 @@ function viewMore() {
     // Transform the previous result with new data
     updateQuery: (previousResult, { fetchMoreResult }) => {
       if (!fetchMoreResult) return previousResult
-      showViewMore.value = fetchMoreResult.votes.length !== 0
+      showViewMore.value = fetchMoreResult.votes.length === PAGE_SIZE
       return {
         votes: [...previousResult.votes, ...fetchMoreResult.votes],
       }
@@ -51,6 +60,7 @@ function viewMore() {
 
 <template>
   <KlayAccordionItem
+    v-model="expanded"
     v-bem
     type="light"
   >
@@ -93,14 +103,18 @@ function viewMore() {
       >
         <KlayLoader />
       </div>
+      <div
+        v-else-if="!votes?.length"
+        v-bem="'empty'"
+      >
+        There are no votes yet
+      </div>
     </div>
   </KlayAccordionItem>
 </template>
 
 <style lang="sass">
 @import '@/styles/vars.sass'
-
-$padding-bottom: 19px
 
 .module-governance-proposal-votes
   &__title
@@ -111,7 +125,6 @@ $padding-bottom: 19px
     display: flex
     flex-direction: column
     padding: 0 16px
-    padding-bottom: $padding-bottom
     border: 1px solid $gray5
     border-radius: 8px
   &__vote
@@ -120,7 +133,8 @@ $padding-bottom: 19px
     justify-content: space-between
     align-items: center
     height: 54px
-    border-bottom: 1px solid $gray5
+    &+&
+      border-top: 1px solid $gray5
     &-voter, &-vp
       width: calc(50% - 150px)
     &-vp
@@ -130,12 +144,18 @@ $padding-bottom: 19px
     justify-content: center
     width: 100%
     padding: 8px 0
-    margin-bottom: - $padding-bottom
+    border-top: 1px solid #DFE4ED
   &__loader
     flex: 1
     display: flex
     justify-content: center
     align-items: center
-    min-height: 82px + $padding-bottom
-    margin-bottom: - $padding-bottom
+    min-height: 82px
+  &__empty
+    display: flex
+    justify-content: center
+    align-items: center
+    width: 100%
+    height: 82px
+    color: $gray3
 </style>

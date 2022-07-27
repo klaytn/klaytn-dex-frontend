@@ -10,10 +10,21 @@ const props = defineProps<{
 }>()
 const { proposal } = toRefs(props)
 
+const href = computed(() => {
+  return window.location.href
+})
+
+const { copy, copied } = useClipboard()
+
 function share() {
-  navigator.clipboard.writeText(window.location.href)
-  $notify({ status: Status.Success, description: 'Link was successfully copied' })
+  copy(href.value)
 }
+
+watch(copied, (value) => {
+  if (value) {
+    $notify({ status: Status.Success, description: 'Link was successfully copied' })
+  }
+})
 </script>
 
 <template>

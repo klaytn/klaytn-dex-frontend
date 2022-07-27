@@ -12,8 +12,12 @@ const props = defineProps<{
 const { proposal } = toRefs(props)
 
 const body = ref<Element | null>(null)
-const bodyHeight = ref(0)
+const bodyHeight = ref<number | null>(null)
 const expanded = ref(false)
+
+watchOnce(bodyHeight, (value) => {
+  if (value !== null && !long.value) expanded.value = true
+})
 
 const resizeObserver = new ResizeObserver(() => {
   if (body.value === null) return
@@ -24,11 +28,16 @@ onMounted(() => {
   if (body.value === null) return
   bodyHeight.value = body.value.clientHeight
   resizeObserver.observe(body.value)
-  if (!long.value) expanded.value = true
 })
 
 const long = computed(() => {
+  if (bodyHeight.value === null) return null
   return bodyHeight.value >= 350
+})
+
+const short = computed(() => {
+  if (bodyHeight.value === null) return null
+  return !long.value
 })
 
 const parcedBody = computed(() => {
@@ -42,8 +51,9 @@ const cleanBody = computed(() => {
 
 <template>
   <KlayAccordionItem
+    v-if="parcedBody !== ''"
     v-model="expanded"
-    v-bem="{ long }"
+    v-bem="{ long, short }"
     type="light"
   >
     <template #title>
@@ -78,16 +88,13 @@ const cleanBody = computed(() => {
 $padding-bottom: 19px
 
 .module-governance-proposal-description
-  .s-accordion-item__body-wrapper
+  &:not(&--short) .s-accordion-item__body-wrapper
     display: block !important
   &--long .s-accordion-item__body-wrapper
-    display: block !important
     min-height: 350px
     overflow: hidden
   &--long:not(.s-accordion-item_expanded) .s-accordion-item__body-wrapper
     height: 350px
-  &:not(&--long) .s-accordion-item__trigger
-    pointer-events: none
   &__title
     font-size: 20px
     font-weight: 600

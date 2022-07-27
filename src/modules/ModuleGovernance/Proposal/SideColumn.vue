@@ -1,5 +1,5 @@
 <script setup lang="ts" name="ModuleGovernanceProposalSideColumn">
-import moment from 'moment'
+import dayjs from 'dayjs'
 import { shortenStringInTheMiddle } from '@/utils/common'
 import { Proposal } from '../types'
 import { getLowerCaseChoice, getLowerCaseChoices } from '../utils'
@@ -13,10 +13,32 @@ const props = defineProps<{
 }>()
 const { proposal } = toRefs(props)
 
+function getChoiceScore(choice: string) {
+  const choiceIndex = proposal.value.choices.indexOf(choice)
+  return proposal.value.scores[choiceIndex]
+}
+
+function formatScore(score: number) {
+  const scoreToFixed = (div: number) => Number((score / div).toFixed(1))
+  const million = 1_000_000
+  const thousand = 1_000
+  if (score >= million)
+    return `${scoreToFixed(million)}M`
+  else if (score >= thousand)
+    return `${scoreToFixed(thousand)}K`
+  else
+    return `${scoreToFixed(1)}`
+}
+
 function getChoicePercent(choice: string) {
+  if (!proposal.value.scoresTotal) return 0
   const choiceIndex = proposal.value.choices.indexOf(choice)
   const score = proposal.value.scores[choiceIndex]
   return score / proposal.value.scoresTotal * 100
+}
+
+function formatPercent(percent: number) {
+  return Number(percent.toFixed(1)) + '%'
 }
 
 const hasPositiveChoice = computed(() => {
@@ -42,7 +64,7 @@ function isChoiceNegative(choice: string) {
 }
 
 function formatDate(timestamp: number) {
-  return moment(timestamp * 1000).format('MMMM Do, YYYY, h:mm A')
+  return dayjs(timestamp * 1000).format('MMMM D, YYYY, h:mm A')
 }
 
 const formattedStartDate = computed(() => {
@@ -87,14 +109,9 @@ const snapshotHref = computed(() => {
         <div v-bem="'choice-title'">
           {{ choice }}
         </div>
-        <div v-bem="'choice-stats'">
-          <span v-bem="'choice-amount'">
-            45M
-          </span>
-          <span v-bem="'choice-percent'">
-            {{ getChoicePercent(choice).toFixed(1) + '%' }}
-          </span>
-        </div>
+        <span v-bem="'choice-stats'">
+          {{ formatScore(getChoiceScore(choice)) }} {{ formatPercent(getChoicePercent(choice)) }}
+        </span>
         <div v-bem="'choice-line'">
           <div
             v-bem="'choice-line-fill'"
