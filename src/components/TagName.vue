@@ -8,7 +8,7 @@ defineProps<{
 <template>
   <div
     class="tag-name"
-    :class="{ 'opacity-40': disabled }"
+    :class="{ 'opacity-40 pointer-events-none': disabled }"
   >
     <div class="tag-name--content">
       <slot />

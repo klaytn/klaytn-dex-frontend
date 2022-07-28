@@ -6,7 +6,7 @@ import { TokenWithOptionBalance } from '@/store/tokens'
 
 const props = defineProps<{
   open: boolean
-  selected: Address | null
+  selected: Set<Address> | null
   tokens: TokenWithOptionBalance[]
   isSmartContract: (addr: Address) => Promise<boolean>
   getToken: (addr: Address) => Promise<Token>
@@ -14,10 +14,12 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['select', 'update:open', 'import-token'])
-
 const openModel = useVModel(props, 'open', emit)
-
 const tokens = $toRef(props, 'tokens')
+
+function isSelected(addr: Address): boolean {
+  return props.selected?.has(addr) ?? false
+}
 
 let search = $ref('')
 
@@ -106,9 +108,10 @@ function doImport() {
             <TagName
               v-for="t in recentTokens"
               :key="t.address"
-              :disabled="t.address === selected"
+              :disabled="isSelected(t.address)"
               :label="t.symbol"
               class="m-2 cursor-pointer"
+              data-testid="modal-recent-token"
               @click="selectToken(t.address)"
             >
               <KlayCharAvatar :symbol="t.symbol" />
@@ -149,7 +152,7 @@ function doImport() {
 
                 <TokenSelectModalListItem
                   :token="token"
-                  :disabled="token.address === selected"
+                  :disabled="isSelected(token.address)"
                   :balance="token.balance"
                   class="py-2"
                   @click="selectToken(token.address)"

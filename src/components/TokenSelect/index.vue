@@ -5,6 +5,7 @@ import { KlayIconCollapseArrow } from '~klay-icons'
 const props = withDefaults(
   defineProps<{
     token?: null | Address
+    selected?: null | Set<Address>
   }>(),
   { token: null },
 )
@@ -39,7 +40,7 @@ function lookupToken(addr: Address) {
 <template>
   <TokenSelectModal
     v-model:open="isModalOpen"
-    :selected="token"
+    :selected="selected"
     :tokens="tokensStore.tokensWithBalance"
     v-bind="{ isSmartContract, getToken, lookupToken }"
     @select="onSelect"

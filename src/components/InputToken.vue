@@ -8,6 +8,7 @@ import { KlayIconImportant } from '~klay-icons'
 const props = withDefaults(
   defineProps<{
     token?: Address
+    selected?: Set<Address>
     modelValue?: WeiAsToken
     valueDebounce?: number
     isLoading?: boolean
@@ -99,7 +100,10 @@ function setToMax() {
     @click:max="setToMax()"
   >
     <template #top-right>
-      <TokenSelect v-model:token="tokenModel" />
+      <TokenSelect
+        v-model:token="tokenModel"
+        v-bind="{ selected }"
+      />
     </template>
 
     <template #bottom-left>

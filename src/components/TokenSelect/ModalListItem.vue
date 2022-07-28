@@ -21,6 +21,7 @@ const balanceFormatted = computed(() => {
   <div
     class="item flex items-center px-4 py-3 space-x-2 cursor-pointer"
     :class="{ 'opacity-40 pointer-events-none': disabled }"
+    data-testid="modal-list-item"
   >
     <KlayCharAvatar :symbol="token.symbol" />
 
