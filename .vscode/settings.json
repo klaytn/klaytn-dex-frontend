@@ -30,7 +30,9 @@
     "Pausable",
     "multicall",
     "Initializable",
-    "exponentiated"
+    "exponentiated",
+    "dompurify",
+    "kakuyaku"
   ],
   "i18n-ally.sourceLanguage": "en",
   "i18n-ally.keystyle": "nested",

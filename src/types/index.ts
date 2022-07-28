@@ -21,6 +21,7 @@ export const RouteName = {
   Farms: 'Farms',
   Pools: 'Pools',
   Voting: 'Voting',
+  VotingProposal: 'VotingProposal',
   Charts: 'Charts',
 } as const
 

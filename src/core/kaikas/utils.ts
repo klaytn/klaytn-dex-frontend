@@ -2,10 +2,10 @@ import web3 from 'web3'
 import type { Address, Token, Deadline } from './types'
 import { MAGIC_GAS_PRICE, NATIVE_TOKEN } from './const'
 import Wei from './Wei'
+import { shortenStringInTheMiddle } from '@/utils/common'
 
 export function formatAddress(address: Address): string {
-  const addressLength = address.length
-  return `${address.slice(2, 6)}...${address.slice(addressLength - 6, addressLength - 2)}`
+  return shortenStringInTheMiddle(address)
 }
 
 export function isEmptyAddress(address: Address): boolean {

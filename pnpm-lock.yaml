@@ -11,8 +11,10 @@ specifiers:
   '@soramitsu-ui/ui': ^0.6.1
   '@soramitsu-ui/vite-plugin-svg': ^0.1.0
   '@types/debounce': ^1.2.1
+  '@types/dompurify': ^2.3.3
   '@types/lodash': ^4.14.182
   '@types/markdown-it-link-attributes': ^3.0.1
+  '@types/marked': ^4.0.3
   '@types/nprogress': ^0.2.0
   '@typescript-eslint/eslint-plugin': ^5.30.0
   '@typescript-eslint/parser': ^5.30.0
@@ -30,13 +32,16 @@ specifiers:
   change-case: ^4.1.2
   critters: ^0.0.16
   cypress: ^9.7.0
+  dayjs: ^1.11.4
   debounce: ^1.2.1
   debug: ^4.3.4
+  dompurify: ^2.3.10
   eslint: ^8.16.0
   eslint-config-alloy: ^4.6.0
   eslint-plugin-cypress: ^2.12.1
   eslint-plugin-vue: ^9.1.1
   fast-glob: ^3.2.11
+  github-markdown-css: ^5.1.0
   graphql: ^16.5.0
   graphql-tag: ^2.12.6
   https-localhost: ^4.7.1
@@ -44,6 +49,7 @@ specifiers:
   lodash: ^4.17.21
   markdown-it-link-attributes: ^4.0.0
   markdown-it-prism: ^2.2.4
+  marked: ^4.0.18
   nprogress: ^0.2.0
   pinia: ^2.0.14
   prettier: ^2.7.1
@@ -91,8 +97,11 @@ dependencies:
   bn.js: 5.2.1
   bulma: 0.9.4
   caver-js: 1.8.2
+  dayjs: 1.11.4
   debounce: 1.2.1
   debug: 4.3.4
+  dompurify: 2.3.10
+  github-markdown-css: 5.1.0
   graphql: 16.5.0
   graphql-tag: 2.12.6_graphql@16.5.0
   lodash: 4.17.21
@@ -115,8 +124,10 @@ devDependencies:
   '@iconify-json/material-symbols': 1.1.12
   '@intlify/vite-plugin-vue-i18n': 4.0.0_vite@3.0.3+vue-i18n@9.1.10
   '@types/debounce': 1.2.1
+  '@types/dompurify': 2.3.3
   '@types/lodash': 4.14.182
   '@types/markdown-it-link-attributes': 3.0.1
+  '@types/marked': 4.0.3
   '@types/nprogress': 0.2.0
   '@typescript-eslint/eslint-plugin': 5.30.0_kj6wrcjamhpfaegej257t5irku
   '@typescript-eslint/parser': 5.30.0_ud6rd4xtew5bv4yhvkvu24pzm4
@@ -134,6 +145,7 @@ devDependencies:
   jsdom: 20.0.0
   markdown-it-link-attributes: 4.0.0
   markdown-it-prism: 2.2.4
+  marked: 4.0.18
   prettier: 2.7.1
   prettier-eslint: 15.0.1
   prettier-eslint-cli: 6.0.1
@@ -2329,7 +2341,7 @@ packages:
   /@types/bn.js/4.11.6:
     resolution: {integrity: sha512-pqr857jrp2kPuO9uRjZ3PwnJTjoQy+fcdxvBTvHm6dkmEL9q+hDD/2j/0ELOBPtPnS8LjCX0gI9nbl8lVkadpg==}
     dependencies:
-      '@types/node': 14.18.21
+      '@types/node': 18.6.2
     dev: false
 
   /@types/bn.js/5.1.0:
@@ -2351,7 +2363,7 @@ packages:
   /@types/concat-stream/1.6.1:
     resolution: {integrity: sha512-eHE4cQPoj6ngxBZMvVf6Hw7Mh4jMW4U9lpGmS5GBPB9RYxlFg+CHaVN7ErNY4W9XfLIEn20b4VDYaIrbq0q4uA==}
     dependencies:
-      '@types/node': 8.10.66
+      '@types/node': 18.6.2
     dev: true
 
   /@types/debounce/1.2.1:
@@ -2362,6 +2374,12 @@ packages:
     resolution: {integrity: sha512-9AonUzyTjXXhEOa0DnqpzZi6VHlqKMswga9EXjpXnnqxwLtdvPPtlO8evrI5D9S6asFRCQ6v+wpiUKbw+vKqyg==}
     dependencies:
       '@types/ms': 0.7.31
+    dev: true
+
+  /@types/dompurify/2.3.3:
+    resolution: {integrity: sha512-nnVQSgRVuZ/843oAfhA25eRSNzUFcBPk/LOiw5gm8mD9/X7CNcbRkQu/OsjCewO8+VIYfPxUnXvPEVGenw14+w==}
+    dependencies:
+      '@types/trusted-types': 2.0.2
     dev: true
 
   /@types/eslint/8.4.3:
@@ -2378,7 +2396,7 @@ packages:
   /@types/form-data/0.0.33:
     resolution: {integrity: sha512-8BSvG1kGm83cyJITQMZSulnl6QV8jqAGreJsc5tPu1Jq0vTSOiY/k24Wx82JRpWwZSqrala6sd5rWi6aNXvqcw==}
     dependencies:
-      '@types/node': 8.10.66
+      '@types/node': 18.6.2
     dev: true
 
   /@types/json-schema/7.0.11:
@@ -2388,7 +2406,7 @@ packages:
   /@types/keyv/3.1.4:
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 18.6.2
     dev: false
 
   /@types/linkify-it/3.0.2:
@@ -2416,6 +2434,10 @@ packages:
       '@types/mdurl': 1.0.2
     dev: true
 
+  /@types/marked/4.0.3:
+    resolution: {integrity: sha512-HnMWQkLJEf/PnxZIfbm0yGJRRZYYMhb++O9M36UCTA9z53uPvVoSlAwJr3XOpDEryb7Hwl1qAx/MV6YIW1RXxg==}
+    dev: true
+
   /@types/mdurl/1.0.2:
     resolution: {integrity: sha512-eC4U9MlIcu2q0KQmXszyn5Akca/0jrQmwDRgpAMJai7qBWq4amIQhZyNau4VYGtCeALvW1/NtjzJJ567aZxfKA==}
     dev: true
@@ -2434,10 +2456,6 @@ packages:
 
   /@types/node/12.20.55:
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
-    dev: false
-
-  /@types/node/14.18.21:
-    resolution: {integrity: sha512-x5W9s+8P4XteaxT/jKF0PSb7XEvo5VmqEWgsMlyeY4ZlLK8I6aH6g5TPPyDlLAep+GYf4kefb7HFyc7PAO3m+Q==}
     dev: false
 
   /@types/node/14.18.22:
@@ -2482,7 +2500,7 @@ packages:
   /@types/responselike/1.0.0:
     resolution: {integrity: sha512-85Y2BjiufFzaMIlvJDvTTB8Fxl2xfLo4HgmHzVBz08w4wDePCTjYw66PdrolO0kzli3yam/YCgRufyo1DdQVTA==}
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 18.6.2
     dev: false
 
   /@types/secp256k1/4.0.3:
@@ -4333,7 +4351,6 @@ packages:
 
   /dayjs/1.11.4:
     resolution: {integrity: sha512-Zj/lPM5hOvQ1Bf7uAvewDaUcsJoI6JmNqmHhHl3nyumwe0XHwt8sWdOVAPACJzCebL8gQCi+K49w7iKWnGwX9g==}
-    dev: true
 
   /debounce/1.2.1:
     resolution: {integrity: sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==}
@@ -4551,6 +4568,10 @@ packages:
     engines: {node: '>= 4'}
     dependencies:
       domelementtype: 2.3.0
+
+  /dompurify/2.3.10:
+    resolution: {integrity: sha512-o7Fg/AgC7p/XpKjf/+RC3Ok6k4St5F7Q6q6+Nnm3p2zGWioAY6dh0CbbuwOhH2UcSzKsdniE/YnE2/92JcsA+g==}
+    dev: false
 
   /domutils/2.8.0:
     resolution: {integrity: sha512-w96Cjofp72M5IIhpjgobBimYEfoPjx1Vx0BSX9P30WBdZW2WIKU0T1Bd0kz2eNZ9ikjKgHbEyKx8BB6H1L3h3A==}
@@ -5724,6 +5745,10 @@ packages:
     resolution: {integrity: sha512-0fzj9JxOLfJ+XGLhR8ze3unN0KZCgZwiSSDz168VERjK8Wl8kVSdcu2kspd4s4wtAa1y/qrVRiAA0WclVsu0ng==}
     dependencies:
       assert-plus: 1.0.0
+
+  /github-markdown-css/5.1.0:
+    resolution: {integrity: sha512-QLtORwHHtUHhPMHu7i4GKfP6Vx5CWZn+NKQXe+cBhslY1HEt0CTEkP4d/vSROKV0iIJSpl4UtlQ16AD8C6lMug==}
+    dev: false
 
   /glob-parent/5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
@@ -7214,6 +7239,12 @@ packages:
       linkify-it: 4.0.1
       mdurl: 1.0.1
       uc.micro: 1.0.6
+    dev: true
+
+  /marked/4.0.18:
+    resolution: {integrity: sha512-wbLDJ7Zh0sqA0Vdg6aqlbT+yPxqLblpAZh1mK2+AO2twQkPywvvqQNfEPVwSSRjZ7dZcdeVBIAgiO7MMp3Dszw==}
+    engines: {node: '>= 12'}
+    hasBin: true
     dev: true
 
   /md5.js/1.3.5:
