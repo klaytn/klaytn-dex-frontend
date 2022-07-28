@@ -15,9 +15,9 @@ import SvgLoader from '@soramitsu-ui/vite-plugin-svg'
 import VueSetupExtend from 'vite-plugin-vue-setup-extend'
 import UnoCSS from 'unocss/vite'
 import Icons from 'unplugin-icons/vite'
-import IconResolver from 'unplugin-icons/resolver'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 import { RouteRecordRaw } from 'vue-router'
+import KlaytnIcons from './etc/vite-plugin-klaytn-icons'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
@@ -52,6 +52,8 @@ export default defineConfig({
       },
     }),
 
+    KlaytnIcons(),
+
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({
       extensions: ['vue', 'md'],
@@ -82,6 +84,7 @@ export default defineConfig({
         'src/store',
         'src/modules/ModuleFarming/store',
         'src/modules/ModuleStaking/store',
+        'src/modules/ModuleGovernance/store',
         'src/modules/ModuleSwap/store',
         'src/modules/ModuleLiquidity/store',
       ],
@@ -100,13 +103,6 @@ export default defineConfig({
       include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
       dts: 'src/components.d.ts',
       directoryAsNamespace: true,
-      resolvers: [
-        IconResolver({
-          prefix: 'icon',
-          enabledCollections: [],
-          customCollections: ['klay'],
-        }),
-      ],
     }),
 
     // https://github.com/antfu/vite-plugin-md
@@ -182,5 +178,9 @@ export default defineConfig({
     modules: {
       localsConvention: 'camelCaseOnly',
     },
+  },
+
+  build: {
+    target: 'esnext',
   },
 })

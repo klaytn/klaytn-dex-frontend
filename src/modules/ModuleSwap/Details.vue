@@ -3,7 +3,7 @@ import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 import { computeRates, roundRates } from '@/utils/common'
 import { buildPair } from '@/utils/pair'
-import { roundTo } from 'round-to'
+import { Wei } from '@/core/kaikas'
 
 const store = useSwapStore()
 const {
@@ -24,7 +24,7 @@ const rates = computed(() => {
     const { tokenA, tokenB } = store.selection.wei || {}
     invariant(tokenA && tokenB)
 
-    const rates = computeRates(buildPair((type) => store.selection.wei[type]!.input))
+    const rates = computeRates(buildPair((type) => store.selection.wei[type]!.input as Wei))
     return roundRates(rates)
   }
 

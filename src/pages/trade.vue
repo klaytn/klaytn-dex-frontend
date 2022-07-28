@@ -5,6 +5,7 @@ name: Trade
 <script setup lang="ts">
 import { RouteName } from '@/types'
 import { storeToRefs } from 'pinia'
+import { KlayIconBackArrow, KlayIconRefresh } from '~klay-icons'
 
 const tokensStore = useTokensStore()
 const { isBalancePending, isImportedPending } = storeToRefs(tokensStore)
@@ -56,7 +57,7 @@ function refresh() {
             rounded
           >
             <template #icon>
-              <IconKlayBackArrow />
+              <KlayIconBackArrow />
             </template>
           </KlayButton>
         </RouterLink>
@@ -87,7 +88,7 @@ function refresh() {
         @click="refresh"
       >
         <template #icon>
-          <IconKlayRefresh />
+          <KlayIconRefresh />
         </template>
       </KlayButton>
     </div>

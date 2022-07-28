@@ -1,4 +1,4 @@
-import { Address, ValueWei } from '@/core/kaikas'
+import { Address, Wei } from '@/core/kaikas'
 import { Opaque } from 'type-fest'
 
 /**
@@ -6,7 +6,7 @@ import { Opaque } from 'type-fest'
  */
 export type PoolId = Opaque<string, 'PoolId'>
 
-export type Rewards<T extends Address | PoolId> = Record<T, ValueWei<string> | undefined>
+export type Rewards<T extends Address | PoolId> = Record<T, Wei | undefined>
 
 export const ModalOperation = {
   Stake: 'stake',

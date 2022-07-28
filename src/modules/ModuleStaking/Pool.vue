@@ -1,6 +1,6 @@
 <script setup lang="ts" name="ModuleStakingPool">
 import { Status } from '@soramitsu-ui/ui'
-
+import { KlayIconCalculator, KlayIconClock, KlayIconLink } from '~klay-icons'
 import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
@@ -85,7 +85,7 @@ const {
   computed(() => pool.value.stakeToken.id),
   computed(() => pool.value.id),
 )
-whenever(expanded, triggerCheckEnabled)
+whenever(() => expanded.value && !enabled.value, triggerCheckEnabled)
 
 function stake() {
   modalOperation.value = ModalOperation.Stake
@@ -192,11 +192,11 @@ function openRoiCalculator(event: Event, pool: Pool) {
           </div>
           <div v-bem="['stats-item-value', { zero: ['0', '$0'].includes(`${value}`) }]">
             {{ value }}
-            <IconKlayCalculator
+            <KlayIconCalculator
               v-if="label === 'annualPercentageRate' && value !== '—'"
               v-bem="'stats-item-calculator'"
             />
-            <IconKlayClock
+            <KlayIconClock
               v-if="label === 'endsIn' && value !== '—'"
               v-bem="'stats-item-clock'"
             />
@@ -287,18 +287,18 @@ function openRoiCalculator(event: Event, pool: Pool) {
           :href="`https://baobab.klaytnfinder.io/account/${pool.stakeToken.id}`"
         >
           See Token Info
-          <IconKlayLink v-bem="'link-icon'" />
+          <KlayIconLink v-bem="'link-icon'" />
         </a>
         <a v-bem="'link'">
           View Project Site
-          <IconKlayLink v-bem="'link-icon'" />
+          <KlayIconLink v-bem="'link-icon'" />
         </a>
         <a
           v-bem="'link'"
           :href="`https://baobab.klaytnfinder.io/account/${pool.id}`"
         >
           View Contract
-          <IconKlayLink v-bem="'link-icon'" />
+          <KlayIconLink v-bem="'link-icon'" />
         </a>
         <a
           v-bem="'link'"

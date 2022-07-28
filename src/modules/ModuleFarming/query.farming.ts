@@ -1,4 +1,4 @@
-import { Address } from '@/core/kaikas'
+import { Address, WeiRaw } from '@/core/kaikas'
 import { useQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
@@ -15,15 +15,12 @@ export interface FarmingQueryResult {
       id: PoolId
       pair: Address
       bonusMultiplier: string
-      /**
-       * FIXME is it wei?
-       */
-      totalTokensStaked: string
+      totalTokensStaked: WeiRaw<string>
       allocPoint: string
       bonusEndBlock: string
       createdAtBlock: string
       users: {
-        amount: string
+        amount: WeiRaw<string>
       }[]
     }[]
   }

@@ -13,7 +13,8 @@ import { SSwitch } from '@soramitsu-ui/ui'
   .s-switch {
     &__button {
       background-color: $gray5 !important;
-      &, &:before {
+      &,
+      &:before {
         transition: 250ms ease !important;
       }
       &:checked,

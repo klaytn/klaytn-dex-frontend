@@ -1,3 +1,10 @@
+common:
+  proposalState:
+    active: Active
+    executed: Executed
+    defeated: Defeated
+    finished: Finished
+
 DefaultLayout:
   menu:
     assets: Assets
@@ -44,3 +51,28 @@ ModuleStakingModal:
 
 RoiCalculator:
   title: ROI Calculator
+
+ModuleGovernanceWrap:
+  onlyActive: Only active
+  sorting:
+    label: Sort by
+    options:
+      startDay: Start day
+      endDay: End day
+
+ModuleGovernanceListProposal:
+  startDate: Start date
+  endDate: End date
+
+ModuleGovernanceProposalHead:
+  share: Share
+
+ModuleGovernanceProposalCallToVote:
+  call: Cast your vote on snapshot
+  vote: Vote
+
+ModuleGovernanceProposalVotes:
+  title: Votes
+
+ModuleGovernanceProposalDescription:
+  title: Description

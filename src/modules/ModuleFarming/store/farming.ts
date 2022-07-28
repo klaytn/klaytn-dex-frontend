@@ -1,4 +1,4 @@
-import { Address, asWei, Kaikas } from '@/core/kaikas'
+import { Address, Wei, Kaikas, WeiAsToken, WeiRaw } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { BLOCKS_PER_YEAR } from '../const'
@@ -135,14 +135,14 @@ function setupQueries({
       const pairId = pair.id
       const name = pair.name
 
-      const staked = new BigNumber(farmingFromWei(asWei(pool.users[0]?.amount ?? '0')))
+      const staked = new BigNumber(farmingFromWei(new Wei(pool.users[0]?.amount ?? '0')))
 
       const liquidityPosition = liquidityPositions.value?.find((position) => position.pair.id === pairId) ?? null
       const balance = new BigNumber(liquidityPosition?.liquidityTokenBalance ?? 0)
 
       const reserveUSD = new BigNumber(pair.reserveUSD)
       const totalSupply = new BigNumber(pair.totalSupply)
-      const totalTokensStaked = new BigNumber(farmingFromWei(asWei(pool.totalTokensStaked)))
+      const totalTokensStaked = new BigNumber(farmingFromWei(new Wei(pool.totalTokensStaked)))
       const liquidity = reserveUSD.dividedBy(totalSupply).multipliedBy(totalTokensStaked)
 
       const annualPercentageRate = new BigNumber(0)
@@ -230,17 +230,17 @@ function setupQueries({
   function updateStaked(poolId: Pool['id'], diff: BigNumber) {
     if (!FarmingQuery.result.value) return
 
-    const diffAsWei = asWei(new BigNumber(farmingToWei(diff.toString())))
+    const diffAsWei = farmingToWei(diff.toFixed() as WeiAsToken)
     const farmingQueryResultCloned = deepClone(FarmingQuery.result.value)
     const pool = farmingQueryResultCloned.farming.pools.find((pool) => pool.id === poolId)
     if (!pool) return
 
-    pool.totalTokensStaked = new BigNumber(pool.totalTokensStaked).plus(diffAsWei).toFixed(0)
+    pool.totalTokensStaked = new BigNumber(pool.totalTokensStaked).plus(diffAsWei.asBigNum).toFixed(0) as WeiRaw<string>
 
     const user = pool.users[0] ?? null
     if (!user) return
 
-    user.amount = new BigNumber(user.amount).plus(diffAsWei).toFixed(0)
+    user.amount = new BigNumber(user.amount).plus(diffAsWei.asBigNum).toFixed(0) as WeiRaw<string>
     FarmingQuery.result.value = farmingQueryResultCloned
   }
 

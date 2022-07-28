@@ -1,10 +1,9 @@
-import { ValueWei } from '@/core/kaikas'
+import { Wei } from '@/core/kaikas'
 import { computeRates, roundRates } from '@/utils/common'
 import { TokensPair } from '@/utils/pair'
 import { MaybeRef } from '@vueuse/core'
-import BN from 'bn.js'
 
-export function useRates(amounts: MaybeRef<null | TokensPair<ValueWei<BN>>>) {
+export function useRates(amounts: MaybeRef<null | TokensPair<Wei>>) {
   return computed(() => {
     const { tokenA, tokenB } = unref(amounts) || {}
     if (!tokenB || !tokenA) return null

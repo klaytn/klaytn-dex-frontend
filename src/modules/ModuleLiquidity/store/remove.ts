@@ -1,4 +1,4 @@
-import { Address, asWei, Token, tokenRawToWei, tokenWeiToRaw, ValueWei, WeiNumStrBn } from '@/core/kaikas'
+import { Address, Token, Wei, WeiAsToken } from '@/core/kaikas'
 import { LP_TOKEN_DECIMALS as LP_TOKEN_DECIMALS_VALUE } from '@/core/kaikas/const'
 import { usePairAddress, usePairReserves } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { buildPair, TokensPair, TOKEN_TYPES } from '@/utils/pair'
@@ -16,10 +16,10 @@ const LP_TOKENS_DECIMALS = Object.freeze({ decimals: LP_TOKEN_DECIMALS_VALUE })
 function useRemoveAmounts(
   tokens: Ref<null | TokensPair<Address>>,
   pair: Ref<null | Address>,
-  liquidity: Ref<null | WeiNumStrBn>,
+  liquidity: Ref<null | Wei>,
 ): {
   pending: Ref<boolean>
-  amounts: Ref<null | TokensPair<ValueWei<BN>>>
+  amounts: Ref<null | TokensPair<Wei>>
 } {
   const kaikasStore = useKaikasStore()
 
@@ -111,16 +111,16 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     return `${roundTo(value * 100, 7)}%`
   })
 
-  const liquidityRaw = ref('')
-  const liquidity = computed<ValueWei<string> | null>({
+  const liquidityRaw = ref('' as WeiAsToken)
+  const liquidity = computed<Wei | null>({
     get: () => {
       const raw = liquidityRaw.value
       if (!raw) return null
-      return tokenRawToWei(LP_TOKENS_DECIMALS, raw)
+      return Wei.fromToken(LP_TOKENS_DECIMALS, raw)
     },
     set: (wei) => {
       if (wei) {
-        liquidityRaw.value = tokenWeiToRaw(LP_TOKENS_DECIMALS, wei)
+        liquidityRaw.value = wei.toToken(LP_TOKENS_DECIMALS)
       }
     },
   })
@@ -130,16 +130,16 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
    */
   const liquidityRelative = computed<number | null>({
     get: () => {
-      const wei = liquidity.value ?? '0'
+      const wei = liquidity.value ?? new Wei(0)
       const total = pairUserBalance.value
       if (!total) return null
-      return new BigNumber(wei).div(total).toNumber()
+      return wei.asBigNum.div(total.asBigNum).toNumber()
     },
     set: (rel) => {
       if (rel === null) return
       const total = pairUserBalance.value
       if (!total) return
-      liquidity.value = asWei(new BigNumber(total).multipliedBy(rel).toString())
+      liquidity.value = new Wei(total.asBigNum.multipliedBy(rel))
     },
   })
 
@@ -160,7 +160,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   }
 
   function clear() {
-    liquidityRaw.value = ''
+    liquidityRaw.value = '' as WeiAsToken
   }
 
   const isReadyToPrepareSupply = computed(() => {
@@ -170,7 +170,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   const prepareSupplyScope = useDanglingScope<{
     pending: boolean
     ready: null | {
-      gas: number
+      gas: Wei
       send: () => Promise<void>
     }
   }>()

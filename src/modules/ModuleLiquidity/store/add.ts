@@ -1,4 +1,4 @@
-import { ValueWei, deadlineFiveMinutesFromNow, tokenWeiToRaw, Address, asWei } from '@/core/kaikas'
+import { Wei, deadlineFiveMinutesFromNow, Address, WeiAsToken } from '@/core/kaikas'
 import { usePairAddress, usePairReserves } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { useTokensInput } from '@/modules/ModuleTradeShared/composable.tokens-input'
 import { buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
@@ -33,9 +33,9 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   const quoteFor = ref<null | TokenType>(null)
 
-  const doQuoteScope = useDanglingScope<{ pending: boolean; exchangeRate: null | ValueWei<string> }>()
+  const doQuoteScope = useDanglingScope<{ pending: boolean; exchangeRate: null | Wei }>()
 
-  function doQuoteFor(value: ValueWei<string>, quoteFor: TokenType) {
+  function doQuoteFor(value: Wei, quoteFor: TokenType) {
     const kaikas = kaikasStore.getKaikasAnyway()
     invariant(pair.result === 'not-empty', 'Pair should exist')
     const { tokenA, tokenB } = addrsReadonly
@@ -93,7 +93,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
       debug('quote task key:', key)
       doQuoteScope.dispose()
       if (key) {
-        debouncedDoQuoteFor(selection.wei[mirrorTokenType(quoteFor.value!)]!.input, quoteFor.value!)
+        debouncedDoQuoteFor(selection.wei[mirrorTokenType(quoteFor.value!)]!.input as Wei, quoteFor.value!)
       }
     },
     { immediate: true, deep: true },
@@ -107,7 +107,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
         invariant(quoteFor.value)
         const tokenData = selection.tokens[quoteFor.value]
         if (tokenData) {
-          selection.input[quoteFor.value].inputRaw = tokenWeiToRaw(tokenData, rate)
+          selection.input[quoteFor.value].inputRaw = rate.toToken(tokenData)
         }
       }
     },
@@ -120,8 +120,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
       if (!quoteForTask.value?.completed) return null
       return buildPair((type) => {
         const wei = selection.wei[type]!.input
-        const bn = asWei(new BN(wei))
-        return bn
+        return wei
       })
     }),
   )
@@ -154,7 +153,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     result.value = null
   }
 
-  function input(token: TokenType, raw: string) {
+  function input(token: TokenType, raw: WeiAsToken) {
     selection.input[token].inputRaw = raw
     quoteFor.value = mirrorTokenType(token)
 
@@ -168,7 +167,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   }
 
   function setBoth(tokens: TokensPair<Address>) {
-    selection.resetInput(buildPair((type) => ({ addr: tokens[type], inputRaw: '' })))
+    selection.resetInput(tokens)
   }
 
   return {

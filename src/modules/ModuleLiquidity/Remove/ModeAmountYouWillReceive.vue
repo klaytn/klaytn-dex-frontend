@@ -2,8 +2,8 @@
 import { storeToRefs } from 'pinia'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { roundTo } from 'round-to'
-import { tokenWeiToRaw, asWei } from '@/core/kaikas'
 import cssRows from '../rows.module.scss'
+import { KlayIconImportant } from '~klay-icons'
 
 const store = useLiquidityRmStore()
 const {
@@ -18,7 +18,7 @@ const formattedAmounts = computed(() => {
   if (!amounts.value || !tokens.value) return null
   return buildPair((type) => {
     const data = tokens.value![type]
-    return roundTo(Number(tokenWeiToRaw(data, asWei(amounts.value![type].toString()))), 7)
+    return roundTo(Number(amounts.value![type].toToken(data)), 7)
   })
 })
 </script>
@@ -27,7 +27,7 @@ const formattedAmounts = computed(() => {
   <div v-if="symbols">
     <h4 class="flex items-center space-x-2 mb-4">
       <span> You will receive </span>
-      <IconKlayImportant />
+      <KlayIconImportant />
 
       <KlayLoader
         v-if="isAmountsPending"

@@ -1,30 +1,23 @@
-import { Address, TokenSymbol } from '@/core/kaikas'
+import { Address, Token, WeiRaw } from '@/core/kaikas'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
+import { Except } from 'type-fest'
 import { Ref } from 'vue'
 import { REFETCH_POOLS_INTERVAL } from './const'
+
+type ApolloToken = Except<Token, 'address'> & { id: Address }
 
 export interface PoolsQueryResult {
   pools: {
     id: Address
-    stakeToken: {
-      id: Address
-      decimals: string
-      symbol: TokenSymbol
-      name: string
-    }
-    rewardToken: {
-      id: Address
-      decimals: string
-      symbol: TokenSymbol
-      name: string
-    }
+    stakeToken: ApolloToken
+    rewardToken: ApolloToken
     rewardRate: string
     createdAtBlock: string
-    totalTokensStaked: string
+    totalTokensStaked: WeiRaw<string>
     endBlock: string
     users: {
-      amount: string
+      amount: WeiRaw<string>
     }[]
   }[]
 }

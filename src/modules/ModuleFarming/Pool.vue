@@ -8,6 +8,7 @@ import { Farming } from '@/types/typechain/farming'
 import BigNumber from 'bignumber.js'
 import { useTask, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
+import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 
 const kaikasStore = useKaikasStore()
 const kaikas = kaikasStore.getKaikasAnyway()
@@ -87,7 +88,7 @@ const {
   computed(() => pool.value.pairId),
   FARMING_CONTRACT_ADDRESS,
 )
-whenever(expanded, triggerCheckEnabled)
+whenever(() => expanded.value && !enabled.value, triggerCheckEnabled)
 
 const loading = computed(() => {
   // FIXME include "enableTask" pending here too?
@@ -108,12 +109,12 @@ const withdrawTask = useTask(async () => {
   const withdraw = FarmingContract.methods.withdraw(props.pool.id, 0)
   const estimateGas = await withdraw.estimateGas({
     from: kaikas.selfAddress,
-    gasPrice,
+    gasPrice: gasPrice.asBN,
   })
   await withdraw.send({
     from: kaikas.selfAddress,
     gas: estimateGas,
-    gasPrice,
+    gasPrice: gasPrice.asBN,
   })
 
   return { earned }
@@ -177,7 +178,7 @@ function openRoiCalculator(event: Event, pool: Pool) {
           </div>
           <div v-bem="'stats-item-value'">
             {{ value }}
-            <IconKlayCalculator
+            <KlayIconCalculator
               v-if="label === 'annualPercentageRate'"
               v-bem="'stats-item-calculator'"
               @click="openRoiCalculator($event, pool)"
@@ -258,7 +259,7 @@ function openRoiCalculator(event: Event, pool: Pool) {
           :href="`https://baobab.klaytnfinder.io/account/${FARMING_CONTRACT_ADDRESS}`"
         >
           View Contract
-          <IconKlayLink v-bem="'link-icon'" />
+          <KlayIconLink v-bem="'link-icon'" />
         </a>
         <a
           v-bem="'link'"
@@ -266,7 +267,7 @@ function openRoiCalculator(event: Event, pool: Pool) {
           :href="`https://baobab.klaytnfinder.io/account/${pool.pairId}?tabId=tokenBalance`"
         >
           See Pair Info
-          <IconKlayLink v-bem="'link-icon'" />
+          <KlayIconLink v-bem="'link-icon'" />
         </a>
       </div>
     </template>

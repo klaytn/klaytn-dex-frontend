@@ -31,7 +31,9 @@
     "multicall",
     "Initializable",
     "exponentiated",
-    "KDEX"
+    "KDEX",
+    "dompurify",
+    "kakuyaku"
   ],
   "i18n-ally.sourceLanguage": "en",
   "i18n-ally.keystyle": "nested",

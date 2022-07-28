@@ -1,4 +1,4 @@
-import { asWei, ValueWei } from '@/core/kaikas'
+import { Wei } from '@/core/kaikas'
 import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
 import rfdc from 'rfdc'
@@ -39,28 +39,24 @@ export function stringHashForHsl(str: string): number {
  * Snake-case seems more suitable here
  */
 export interface Rates {
-  a_per_b: ValueWei<BigNumber>
-  b_per_a: ValueWei<BigNumber>
+  a_per_b: number
+  b_per_a: number
 }
 
 export type RatesRounded = {
   [K in keyof Rates]: number
 }
 
-export function computeRates(pair: TokensPair<ValueWei<number | string | BigNumber | BN>>): Rates {
-  const nums = buildPair((type) => {
-    const value = pair[type]
-    return new BigNumber(value instanceof BN ? value.toString() : value)
-  })
-  const a_per_b = asWei(nums.tokenA.dividedBy(nums.tokenB))
-  const b_per_a = asWei(new BigNumber(1).dividedBy(a_per_b))
+export function computeRates(pair: TokensPair<Wei>): Rates {
+  const a_per_b = pair.tokenA.asBigNum.dividedBy(pair.tokenB.asBigNum).toNumber()
+  const b_per_a = 1 / a_per_b
   return { a_per_b, b_per_a }
 }
 
 export function roundRates({ a_per_b, b_per_a }: Rates): RatesRounded {
   return {
-    a_per_b: roundTo(a_per_b.toNumber(), 7),
-    b_per_a: roundTo(b_per_a.toNumber(), 7),
+    a_per_b: roundTo(a_per_b, 7),
+    b_per_a: roundTo(b_per_a, 7),
   }
 }
 
@@ -87,3 +83,9 @@ if (import.meta.vitest) {
     })
   })
 }
+
+export function shortenStringInTheMiddle(string: string) {
+  const stringLength = string.length
+  return `${string.slice(2, 6)}...${string.slice(stringLength - 6, stringLength - 2)}`
+}
+
