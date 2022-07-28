@@ -1,3 +1,10 @@
+common:
+  proposalState:
+    active: Active
+    executed: Executed
+    defeated: Defeated
+    finished: Finished
+
 DefaultLayout:
   menu:
     assets: Assets
@@ -29,15 +36,41 @@ ModuleFarmingPool:
     multiplier: Multiplier
 
 ModuleStakingPool:
-  staked: "{symbol} Staked"
-  earned: "{symbol} Earned"
-  endsIn: "{ blocks } blocks"
+  staked: '{symbol} Staked'
+  earned: '{symbol} Earned'
+  endsIn: '{ blocks } blocks'
   stats:
-    earned: "{symbol} Earned"
+    earned: '{symbol} Earned'
     totalStaked: Total staked
     annualPercentageRate: APR
-    endsIn: "Ends in"
+    endsIn: 'Ends in'
 
 ModuleStakingModal:
   stakeTitle: Stake in pool
   unstakeTitle: Unstake {symbol}
+
+ModuleGovernanceWrap:
+  onlyActive: Only active
+  sorting:
+    label: Sort by
+    options:
+      startDay: Start day
+      endDay: End day
+
+ModuleGovernanceListProposal:
+  startDate: Start date
+  endDate: End date
+
+ModuleGovernanceProposalHead:
+  share: Share
+
+ModuleGovernanceProposalCallToVote:
+  call: Cast your vote on snapshot
+  vote: Vote
+
+ModuleGovernanceProposalVotes:
+  title: Votes
+
+ModuleGovernanceProposalDescription:
+  title: Description
+  viewMore: View more
