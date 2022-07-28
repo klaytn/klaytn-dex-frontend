@@ -18,9 +18,9 @@ export default {
     <h1 v-else>
       An error occurred
     </h1>
-    <router-link to="/swap">
+    <RouterLink to="/swap">
       Home page
-    </router-link>
+    </RouterLink>
   </LayoutBase>
 </template>
 
