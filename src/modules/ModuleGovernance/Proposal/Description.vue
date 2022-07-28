@@ -2,6 +2,7 @@
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { Proposal } from '../types'
+import 'github-markdown-css/github-markdown-light.css'
 
 const { t } = useI18n()
 const vBem = useBemClass()
@@ -40,18 +41,18 @@ const short = computed(() => {
   return !long.value
 })
 
-const parcedBody = computed(() => {
+const parsedBody = computed(() => {
   return marked(proposal.value.body)
 })
 
 const cleanBody = computed(() => {
-  return DOMPurify.sanitize(parcedBody.value)
+  return DOMPurify.sanitize(parsedBody.value)
 })
 </script>
 
 <template>
   <KlayAccordionItem
-    v-if="parcedBody !== ''"
+    v-if="parsedBody !== ''"
     v-model="expanded"
     v-bem="{ long, short }"
     type="light"

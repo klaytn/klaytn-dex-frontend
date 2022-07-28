@@ -1,8 +1,9 @@
 <script setup lang="ts" name="ModuleGovernanceProposalSideColumn">
 import dayjs from 'dayjs'
+import { KlayIconLink } from '~klay-icons'
 import { shortenStringInTheMiddle } from '@/utils/common'
 import { Proposal } from '../types'
-import { getLowerCaseChoice, getLowerCaseChoices } from '../utils'
+import { getLowerCaseChoice, getLowerCaseChoices, formatAmount } from '../utils'
 import { POSITIVE_CHOICES } from '../const'
 
 const { t } = useI18n()
@@ -16,18 +17,6 @@ const { proposal } = toRefs(props)
 function getChoiceScore(choice: string) {
   const choiceIndex = proposal.value.choices.indexOf(choice)
   return proposal.value.scores[choiceIndex]
-}
-
-function formatScore(score: number) {
-  const scoreToFixed = (div: number) => Number((score / div).toFixed(1))
-  const million = 1_000_000
-  const thousand = 1_000
-  if (score >= million)
-    return `${scoreToFixed(million)}M`
-  else if (score >= thousand)
-    return `${scoreToFixed(thousand)}K`
-  else
-    return `${scoreToFixed(1)}`
 }
 
 function getChoicePercent(choice: string) {
@@ -110,7 +99,7 @@ const snapshotHref = computed(() => {
           {{ choice }}
         </div>
         <span v-bem="'choice-stats'">
-          {{ formatScore(getChoiceScore(choice)) }} {{ formatPercent(getChoicePercent(choice)) }}
+          {{ formatAmount(getChoiceScore(choice)) }} {{ formatPercent(getChoicePercent(choice)) }}
         </span>
         <div v-bem="'choice-line'">
           <div
@@ -145,7 +134,7 @@ const snapshotHref = computed(() => {
         :href="proposalHref"
       >
         Identifier <span>{{ formattedId }}</span>
-        <IconKlayLink v-bem="'link-icon'" />
+        <KlayIconLink v-bem="'link-icon'" />
       </a>
       <a
         v-bem="'link'"
@@ -153,7 +142,7 @@ const snapshotHref = computed(() => {
         :href="creatorHref"
       >
         Creator <span>{{ formattedCreator }}</span>
-        <IconKlayLink v-bem="'link-icon'" />
+        <KlayIconLink v-bem="'link-icon'" />
       </a>
       <a
         v-bem="'link'"
@@ -161,7 +150,7 @@ const snapshotHref = computed(() => {
         :href="snapshotHref"
       >
         Snapshot <span>{{ proposal.snapshot }}</span>
-        <IconKlayLink v-bem="'link-icon'" />
+        <KlayIconLink v-bem="'link-icon'" />
       </a>
     </div>
   </div>

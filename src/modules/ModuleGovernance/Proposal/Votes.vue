@@ -3,6 +3,7 @@ import { formatAddress } from '@/core/kaikas'
 import { PAGE_SIZE } from '../const'
 import { useVotesQuery } from '../query.votes'
 import { Proposal } from '../types'
+import { formatAmount } from '../utils'
 
 const { t } = useI18n()
 const vBem = useBemClass()
@@ -79,7 +80,7 @@ function viewMore() {
           >
             <span v-bem="'vote-voter'">{{ formatAddress(vote.voter) }}</span>
             <span v-bem="'vote-choice'">{{ proposal.choices[vote.choice - 1] }}</span>
-            <span v-bem="'vote-vp'">{{ vote.vp }}</span>
+            <span v-bem="'vote-vp'">{{ formatAmount(vote.vp) }}</span>
           </div>
         </div>
         <div

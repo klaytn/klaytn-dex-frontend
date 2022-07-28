@@ -23,7 +23,7 @@ export function useVotesQuery(props: Ref<{ skip: number, proposalId: string }>) 
           where: {
             proposal: $proposal,
           },
-          orderDirection: desc
+          orderBy: "vp"
         ) {
           id
           voter

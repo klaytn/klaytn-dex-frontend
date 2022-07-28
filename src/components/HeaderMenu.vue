@@ -22,7 +22,7 @@ const vBem = useBemClass()
 
 <template>
   <div v-bem>
-    <router-link
+    <RouterLink
       v-for="item in computedItems"
       :key="item.routeName"
       v-bem="item.bemClass"
@@ -30,7 +30,7 @@ const vBem = useBemClass()
       :to="{ name: item.routeName }"
     >
       {{ item.label }}
-    </router-link>
+    </RouterLink>
   </div>
 </template>
 

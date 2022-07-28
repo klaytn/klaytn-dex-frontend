@@ -9,7 +9,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import 'uno.css'
 import './styles/soramitsu-ui.scss'
 import './styles/main.sass'
-import 'github-markdown-css/github-markdown-light.css'
 
 import { setupLayouts } from 'virtual:generated-layouts'
 import App from './App.vue'

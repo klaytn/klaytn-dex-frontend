@@ -25,7 +25,7 @@ const formattedEndDate = computed(() => {
 </script>
 
 <template>
-  <router-link
+  <RouterLink
     v-bem
     :to="{ name: RouteName.VotingProposal, params: { id: proposal.id } }"
   >
@@ -49,7 +49,7 @@ const formattedEndDate = computed(() => {
       </div>
     </div>
     <ModuleGovernanceProposalStatus :status="proposal.status" />
-  </router-link>
+  </RouterLink>
 </template>
 
 <style lang="sass">
