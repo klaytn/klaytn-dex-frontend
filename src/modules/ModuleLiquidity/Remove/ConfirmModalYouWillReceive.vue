@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { TOKEN_TYPES } from '@/utils/pair'
 import { roundTo } from 'round-to'
+import IconIcRoundPlus from '~icons/ic/round-plus'
 
 const { selectedTokensData: tokens, amounts } = $(storeToRefs(useLiquidityRmStore()))
 

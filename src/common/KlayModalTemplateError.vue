@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useModalApi } from '@soramitsu-ui/ui'
+import MaterialSymbolsErrorRounded from '~icons/material-symbols/error-rounded'
 
 const api = useModalApi()
 </script>
@@ -7,7 +8,7 @@ const api = useModalApi()
 <template>
   <div>
     <div class="p-16 flex flex-col items-center">
-      <IconMaterialSymbolsErrorRounded class="error text-7xl" />
+      <MaterialSymbolsErrorRounded class="error text-7xl" />
       <h3 class="mt-6">
         Error
       </h3>
