@@ -28,18 +28,9 @@ const props = withDefaults(
 
 const emit = defineEmits(['update:modelValue', 'update:token'])
 
-let model = computed({
-  get: () => {
-    const value = props.modelValue
-    if (!value) return ''
-    const num = Number(props.modelValue)
-    if (Number.isNaN(num)) return ''
-    return String(roundTo(num, 5))
-  },
-  set: (v) => emit('update:modelValue', v),
-})
+const model = useVModel(props, 'modelValue', emit)
 
-let modelDebounced = ref(model.value)
+const modelDebounced = ref(model.value)
 watch(model, (value) => {
   modelDebounced.value = value
 })
@@ -85,8 +76,6 @@ function setToMax() {
   invariant(balance)
   emit('update:modelValue', balanceRaw)
 }
-
-// const clipboard = useClipboard()
 </script>
 
 <template>
