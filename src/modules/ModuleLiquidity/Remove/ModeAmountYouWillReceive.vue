@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { roundTo } from 'round-to'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
+import { KlayIconImportant } from '~klay-icons'
 
 const store = useLiquidityRmStore()
 const {
@@ -26,7 +27,7 @@ const formattedAmounts = computed(() => {
   <div v-if="symbols">
     <h4 class="flex items-center space-x-2 mb-4">
       <span> You will receive </span>
-      <IconKlayImportant />
+      <KlayIconImportant />
 
       <KlayLoader
         v-if="isAmountsPending"

@@ -7,6 +7,7 @@ import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { NATIVE_TOKEN_DECIMALS } from '@/core/kaikas/const'
 import { Ref } from 'vue'
 import { Wei } from '@/core/kaikas'
+import { KlayIconImportant } from '~klay-icons'
 
 const props = defineProps<{
   inModal?: boolean
@@ -73,7 +74,7 @@ const formattedComission = `${roundTo(POOL_COMISSION * 100, 2)}%`
       <div :class="cssRowClassForBottomLines">
         <div class="flex items-center space-x-1">
           <span>Pool comission</span>
-          <IconKlayImportant />
+          <KlayIconImportant />
         </div>
         <span>{{ formattedComission }}</span>
       </div>

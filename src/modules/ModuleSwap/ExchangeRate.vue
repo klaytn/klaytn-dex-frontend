@@ -1,6 +1,7 @@
 <script setup lang="ts" name="SwapModuleExchangeRate">
 import { storeToRefs } from 'pinia'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
+import { KlayIconArrowDown } from '~klay-icons'
 
 const swapStore = useSwapStore()
 const { gettingAmountFor, inputRates } = $(storeToRefs(swapStore))
@@ -42,7 +43,7 @@ const models = reactive(
           v-if="i === 0"
           class="w-full flex justify-center items-center h-0"
         >
-          <IconKlayArrowDown />
+          <KlayIconArrowDown />
         </div>
       </template>
     </div>

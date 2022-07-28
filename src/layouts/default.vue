@@ -2,6 +2,7 @@
 import { formatAddress } from '@/core/kaikas'
 import { type HeaderMenuItem, RouteName } from '@/types'
 import { storeToRefs } from 'pinia'
+import { KlayIconDexLogo, KlayIconWallet } from '~klay-icons'
 
 const { t } = useI18n()
 
@@ -49,7 +50,7 @@ onMounted(() => kaikasStore.connect())
     <header>
       <div class="col">
         <a href="#">
-          <IconKlayDexLogo />
+          <KlayIconDexLogo />
         </a>
       </div>
       <div class="col col-center">
@@ -64,7 +65,7 @@ onMounted(() => kaikasStore.connect())
           v-if="address"
           class="address"
         >
-          <IconKlayWallet />
+          <KlayIconWallet />
           <span>
             {{ formattedAddress }}
           </span>

@@ -2,6 +2,7 @@
 import { TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
+import { KlayIconArrowDown, KlayIconPlus } from '~klay-icons'
 
 const store = useLiquidityRmStore()
 const {
@@ -25,7 +26,7 @@ const {
     />
 
     <div class="flex justify-center">
-      <IconKlayArrowDown />
+      <KlayIconArrowDown />
     </div>
 
     <template
@@ -42,7 +43,7 @@ const {
         v-if="i === 0"
         class="flex justify-center -my-2"
       >
-        <IconKlayPlus />
+        <KlayIconPlus />
       </div>
     </template>
 

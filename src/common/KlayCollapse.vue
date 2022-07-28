@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { SCollapseTransition } from '@soramitsu-ui/ui'
+import { KlayIconCollapseArrow } from '~klay-icons'
 
 defineProps<{
   alwaysOpened?: boolean
@@ -22,7 +23,7 @@ const isOpen = ref(false)
           'chevron--opened rotate-180': isOpen,
         }"
       >
-        <IconKlayCollapseArrow />
+        <KlayIconCollapseArrow />
       </div>
     </div>
 

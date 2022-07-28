@@ -1,5 +1,6 @@
 <script setup lang="ts" name="KlayModalCard">
 import { useModalApi } from '@soramitsu-ui/ui'
+import { KlayIconClose } from '~klay-icons'
 
 defineProps<{
   title?: string
@@ -22,7 +23,7 @@ const api = useModalApi()
         type="button"
         @click="api.close()"
       >
-        <IconKlayClose />
+        <KlayIconClose />
       </button>
     </div>
 

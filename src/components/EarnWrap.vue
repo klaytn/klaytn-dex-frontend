@@ -2,6 +2,7 @@
 import { Sorting as FarmingSorting } from '@/modules/ModuleFarming/types'
 import { Sorting as StakingSorting } from '@/modules/ModuleStaking/types'
 import { RouteName } from '@/types'
+import { KlayIconSearch } from '~klay-icons'
 
 const { t } = useI18n()
 const vBem = useBemClass()
@@ -99,7 +100,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
         label="Search"
       >
         <template #append>
-          <IconKlaySearch v-bem="'search-icon'" />
+          <KlayIconSearch v-bem="'search-icon'" />
         </template>
       </KlayTextField>
     </div>

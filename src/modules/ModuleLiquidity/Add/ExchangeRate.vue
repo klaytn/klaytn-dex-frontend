@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
+import { KlayIconPlus, KlayIconImportant } from '~klay-icons'
 
 const liquidityStore = useLiquidityAddStore()
 const { isQuotePendingFor, inputRates, addrs } = storeToRefs(liquidityStore)
@@ -38,7 +39,7 @@ const models = reactive(
           v-if="i === 0"
           class="w-full flex justify-center h-0"
         >
-          <IconKlayPlus class="-mt-3" />
+          <KlayIconPlus class="-mt-3" />
         </div>
       </template>
     </div>
@@ -47,7 +48,7 @@ const models = reactive(
       v-if="liquidityStore.isEmptyPair"
       class="warning-text"
     >
-      <IconKlayImportant />
+      <KlayIconImportant />
       <span>Pair not exist</span>
     </div>
   </div>

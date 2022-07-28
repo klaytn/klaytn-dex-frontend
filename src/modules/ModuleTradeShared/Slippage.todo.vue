@@ -24,7 +24,7 @@
       <template #head>
         <div class="slippage--head">
           <span class="label"> Slippage tolerance </span>
-          <IconKlayImportant />
+          <KlayIconImportant />
           <span class="percent">
             {{ renderPercent }}
           </span>

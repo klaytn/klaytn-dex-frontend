@@ -1,5 +1,5 @@
 <script setup lang="ts" name="KlaySlippage">
-// const swapStore = useSwapStore()
+import { KlayIconImportant } from '~klay-icons'
 
 const props = defineProps<{
   modelValue: number
@@ -27,7 +27,7 @@ function select(value: number) {
       <template #head>
         <div class="slippage--head">
           <span class="label"> Slippage tolerance </span>
-          <IconKlayImportant />
+          <KlayIconImportant />
           <span class="percent">
             {{ renderPercent }}
           </span>
