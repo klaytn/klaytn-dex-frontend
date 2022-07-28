@@ -106,7 +106,7 @@ export default class Config {
     await approveMethod.send({
       from: this.addrs.self,
       gas,
-      gasPrice: MAGIC_GAS_PRICE,
+      gasPrice: MAGIC_GAS_PRICE.asStr,
     })
   }
 

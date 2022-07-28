@@ -6,7 +6,7 @@ import { Tab } from './const'
 const active = useLocalStorage<Tab>('liquidity-remove-active-tab', 'amount')
 
 const store = useLiquidityRmStore()
-const { isPrepareSupplyPending, isReadyToPrepareSupply } = storeToRefs(store)
+const { prepareSupplyState, isReadyToPrepareSupply } = storeToRefs(store)
 
 const router = useRouter()
 
@@ -29,7 +29,7 @@ onUnmounted(() => store.clear())
       type="primary"
       size="lg"
       class="w-full"
-      :loading="isPrepareSupplyPending"
+      :loading="prepareSupplyState?.pending"
       :disabled="!isReadyToPrepareSupply"
       @click="store.prepareSupply()"
     >

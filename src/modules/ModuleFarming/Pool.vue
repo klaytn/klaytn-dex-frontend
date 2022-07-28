@@ -6,7 +6,6 @@ import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS, FARMING_CONTRACT_ADDRESS } from './const'
 import { Farming } from '@/types/typechain/farming'
 import BigNumber from 'bignumber.js'
-import { useTask, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 
@@ -100,7 +99,7 @@ function unstake() {
   modalOperation.value = ModalOperation.Unstake
 }
 
-const withdrawTask = useTask(async () => {
+const { state: withdrawState, run: withdraw } = useTask(async () => {
   const earned = pool.value.earned
   const gasPrice = await kaikas.cfg.getGasPrice()
   const withdraw = FarmingContract.methods.withdraw(props.pool.id, 0)
@@ -116,15 +115,16 @@ const withdrawTask = useTask(async () => {
 
   return { earned }
 })
-useTaskLog(withdrawTask, 'farming-pool-withdraw')
-wheneverTaskSucceeds(withdrawTask, ({ earned }) => {
-  emit('withdrawn')
-  $notify({ status: Status.Success, description: `${earned} DEX tokens were withdrawn` })
+usePromiseLog(withdrawState, 'farming-pool-withdraw')
+wheneverDone(withdrawState, (result) => {
+  if (result.fulfilled) {
+    const { earned } = result.fulfilled.value
+    emit('withdrawn')
+    $notify({ status: Status.Success, description: `${earned} DEX tokens were withdrawn` })
+  } else {
+    $notify({ status: Status.Error, description: 'Withdraw DEX tokens error' })
+  }
 })
-wheneverTaskErrors(withdrawTask, () => {
-  $notify({ status: Status.Error, description: 'Withdraw DEX tokens error' })
-})
-const withdraw = () => withdrawTask.run()
 
 function handleStaked(amount: string) {
   modalOperation.value = null

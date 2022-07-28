@@ -1,40 +1,31 @@
 import { Address, Wei } from '@/core/kaikas'
-import { useTask, wheneverTaskErrors } from '@vue-kakuyaku/core'
-import { Status } from '@soramitsu-ui/ui'
 import { MAX_UINT256 } from './const'
-import { MaybeRef } from '@vueuse/core'
+import { MaybeRef, or } from '@vueuse/core'
 
 export function useEnableState(addr: MaybeRef<Address>, contractAddr: MaybeRef<Address>) {
   const kaikasStore = useKaikasStore()
 
-  const checkEnabledTask = useTask(async () => {
+  const { state: checkState, run: check } = useTask(async () => {
     const allowance = await kaikasStore.getKaikasAnyway().cfg.getAllowance(unref(addr), unref(contractAddr))
     const isEnabled = allowance.asBigInt === MAX_UINT256
     return isEnabled
   })
-  useTaskLog(checkEnabledTask, 'use-enable-state-check')
-  wheneverTaskErrors(checkEnabledTask, () => {
-    $notify({ status: Status.Error, description: 'Fetch enabled pools error' })
-  })
-  const checkEnabledInProgress = computed(() => checkEnabledTask.state.kind === 'pending')
+  const isCheckPending = toRef(checkState, 'pending')
+  useNotifyOnError(checkState, 'Fetch enabled pools error')
 
-  const enableTask = useTask(async () => {
+  const { state: enableState, run: enable } = useTask(async () => {
     const kaikas = kaikasStore.getKaikasAnyway()
     await kaikas.cfg.approveAmount(unref(addr), new Wei(MAX_UINT256), unref(contractAddr))
   })
-  useTaskLog(enableTask, 'use-enable-state-enable')
-  wheneverTaskErrors(enableTask, () => {
-    $notify({ status: Status.Error, description: 'Approve amount error' })
-  })
+  const isEnablePending = toRef(enableState, 'pending')
+  useNotifyOnError(enableState, 'Fetch enabled pools error')
 
-  const enabled = computed(() => {
-    return enableTask.state.kind === 'ok' || (checkEnabledTask.state.kind === 'ok' && checkEnabledTask.state.data)
-  })
+  const isEnabled = computed(() => !!enableState.fulfilled && !!checkState.fulfilled?.value)
 
   return {
-    pending: checkEnabledInProgress,
-    check: () => checkEnabledTask.run(),
-    enable: () => enableTask.run(),
-    enabled,
+    pending: or(isCheckPending, isEnablePending),
+    check,
+    enable,
+    enabled: isEnabled,
   }
 }

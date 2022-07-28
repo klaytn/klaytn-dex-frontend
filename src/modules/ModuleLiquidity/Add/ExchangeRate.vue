@@ -1,52 +1,47 @@
 <script lang="ts" setup>
-import { buildPair } from '@/utils/pair'
+import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 import { KlayIconPlus, KlayIconImportant } from '~klay-icons'
 
 const liquidityStore = useLiquidityAddStore()
-const { quoteForTask } = storeToRefs(liquidityStore)
-
-const pendingQuoteFor = computed(() => (quoteForTask.value?.pending ? quoteForTask.value.quoteFor : null))
-const estimated = computed(() => (quoteForTask.value?.completed ? quoteForTask.value.quoteFor : null))
+const { isQuotePendingFor, inputRates, addrs } = storeToRefs(liquidityStore)
 
 const models = reactive(
-  buildPair((type) => ({
-    addr: computed({
-      get: () => liquidityStore.selection.input[type].addr,
-      set: (addr) => {
-        if (addr) {
-          liquidityStore.setToken(type, addr)
-        }
-      },
-    }),
-    input: computed({
-      get: () => liquidityStore.selection.input[type].inputRaw,
-      set: (raw) => liquidityStore.input(type, raw),
-    }),
-  })),
+  buildPair((type) => {
+    return {
+      input: computed({
+        get: () => inputRates.value[type]?.value,
+        set: (v) => v && liquidityStore.input(type, v),
+      }),
+      addr: computed({
+        get: () => addrs.value[type],
+        set: (addr) => addr && liquidityStore.setToken(type, addr),
+      }),
+    }
+  }),
 )
 </script>
 
 <template>
   <div class="space-y-4">
     <div class="space-y-1">
-      <InputToken
-        v-model="models.tokenA.input"
-        v-model:token="models.tokenA.addr"
-        :is-loading="pendingQuoteFor === 'tokenA'"
-        :estimated="estimated === 'tokenA'"
-      />
-
-      <div class="w-full flex justify-center h-0">
-        <KlayIconPlus class="-mt-3" />
-      </div>
-
-      <InputToken
-        v-model="models.tokenB.input"
-        v-model:token="models.tokenB.addr"
-        :is-loading="pendingQuoteFor === 'tokenB'"
-        :estimated="estimated === 'tokenB'"
-      />
+      <template
+        v-for="(type, i) in TOKEN_TYPES"
+        :key="type"
+      >
+        <InputToken
+          v-model="models[type].input"
+          v-model:token="models[type].addr"
+          :is-loading="isQuotePendingFor === type"
+          :estimated="inputRates[type]?.type === 'estimated'"
+        />
+        <div
+          v-if="i === 0"
+          class="w-full flex justify-center h-0"
+        >
+          <KlayIconPlus class="-mt-3" />
+        </div>
+      </template>
     </div>
 
     <div

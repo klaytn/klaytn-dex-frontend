@@ -4,7 +4,7 @@ import { toRefs } from '@vueuse/core'
 import { LiquidityPairsPosition, LiquidityPairValueRaw } from '../query.liquidity-pairs'
 import BigNumber from 'bignumber.js'
 import { RouteName } from '@/types'
-import cssRows from '../rows.module.scss'
+import cssRows from '../../ModuleTradeShared/rows.module.scss'
 
 const cssRowMd = cssRows.rowMd
 

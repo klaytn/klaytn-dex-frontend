@@ -1,82 +1,52 @@
 <script setup lang="ts" name="SwapModuleDetails">
 import { storeToRefs } from 'pinia'
-import invariant from 'tiny-invariant'
-import { computeRates, roundRates } from '@/utils/common'
-import { buildPair } from '@/utils/pair'
-import { Wei } from '@/core/kaikas'
+import cssRows from '../ModuleTradeShared/rows.module.scss'
 
 const store = useSwapStore()
-const {
-  gotAmountFor,
-  // FIXME maybe a bug? `selection` does not work for some reason. It should be a ref, but
-  // it is undefined. Maybe because it is a reactive object?
-  // selection,
-} = storeToRefs(store)
+const { rates, symbols } = storeToRefs(store)
 
-const tokens = computed(() => {
-  const { tokenA, tokenB } = store.selection.tokens || {}
+const bothSymbols = computed(() => {
+  const { tokenA, tokenB } = symbols.value || {}
   if (tokenA && tokenB) return { tokenA, tokenB }
   return null
 })
 
-const rates = computed(() => {
-  if (gotAmountFor.value) {
-    const { tokenA, tokenB } = store.selection.wei || {}
-    invariant(tokenA && tokenB)
-
-    const rates = computeRates(buildPair((type) => store.selection.wei[type]!.input as Wei))
-    return roundRates(rates)
-  }
-
-  return null
-})
-
 const route = computed(() => {
-  const { tokenA, tokenB } = tokens.value || {}
-  if (!tokenA || !tokenB) return '-'
-  return `${tokenA.symbol} > ${tokenB.symbol}`
+  const { tokenA, tokenB } = bothSymbols.value || {}
+  if (!tokenA || !tokenB) return null
+  return `${tokenA} > ${tokenB}`
 })
 </script>
 
 <template>
-  <div
-    v-if="tokens"
-    class="details--wrap"
-  >
+  <div v-if="bothSymbols">
     <KlayCollapse>
       <template #head>
-        <h3 class="details--title">
+        <h3 class="py-2">
           Transaction Details
         </h3>
       </template>
       <template #main>
-        <div class="details">
-          <div class="details--row">
-            <span>
-              {{ tokens.tokenA.symbol }} per
-              {{ tokens.tokenB.symbol }}
-            </span>
-            <span>
-              {{ rates?.a_per_b ?? '-' }}
-            </span>
-          </div>
-          <div class="details--row">
-            <span>
-              {{ tokens.tokenB.symbol }} per
-              {{ tokens.tokenA.symbol }}
-            </span>
-            <span>
-              {{ rates?.b_per_a ?? '-' }}
-            </span>
-          </div>
-          <div class="details--row">
+        <div class="space-y-4 pt-2">
+          <RowsRates
+            :class="cssRows.rowSm"
+            :rounded-rates="rates"
+            :symbols="bothSymbols"
+          />
+
+          <!-- Not in design -->
+          <!-- <div class="details--row">
             <span>Share of pool</span>
-            <i>todo</i>
-            <!-- <span>{{ formatPercent(pairBalance, userBalance) }}</span> -->
-          </div>
-          <div class="details--row">
+            <span>
+              <ValueOrDash :value="formattedPoolShare" />
+            </span>
+          </div> -->
+
+          <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
             <span>Route</span>
-            <span>{{ route }}</span>
+            <span>
+              <ValueOrDash :value="route" />
+            </span>
           </div>
         </div>
       </template>
@@ -88,30 +58,30 @@ const route = computed(() => {
 @import '@/styles/vars';
 
 .details {
-  margin-top: 8px;
+  // margin-top: 8px;
 
-  &--title,
-  h3 {
-    font-style: normal;
-    font-weight: 700;
-    font-size: 14px;
-    line-height: 17px;
-    color: $dark2;
-    padding: 3px 0;
-  }
+  // &--title,
+  // h3 {
+  //   font-style: normal;
+  //   font-weight: 700;
+  //   font-size: 14px;
+  //   line-height: 17px;
+  //   color: $dark2;
+  //   padding: 3px 0;
+  // }
 
-  &--wrap {
-    margin-top: 16px;
-  }
+  // &--wrap {
+  //   margin-top: 16px;
+  // }
 
-  &--row {
-    display: flex;
-    justify-content: space-between;
-    font-style: normal;
-    font-weight: 600;
-    font-size: 12px;
-    line-height: 230%;
-    color: $dark2;
-  }
+  // &--row {
+  //   display: flex;
+  //   justify-content: space-between;
+  //   font-style: normal;
+  //   font-weight: 600;
+  //   font-size: 12px;
+  //   line-height: 230%;
+  //   color: $dark2;
+  // }
 }
 </style>
