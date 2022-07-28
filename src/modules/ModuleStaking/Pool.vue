@@ -1,6 +1,6 @@
 <script setup lang="ts" name="ModuleStakingPool">
 import { Status } from '@soramitsu-ui/ui'
-
+import { KlayIconCalculator, KlayIconClock, KlayIconLink } from '~klay-icons'
 import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
@@ -182,11 +182,11 @@ async function handleModalClose() {
           </div>
           <div v-bem="['stats-item-value', { zero: value == '0' }]">
             {{ value }}
-            <IconKlayCalculator
+            <KlayIconCalculator
               v-if="label === 'annualPercentageRate'"
               v-bem="'stats-item-calculator'"
             />
-            <IconKlayClock
+            <KlayIconClock
               v-if="label === 'endsIn' && value !== '—'"
               v-bem="'stats-item-clock'"
             />
@@ -277,18 +277,18 @@ async function handleModalClose() {
           :href="`https://baobab.klaytnfinder.io/account/${pool.stakeToken.id}`"
         >
           See Token Info
-          <IconKlayLink v-bem="'link-icon'" />
+          <KlayIconLink v-bem="'link-icon'" />
         </a>
         <a v-bem="'link'">
           View Project Site
-          <IconKlayLink v-bem="'link-icon'" />
+          <KlayIconLink v-bem="'link-icon'" />
         </a>
         <a
           v-bem="'link'"
           :href="`https://baobab.klaytnfinder.io/account/${pool.id}`"
         >
           View Contract
-          <IconKlayLink v-bem="'link-icon'" />
+          <KlayIconLink v-bem="'link-icon'" />
         </a>
         <a
           v-bem="'link'"

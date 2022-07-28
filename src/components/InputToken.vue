@@ -3,6 +3,7 @@ import { Token, Address, Wei, WeiAsToken } from '@/core/kaikas'
 import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 import { roundTo } from 'round-to'
+import { KlayIconImportant } from '~klay-icons'
 
 const props = withDefaults(
   defineProps<{
@@ -109,7 +110,7 @@ function setToMax() {
           color="gray"
           size="14"
         />
-        <IconKlayImportant />
+        <KlayIconImportant />
       </div>
     </template>
   </InputTokenTemplate>
