@@ -6,6 +6,7 @@ specifiers:
   '@iconify-json/ic': ^1.1.7
   '@iconify-json/material-symbols': ^1.1.12
   '@intlify/vite-plugin-vue-i18n': ^4.0.0
+  '@pinia/testing': ^0.0.13
   '@soramitsu-ui/icons': ^0.1.0
   '@soramitsu-ui/theme': ^0.3.0
   '@soramitsu-ui/ui': ^0.6.1
@@ -125,6 +126,7 @@ devDependencies:
   '@iconify-json/ic': 1.1.7
   '@iconify-json/material-symbols': 1.1.12
   '@intlify/vite-plugin-vue-i18n': 4.0.0_vite@3.0.3+vue-i18n@9.1.10
+  '@pinia/testing': 0.0.13_pinia@2.0.14+vue@3.2.37
   '@types/debounce': 1.2.1
   '@types/dompurify': 2.3.3
   '@types/lodash': 4.14.182
@@ -2152,6 +2154,18 @@ packages:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.13.0
+    dev: true
+
+  /@pinia/testing/0.0.13_pinia@2.0.14+vue@3.2.37:
+    resolution: {integrity: sha512-OiqJzUzHrBetqYZ0IrT4MCz4WGViVLjWlsC6xhyf6t/PDUR5IxeLK3HJcP4i3y6Pq4+IVLYhu6xfy1PGfY9p5Q==}
+    peerDependencies:
+      pinia: '>=2.0.17'
+    dependencies:
+      pinia: 2.0.14_vcmyupim4cga7k7f5hngmth5py
+      vue-demi: 0.13.1_vue@3.2.37
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+      - vue
     dev: true
 
   /@polka/url/1.0.0-next.21:
@@ -8157,7 +8171,6 @@ packages:
       typescript: 4.7.3
       vue: 3.2.37
       vue-demi: 0.13.1_vue@3.2.37
-    dev: false
 
   /pkg-types/0.3.2:
     resolution: {integrity: sha512-eBYzX/7NYsQEOR2alWY4rnQB49G62oHzFpoi9Som56aUr8vB8UGcmcIia9v8fpBeuhH3Ltentuk2OGpp4IQV3Q==}
