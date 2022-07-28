@@ -1,5 +1,6 @@
 <script setup lang="ts" name="KlayAccordionItem">
 import { SAccordionItem } from '@soramitsu-ui/ui'
+import { KlayIconChevron } from '~klay-icons'
 
 const vBem = useBemClass()
 
@@ -39,7 +40,7 @@ watch(model, (dep) => {
     <template #title>
       <slot name="title" />
       <div v-bem="'chevron-wrapper'">
-        <IconKlayChevron v-bem="'chevron'" />
+        <KlayIconChevron v-bem="'chevron'" />
       </div>
     </template>
     <slot />

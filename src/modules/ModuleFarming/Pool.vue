@@ -8,6 +8,7 @@ import { Farming } from '@/types/typechain/farming'
 import BigNumber from 'bignumber.js'
 import { useTask, wheneverTaskErrors, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
+import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 
 const kaikasStore = useKaikasStore()
 const kaikas = kaikasStore.getKaikasAnyway()
@@ -168,7 +169,7 @@ function handleModalClose() {
           </div>
           <div v-bem="'stats-item-value'">
             {{ value }}
-            <IconKlayCalculator
+            <KlayIconCalculator
               v-if="label === 'annualPercentageRate'"
               v-bem="'stats-item-calculator'"
             />
@@ -248,7 +249,7 @@ function handleModalClose() {
           :href="`https://baobab.klaytnfinder.io/account/${FARMING_CONTRACT_ADDRESS}`"
         >
           View Contract
-          <IconKlayLink v-bem="'link-icon'" />
+          <KlayIconLink v-bem="'link-icon'" />
         </a>
         <a
           v-bem="'link'"
@@ -256,7 +257,7 @@ function handleModalClose() {
           :href="`https://baobab.klaytnfinder.io/account/${pool.pairId}?tabId=tokenBalance`"
         >
           See Pair Info
-          <IconKlayLink v-bem="'link-icon'" />
+          <KlayIconLink v-bem="'link-icon'" />
         </a>
       </div>
     </template>

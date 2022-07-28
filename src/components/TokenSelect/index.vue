@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { Address } from '@/core/kaikas'
+import { KlayIconCollapseArrow } from '~klay-icons'
 
 const props = withDefaults(
   defineProps<{
@@ -38,7 +39,7 @@ function onSelect(token: Address) {
     Select Token
 
     <template #icon>
-      <IconKlayCollapseArrow />
+      <KlayIconCollapseArrow />
     </template>
   </KlayButton>
 
