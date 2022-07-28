@@ -1,8 +1,8 @@
 import web3 from 'web3'
 import type { Address, Token, Deadline } from './types'
 import { MAGIC_GAS_PRICE, NATIVE_TOKEN } from './const'
-import { shortenStringInTheMiddle } from '@/utils/common'
 import Wei from './Wei'
+import { shortenStringInTheMiddle } from '@/utils/common'
 
 export function formatAddress(address: Address): string {
   return shortenStringInTheMiddle(address)
