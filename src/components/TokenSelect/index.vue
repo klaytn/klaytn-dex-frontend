@@ -11,15 +11,28 @@ const props = withDefaults(
 
 const emit = defineEmits(['update:token'])
 
+const kaikasStore = useKaikasStore()
 const tokensStore = useTokensStore()
-const tokenData = $computed(() => props.token && tokensStore.findTokenData(props.token))
+const tokenData = computed(() => props.token && tokensStore.findTokenData(props.token))
 
-let model = $(useVModel(props, 'token', emit))
-let isModalOpen = $ref(false)
+const model = useVModel(props, 'token', emit)
+const isModalOpen = ref(false)
 
 function onSelect(token: Address) {
-  model = token
-  isModalOpen = false
+  model.value = token
+  isModalOpen.value = false
+}
+
+function isSmartContract(addr: Address) {
+  return kaikasStore.getKaikasAnyway().cfg.isSmartContract(addr)
+}
+
+function getToken(addr: Address) {
+  return kaikasStore.getKaikasAnyway().tokens.getToken(addr)
+}
+
+function lookupToken(addr: Address) {
+  return tokensStore.findTokenData(addr)
 }
 </script>
 
@@ -27,7 +40,10 @@ function onSelect(token: Address) {
   <TokenSelectModal
     v-model:open="isModalOpen"
     :selected="token"
+    :tokens="tokensStore.tokensWithBalance"
+    v-bind="{ isSmartContract, getToken, lookupToken }"
     @select="onSelect"
+    @import-token="tokensStore.importToken($event)"
   />
 
   <KlayButton

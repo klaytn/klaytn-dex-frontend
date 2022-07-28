@@ -1,22 +1,23 @@
 <script lang="ts" setup>
 import { Status, SModal } from '@soramitsu-ui/ui'
 import { isAddress, Token, Address } from '@/core/kaikas'
-import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
+import { TokenWithOptionBalance } from '@/store/tokens'
 
 const props = defineProps<{
   open: boolean
   selected: Address | null
+  tokens: TokenWithOptionBalance[]
+  isSmartContract: (addr: Address) => Promise<boolean>
+  getToken: (addr: Address) => Promise<Token>
+  lookupToken: (addr: Address) => null | Token
 }>()
 
-const emit = defineEmits(['select', 'update:open'])
+const emit = defineEmits(['select', 'update:open', 'import-token'])
 
 const openModel = useVModel(props, 'open', emit)
 
-const tokensStore = useTokensStore()
-const kaikasStore = useKaikasStore()
-
-const { tokensWithBalance: tokens } = $(storeToRefs(tokensStore))
+const tokens = $toRef(props, 'tokens')
 
 let search = $ref('')
 
@@ -35,7 +36,7 @@ const recentTokens = $computed(() => tokensFilteredBySearch.slice(0, 6))
 let searchAsAddress = $computed<null | Address>(() => (isAddress(search) ? search : null))
 
 const searchAsAddressSmartcontractCheckScope = useParamScope($$(searchAsAddress), (addr) => {
-  const { state } = useTask(() => kaikasStore.getKaikasAnyway().cfg.isSmartContract(addr), { immediate: true })
+  const { state } = useTask(() => props.isSmartContract(addr), { immediate: true })
   usePromiseLog(state, 'smartcontract-check-' + addr)
   return state
 })
@@ -44,11 +45,11 @@ const importLookupScope = useParamScope(
   computed(() => {
     const addr = searchAsAddress
     const addrSmartcontractCheckState = searchAsAddressSmartcontractCheckScope.value?.expose
-    if (addr && addrSmartcontractCheckState?.fulfilled?.value && !tokensStore.findTokenData(addr)) return addr
+    if (addr && addrSmartcontractCheckState?.fulfilled?.value && !props.lookupToken(addr)) return addr
     return null
   }),
   (addr) => {
-    const { state } = useTask(() => kaikasStore.getKaikasAnyway().tokens.getToken(addr), { immediate: true })
+    const { state } = useTask(() => props.getToken(addr), { immediate: true })
     usePromiseLog(state, 'import-lookup')
     return state
   },
@@ -79,7 +80,7 @@ function selectToken(token: Address) {
 
 function doImport() {
   invariant(tokenToImport)
-  tokensStore.importToken(tokenToImport)
+  emit('import-token', tokenToImport)
   resetSearch()
   $notify({ status: Status.Success, description: 'Token added' })
 }
