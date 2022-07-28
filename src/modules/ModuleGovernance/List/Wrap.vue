@@ -1,4 +1,5 @@
 <script setup lang="ts" name="ModuleGovernanceListWrap">
+import { KlayIconSearch } from '~klay-icons'
 import { Sorting } from '../types'
 
 const { t } = useI18n()
@@ -38,7 +39,7 @@ const sortingOptions = computed(() => {
         label="Search"
       >
         <template #append>
-          <IconKlaySearch v-bem="'search-icon'" />
+          <KlayIconSearch v-bem="'search-icon'" />
         </template>
       </KlayTextField>
     </div>
