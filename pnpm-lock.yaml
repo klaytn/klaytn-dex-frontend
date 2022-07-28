@@ -39,7 +39,10 @@ specifiers:
   eslint-config-alloy: ^4.6.0
   eslint-plugin-cypress: ^2.12.1
   eslint-plugin-vue: ^9.1.1
+<<<<<<< HEAD
   fast-glob: ^3.2.11
+=======
+>>>>>>> 49d519e70d2ab5e1aa8b192d5cd4ea1af5d1ee2b
   github-markdown-css: ^5.1.0
   graphql: ^16.5.0
   graphql-tag: ^2.12.6
