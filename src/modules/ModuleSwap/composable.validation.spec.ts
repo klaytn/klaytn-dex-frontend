@@ -12,7 +12,7 @@ describe('swap validation', () => {
     const validation = useSwapValidation({
       tokenA: shallowRef({ ...tokenA, balance: new Wei(0), input: new Wei('141234234000000') }),
       tokenB: shallowRef(null),
-      pairAddr: ref('unknown'),
+      pairAddr: ref(null),
     })
 
     expect(validation.value).toMatchInlineSnapshot(`
@@ -29,7 +29,7 @@ describe('swap validation', () => {
     const validation = useSwapValidation({
       tokenA: shallowRef({ ...tokenA, balance: new Wei(0), input: new Wei('0') }),
       tokenB: shallowRef(tokenB),
-      pairAddr: ref('unknown'),
+      pairAddr: ref(null),
     })
 
     expect(validation.value).toMatchInlineSnapshot(`
@@ -83,7 +83,7 @@ describe('swap validation', () => {
     const validation = useSwapValidation({
       tokenA: shallowRef({ ...tokenA, balance: BALANCE, input: INPUT }),
       tokenB: shallowRef(tokenB),
-      pairAddr: ref('not-empty'),
+      pairAddr: ref('exist'),
     })
 
     expect(validation.value).toMatchInlineSnapshot(`

@@ -1,9 +1,16 @@
 <script setup lang="ts">
+import { Wei } from '@/core/kaikas'
+import { NATIVE_TOKEN_DECIMALS } from '@/core/kaikas/const'
+import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
-import cssRows from '../rows.module.scss'
+import { Ref } from 'vue'
+import cssRows from '../../ModuleTradeShared/rows.module.scss'
 
 const store = useLiquidityRmStore()
-const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidityRaw, supplyGas } = storeToRefs(store)
+const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidityRaw, fee } = storeToRefs(store)
+
+const formattedFee = useFormattedToken(fee as Ref<null | Wei>, { decimals: NATIVE_TOKEN_DECIMALS }, 7)
+const formattedLiquidity = computed(() => new BigNumber(liquidityRaw.value).toFixed(7))
 </script>
 
 <template>
@@ -13,8 +20,7 @@ const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidityRaw,
     <div class="space-y-4 mt-6">
       <div :class="cssRows.rowSm">
         <span>LP {{ symbols?.tokenA }}-{{ symbols?.tokenB }} </span>
-        <!-- TODO format value -->
-        <span>{{ liquidityRaw }}</span>
+        <span>{{ formattedLiquidity }}</span>
       </div>
 
       <div :class="cssRows.rowSm">
@@ -30,8 +36,7 @@ const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidityRaw,
 
       <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
         <span>Transaction Fee</span>
-        <!-- TODO format -->
-        <span> {{ supplyGas }}</span>
+        <span>{{ formattedFee }} KLAY</span>
       </div>
     </div>
 

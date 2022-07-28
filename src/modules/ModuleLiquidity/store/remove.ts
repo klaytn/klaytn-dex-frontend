@@ -1,17 +1,111 @@
 import { Address, Token, Wei, WeiAsToken } from '@/core/kaikas'
 import { LP_TOKEN_DECIMALS as LP_TOKEN_DECIMALS_VALUE } from '@/core/kaikas/const'
-import { usePairAddress, usePairReserves } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
+import {
+  useNullablePairBalanceComponents,
+  usePairAddress,
+  usePairBalance,
+  usePairReserves,
+} from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { buildPair, TokensPair, TOKEN_TYPES } from '@/utils/pair'
-import { useDanglingScope, useScope, useTask, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
-import BigNumber from 'bignumber.js'
-import BN from 'bn.js'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
-import { roundTo } from 'round-to'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
+import { JSON_SERIALIZER } from '@/utils/common'
+import { Serializer } from '@vueuse/core'
 
 const LP_TOKENS_DECIMALS = Object.freeze({ decimals: LP_TOKEN_DECIMALS_VALUE })
+
+function usePrepareSupply(props: {
+  tokens: Ref<null | TokensPair<Address>>
+  pairAddress: Ref<null | Address>
+  liquidity: Ref<Wei | null>
+  amounts: Ref<null | TokensPair<Wei>>
+}) {
+  const kaikasStore = useKaikasStore()
+  const tokensStore = useTokensStore()
+
+  const [active, setActive] = useToggle(false)
+
+  const scopeKey = computed(() => {
+    const tokens = props.tokens.value
+    const pair = props.pairAddress.value
+    const liquidity = props.liquidity.value
+    const amounts = props.amounts.value
+    if (!(tokens && pair && liquidity && amounts)) return null
+
+    return {
+      key:
+        // `pair` also represents both `tokenA` + `tokenB`
+        // `liquidity` also **should** strictly represent `amounts`
+        `${pair}-${liquidity}`,
+      payload: { tokens, pair, liquidity, amounts },
+    }
+  })
+  watch(scopeKey, () => setActive(false))
+
+  const isReadyToPrepareSupply = computed(() => !!scopeKey.value)
+
+  const scope = useParamScope(
+    computed(() => active.value && scopeKey.value),
+    ({ tokens, pair, liquidity: lpTokenValue, amounts }) => {
+      const { state: prepareState, run: prepare } = useTask(
+        () =>
+          kaikasStore.getKaikasAnyway().liquidity.prepareRmLiquidity({
+            tokens,
+            pair,
+            lpTokenValue,
+            // we want to burn it all for sure
+            minAmounts: amounts,
+          }),
+        { immediate: true },
+      )
+
+      usePromiseLog(prepareState, 'liquidity-remove-prepare-supply')
+      useNotifyOnError(prepareState, 'Supply preparation failed')
+
+      const { state: supplyState, run: supply } = useTask(async () => {
+        const { send } = prepareState.fulfilled?.value ?? {}
+        invariant(send)
+        return send()
+      })
+
+      usePromiseLog(supplyState, 'liquidity-remove-supply')
+      useNotifyOnError(supplyState, 'Supply failed')
+      wheneverFulfilled(supplyState, () => {
+        tokensStore.touchUserBalance()
+      })
+
+      const fee = computed(() => prepareState.fulfilled?.value?.fee)
+
+      return readonly({
+        prepare,
+        supply,
+        fee,
+        prepareState: promiseStateToFlags(prepareState),
+        supplyState: promiseStateToFlags(supplyState),
+      })
+    },
+  )
+
+  return {
+    isReadyToPrepareSupply,
+    prepareState: computed(() => scope.value?.expose.prepareState ?? null),
+    fee: computed(() => scope.value?.expose.fee ?? null),
+    supplyState: computed(() => scope.value?.expose.supplyState ?? null),
+    supply: () => scope.value?.expose.supply(),
+    prepare: () => {
+      if (scope.value) {
+        scope.value.expose.prepare()
+      } else {
+        setActive(true)
+      }
+    },
+    clear: () => {
+      setActive(false)
+    },
+  }
+}
 
 function useRemoveAmounts(
   tokens: Ref<null | TokensPair<Address>>,
@@ -20,11 +114,13 @@ function useRemoveAmounts(
 ): {
   pending: Ref<boolean>
   amounts: Ref<null | TokensPair<Wei>>
+  touch: () => void
 } {
   const kaikasStore = useKaikasStore()
 
-  const taskScope = useScope(
+  const taskScope = useParamScope(
     computed(() => {
+      if (!kaikasStore.isConnected) return null
       if (!tokens.value) return null
       const pairAddr = pair.value
       const lpTokenValue = liquidity.value
@@ -32,49 +128,40 @@ function useRemoveAmounts(
 
       const key = `${pairAddr}-${lpTokenValue}`
 
-      return key
-    }),
-    () => {
-      async function computeAmounts() {
-        const kaikas = kaikasStore.getKaikasAnyway()
-        invariant(tokens.value)
-        const { tokenA, tokenB } = tokens.value
-        const pairAddr = pair.value
-        const lpTokenValue = liquidity.value
-        invariant(pairAddr && lpTokenValue)
-
-        const { amounts } = await kaikas.liquidity.computeRmLiquidityAmounts({
-          tokens: { tokenA, tokenB },
-          pair: pairAddr,
-          lpTokenValue,
-        })
-        return amounts
+      return {
+        key,
+        payload: { pair: pairAddr, lpTokenValue, tokens: tokens.value, kaikas: kaikasStore.getKaikasAnyway() },
       }
+    }),
+    ({ pair, lpTokenValue, tokens, kaikas }) => {
+      const { state, run } = useTask(
+        async () => {
+          const { amounts } = await kaikas.liquidity.computeRmLiquidityAmounts({
+            tokens,
+            pair,
+            lpTokenValue,
+          })
+          return amounts
+        },
+        { immediate: true },
+      )
 
-      const task = useTask(computeAmounts)
-      useTaskLog(task, 'compute-remove-liquidity-amounts')
+      usePromiseLog(state, 'compute-remove-liquidity-amounts')
 
-      task.run()
-
-      const pending = computed(() => task.state.kind === 'pending')
-      const amounts = computed(() => (task.state.kind === 'ok' ? task.state.data : null))
-
-      return reactive({ pending, amounts })
+      return { state: flattenState(state), run }
     },
   )
 
   return {
-    pending: computed(() => taskScope.value?.setup.pending ?? false),
-    amounts: computed(() => taskScope.value?.setup.amounts ?? null),
+    pending: computed(() => taskScope.value?.expose.state.pending ?? false),
+    amounts: computed(() => taskScope.value?.expose.state.fulfilled ?? null),
+    touch: () => taskScope.value?.expose.run(),
   }
 }
 
 export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   const selected = useLocalStorage<null | TokensPair<Address>>('liquidity-remove-tokens', null, {
-    serializer: {
-      read: (raw) => JSON.parse(raw),
-      write: (parsed) => JSON.stringify(parsed),
-    },
+    serializer: JSON_SERIALIZER as Serializer<any>,
   })
 
   const tokensStore = useTokensStore()
@@ -97,19 +184,23 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     return buildPair((type) => tokens[type].symbol)
   })
 
-  const pair = usePairAddress(reactive(buildPair((type) => selected.value?.[type])))
-  const isPairPending = toRef(pair, 'pending')
-  const isPairLoaded = computed(() => !!pair.pair)
-  const pairTotalSupply = computed(() => pair.pair?.totalSupply)
-  const pairUserBalance = computed(() => pair.pair?.userBalance)
-  const pairReserves = usePairReserves(selected)
+  const { pair: pairResult, pending: isPairPending } = usePairAddress(selected)
+  const existingPair = computed(() => (pairResult.value?.kind === 'exist' ? pairResult.value : null))
+  const isPairLoaded = computed(() => !!existingPair.value)
 
-  const poolShare = toRef(pair, 'poolShare')
-  const formattedPoolShare = computed(() => {
-    const value = poolShare.value
-    if (!value) return null
-    return `${roundTo(value * 100, 7)}%`
-  })
+  const {
+    result: pairBalanceResult,
+    pending: isPairBalancePending,
+    touch: touchPairBalance,
+  } = usePairBalance(selected, isPairLoaded)
+  const {
+    totalSupply: pairTotalSupply,
+    userBalance: pairUserBalance,
+    poolShare: pairPoolShare,
+  } = toRefs(useNullablePairBalanceComponents(pairBalanceResult))
+  const formattedPoolShare = useFormattedPercent(pairPoolShare, 7)
+
+  const { result: pairReserves, pending: isReservesPending, touch: touchPairReserves } = usePairReserves(selected)
 
   const liquidityRaw = ref('' as WeiAsToken)
   const liquidity = computed<Wei | null>({
@@ -143,9 +234,13 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     },
   })
 
-  const { amounts, pending: isAmountsPending } = useRemoveAmounts(
+  const {
+    amounts,
+    pending: isAmountsPending,
+    touch: touchAmounts,
+  } = useRemoveAmounts(
     selected,
-    computed(() => pair.pair?.addr ?? null),
+    computed(() => existingPair.value?.addr ?? null),
     liquidity,
   )
 
@@ -163,76 +258,29 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     liquidityRaw.value = '' as WeiAsToken
   }
 
-  const isReadyToPrepareSupply = computed(() => {
-    return !!(selected.value && liquidity.value && pair.pair?.addr && amounts.value)
+  const {
+    fee,
+    isReadyToPrepareSupply,
+    supplyState,
+    prepareState: prepareSupplyState,
+    supply,
+    prepare: prepareSupply,
+    clear: clearSupply,
+  } = usePrepareSupply({
+    tokens: selected,
+    pairAddress: computed(() => existingPair.value?.addr ?? null),
+    liquidity,
+    amounts,
   })
-
-  const prepareSupplyScope = useDanglingScope<{
-    pending: boolean
-    ready: null | {
-      gas: Wei
-      send: () => Promise<void>
-    }
-  }>()
-
-  const kaikasStore = useKaikasStore()
-  function prepareSupply() {
-    prepareSupplyScope.setup(() => {
-      const task = useTask(() => {
-        invariant(isReadyToPrepareSupply.value)
-        const pairAddr = pair.pair?.addr
-        const lpTokenValue = liquidity.value!
-        const amountsValue = amounts.value!
-
-        return kaikasStore.getKaikasAnyway().liquidity.prepareRmLiquidity({
-          tokens: selected.value!,
-          pair: pairAddr!,
-          lpTokenValue,
-          amounts: amountsValue,
-        })
-      })
-      task.run()
-      useNotifyOnError(task, 'Supply preparation failed')
-
-      const pending = computed(() => task.state.kind === 'pending')
-      const ready = computed(() => (task.state.kind === 'ok' ? task.state.data : null))
-
-      return reactive({ pending, ready })
-    })
-  }
-
-  const isPrepareSupplyPending = computed(() => prepareSupplyScope.scope.value?.setup.pending ?? false)
-  const isSupplyReady = computed(() => !!prepareSupplyScope.scope.value?.setup.ready)
-  const supplyGas = computed(() => prepareSupplyScope.scope.value?.setup.ready?.gas ?? null)
-
-  const supplyScope = useScope(isSupplyReady, () => {
-    const { send } = prepareSupplyScope.scope.value!.setup.ready!
-
-    const task = useTask(send)
-
-    const pending = computed(() => task.state.kind === 'pending')
-    const ok = computed(() => task.state.kind === 'ok')
-    const err = computed(() => task.state.kind === 'err')
-
-    wheneverTaskSucceeds(task, () => {
-      pair.touch()
-    })
-
-    const { run } = task
-
-    return reactive({ pending, ok, err, run })
-  })
-
-  const isSupplyPending = computed(() => supplyScope.value?.setup.pending ?? false)
-  const isSupplyOk = computed(() => supplyScope.value?.setup.ok ?? false)
-  const isSupplyErr = computed(() => supplyScope.value?.setup.err ?? false)
-
-  function supply() {
-    supplyScope.value?.setup.run()
-  }
 
   function closeSupply() {
-    prepareSupplyScope.dispose()
+    if (supplyState.value?.fulfilled) {
+      touchAmounts()
+      touchPairBalance()
+      touchPairReserves()
+    }
+
+    clearSupply()
   }
 
   return {
@@ -242,11 +290,13 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
     pairUserBalance,
     pairTotalSupply,
+    pairPoolShare,
+    formattedPoolShare,
     pairReserves,
+    isReservesPending,
+    isPairBalancePending,
     isPairPending,
     isPairLoaded,
-    poolShare,
-    formattedPoolShare,
 
     liquidity,
     liquidityRaw,
@@ -256,12 +306,9 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     isAmountsPending,
 
     isReadyToPrepareSupply,
-    isPrepareSupplyPending,
-    supplyGas,
-    isSupplyReady,
-    isSupplyPending,
-    isSupplyErr,
-    isSupplyOk,
+    fee,
+    prepareSupplyState,
+    supplyState,
 
     setTokens,
     prepareSupply,

@@ -2,7 +2,7 @@ import Config from './Config'
 import type { Address, Deadline } from './types'
 import { MAGIC_GAS_PRICE, NATIVE_TOKEN } from './const'
 import { buildPair, buildPairAsync, TokensPair } from '@/utils/pair'
-import { deadlineFiveMinutesFromNow, isNativeToken } from './utils'
+import { computeTransactionFee, deadlineFiveMinutesFromNow, isNativeToken } from './utils'
 import { DexPair } from '@/types/typechain/swap'
 import { PAIR } from './smartcontracts/abi'
 import Tokens from './Tokens'
@@ -32,14 +32,11 @@ export interface PrepareRemoveLiquidityProps extends ComputeRemoveLiquidityAmoun
   /**
    * Should be the same amounts that were computed by {@link Liquidity['computeRmLiquidityAmounts']}
    */
-  amounts: TokensPair<Wei>
+  minAmounts: TokensPair<Wei>
 }
 
 export interface PrepareTransactionResult {
-  /**
-   * i.e. transaction fee
-   */
-  gas: Wei
+  fee: Wei
   send: () => Promise<void>
 }
 
@@ -87,6 +84,7 @@ export default class Liquidity {
       const { addr, desired } = props.tokens[type]
       await this.cfg.approveAmount(addr, desired)
     }
+    const gasPrice = MAGIC_GAS_PRICE
 
     const detectedEth = detectEth(props.tokens)
     if (detectedEth) {
@@ -104,23 +102,21 @@ export default class Liquidity {
         props.deadline,
       )
 
-      const lpTokenGas = new Wei(
-        await method.estimateGas({
-          from: this.cfg.addrs.self,
-          gasPrice: MAGIC_GAS_PRICE,
-          value: desiredEth.asStr,
-        }),
-      )
+      const gas = await method.estimateGas({
+        from: this.cfg.addrs.self,
+        gasPrice: gasPrice.asStr,
+        value: desiredEth.asBN,
+      })
       const send = async () => {
         await method.send({
           from: this.addr,
-          gas: lpTokenGas.asStr,
-          gasPrice: MAGIC_GAS_PRICE,
-          value: desiredEth.asStr,
+          gas,
+          gasPrice: gasPrice.asStr,
+          value: desiredEth.asBN,
         })
       }
 
-      return { gas: lpTokenGas, send }
+      return { fee: computeTransactionFee(gasPrice, gas), send }
     } else {
       const { tokenA, tokenB } = props.tokens
 
@@ -135,16 +131,16 @@ export default class Liquidity {
         props.deadline,
       )
 
-      const lpTokenGas = new Wei(await method.estimateGas())
+      const gas = await method.estimateGas()
       const send = async () => {
         await method.send({
           from: this.addr,
-          gas: lpTokenGas.asStr,
-          gasPrice: MAGIC_GAS_PRICE,
+          gas,
+          gasPrice: gasPrice.asStr,
         })
       }
 
-      return { gas: lpTokenGas, send }
+      return { fee: computeTransactionFee(gasPrice, gas), send }
     }
   }
 
@@ -154,20 +150,20 @@ export default class Liquidity {
   public async prepareRmLiquidity(props: PrepareRemoveLiquidityProps): Promise<PrepareTransactionResult> {
     await this.cfg.approveAmount(props.pair, props.lpTokenValue)
 
-    const { amounts } = props
+    const { minAmounts } = props
 
     const detectedEth = detectEth(
       buildPair((type) => ({
         addr: props.tokens[type],
-        computedAmount: amounts[type],
+        minAmount: minAmounts[type],
       })),
     )
     const method = detectedEth
       ? this.router.methods.removeLiquidityETH(
           detectedEth.token.addr,
           props.lpTokenValue.asStr,
-          detectedEth.token.computedAmount.asStr,
-          detectedEth.eth.computedAmount.asStr,
+          detectedEth.token.minAmount.asStr,
+          detectedEth.eth.minAmount.asStr,
           this.addr,
           deadlineFiveMinutesFromNow(),
         )
@@ -175,18 +171,19 @@ export default class Liquidity {
           props.tokens.tokenA,
           props.tokens.tokenB,
           props.lpTokenValue.asStr,
-          amounts.tokenA.asStr,
-          amounts.tokenB.asStr,
+          minAmounts.tokenA.asStr,
+          minAmounts.tokenB.asStr,
           this.addr,
           deadlineFiveMinutesFromNow(),
         )
 
-    const gas = new Wei(await method.estimateGas({ from: this.addr, gasPrice: MAGIC_GAS_PRICE }))
+    const gasPrice = MAGIC_GAS_PRICE
+    const gas = await method.estimateGas({ from: this.addr, gasPrice: gasPrice.asStr })
     const send = async () => {
-      await method.send({ from: this.addr, gas: gas.asStr, gasPrice: MAGIC_GAS_PRICE })
+      await method.send({ from: this.addr, gas, gasPrice: gasPrice.asStr })
     }
 
-    return { gas, send }
+    return { fee: computeTransactionFee(gasPrice, gas), send }
   }
 
   public async computeRmLiquidityAmounts(

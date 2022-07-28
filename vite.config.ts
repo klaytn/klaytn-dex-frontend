@@ -26,7 +26,7 @@ export default defineConfig({
     alias: {
       '@/': `${path.resolve(__dirname, 'src')}/`,
       web3: 'web3/dist/web3.min.js',
-      '@popperjs/core': '@popperjs/core/dist/esm/index.js',
+      '@popperjs/core': '@popperjs/core/lib/index',
     },
   },
 
@@ -77,7 +77,28 @@ export default defineConfig({
 
     // https://github.com/antfu/unplugin-auto-import
     AutoImport({
-      imports: ['vue', 'vue-router', 'vue-i18n', 'vue/macros', '@vueuse/head', '@vueuse/core'],
+      imports: [
+        'vue',
+        'vue-router',
+        'vue-i18n',
+        'vue/macros',
+        '@vueuse/head',
+        '@vueuse/core',
+        {
+          '@vue-kakuyaku/core': [
+            'useParamScope',
+            'useDeferredScope',
+            'useErrorRetry',
+            'usePromise',
+            'wheneverDone',
+            'wheneverFulfilled',
+            'wheneverRejected',
+            'useStaleState',
+            'flattenState',
+            'useTask',
+          ],
+        },
+      ],
       dts: 'src/auto-imports.d.ts',
       dirs: [
         'src/composables',

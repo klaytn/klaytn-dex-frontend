@@ -1,6 +1,6 @@
 import { Wei, Token } from '@/core/kaikas'
 import { Ref } from 'vue'
-import { PairAddressResult } from '../ModuleTradeShared/composable.pair-by-tokens'
+import { PairAddressResultSimplified } from '../ModuleTradeShared/composable.pair-by-tokens'
 
 export function useSwapValidation({
   tokenA,
@@ -9,14 +9,14 @@ export function useSwapValidation({
 }: {
   tokenA: Ref<(Token & { balance: Wei; input: Wei }) | null>
   tokenB: Ref<Token | null>
-  pairAddr: Ref<PairAddressResult>
+  pairAddr: Ref<PairAddressResultSimplified | null>
 }): Ref<{ kind: 'ok' } | { kind: 'err'; message: string }> {
   const err = (message: string) => ({ kind: 'err' as const, message })
 
   return computed(() => {
     if (!tokenA.value || !tokenB.value) return err('Select Token')
 
-    if (pairAddr.value === 'unknown') {
+    if (!pairAddr.value) {
       return err('Route is not computed yet')
     }
 

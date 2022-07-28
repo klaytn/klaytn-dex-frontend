@@ -2,7 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { TOKEN_TYPES } from '@/utils/pair'
 import { roundTo } from 'round-to'
-import IcRoundPlus from '~icons/ic/round-plus'
+import IconIcRoundPlus from '~icons/ic/round-plus'
 
 const { selectedTokensData: tokens, amounts } = $(storeToRefs(useLiquidityRmStore()))
 
@@ -45,7 +45,7 @@ const rows = computed(() => {
           v-if="i === 0"
           class="plus"
         >
-          <IcRoundPlus />
+          <IconIcRoundPlus />
         </div>
       </template>
     </div>

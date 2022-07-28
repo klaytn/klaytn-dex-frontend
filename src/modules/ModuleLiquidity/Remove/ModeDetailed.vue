@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
-import cssRows from '../rows.module.scss'
+import cssRows from '../../ModuleTradeShared/rows.module.scss'
 import { KlayIconArrowDown, KlayIconPlus } from '~klay-icons'
 
 const store = useLiquidityRmStore()
@@ -35,7 +35,7 @@ const {
     >
       <ModuleLiquidityRemoveModeDetailedAmountReadonly
         :token="tokens[token]"
-        :amount="amounts?.[token]?.toString()"
+        :amount="amounts?.[token]"
         :is-loading="isAmountsPending"
       />
 

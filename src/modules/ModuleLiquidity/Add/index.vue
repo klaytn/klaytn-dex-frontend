@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-const modal = ref(false)
+const store = useLiquidityAddStore()
+
+onUnmounted(() => store.resetInput())
 </script>
 
 <template>
-  <ModuleLiquidityAddConfirmModal v-model="modal" />
+  <ModuleLiquidityAddConfirmModal />
 
   <div class="space-y-4 px-4">
     <ModuleLiquidityAddExchangeRate />
@@ -12,41 +14,13 @@ const modal = ref(false)
       class="w-full"
       size="lg"
       type="primary"
-      @click="modal = true"
+      :disabled="!store.isValid"
+      :loading="store.supplyScope?.prepareState.pending"
+      @click="store.prepareSupply()"
     >
       Supply
     </KlayButton>
 
     <ModuleLiquidityAddDetails />
-
-    <!-- TODO -->
-    <!-- <Details v-if="false && selectedTokens.tokenA?.value && selectedTokens.tokenB?.value">
-      <template #title>
-        Prices and pool share
-      </template>
-
-      <DetailsRow>
-        <span>
-          {{ selectedTokens.tokenA.symbol }} per
-          {{ selectedTokens.tokenB.symbol }}
-        </span>
-        <span>
-          {{ formatRate(selectedTokens.tokenA.value, selectedTokens.tokenB.value) }}
-        </span>
-      </DetailsRow>
-      <DetailsRow>
-        <span>
-          {{ selectedTokens.tokenB.symbol }} per
-          {{ selectedTokens.tokenA.symbol }}
-        </span>
-        <span>
-          {{ formatRate(selectedTokens.tokenB.value, selectedTokens.tokenA.value) }}
-        </span>
-      </DetailsRow>
-      <DetailsRow v-if="selectedTokens.pairBalance && selectedTokens.userBalance">
-        <span>Share of pool</span>
-        <span>{{ formatPercent(selectedTokens.pairBalance, selectedTokens.userBalance) }}</span>
-      </DetailsRow>
-    </Details> -->
   </div>
 </template>

@@ -3,7 +3,7 @@ import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 import { LP_TOKEN_DECIMALS } from '@/core/kaikas/const'
 import { roundTo } from 'round-to'
-import cssRows from '../rows.module.scss'
+import cssRows from '../../ModuleTradeShared/rows.module.scss'
 
 const store = useLiquidityRmStore()
 const {

@@ -2,46 +2,32 @@
 import { SModal } from '@soramitsu-ui/ui'
 import { storeToRefs } from 'pinia'
 
-const props = defineProps<{
-  modelValue: boolean
-}>()
-const emit = defineEmits(['update:modelValue'])
-
-const show = useVModel(props, 'modelValue', emit)
-
-const liquidityStore = useLiquidityAddStore()
-const { isAddLiquidityPending: isInProgress, isSubmitted } = storeToRefs(liquidityStore)
+const store = useLiquidityAddStore()
+const { supplyScope } = storeToRefs(store)
 
 function supply() {
-  liquidityStore.addLiquidity()
+  supplyScope.value?.supply()
 }
+
+const show = computed({
+  get: () => supplyScope.value?.prepareState.fulfilled ?? false,
+  set: (flag) => {
+    if (!flag) {
+      store.clearSupply()
+    }
+  },
+})
 </script>
 
 <template>
-  <SModal
-    v-model:show="show"
-    @after-close="liquidityStore.clearSubmittion()"
-  >
+  <SModal v-model:show="show">
     <KlayModalCard class="w-[344px]">
       <template #title>
-        Confirm Supply <i>[wip]</i>
+        Confirm Supply
       </template>
 
-      <div v-if="isSubmitted">
-        <div class="text-xl text-center font-bold p-6 mb-16">
-          Transaction Submitted
-        </div>
-
-        <KlayButton
-          type="primary"
-          size="lg"
-          class="w-full"
-          @click="show = false"
-        >
-          Close
-        </KlayButton>
-      </div>
-
+      <KlayModalTemplateSubmitted v-if="supplyScope?.supplyState.fulfilled" />
+      <KlayModalTemplateError v-else-if="supplyScope?.supplyState.rejected" />
       <div
         v-else
         class="space-y-4"
@@ -52,7 +38,7 @@ function supply() {
           type="button"
           size="lg"
           class="w-full"
-          :loading="isInProgress"
+          :loading="supplyScope?.supplyState.pending"
           @click="supply()"
         >
           Confirm Supply

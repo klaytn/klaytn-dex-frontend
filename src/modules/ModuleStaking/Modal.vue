@@ -5,7 +5,7 @@ import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
 import BigNumber from 'bignumber.js'
 import { STAKING } from '@/core/kaikas/smartcontracts/abi'
-import { useScope, useTask } from '@vue-kakuyaku/core'
+import { or } from '@vueuse/core'
 import { Wei, WeiAsToken } from '@/core/kaikas'
 
 const kaikasStore = useKaikasStore()
@@ -29,26 +29,27 @@ const model = useVModel(props, 'modelValue', emit, { passive: true })
 
 const PoolContract = kaikas.cfg.createContract<StakingInitializable>(pool.value.id, STAKING)
 
-const value = ref('0' as WeiAsToken)
-const loading = ref(false)
+const value = ref<WeiAsToken>('0' as WeiAsToken)
 
 watch(model, () => {
   value.value = '0' as WeiAsToken
 })
 
-const balanceScope = useScope(model, () => {
-  const task = useTask(async () => {
-    const token = pool.value.stakeToken
-    const balance = await kaikas.tokens.getTokenBalanceOfUser(token.id)
-    return new BigNumber(balance.toToken(token))
-  })
-  useTaskLog(task, 'get-balance')
-  task.run()
-  return task
+const balanceScope = useParamScope(model, () => {
+  const { state } = useTask(
+    async () => {
+      const token = pool.value.stakeToken
+      const balance = await kaikas.tokens.getTokenBalanceOfUser(token.id)
+      return new BigNumber(balance.toToken(token))
+    },
+    { immediate: true },
+  )
+  usePromiseLog(state, 'get-balance')
+
+  return state
 })
 const balance = computed(() => {
-  const state = balanceScope.value?.setup.state
-  return state?.kind === 'ok' ? state.data : null
+  return balanceScope.value?.expose?.fulfilled?.value ?? null
 })
 
 const formattedStaked = computed(() => {
@@ -90,67 +91,70 @@ function setPercent(percent: number) {
   else value.value = `${pool.value.staked.multipliedBy(percent * 0.01)}` as WeiAsToken
 }
 
-async function stake() {
-  try {
-    loading.value = true
-    const amount = value.value
-    const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
-    const deposit = PoolContract.methods.deposit(
-      Wei.fromToken(
-        // FIXME stake token or reward token?
-        pool.value.stakeToken,
-        amount,
-      ).asBN,
-    )
-    const estimateGas = await deposit.estimateGas({
-      from: kaikas.selfAddress,
-      gasPrice,
-    })
-    const receipt = await deposit.send({
-      from: kaikas.selfAddress,
-      gas: estimateGas,
-      gasPrice,
-    })
-    if (receipt.status === false) throw new Error('Transaction error')
+const { state: stakeState, run: stake } = useTask(async () => {
+  const amount = value.value
+  const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
+  const deposit = PoolContract.methods.deposit(
+    Wei.fromToken(
+      // FIXME stake token or reward token?
+      pool.value.stakeToken,
+      amount,
+    ).asBN,
+  )
+  const estimateGas = await deposit.estimateGas({
+    from: kaikas.selfAddress,
+    gasPrice,
+  })
+  const receipt = await deposit.send({
+    from: kaikas.selfAddress,
+    gas: estimateGas,
+    gasPrice,
+  })
+  if (receipt.status === false) throw new Error('Transaction error')
 
+  return { amount }
+})
+usePromiseLog(stakeState, 'stake')
+wheneverDone(stakeState, (result) => {
+  if (result.fulfilled) {
+    const { amount } = result.fulfilled.value
     $notify({ status: Status.Success, description: `${amount} ${pool.value.stakeToken.symbol} tokens were staked` })
     emit('staked', amount)
-  } catch (e) {
-    console.error(e)
+  } else {
     $notify({ status: Status.Error, description: `Stake ${pool.value.stakeToken.symbol} tokens error` })
-    throw new Error('Error')
-  } finally {
-    loading.value = false
   }
-}
+})
 
-async function unstake() {
-  try {
-    loading.value = true
-    const amount = value.value
-    const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
-    const withdraw = PoolContract.methods.withdraw(Wei.fromToken(pool.value.stakeToken, amount).asBN)
-    const estimateGas = await withdraw.estimateGas({
-      from: kaikas.selfAddress,
-      gasPrice,
-    })
-    await withdraw.send({
-      from: kaikas.selfAddress,
-      gas: estimateGas,
-      gasPrice,
-    })
+const { state: unstakeState, run: unstake } = useTask(async () => {
+  const amount = value.value
+  const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
+  const withdraw = PoolContract.methods.withdraw(Wei.fromToken(pool.value.stakeToken, amount).asBN)
+  const estimateGas = await withdraw.estimateGas({
+    from: kaikas.selfAddress,
+    gasPrice,
+  })
+  await withdraw.send({
+    from: kaikas.selfAddress,
+    gas: estimateGas,
+    gasPrice,
+  })
+
+  return { amount }
+})
+usePromiseLog(unstakeState, 'stake')
+wheneverDone(unstakeState, (result) => {
+  if (result.fulfilled) {
+    const { amount } = result.fulfilled.value
     $notify({ status: Status.Success, description: `${amount} ${pool.value.stakeToken.symbol} tokens were unstaked` })
     emit('unstaked', amount)
-  } catch (e) {
-    console.error(e)
+  } else {
     $notify({ status: Status.Error, description: `Unstake ${pool.value.stakeToken.symbol} tokens error` })
-    throw new Error('Error')
-  } finally {
-    loading.value = false
   }
-}
+})
 
-async function confirm() {
+const loading = or(toRef(stakeState, 'pending'), toRef(unstakeState, 'pending'))
+
+function confirm() {
   switch (operation.value) {
     case ModalOperation.Stake:
       stake()

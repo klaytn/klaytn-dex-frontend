@@ -1,6 +1,5 @@
 import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
 import { Address, Kaikas, Token, Wei } from '@/core/kaikas'
-import { useErrorRetry, useScope, useStaleIfErrorState, useTask } from '@vue-kakuyaku/core'
 import { WHITELIST_TOKENS } from '@/core/kaikas/const'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -49,22 +48,24 @@ function useImportedTokens() {
 
   const tokens = useLocalStorage<Address[]>('klaytn-dex-imported-tokens', [])
 
-  const fetchScope = useScope(isConnected, () => {
-    const task = useTask(async () => {
-      const kaikas = kaikasStore.getKaikasAnyway()
-      return loadTokens(kaikas, tokens.value)
-    })
+  const fetchScope = useParamScope(isConnected, () => {
+    console.log('is connected?')
+    const { state, run } = useTask(
+      async () => {
+        const kaikas = kaikasStore.getKaikasAnyway()
+        return loadTokens(kaikas, tokens.value)
+      },
+      { immediate: true },
+    )
 
-    useTaskLog(task, 'imported-tokens')
-    useErrorRetry(task)
+    usePromiseLog(state, 'imported-tokens')
+    useErrorRetry(state, run)
 
-    task.run()
-
-    return useStaleIfErrorState(task)
+    return useStaleState(state)
   })
 
-  const isPending = computed(() => fetchScope.value?.setup.pending ?? false)
-  const result = computed(() => fetchScope.value?.setup.result?.some ?? null)
+  const isPending = computed(() => fetchScope.value?.expose.pending ?? false)
+  const result = computed(() => fetchScope.value?.expose.fulfilled?.value ?? null)
   const isLoaded = computed(() => !!result.value)
 
   const tokensFetched = computed<null | Token[]>(() => {
@@ -95,46 +96,45 @@ function useImportedTokens() {
 function useUserBalance(tokens: Ref<null | Address[]>) {
   const kaikasStore = useKaikasStore()
 
-  const fetchScope = useScope(
-    computed(() => !!tokens.value),
+  const fetchScope = useParamScope(
+    computed(() => !!tokens.value && kaikasStore.isConnected),
     () => {
-      const task = useTask<Map<Address, Wei>>(async () => {
-        const kaikas = kaikasStore.getKaikasAnyway()
-        invariant(tokens.value)
+      const { state, run } = useTask<Map<Address, Wei>>(
+        async () => {
+          const kaikas = kaikasStore.getKaikasAnyway()
+          invariant(tokens.value)
 
-        return loadBalances(kaikas, tokens.value)
-      })
-
-      useTaskLog(task, 'user-balance')
-      useErrorRetry(task)
-      watch(tokens, () => task.run())
-      whenever(
-        () => kaikasStore.isConnected,
-        () => task.run(),
+          return loadBalances(kaikas, tokens.value)
+        },
         { immediate: true },
       )
+
+      usePromiseLog(state, 'user-balance')
+      useErrorRetry(state, run)
+      watch(tokens, run)
+      whenever(() => kaikasStore.isConnected, run, { immediate: true })
 
       /**
        * Refetch balance
        */
       function touch() {
-        task.run()
+        run()
       }
 
-      return reactive({ ...toRefs(useStaleIfErrorState(task)), touch })
+      return reactive({ ...toRefs(useStaleState(state)), touch })
     },
   )
 
-  const isPending = computed<boolean>(() => fetchScope.value?.setup.pending ?? false)
+  const isPending = computed<boolean>(() => fetchScope.value?.expose.pending ?? false)
   const result = computed<null | Map<Address, Wei>>(() => {
-    const data = fetchScope.value?.setup.result?.some
+    const data = fetchScope.value?.expose.fulfilled?.value
     if (data) return new Map([...data].map(([addr, balance]) => [addr.toLowerCase() as Address, balance]))
     return null
   })
   const isLoaded = computed<boolean>(() => !!result.value)
 
   function touch() {
-    fetchScope.value?.setup.touch()
+    fetchScope.value?.expose.touch()
   }
 
   function lookup(addr: Address): Wei | null {

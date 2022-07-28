@@ -3,30 +3,30 @@ import { SModal } from '@soramitsu-ui/ui'
 import { storeToRefs } from 'pinia'
 
 const store = useLiquidityRmStore()
-const { isSupplyPending, isSupplyOk } = storeToRefs(store)
+const { supplyState, prepareSupplyState } = storeToRefs(store)
+
+const show = computed({
+  get: () => prepareSupplyState.value?.fulfilled,
+  set: (flag) => {
+    if (!flag) {
+      store.closeSupply()
+    }
+  },
+})
+
+function supply() {
+  store.supply()
+}
 </script>
 
 <template>
-  <SModal
-    :show="store.isSupplyReady"
-    @update:show="store.closeSupply()"
-  >
+  <SModal v-model:show="show">
     <KlayModalCard
       title="Remove LP Tokens"
       class="w-[420px]"
     >
-      <div
-        v-if="isSupplyOk"
-        class="p-8 flex flex-col items-center space-y-4"
-      >
-        <p class="text-xl">
-          Ok!
-        </p>
-
-        <KlayButton @click="store.closeSupply()">
-          Close
-        </KlayButton>
-      </div>
+      <KlayModalTemplateSubmitted v-if="supplyState?.fulfilled" />
+      <KlayModalTemplateError v-else-if="supplyState?.rejected" />
       <div
         v-else
         class="space-y-4"
@@ -35,11 +35,11 @@ const { isSupplyPending, isSupplyOk } = storeToRefs(store)
         <ModuleLiquidityRemoveConfirmModalDetails />
 
         <KlayButton
-          :loading="isSupplyPending"
+          :loading="supplyState?.pending"
           class="w-full"
           type="primary"
           size="lg"
-          @click="store.supply()"
+          @click="supply()"
         >
           Confirm Remove
         </KlayButton>
