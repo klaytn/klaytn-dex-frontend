@@ -3,6 +3,7 @@ import { Status, SModal } from '@soramitsu-ui/ui'
 import { isAddress, Token, Address } from '@/core/kaikas'
 import invariant from 'tiny-invariant'
 import { TokenWithOptionBalance } from '@/store/tokens'
+import escapeStringRegex from 'escape-string-regexp'
 
 const props = defineProps<{
   open: boolean
@@ -24,9 +25,10 @@ function isSelected(addr: Address): boolean {
 let search = $ref('')
 
 const tokensFilteredBySearch = $computed(() => {
-  const value = search
-  const valueUpper = value.toUpperCase()
-  return tokens?.filter((token) => token.symbol.includes(valueUpper) || token.address === value) ?? []
+  const regex = new RegExp(escapeStringRegex(search), 'i')
+  return (
+    tokens?.filter((token) => regex.test(token.symbol) || regex.test(token.name) || regex.test(token.address)) ?? []
+  )
 })
 
 const recentTokens = $computed(() => tokens.slice(0, 6))

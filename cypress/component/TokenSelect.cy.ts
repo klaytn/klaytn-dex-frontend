@@ -2,9 +2,12 @@ import TokenSelectModal from '@/components/TokenSelect/Modal.vue'
 import { Address, Token, Wei } from '@/core/kaikas'
 import { WHITELIST_TOKENS } from '@/core/kaikas/const'
 import { TokenWithOptionBalance } from '@/store/tokens'
-import { MaybeRef } from '@vueuse/core'
+import { MaybeRef, useCycleList } from '@vueuse/core'
 
 const testid = (id: string) => `[data-testid=${id}]`
+const TESTID_RECENT_TOKEN = testid('modal-recent-token')
+const TESTID_LIST_ITEM = testid('modal-list-item')
+const TESTID_SEARCH = testid('modal-search')
 
 describe('Token select modal', () => {
   function mountFactory(props?: { selected?: MaybeRef<Set<Address>> }) {
@@ -22,11 +25,11 @@ describe('Token select modal', () => {
             return tokens.find((x) => regex.test(x.address))
           }
 
-          function isSmartContract() {
+          async function isSmartContract() {
             return true
           }
 
-          function getToken(addr: Address): Promise<Token> {
+          async function getToken(addr: Address): Promise<Token> {
             throw new Error('unimpl')
           }
 
@@ -64,8 +67,8 @@ describe('Token select modal', () => {
 
     mountFactory({ selected: new Set([token.address]) })
 
-    cy.get(testid('modal-list-item')).contains(token.symbol).should('have.css', 'pointer-events', 'none')
-    cy.get(testid('modal-recent-token')).contains(token.symbol).should('have.css', 'pointer-events', 'none')
+    cy.get(TESTID_LIST_ITEM).contains(token.symbol).should('have.css', 'pointer-events', 'none')
+    cy.get(TESTID_RECENT_TOKEN).contains(token.symbol).should('have.css', 'pointer-events', 'none')
   })
 
   it('multiple selected tokens are disabled', () => {
@@ -74,18 +77,30 @@ describe('Token select modal', () => {
     mountFactory({ selected: new Set(tokens.map((x) => x.address)) })
 
     for (const token of tokens) {
-      cy.get(testid('modal-list-item')).contains(token.symbol).should('have.css', 'pointer-events', 'none')
-      cy.get(testid('modal-recent-token')).contains(token.symbol).should('have.css', 'pointer-events', 'none')
+      cy.get(TESTID_LIST_ITEM).contains(token.symbol).should('have.css', 'pointer-events', 'none')
+      cy.get(TESTID_RECENT_TOKEN).contains(token.symbol).should('have.css', 'pointer-events', 'none')
     }
   })
 
   it('search does not apply to "popular" tokens', () => {
     mountFactory()
 
-    cy.get(testid('modal-search')).type('i do not exist')
-
+    cy.get(TESTID_SEARCH).type('i do not exist')
     for (const token of WHITELIST_TOKENS.slice(0, 6)) {
-      cy.get(testid('modal-recent-token')).contains(token.symbol).should('exist')
+      cy.get(TESTID_RECENT_TOKEN).contains(token.symbol).should('exist')
     }
+  })
+
+  it('search works with token name, symbol & address', () => {
+    mountFactory()
+
+    cy.get(TESTID_SEARCH).type('saturn')
+    cy.get(TESTID_LIST_ITEM).contains('SAT').should('exist')
+
+    cy.get(TESTID_SEARCH).clear().type('JUP')
+    cy.get(TESTID_LIST_ITEM).contains('Jupiter').should('exist')
+
+    cy.get(TESTID_SEARCH).clear().type('0x246C989333Fa3C3247C7171F6bca68062172992C'.toLowerCase())
+    cy.get(TESTID_LIST_ITEM).contains('IO').should('exist')
   })
 })

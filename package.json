@@ -31,6 +31,7 @@
     "caver-js": "^1.8.2",
     "debounce": "^1.2.1",
     "debug": "^4.3.4",
+    "escape-string-regexp": "^5.0.0",
     "graphql": "^16.5.0",
     "graphql-tag": "^2.12.6",
     "lodash": "^4.17.21",
