@@ -26,6 +26,13 @@ const rawProposals = computed(() => {
   return ProposalsQuery.result.value?.proposals ?? null
 })
 
+const emptyText = computed(() => {
+  if (onlyActive.value || searchQuery.value !== '')
+    return 'There are no proposals matching the current filter'
+  else
+    return 'There are no proposals yet'
+})
+
 function setInitShowViewMore() {
   showViewMore.value = ProposalsQuery.result.value?.proposals.length === PAGE_SIZE
 }
@@ -109,10 +116,18 @@ function viewMore() {
     >
       <KlayLoader />
     </div>
+    <div
+      v-else-if="!proposals?.length"
+      v-bem="'empty'"
+    >
+      {{ emptyText }}
+    </div>
   </div>
 </template>
 
 <style lang="sass">
+@import '@/styles/vars.sass'
+
 $padding-bottom: 19px
 
 .module-governance-list
@@ -133,4 +148,11 @@ $padding-bottom: 19px
     align-items: center
     min-height: 82px + $padding-bottom
     margin-bottom: - $padding-bottom
+  &__empty
+    display: flex
+    justify-content: center
+    align-items: center
+    width: 100%
+    flex: 1
+    color: $gray3
 </style>
