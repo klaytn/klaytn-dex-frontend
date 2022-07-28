@@ -29,7 +29,7 @@ const tokensFilteredBySearch = $computed(() => {
   return tokens?.filter((token) => token.symbol.includes(valueUpper) || token.address === value) ?? []
 })
 
-const recentTokens = $computed(() => tokensFilteredBySearch.slice(0, 6))
+const recentTokens = $computed(() => tokens.slice(0, 6))
 
 /**
  * it is ref, thus it is possible to reset it immediately,
@@ -102,6 +102,7 @@ function doImport() {
             v-model="search"
             class="mx-[17px]"
             label="Search name or paste address"
+            data-testid="modal-search"
           />
 
           <div class="p-2 flex items-center flex-wrap">

@@ -78,4 +78,14 @@ describe('Token select modal', () => {
       cy.get(testid('modal-recent-token')).contains(token.symbol).should('have.css', 'pointer-events', 'none')
     }
   })
+
+  it('search does not apply to "popular" tokens', () => {
+    mountFactory()
+
+    cy.get(testid('modal-search')).type('i do not exist')
+
+    for (const token of WHITELIST_TOKENS.slice(0, 6)) {
+      cy.get(testid('modal-recent-token')).contains(token.symbol).should('exist')
+    }
+  })
 })
