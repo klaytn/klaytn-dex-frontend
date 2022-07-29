@@ -29,7 +29,9 @@ const votes = computed(() => {
 })
 
 function setInitShowViewMore() {
-  showViewMore.value = VotesQuery.result.value?.votes.length === PAGE_SIZE
+  const votesCount = (VotesQuery.result.value?.votes.length ?? 0)
+  if (votesCount > 0 && votesCount < PAGE_SIZE)
+    showViewMore.value = false
 }
 setInitShowViewMore()
 VotesQuery.onResult(() => {
@@ -50,6 +52,7 @@ function viewMore() {
     // Transform the previous result with new data
     updateQuery: (previousResult, { fetchMoreResult }) => {
       if (!fetchMoreResult) return previousResult
+      console.log(fetchMoreResult.votes.length === PAGE_SIZE)
       showViewMore.value = fetchMoreResult.votes.length === PAGE_SIZE
       return {
         votes: [...previousResult.votes, ...fetchMoreResult.votes],
