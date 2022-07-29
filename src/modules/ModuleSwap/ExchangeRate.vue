@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { KlayIconArrowDown } from '~klay-icons'
+import { nonNullSet } from '@/utils/common'
 
 const swapStore = useSwapStore()
 const { gettingAmountFor, inputRates } = $(storeToRefs(swapStore))
@@ -22,6 +23,8 @@ const models = reactive(
     }
   }),
 )
+
+const allSelectedTokens = computed(() => nonNullSet(Object.values(swapStore.addrs)))
 </script>
 
 <template>
@@ -37,6 +40,7 @@ const models = reactive(
           set-by-balance
           :is-loading="gettingAmountFor === type"
           :estimated="inputRates[type]?.type === 'estimated'"
+          :selected="allSelectedTokens"
         />
 
         <div
