@@ -16,6 +16,7 @@ import {
   useExchangeRateInput,
   useInertExchangeRateInput,
 } from '@/modules/ModuleTradeShared/composable.exchange-rate-input'
+import { RouteName } from '@/types'
 
 type NormalizedWeiInput = TokensPair<{ addr: Address; input: Wei }>
 
@@ -154,7 +155,10 @@ function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSup
 }
 
 export const useLiquidityAddStore = defineStore('liquidity-add', () => {
-  const selection = useExchangeRateInput({ localStorageKey: 'liquidity-add-selection' })
+  const route = useRoute()
+  const isActiveRoute = computed(() => route.name === RouteName.LiquidityAdd)
+
+  const selection = useExchangeRateInput({ localStorageKey: 'liquidity-add-selection', isActive: isActiveRoute })
   const selectionInput = useInertExchangeRateInput({ input: selection.input })
   const { rates: inputRates } = selectionInput
   const { tokens, resetInput } = selection

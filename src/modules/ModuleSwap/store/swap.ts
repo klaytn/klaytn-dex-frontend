@@ -12,6 +12,7 @@ import { useExchangeRateInput, useInertExchangeRateInput } from '../../ModuleTra
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import BN from 'bn.js'
+import { RouteName } from '@/types'
 
 const debugModule = Debug('swap-store')
 
@@ -90,7 +91,10 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
 }
 
 export const useSwapStore = defineStore('swap', () => {
-  const selection = useExchangeRateInput({ localStorageKey: 'swap-selection' })
+  const route = useRoute()
+  const isActiveRoute = computed(() => route.name === RouteName.Swap)
+
+  const selection = useExchangeRateInput({ localStorageKey: 'swap-selection', isActive: isActiveRoute })
   const selectionInput = useInertExchangeRateInput({ input: selection.input })
   const { rates: inputRates } = selectionInput
   const { tokens, resetInput } = selection
