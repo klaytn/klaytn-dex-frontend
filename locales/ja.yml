@@ -77,6 +77,3 @@ ModuleGovernanceProposalVotes:
 ModuleGovernanceProposalDescription:
   title: Description
   viewMore: View more
-
-RoiCalculator:
-  title: ROI Calculator
