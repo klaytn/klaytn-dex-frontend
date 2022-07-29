@@ -135,6 +135,9 @@ onMounted(() => kaikasStore.connect())
 }
 
 .toasts-mount {
+  pointer-events: none;
+  z-index: 9999;
+
   & :deep(.s-toasts-display) {
     padding: 0;
   }

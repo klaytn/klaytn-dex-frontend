@@ -15,10 +15,10 @@ const emit = defineEmits(['click:close'])
 
 <template>
   <div
-    class="toast p-4 space-y-4 relative"
+    class="toast p-4 space-y-4"
     :data-type="type"
   >
-    <div class="flex items-start space-x-2">
+    <div class="flex items-center space-x-2">
       <component
         :is="type === 'ok' ? IconOk : IconErr"
         class="icon"
@@ -31,6 +31,18 @@ const emit = defineEmits(['click:close'])
           <template v-else>Error</template>
         </slot>
       </span>
+
+      <KlayButton
+        data-testid="btn-close"
+        type="action"
+        size="xs"
+        rounded
+        @click="emit('click:close')"
+      >
+        <template #icon>
+          <IconClose />
+        </template>
+      </KlayButton>
     </div>
 
     <div
@@ -51,19 +63,6 @@ const emit = defineEmits(['click:close'])
         </code>
       </div>
     </template>
-
-    <KlayButton
-      data-testid="btn-close"
-      type="action"
-      size="xs"
-      rounded
-      class="absolute top-0 right-0 !m-2"
-      @click="emit('click:close')"
-    >
-      <template #icon>
-        <IconClose />
-      </template>
-    </KlayButton>
   </div>
 </template>
 
