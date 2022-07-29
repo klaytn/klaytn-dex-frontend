@@ -49,7 +49,6 @@ function useImportedTokens() {
   const tokens = useLocalStorage<Address[]>('klaytn-dex-imported-tokens', [])
 
   const fetchScope = useParamScope(isConnected, () => {
-    console.log('is connected?')
     const { state, run } = useTask(
       async () => {
         const kaikas = kaikasStore.getKaikasAnyway()

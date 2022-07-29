@@ -13,6 +13,7 @@ import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import { JSON_SERIALIZER } from '@/utils/common'
 import { Serializer } from '@vueuse/core'
+import { RouteName } from '@/types'
 
 const LP_TOKENS_DECIMALS = Object.freeze({ decimals: LP_TOKEN_DECIMALS_VALUE })
 
@@ -160,18 +161,22 @@ function useRemoveAmounts(
 }
 
 export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
-  const selected = useLocalStorage<null | TokensPair<Address>>('liquidity-remove-tokens', null, {
+  const route = useRoute()
+  const isActiveRoute = computed(() => route.name === RouteName.LiquidityRemove)
+
+  const selectedRaw = useLocalStorage<null | TokensPair<Address>>('liquidity-remove-tokens', null, {
     serializer: JSON_SERIALIZER as Serializer<any>,
   })
+  const selectedFiltered = computed(() => (isActiveRoute.value ? unref(selectedRaw) : null))
 
   const tokensStore = useTokensStore()
   const selectedTokensData = computed(() => {
-    if (!selected.value) return null
+    if (!selectedFiltered.value) return null
 
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const tokens = {} as TokensPair<Token>
     for (const type of TOKEN_TYPES) {
-      const data = tokensStore.findTokenData(selected.value[type])
+      const data = tokensStore.findTokenData(selectedFiltered.value[type])
       if (!data) return null
       tokens[type] = data
     }
@@ -184,7 +189,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     return buildPair((type) => tokens[type].symbol)
   })
 
-  const { pair: pairResult, pending: isPairPending } = usePairAddress(selected)
+  const { pair: pairResult, pending: isPairPending } = usePairAddress(selectedFiltered)
   const existingPair = computed(() => (pairResult.value?.kind === 'exist' ? pairResult.value : null))
   const isPairLoaded = computed(() => !!existingPair.value)
 
@@ -192,7 +197,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     result: pairBalanceResult,
     pending: isPairBalancePending,
     touch: touchPairBalance,
-  } = usePairBalance(selected, isPairLoaded)
+  } = usePairBalance(selectedFiltered, isPairLoaded)
   const {
     totalSupply: pairTotalSupply,
     userBalance: pairUserBalance,
@@ -200,7 +205,11 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   } = toRefs(useNullablePairBalanceComponents(pairBalanceResult))
   const formattedPoolShare = useFormattedPercent(pairPoolShare, 7)
 
-  const { result: pairReserves, pending: isReservesPending, touch: touchPairReserves } = usePairReserves(selected)
+  const {
+    result: pairReserves,
+    pending: isReservesPending,
+    touch: touchPairReserves,
+  } = usePairReserves(selectedFiltered)
 
   const liquidityRaw = ref('' as WeiAsToken)
   const liquidity = computed<Wei | null>({
@@ -239,7 +248,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     pending: isAmountsPending,
     touch: touchAmounts,
   } = useRemoveAmounts(
-    selected,
+    selectedFiltered,
     computed(() => existingPair.value?.addr ?? null),
     liquidity,
   )
@@ -247,7 +256,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   const rates = useRates(amounts)
 
   function setTokens(tokens: TokensPair<Address>) {
-    selected.value = tokens
+    selectedRaw.value = tokens
   }
 
   function setLiquidityToMax() {
@@ -267,7 +276,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     prepare: prepareSupply,
     clear: clearSupply,
   } = usePrepareSupply({
-    tokens: selected,
+    tokens: selectedFiltered,
     pairAddress: computed(() => existingPair.value?.addr ?? null),
     liquidity,
     amounts,
@@ -284,7 +293,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   }
 
   return {
-    selected,
+    selected: selectedFiltered,
     selectedTokensData,
     selectedTokensSymbols,
 
