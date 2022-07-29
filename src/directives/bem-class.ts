@@ -4,7 +4,7 @@ type Element = string
 type Modifiers = Record<string, any>
 type Props = Element | [Element, Modifiers?] | Modifiers | undefined
 
-function toSnakeCase(value: string) {
+function toKebabCase(value: string) {
   return value
     .split(/(?=[A-Z])/)
     .join('-')
@@ -16,7 +16,7 @@ function getBlockName() {
   if (context === null) throw new Error('Component context is null')
 
   const componentName = (context.vnode.type as any).name as string
-  const block = toSnakeCase(componentName)
+  const block = toKebabCase(componentName)
 
   return block
 }
@@ -38,9 +38,9 @@ export function getBemClasses(props: Props, blockParam?: string): Set<string> {
     if (typeof modifiers === 'object') {
       Object.entries(modifiers).forEach(([key, value]) => {
         if (typeof value === 'boolean') {
-          if (value) classList.push(`${classList[0]}--${toSnakeCase(key)}`)
+          if (value) classList.push(`${classList[0]}--${toKebabCase(key)}`)
         } else {
-          classList.push(`${classList[0]}--${toSnakeCase(key)}--${value}`)
+          classList.push(`${classList[0]}--${toKebabCase(key)}--${value}`)
         }
       })
     }

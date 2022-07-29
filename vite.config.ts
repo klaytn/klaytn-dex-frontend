@@ -27,6 +27,7 @@ export default defineConfig({
       '@/': `${path.resolve(__dirname, 'src')}/`,
       web3: 'web3/dist/web3.min.js',
       '@popperjs/core': '@popperjs/core/lib/index',
+      '@soramitsu-ui/ui': process.env.NODE_ENV === 'test' ? '@soramitsu-ui/ui/dist/lib.cjs' : '@soramitsu-ui/ui',
     },
   },
 

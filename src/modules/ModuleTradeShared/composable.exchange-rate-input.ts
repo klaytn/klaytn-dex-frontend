@@ -21,28 +21,36 @@ export interface InputWei {
 
 export function useExchangeRateInput(options?: {
   /**
+   * Control whether addrs should be forcefully nullified
+   */
+  isActive?: Ref<boolean>
+  /**
    * If specified, input data will be synced with local storage
    */
   localStorageKey?: string
 }) {
   const tokensStore = useTokensStore()
 
-  const addrs = options?.localStorageKey
+  const addrsRaw = options?.localStorageKey
     ? useLocalStorage<TokensPair<Address | null>>(options.localStorageKey + '-addrs', emptyAddrs(), {
         serializer: JSON_SERIALIZER as Serializer<any>,
       })
     : ref<TokensPair<Address | null>>(emptyAddrs())
-  const addrsReactive = toReactive(addrs)
+  const addrsFiltered = computed(() => {
+    if (options?.isActive?.value ?? true) return addrsRaw.value
+    return emptyAddrs()
+  })
+  const addrsReactive = toReactive(addrsFiltered)
 
   const input = ref<null | InputTypeValue>(null)
   const inputToken = computed(() => input.value?.type ?? null)
 
   function setAddrs(value: TokensPair<Address>) {
-    addrs.value = value
+    addrsRaw.value = value
   }
 
   function reset() {
-    addrs.value = emptyAddrs()
+    addrsRaw.value = emptyAddrs()
     resetInput()
   }
 

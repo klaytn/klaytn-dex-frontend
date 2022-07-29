@@ -56,7 +56,7 @@ export function useFetchRewards<T extends PoolId | Address>({
   }
   const runDebounced = useDebounceFn(run, REFETCH_REWARDS_INTERVAL)
 
-  watch(poolIds, run)
+  watch(poolIds, (val) => val && run(), { immediate: true })
   wheneverDone(state, (result) => {
     runDebounced()
     if (result.fulfilled) {
