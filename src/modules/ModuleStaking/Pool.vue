@@ -10,6 +10,7 @@ import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { STAKING } from '@/core/kaikas/smartcontracts/abi'
 
 const kaikas = useKaikasStore().getKaikasAnyway()
+const { notify } = useNotify()
 
 const vBem = useBemClass()
 const router = useRouter()
@@ -130,9 +131,13 @@ wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
     const { earned } = result.fulfilled.value
     emit('withdrawn')
-    $notify({ status: Status.Success, description: `${earned} ${pool.value.rewardToken.symbol} tokens were withdrawn` })
+    notify({ type: 'ok', description: `${earned} ${pool.value.rewardToken.symbol} tokens were withdrawn` })
   } else {
-    $notify({ status: Status.Error, description: `Withdraw ${pool.value.rewardToken.symbol} tokens error` })
+    notify({
+      type: 'err',
+      description: `Withdraw ${pool.value.rewardToken.symbol} tokens error`,
+      error: result.rejected.reason,
+    })
   }
 })
 

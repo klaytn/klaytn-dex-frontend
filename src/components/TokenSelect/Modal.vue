@@ -22,6 +22,8 @@ function isSelected(addr: Address): boolean {
   return props.selected?.has(addr) ?? false
 }
 
+const { notify } = useNotify()
+
 let search = $ref('')
 
 const tokensFilteredBySearch = $computed(() => {
@@ -86,7 +88,7 @@ function doImport() {
   invariant(tokenToImport)
   emit('import-token', tokenToImport)
   resetSearch()
-  $notify({ status: Status.Success, description: 'Token added' })
+  notify({ type: 'ok', description: 'Token added' })
 }
 </script>
 

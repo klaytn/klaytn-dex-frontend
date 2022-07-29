@@ -1,5 +1,4 @@
 <script setup lang="ts" name="ModuleFarmingPool">
-import { Status } from '@soramitsu-ui/ui'
 import { RouteName } from '@/types'
 import { FARMING } from '@/core/kaikas/smartcontracts/abi'
 import { ModalOperation, Pool } from './types'
@@ -10,6 +9,7 @@ import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 
 const kaikasStore = useKaikasStore()
+const { notify } = useNotify()
 const kaikas = kaikasStore.getKaikasAnyway()
 const FarmingContract = kaikas.cfg.createContract<Farming>(FARMING_CONTRACT_ADDRESS, FARMING)
 
@@ -120,9 +120,9 @@ wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
     const { earned } = result.fulfilled.value
     emit('withdrawn')
-    $notify({ status: Status.Success, description: `${earned} DEX tokens were withdrawn` })
+    notify({ type: 'ok', description: `${earned} DEX tokens were withdrawn` })
   } else {
-    $notify({ status: Status.Error, description: 'Withdraw DEX tokens error' })
+    notify({ type: 'err', description: 'Withdraw DEX tokens error', error: result.rejected.reason })
   }
 })
 

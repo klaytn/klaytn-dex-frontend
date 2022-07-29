@@ -1,8 +1,8 @@
 <script setup lang="ts" name="ModuleGovernanceProposalHead">
-import { Status } from '@soramitsu-ui/ui'
 import { Proposal } from '../types'
 
 const { t } = useI18n()
+const { notify } = useNotify()
 const vBem = useBemClass()
 
 const props = defineProps<{
@@ -22,7 +22,7 @@ function share() {
 
 watch(copied, (value) => {
   if (value) {
-    $notify({ status: Status.Success, description: 'Link was successfully copied' })
+    notify({ type: 'ok', description: 'Link was successfully copied' })
   }
 })
 </script>
