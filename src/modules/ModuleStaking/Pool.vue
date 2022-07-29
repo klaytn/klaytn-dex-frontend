@@ -76,8 +76,8 @@ const {
   enable,
   enabled,
 } = useEnableState({
-  addr: computed(() => pool.value.stakeToken.id),
-  contractAddr: computed(() => pool.value.id),
+  addr: eagerComputed(() => pool.value.stakeToken.id),
+  contractAddr: eagerComputed(() => pool.value.id),
   active: expanded,
 })
 
