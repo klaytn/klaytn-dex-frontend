@@ -23,7 +23,7 @@ function getChoicePercent(choice: string) {
   if (!proposal.value.scoresTotal) return 0
   const choiceIndex = proposal.value.choices.indexOf(choice)
   const score = proposal.value.scores[choiceIndex]
-  return score / proposal.value.scoresTotal * 100
+  return (score / proposal.value.scoresTotal) * 100
 }
 
 function formatPercent(percent: number) {
@@ -33,7 +33,7 @@ function formatPercent(percent: number) {
 const hasPositiveChoice = computed(() => {
   const positiveChoices = getLowerCaseChoices(POSITIVE_CHOICES)
   const proposalChoicesInLowerCase = getLowerCaseChoices(proposal.value.choices)
-  return positiveChoices.some(positiveChoice => proposalChoicesInLowerCase.includes(positiveChoice))
+  return positiveChoices.some((positiveChoice) => proposalChoicesInLowerCase.includes(positiveChoice))
 })
 
 function isChoicePositive(choice: string) {
@@ -86,9 +86,7 @@ const snapshotHref = computed(() => {
 </script>
 
 <template>
-  <div
-    v-bem
-  >
+  <div v-bem>
     <div v-bem="'section'">
       <div
         v-for="choice in proposal.choices"

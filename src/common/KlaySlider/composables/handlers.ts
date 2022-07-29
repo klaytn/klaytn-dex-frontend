@@ -1,5 +1,6 @@
-import type { Emit, Props } from '../types'
-import { Event, Orientation } from '../types'
+/* eslint-disable no-param-reassign */
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+import { type Emit, type Props, Event, Orientation } from '../types'
 import type { Store } from './store'
 
 export function useHandlers(store: Store, props: Props, emit: Emit) {

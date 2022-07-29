@@ -2,7 +2,7 @@ import TokenSelectModal from '@/components/TokenSelect/Modal.vue'
 import { Address, Token, Wei } from '@/core/kaikas'
 import { WHITELIST_TOKENS } from '@/core/kaikas/const'
 import { TokenWithOptionBalance } from '@/store/tokens'
-import { MaybeRef, useCycleList } from '@vueuse/core'
+import { MaybeRef } from '@vueuse/core'
 
 const testid = (id: string) => `[data-testid=${id}]`
 const TESTID_RECENT_TOKEN = testid('modal-recent-token')

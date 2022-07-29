@@ -1,7 +1,7 @@
 <script setup lang="ts" name="KlayLoader">
 import { SSpinner } from '@soramitsu-ui/ui'
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     size?: string | number
     width?: string | number
@@ -10,6 +10,7 @@ const props = withDefaults(
   {
     size: 36,
     color: 'blue',
+    width: 4,
   },
 )
 </script>

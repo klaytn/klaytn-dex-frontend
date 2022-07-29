@@ -6,14 +6,14 @@ import { PAGE_SIZE } from './const'
 
 export interface VotesQueryResult {
   votes: {
-    id: string,
-    voter: Address,
+    id: string
+    voter: Address
     choice: number
     vp: number
   }[]
 }
 
-export function useVotesQuery(props: Ref<{ skip: number, proposalId: string }>) {
+export function useVotesQuery(props: Ref<{ skip: number; proposalId: string }>) {
   return useQuery<VotesQueryResult>(
     gql`
       query VotesQuery($skip: Int!, $proposal: String!) {

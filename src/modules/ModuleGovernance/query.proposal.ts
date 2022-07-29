@@ -12,10 +12,10 @@ export interface ProposalQueryResult {
     end: number
     state: ProposalState
     choices: string[]
-    scores: number[],
-    scores_total: number,
+    scores: number[]
+    scores_total: number
     body: string
-    author: Address,
+    author: Address
     snapshot: number
   }
 }
@@ -24,9 +24,7 @@ export function useProposalQuery(id: Ref<string>) {
   return useQuery<ProposalQueryResult>(
     gql`
       query ProposalQuery($id: String!) {
-        proposal(
-          id: $id
-        ) {
+        proposal(id: $id) {
           id
           title
           start
@@ -42,7 +40,7 @@ export function useProposalQuery(id: Ref<string>) {
       }
     `,
     () => ({
-      id: id.value
+      id: id.value,
     }),
     {
       clientId: 'snapshot',

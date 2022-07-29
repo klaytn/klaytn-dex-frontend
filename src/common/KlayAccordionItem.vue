@@ -7,9 +7,9 @@ const vBem = useBemClass()
 const props = withDefaults(
   defineProps<{
     modelValue?: boolean
-    title?: string,
-    subtitle?: string,
-    name?: string,
+    title?: string
+    subtitle?: string
+    name?: string
     type?: 'default' | 'light'
   }>(),
   {
@@ -17,7 +17,7 @@ const props = withDefaults(
     title: '',
     subtitle: '',
     name: '',
-    type: 'default'
+    type: 'default',
   },
 )
 

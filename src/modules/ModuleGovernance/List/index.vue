@@ -16,40 +16,38 @@ const showViewMore = ref(true)
 const governanceStore = useGovernanceStore()
 const { onlyActive, searchQuery, sorting } = toRefs(governanceStore)
 
-const ProposalsQuery = useProposalsQuery(computed(() => ({
-  onlyActive: onlyActive.value,
-  skip: 0,
-  orderBy: sorting.value,
-  query: searchQuery.value
-})))
+const ProposalsQuery = useProposalsQuery(
+  computed(() => ({
+    onlyActive: onlyActive.value,
+    skip: 0,
+    orderBy: sorting.value,
+    query: searchQuery.value,
+  })),
+)
 const rawProposals = computed(() => {
   return ProposalsQuery.result.value?.proposals ?? null
 })
 
 const emptyText = computed(() => {
-  if (onlyActive.value || searchQuery.value !== '')
-    return 'There are no proposals matching the current filter'
-  else
-    return 'There are no proposals yet'
+  if (onlyActive.value || searchQuery.value !== '') return 'There are no proposals matching the current filter'
+  else return 'There are no proposals yet'
 })
 
 function setInitShowViewMore() {
-  const proposalsCount = (ProposalsQuery.result.value?.proposals.length ?? 0)
-  if (proposalsCount > 0 && proposalsCount < PAGE_SIZE)
-    showViewMore.value = false
+  const proposalsCount = ProposalsQuery.result.value?.proposals.length ?? 0
+  if (proposalsCount > 0 && proposalsCount < PAGE_SIZE) showViewMore.value = false
 }
 setInitShowViewMore()
 ProposalsQuery.onResult(() => {
   setInitShowViewMore()
 })
 
-if (ProposalsQuery.result.value)
-  page.value = Math.ceil(ProposalsQuery.result.value.proposals.length / PAGE_SIZE)
+if (ProposalsQuery.result.value) page.value = Math.ceil(ProposalsQuery.result.value.proposals.length / PAGE_SIZE)
 
 const proposals = computed<ListProposal[] | null>(() => {
   if (rawProposals.value === null) return null
 
-  return rawProposals.value.map(rawProposal => {
+  return rawProposals.value.map((rawProposal) => {
     const { id, title, start, end, state, scores, choices } = rawProposal
     const status = getProposalStatus({ state, scores, choices })
     return {
@@ -57,7 +55,7 @@ const proposals = computed<ListProposal[] | null>(() => {
       title,
       start,
       end,
-      status
+      status,
     }
   })
 })
@@ -73,7 +71,7 @@ function viewMore() {
       onlyActive: onlyActive.value,
       skip: skip.value,
       orderBy: sorting.value,
-      query: searchQuery.value
+      query: searchQuery.value,
     },
     // Transform the previous result with new data
     updateQuery: (previousResult, { fetchMoreResult }) => {
