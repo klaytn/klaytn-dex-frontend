@@ -230,4 +230,4 @@ export const useSwapStore = defineStore('swap', () => {
   }
 })
 
-import.meta.hot?.accept(acceptHMRUpdate(useSwapStore, import.meta.hot))
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useSwapStore, import.meta.hot))

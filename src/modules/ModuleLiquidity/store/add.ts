@@ -287,4 +287,4 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   }
 })
 
-if (import.meta.hot) import.meta.hot?.accept(acceptHMRUpdate(useLiquidityAddStore, import.meta.hot))
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useLiquidityAddStore, import.meta.hot))
