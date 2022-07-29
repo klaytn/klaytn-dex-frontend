@@ -89,10 +89,7 @@ const pools = computed<Pool[] | null>(() => {
     const reward = rewards.value[pool.id]
     const earned = reward
       ? new BigNumber(
-          reward.toToken(
-            // FIXME which decimals?
-            { decimals: 18 },
-          ),
+          reward.toToken(pool.rewardToken)
         )
       : null
 
@@ -138,6 +135,7 @@ const pools = computed<Pool[] | null>(() => {
       rewardToken,
       earned,
       staked,
+      stakeTokenPrice,
       createdAtBlock,
       annualPercentageRate,
       totalStaked,
@@ -200,14 +198,14 @@ const loading = computed(() => {
 function updateStaked(poolId: Pool['id'], diff: BigNumber) {
   if (!PoolsQuery.result.value) return
 
-  const diffInWei = Wei.fromToken(
-    // FIXME which decimals?
-    { decimals: 18 },
-    diff.toFixed() as WeiAsToken,
-  )
   const clonedQueryResult = deepClone(PoolsQuery.result.value)
   const pool = clonedQueryResult.pools.find((pool) => pool.id === poolId)
   if (!pool) return
+
+  const diffInWei = Wei.fromToken(
+    pool.stakeToken,
+    diff.toFixed() as WeiAsToken,
+  )
 
   pool.totalTokensStaked = new BigNumber(pool.totalTokensStaked).plus(diffInWei.asBigNum).toFixed(0) as WeiRaw<string>
 

@@ -142,10 +142,13 @@ function setupQueries({
       const reserveUSD = new BigNumber(pair.reserveUSD)
       const totalSupply = new BigNumber(pair.totalSupply)
       const totalTokensStaked = new BigNumber(farmingFromWei(new Wei(pool.totalTokensStaked)))
+      const stakeTokenPrice = reserveUSD.dividedBy(totalSupply)
       const liquidity = reserveUSD.dividedBy(totalSupply).multipliedBy(totalTokensStaked)
 
       const annualPercentageRate = new BigNumber(0)
-      const lpAnnualPercentageRate = new BigNumber(0)
+    
+      const totalLpRewardPricePerYear = new BigNumber(pair.dayData[0].volumeUSD).times(365)
+      const lpAnnualPercentageRate = !liquidity.isZero() ? totalLpRewardPricePerYear.div(liquidity).times(100) : new BigNumber(0)
 
       const bonusEndBlock = Number(pool.bonusEndBlock)
       const allocPoint = new BigNumber(pool.allocPoint)
@@ -166,6 +169,7 @@ function setupQueries({
         balance,
         annualPercentageRate,
         lpAnnualPercentageRate,
+        stakeTokenPrice,
         liquidity,
         multiplier,
         createdAtBlock,

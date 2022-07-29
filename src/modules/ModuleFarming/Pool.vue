@@ -8,6 +8,7 @@ import { Farming } from '@/types/typechain/farming'
 import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
+import { CONSTANT_FARMING_DECIMALS } from './utils'
 
 const kaikasStore = useKaikasStore()
 const kaikas = kaikasStore.getKaikasAnyway()
@@ -296,6 +297,11 @@ function openRoiCalculator(event: Event, pool: Pool) {
     :staked="roiPool.staked"
     :apr="roiPool.annualPercentageRate"
     :lp-apr="roiPool.lpAnnualPercentageRate"
+    :stake-token-price="roiPool.stakeTokenPrice"
+    :stake-token-decimals="CONSTANT_FARMING_DECIMALS.decimals"
+    :reward-token-decimals="CONSTANT_FARMING_DECIMALS.decimals"
+    :stake-token-symbol="pool.name"
+    reward-token-symbol="DEX"
   />
 </template>
 

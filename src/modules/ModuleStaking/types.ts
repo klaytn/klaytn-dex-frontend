@@ -18,6 +18,7 @@ export interface Pool {
   }
   staked: BigNumber
   earned: BigNumber
+  stakeTokenPrice: BigNumber
   createdAtBlock: number
   totalStaked: BigNumber
   annualPercentageRate: BigNumber

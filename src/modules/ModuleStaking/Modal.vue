@@ -17,9 +17,10 @@ const { t } = useI18n()
 const props = defineProps<{
   modelValue: boolean
   pool: Pool
+  balance: BigNumber
   operation: ModalOperation
 }>()
-const { pool, operation } = toRefs(props)
+const { pool, balance, operation } = toRefs(props)
 const emit = defineEmits<{
   (event: 'update:modelValue', value: boolean): void
   (e: 'staked' | 'unstaked', value: string): void
@@ -33,23 +34,6 @@ const value = ref<WeiAsToken>('0' as WeiAsToken)
 
 watch(model, () => {
   value.value = '0' as WeiAsToken
-})
-
-const balanceScope = useParamScope(model, () => {
-  const { state } = useTask(
-    async () => {
-      const token = pool.value.stakeToken
-      const balance = await kaikas.tokens.getTokenBalanceOfUser(token.id)
-      return new BigNumber(balance.toToken(token))
-    },
-    { immediate: true },
-  )
-  usePromiseLog(state, 'get-balance')
-
-  return state
-})
-const balance = computed(() => {
-  return balanceScope.value?.expose?.fulfilled?.value ?? null
 })
 
 const formattedStaked = computed(() => {

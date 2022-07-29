@@ -1,23 +1,35 @@
 <script setup lang="ts" name="RoiCalculator">
+import { KlayIconSwitch } from '~klay-icons'
 import { SModal } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
 import { RoiType, Tab } from '@/types'
 
-const StakeTabs = {
+const Period = {
   d1: '1D',
   d7: '7D',
+  d14: '14D',
   d30: '30D',
   y1: '1Y',
   y5: '5Y'
 } as const
 
+type Period = typeof Period[keyof typeof Period]
+
+const StakeTabs = {
+  d1: Period.d1,
+  d7: Period.d7,
+  d30: Period.d30,
+  y1: Period.y1,
+  y5: Period.y5
+} as const
+
 type StakeTabs = typeof StakeTabs[keyof typeof StakeTabs]
 
 const CompoundingTabs = {
-  d1: '1D',
-  d7: '7D',
-  d14: '14D',
-  d30: '30D'
+  d1: Period.d1,
+  d7: Period.d7,
+  d14: Period.d14,
+  d30: Period.d30
 } as const
 
 type CompoundingTabs = typeof CompoundingTabs[keyof typeof CompoundingTabs]
@@ -36,14 +48,28 @@ const props = defineProps<{
   show: boolean
   type: RoiType
   apr: BigNumber
-  lpApr: BigNumber,
-  staked: BigNumber,
+  lpApr?: BigNumber
+  staked: BigNumber
   balance: BigNumber
+  stakeTokenPrice: BigNumber
+  stakeTokenDecimals: number
+  rewardTokenDecimals: number
+  stakeTokenSymbol: string
+  rewardTokenSymbol: string
 }>()
-const { apr, lpApr, staked, balance } = toRefs(props)
+const {
+  type,
+  apr,
+  lpApr,
+  staked,
+  balance,
+  stakeTokenPrice,
+  stakeTokenDecimals,
+  rewardTokenDecimals,
+  stakeTokenSymbol,
+  rewardTokenSymbol
+} = toRefs(props)
 const emit = defineEmits<(e: 'update:show', value: boolean) => void>()
-
-const expose
 
 const showModel = useVModel(props, 'show', emit)
 
@@ -57,29 +83,167 @@ function makeTabsArray(data: string[]): Tab[] {
 const stakeTabs = readonly(makeTabsArray(Object.values(StakeTabs)))
 const compoundingTabs = readonly(makeTabsArray(Object.values(CompoundingTabs)))
 
+const stakeValueInputWrapper = ref<HTMLElement | null>(null)
 const stakeFor = ref(StakeTabs.y1)
 const compoundingEnabled = ref(true)
 const compoundingEvery = ref(CompoundingTabs.d1)
-const stakeValue = ref('0')
-const stakeValueInAnotherUnits = ref('0')
+const stakeValueRaw = ref('$0')
+const parsedStakeValue = ref(new BigNumber(0))
 const stakeUnits = ref<StakeUnits>(StakeUnits.USD)
 
-function setAmount(amount: BigNumber | number) {
-  stakeValue.value = new BigNumber(amount).toString()
+function setStakeValueInUSD(amount: number) {
+  if (stakeUnits.value === StakeUnits.USD)
+    updateStakeValueRaw(String(amount))
+  else
+    updateStakeValueRaw(new BigNumber(new BigNumber(amount).div(stakeTokenPrice.value).toFixed(stakeTokenDecimals.value)).toString())
 }
 
-const computedApr = computed(() => {
-  return apr.value.plus(lpApr.value)
+function setStakeValueWithBalance() {
+  if (stakeUnits.value === StakeUnits.USD)
+    updateStakeValueRaw(new BigNumber(balance.value.times(stakeTokenPrice.value).toFixed(2)).toString())
+  else
+    updateStakeValueRaw( balance.value.toString())
+}
+
+const totalApr = computed(() => {
+  return apr.value.plus(lpApr?.value ? lpApr.value : 0)
+})
+
+function getPeriodDays(period: Period): number {
+  return {
+    [Period.d1]: 1,
+    [Period.d7]: 7,
+    [Period.d14]: 14,
+    [Period.d30]: 30,
+    [Period.y1]: 365,
+    [Period.y5]: 365 * 5
+  }[period]
+}
+
+const compoundsPerYear = computed(() => {
+  return Math.floor(365 / getPeriodDays(compoundingEvery.value))
+})
+
+const apy = computed(() => {
+  if (!compoundingEnabled.value) return totalApr.value
+  return totalApr.value.div(100).div(compoundsPerYear.value).plus(1).pow(compoundsPerYear.value).minus(1).times(100)
+})
+
+function numberWithCommas(value: string | number | BigNumber) {
+  return value.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")
+}
+
+function updateStakeValueRaw(value: string, handleCursor = false) {
+  if (!stakeValueInputWrapper.value) return
+  const input = stakeValueInputWrapper.value.getElementsByTagName('input')[0]
+  const cursor = input.selectionStart ?? 0
+  const digitsAndDotBeforeCursor = Array.from(value.slice(0, cursor)).filter(char => /^[\d,\.]$/i.test(char)).join('')
+  const formattedValue = value.replace(/,/g, '').replace('$', '').replace(stakeTokenSymbol.value, '').trim()
+  const parsed = new BigNumber(formattedValue !== '' ? formattedValue : 0)
+
+  if (parsed.isNaN()) return
+
+  const parsedString = parsed.toString()
+  const formattedParsedString = numberWithCommas(parsedString) + (value.at(-1) === '.' ? '.' : '')
+  let formattedParsedStringWithUnits
+  if (stakeUnits.value === StakeUnits.USD)
+    formattedParsedStringWithUnits = '$' + formattedParsedString
+  else
+    formattedParsedStringWithUnits = formattedParsedString + ' ' + stakeTokenSymbol.value
+
+  parsedStakeValue.value = parsed
+  if (stakeValueRaw.value !== formattedParsedStringWithUnits)
+    stakeValueRaw.value = formattedParsedStringWithUnits
+
+  const index = Array.from(stakeValueRaw.value).findIndex((char, index) => {
+    const digitsBefore = Array.from(stakeValueRaw.value.slice(0, index + 1)).filter(char => /^[\d,\.]$/i.test(char)).join('')
+    return digitsBefore === digitsAndDotBeforeCursor
+  })
+  let newCursor = index !== -1 ? (index + 1) : cursor
+  if (stakeValueRaw.value.slice(newCursor) === '0') newCursor++
+  nextTick(() => {
+    if (handleCursor) input.setSelectionRange(newCursor, newCursor)
+  })
+}
+
+function formatUSD(amount: BigNumber) {
+  return '$' + numberWithCommas(new BigNumber(amount.toFixed(2)))
+}
+
+function formatTokens(amount: BigNumber, decimals: number, symbol: string) {
+  return new BigNumber(amount.toFixed(decimals)).toString() + ' ' + symbol
+}
+
+const stakeValueInAnotherUnits = computed(() => {
+  if (stakeUnits.value === StakeUnits.USD)
+    return parsedStakeValue.value.div(stakeTokenPrice.value)
+  else
+    return parsedStakeValue.value.times(stakeTokenPrice.value)
+})
+
+const formattedStakeValueInAnotherUnits = computed(() => {
+  if (stakeUnits.value === StakeUnits.USD)
+    return formatTokens(stakeValueInAnotherUnits.value, stakeTokenDecimals.value, stakeTokenSymbol.value)
+  else
+    return formatUSD(stakeValueInAnotherUnits.value)
+})
+
+const receiveValue = computed(() => {
+  return apy.value.div(100).times(parsedStakeValue.value)
+})
+
+const formattedReceiveValue = computed(() => {
+  if (stakeUnits.value === StakeUnits.USD)
+    return formatUSD(receiveValue.value)
+  else
+    return formatTokens(receiveValue.value, rewardTokenDecimals.value, rewardTokenSymbol.value)
+})
+
+const receiveValueInAnotherUnits = computed(() => {
+  return apy.value.div(100).times(stakeValueInAnotherUnits.value)
+})
+
+const formattedReceiveValueInAnotherUnits = computed(() => {
+  if (stakeUnits.value === StakeUnits.USD)
+    return formatTokens(receiveValueInAnotherUnits.value, rewardTokenDecimals.value, rewardTokenSymbol.value)
+  else
+    return formatUSD(receiveValueInAnotherUnits.value)
 })
 
 function switchUnits() {
+  const newStakeValue = stakeValueInAnotherUnits.value.toFixed(stakeUnits.value === StakeUnits.USD ? stakeTokenDecimals.value : 2)
   stakeUnits.value = stakeUnits.value === StakeUnits.USD ? StakeUnits.tokens : StakeUnits.USD
+  updateStakeValueRaw(newStakeValue)
 }
 
 watch(showModel, (value) => {
   if (value) {
-    stakeValue.value = staked.value.toString()
+    updateStakeValueRaw(staked.value.toString())
   }
+})
+
+const detailsList = computed(() => {
+  if (type.value === RoiType.Farming)
+    return [
+      { label: 'APR (incl. LP rewards)', value: totalApr.value.toFixed(2) + '%' },
+      { label: 'Base APR (DEX-Tokens yield only)', value: apr.value.toFixed(2) + '%' },
+      { label: 'APY', value: apy.value.toFixed(2) + '%' }
+    ]
+  else
+    return [
+      { label: 'APR', value: apr.value.toFixed(2) + '%' },
+      { label: 'APY', value: apy.value.toFixed(2) + '%' }
+    ]
+})
+
+const detailsDescription = computed(() => {
+  if (type.value === RoiType.Farming)
+    return `— Calculated based on current rates.
+            — LP rewards: 0.17% trading fees, distributed proportionally among LP token holders.
+            — All figures are estimates provided for your convenience only, and by no means represent guaranteed returns.`
+  else
+    return `— Calculated based on current rates.
+            — All figures are estimates provided for your convenience only, and by no means represent guaranteed returns.`
 })
 </script>
 
@@ -90,7 +254,9 @@ watch(showModel, (value) => {
       class="w-[420px]"
       :title="t('RoiCalculator.title')"
     >
-      <div v-bem="'content'">
+      <div
+        v-bem="'content'"
+      >
         <span v-bem="'label'">
           Staked for
         </span>
@@ -112,19 +278,23 @@ watch(showModel, (value) => {
         <span v-bem="'label'">
           Amount staked
         </span>
-        <div v-bem="'input-wrapper'">
+        <div
+          ref="stakeValueInputWrapper"
+          v-bem="'input-wrapper'"
+        >
           <KlayTextField
-            v-model="stakeValue"
             v-bem="'input'"
+            :model-value="stakeValueRaw"
+            @update:model-value="(value: string) => updateStakeValueRaw(value, true)"
           />
-          <IconKlaySwitch
+          <KlayIconSwitch
             v-bem="'input-switch'"
             @click="switchUnits"
           />
           <div
             v-bem="'input-another-units'"
           >
-            {{ stakeValueInAnotherUnits }}
+            {{ formattedStakeValueInAnotherUnits }}
           </div>
         </div>
         <div v-bem="'amounts'">
@@ -133,37 +303,56 @@ watch(showModel, (value) => {
             :key="amount"
             v-bem="'amount'"
             size="sm"
-            @click="setAmount(amount)"
+            @click="setStakeValueInUSD(amount)"
           >
-            {{ amount }}%
+            ${{ amount }}
           </KlayButton>
           <KlayButton
             v-bem="'amount'"
             size="sm"
-            @click="setAmount(balance)"
+            @click="setStakeValueWithBalance()"
           >
             My balance
           </KlayButton>
         </div>
         <span v-bem="'label'">
-          You will receive (APR = {{ computedApr.toFixed(2) }}%)
+          You will receive (APY = {{ apy.toFixed(2) }}%)
         </span>
         <div v-bem="'input-wrapper'">
           <KlayTextField
-            v-model="stakeValue"
+            v-model="formattedReceiveValue"
             v-bem="'input'"
-          />
-          <IconKlaySwitch
-            v-bem="'input-switch'"
-            @click="switchUnits"
+            :disabled="true"
           />
           <div
             v-bem="'input-another-units'"
           >
-            {{ stakeValueInAnotherUnits }}
+            {{ formattedReceiveValueInAnotherUnits }}
           </div>
         </div>
       </div>
+      <KlayCollapse v-bem="'details'">
+        <template #head>
+          Details
+        </template>
+        <template #main>
+          <div
+            v-for="item in detailsList"
+            :key="item.label"
+            v-bem="'details-item'"
+          >
+            <div v-bem="'details-item-label'">
+              {{ item.label }}
+            </div>
+            <div v-bem="'details-item-value'">
+              {{ item.value }}
+            </div>
+          </div>
+          <div v-bem="'details-description'">
+            {{ detailsDescription }}
+          </div>
+        </template>
+      </KlayCollapse>
     </KlayModalCard>
   </SModal>
 </template>
@@ -195,7 +384,7 @@ watch(showModel, (value) => {
     .s-text-field__input-wrapper
       height: 72px
       input
-        padding: 16px 92px 33px 16px
+        padding: 16px 56px 33px 16px
         font-size: 30px
         font-weight: 600
         line-height: 39px
@@ -206,8 +395,11 @@ watch(showModel, (value) => {
       cursor: pointer
     &-another-units
       position: absolute
+      overflow: hidden
+      width: calc(100% - 32px)
       left: 16px
       bottom: 6px
+      white-space: nowrap
       font-size: 12px
       line-height: 22px
       font-weight: 400
@@ -220,4 +412,20 @@ watch(showModel, (value) => {
     font-weight: 700
     & + &
       margin-left: 8px
+  &__details
+    margin-top: 16px
+    &-item
+      display: flex
+      justify-content: space-between
+      font-size: 12px
+      font-weight: 500
+      line-height: 28px
+    &-description
+      padding-top: 8px
+      font-size: 10px
+      font-weight: 300
+      color: $gray2
+      line-height: 18px
+      border-top: 1px solid $gray5
+      white-space: pre-line
 </style>

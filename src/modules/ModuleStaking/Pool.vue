@@ -1,5 +1,6 @@
 <script setup lang="ts" name="ModuleStakingPool">
 import { Status } from '@soramitsu-ui/ui'
+import { or } from '@vueuse/core'
 import { KlayIconCalculator, KlayIconClock, KlayIconLink } from '~klay-icons'
 import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
@@ -41,6 +42,23 @@ const modalOpen = computed({
   set(value) {
     if (!value) modalOperation.value = null
   },
+})
+
+const balanceScope = useParamScope(or(modalOpen, showRoiCalculator), () => {
+  const { state } = useTask(
+    async () => {
+      const token = pool.value.stakeToken
+      const balance = await kaikas.tokens.getTokenBalanceOfUser(token.id)
+      return new BigNumber(balance.toToken(token))
+    },
+    { immediate: true },
+  )
+  usePromiseLog(state, 'get-balance')
+
+  return state
+})
+const balance = computed(() => {
+  return balanceScope.value?.expose?.fulfilled?.value ?? null
 })
 
 const formattedEarned = computed(() => {
@@ -195,6 +213,7 @@ function openRoiCalculator(event: Event, pool: Pool) {
             <KlayIconCalculator
               v-if="label === 'annualPercentageRate' && value !== '—'"
               v-bem="'stats-item-calculator'"
+              @click="openRoiCalculator($event, pool)"
             />
             <KlayIconClock
               v-if="label === 'endsIn' && value !== '—'"
@@ -323,6 +342,7 @@ function openRoiCalculator(event: Event, pool: Pool) {
   <ModuleStakingModal
     v-model="modalOpen"
     :pool="pool"
+    :balance="balance"
     :operation="modalOperation"
     @update:mode="handleModalClose"
     @staked="handleStaked"
@@ -335,7 +355,12 @@ function openRoiCalculator(event: Event, pool: Pool) {
     :type="roiType"
     :staked="roiPool.staked"
     :apr="roiPool.annualPercentageRate"
-    :lp-apr="roiPool.lpAnnualPercentageRate"
+    :balance="balance"
+    :stake-token-price="roiPool.stakeTokenPrice"
+    :stake-token-decimals="roiPool.stakeToken.decimals"
+    :reward-token-decimals="roiPool.rewardToken.decimals"
+    :stake-token-symbol="roiPool.stakeToken.symbol"
+    :reward-token-symbol="roiPool.rewardToken.symbol"
   />
 </template>
 

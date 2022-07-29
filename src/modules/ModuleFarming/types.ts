@@ -12,6 +12,7 @@ export interface Pool {
   balance: BigNumber
   annualPercentageRate: BigNumber
   lpAnnualPercentageRate: BigNumber
+  stakeTokenPrice: BigNumber
   liquidity: BigNumber
   multiplier: BigNumber
   createdAtBlock: number

@@ -12,10 +12,12 @@ const isOpen = ref(false)
 <template>
   <div class="collapse px-4">
     <div
-      class="flex items-center cursor-pointer py-2"
+      class="flex items-center cursor-pointer py-3"
       @click="isOpen = !isOpen"
     >
-      <slot name="head" />
+      <div class="head">
+        <slot name="head" />
+      </div>
       <div
         v-if="!alwaysOpened"
         class="ml-auto"
@@ -44,6 +46,11 @@ const isOpen = ref(false)
   border: 1px solid $gray6;
   border-radius: 8px;
   background: $white;
+}
+
+.head {
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .chevron--opened {
