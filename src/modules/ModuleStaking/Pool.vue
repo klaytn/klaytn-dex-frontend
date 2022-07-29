@@ -16,7 +16,7 @@ const vBem = useBemClass()
 const router = useRouter()
 const { t } = useI18n()
 const showRoiCalculator = ref(false)
-const roiType = RoiType.Farming
+const roiType = RoiType.Staking
 const roiPool = ref<Pool | null>(null)
 
 const props = defineProps<{
