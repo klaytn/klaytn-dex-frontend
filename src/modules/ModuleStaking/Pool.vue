@@ -74,14 +74,13 @@ const stats = computed(() => {
 
 const {
   pending: loading,
-  check: triggerCheckEnabled,
   enable,
   enabled,
-} = useEnableState(
-  computed(() => pool.value.stakeToken.id),
-  computed(() => pool.value.id),
-)
-whenever(() => expanded.value && !enabled.value, triggerCheckEnabled)
+} = useEnableState({
+  addr: eagerComputed(() => pool.value.stakeToken.id),
+  contractAddr: eagerComputed(() => pool.value.id),
+  active: expanded,
+})
 
 function stake() {
   modalOperation.value = ModalOperation.Stake

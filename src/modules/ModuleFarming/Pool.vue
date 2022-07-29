@@ -77,14 +77,13 @@ function goToLiquidityAddPage(pairId: Pool['pairId']) {
 
 const {
   pending: checkEnabledInProgress,
-  check: triggerCheckEnabled,
   enable,
   enabled,
-} = useEnableState(
-  computed(() => pool.value.pairId),
-  FARMING_CONTRACT_ADDRESS,
-)
-whenever(() => expanded.value && !enabled.value, triggerCheckEnabled)
+} = useEnableState({
+  addr: eagerComputed(() => pool.value.pairId),
+  contractAddr: FARMING_CONTRACT_ADDRESS,
+  active: expanded,
+})
 
 const loading = computed(() => {
   // FIXME include "enableTask" pending here too?
