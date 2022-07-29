@@ -34,7 +34,9 @@ const emptyText = computed(() => {
 })
 
 function setInitShowViewMore() {
-  showViewMore.value = ProposalsQuery.result.value?.proposals.length === PAGE_SIZE
+  const proposalsCount = (ProposalsQuery.result.value?.proposals.length ?? 0)
+  if (proposalsCount > 0 && proposalsCount < PAGE_SIZE)
+    showViewMore.value = false
 }
 setInitShowViewMore()
 ProposalsQuery.onResult(() => {
