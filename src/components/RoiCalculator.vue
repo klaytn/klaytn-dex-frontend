@@ -137,7 +137,9 @@ function updateStakeValueRaw(value: string, handleCursor = false) {
   if (!stakeValueInputWrapper.value) return
   const input = stakeValueInputWrapper.value.getElementsByTagName('input')[0]
   const cursor = input.selectionStart ?? 0
-  const digitsAndDotBeforeCursor = Array.from(value.slice(0, cursor)).filter(char => /^[\d,\.]$/i.test(char)).join('')
+  const digitsAndDotRegex = /^[\d\.]$/i
+  const digitsAndDotBeforeCursor = Array.from(value.slice(0, cursor)).filter(char => digitsAndDotRegex.test(char)).join('')
+  console.log(digitsAndDotBeforeCursor)
   const formattedValue = value.replace(/,/g, '').replace('$', '').replace(stakeTokenSymbol.value, '').trim()
   const parsed = new BigNumber(formattedValue !== '' ? formattedValue : 0)
 
@@ -156,9 +158,11 @@ function updateStakeValueRaw(value: string, handleCursor = false) {
     stakeValueRaw.value = formattedParsedStringWithUnits
 
   const index = Array.from(stakeValueRaw.value).findIndex((char, index) => {
-    const digitsBefore = Array.from(stakeValueRaw.value.slice(0, index + 1)).filter(char => /^[\d,\.]$/i.test(char)).join('')
-    return digitsBefore === digitsAndDotBeforeCursor
+    const digitsAndDotBefore = Array.from(stakeValueRaw.value.slice(0, index + 1)).filter(char => digitsAndDotRegex.test(char)).join('')
+    console.log('!', digitsAndDotBefore)
+    return digitsAndDotBefore === digitsAndDotBeforeCursor
   })
+  console.log(index)
   let newCursor = index !== -1 ? (index + 1) : cursor
   if (stakeValueRaw.value.slice(newCursor) === '0') newCursor++
   nextTick(() => {
