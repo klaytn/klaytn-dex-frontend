@@ -139,13 +139,12 @@ function updateStakeValueRaw(value: string, handleCursor = false) {
   const cursor = input.selectionStart ?? 0
   const digitsAndDotRegex = /^[\d\.]$/i
   const digitsAndDotBeforeCursor = Array.from(value.slice(0, cursor)).filter(char => digitsAndDotRegex.test(char)).join('')
-  console.log(digitsAndDotBeforeCursor)
-  const formattedValue = value.replace(/,/g, '').replace('$', '').replace(stakeTokenSymbol.value, '').trim()
+  const formattedValue = value.replaceAll(',', '').replace('$', '').replace(stakeTokenSymbol.value, '').trim()
   const parsed = new BigNumber(formattedValue !== '' ? formattedValue : 0)
 
   if (parsed.isNaN()) return
 
-  const parsedString = parsed.toString()
+  const parsedString = parsed.toFixed(stakeTokenDecimals.value).replace(/\.?0*$/g, '')
   const formattedParsedString = numberWithCommas(parsedString) + (value.at(-1) === '.' ? '.' : '')
   let formattedParsedStringWithUnits
   if (stakeUnits.value === StakeUnits.USD)
@@ -159,10 +158,8 @@ function updateStakeValueRaw(value: string, handleCursor = false) {
 
   const index = Array.from(stakeValueRaw.value).findIndex((char, index) => {
     const digitsAndDotBefore = Array.from(stakeValueRaw.value.slice(0, index + 1)).filter(char => digitsAndDotRegex.test(char)).join('')
-    console.log('!', digitsAndDotBefore)
     return digitsAndDotBefore === digitsAndDotBeforeCursor
   })
-  console.log(index)
   let newCursor = index !== -1 ? (index + 1) : cursor
   if (stakeValueRaw.value.slice(newCursor) === '0') newCursor++
   nextTick(() => {
