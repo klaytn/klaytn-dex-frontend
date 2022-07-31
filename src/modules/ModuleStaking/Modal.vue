@@ -10,6 +10,7 @@ import { Wei, WeiAsToken } from '@/core/kaikas'
 
 const kaikasStore = useKaikasStore()
 const kaikas = kaikasStore.getKaikasAnyway()
+const { notify } = useNotify()
 
 const vBem = useBemClass()
 const { t } = useI18n()
@@ -102,10 +103,10 @@ usePromiseLog(stakeState, 'stake')
 wheneverDone(stakeState, (result) => {
   if (result.fulfilled) {
     const { amount } = result.fulfilled.value
-    $notify({ status: Status.Success, description: `${amount} ${pool.value.stakeToken.symbol} tokens were staked` })
+    notify({ type: 'ok', description: `${amount} ${pool.value.stakeToken.symbol} tokens were staked` })
     emit('staked', amount)
   } else {
-    $notify({ status: Status.Error, description: `Stake ${pool.value.stakeToken.symbol} tokens error` })
+    notify({ type: 'err', description: `Stake ${pool.value.stakeToken.symbol} tokens error` })
   }
 })
 
@@ -129,10 +130,14 @@ usePromiseLog(unstakeState, 'stake')
 wheneverDone(unstakeState, (result) => {
   if (result.fulfilled) {
     const { amount } = result.fulfilled.value
-    $notify({ status: Status.Success, description: `${amount} ${pool.value.stakeToken.symbol} tokens were unstaked` })
+    notify({ type: 'ok', description: `${amount} ${pool.value.stakeToken.symbol} tokens were unstaked` })
     emit('unstaked', amount)
   } else {
-    $notify({ status: Status.Error, description: `Unstake ${pool.value.stakeToken.symbol} tokens error` })
+    notify({
+      type: 'err',
+      description: `Unstake ${pool.value.stakeToken.symbol} tokens error`,
+      error: result.rejected.reason,
+    })
   }
 })
 

@@ -1,7 +1,6 @@
-import { Address, TokenSymbol } from '@/core/kaikas'
+import { Address, TokenSymbol, WeiAsToken } from '@/core/kaikas'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
-import { Opaque } from 'type-fest'
 
 export interface LiquidityPairsResult {
   user: null | {
@@ -10,7 +9,7 @@ export interface LiquidityPairsResult {
 }
 
 export interface LiquidityPairsPosition {
-  liquidityTokenBalance: LiquidityPairValueRaw
+  liquidityTokenBalance: WeiAsToken
   pair: LiquidityPairsPositionItem
 }
 
@@ -19,13 +18,13 @@ export interface LiquidityPairsPositionItem {
   name: string
   token0: Token
   token1: Token
-  totalSupply: LiquidityPairValueRaw
-  token1Price: LiquidityPairValueRaw
-  reserve0: LiquidityPairValueRaw
-  reserve1: LiquidityPairValueRaw
-  reserveKLAY: LiquidityPairValueRaw
-  reserveUSD: LiquidityPairValueRaw
-  volumeUSD: LiquidityPairValueRaw
+  totalSupply: WeiAsToken
+  token1Price: WeiAsToken
+  reserve0: WeiAsToken
+  reserve1: WeiAsToken
+  reserveKLAY: WeiAsToken
+  reserveUSD: WeiAsToken
+  volumeUSD: WeiAsToken
 }
 
 interface Token {
@@ -34,8 +33,6 @@ interface Token {
   name: string
   decimals: string
 }
-
-export type LiquidityPairValueRaw = Opaque<string, 'ValueRaw'>
 
 export function useLiquidityPairsQuery() {
   const kaikasStore = useKaikasStore()

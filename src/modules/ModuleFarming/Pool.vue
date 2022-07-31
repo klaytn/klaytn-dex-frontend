@@ -1,5 +1,4 @@
 <script setup lang="ts" name="ModuleFarmingPool">
-import { Status } from '@soramitsu-ui/ui'
 import { RouteName, RoiType } from '@/types'
 import { FARMING } from '@/core/kaikas/smartcontracts/abi'
 import { ModalOperation, Pool } from './types'
@@ -11,6 +10,7 @@ import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 import { CONSTANT_FARMING_DECIMALS } from './utils'
 
 const kaikasStore = useKaikasStore()
+const { notify } = useNotify()
 const kaikas = kaikasStore.getKaikasAnyway()
 const FarmingContract = kaikas.cfg.createContract<Farming>(FARMING_CONTRACT_ADDRESS, FARMING)
 
@@ -81,14 +81,13 @@ function goToLiquidityAddPage(pairId: Pool['pairId']) {
 
 const {
   pending: checkEnabledInProgress,
-  check: triggerCheckEnabled,
   enable,
   enabled,
-} = useEnableState(
-  computed(() => pool.value.pairId),
-  FARMING_CONTRACT_ADDRESS,
-)
-whenever(() => expanded.value && !enabled.value, triggerCheckEnabled)
+} = useEnableState({
+  addr: eagerComputed(() => pool.value.pairId),
+  contractAddr: FARMING_CONTRACT_ADDRESS,
+  active: expanded,
+})
 
 const loading = computed(() => {
   // FIXME include "enableTask" pending here too?
@@ -124,9 +123,9 @@ wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
     const { earned } = result.fulfilled.value
     emit('withdrawn')
-    $notify({ status: Status.Success, description: `${earned} DEX tokens were withdrawn` })
+    notify({ type: 'ok', description: `${earned} DEX tokens were withdrawn` })
   } else {
-    $notify({ status: Status.Error, description: 'Withdraw DEX tokens error' })
+    notify({ type: 'err', description: 'Withdraw DEX tokens error', error: result.rejected.reason })
   }
 })
 

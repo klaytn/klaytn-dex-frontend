@@ -13,23 +13,30 @@ const emit = defineEmits(['click:import'])
 
 const balanceFormatted = computed(() => {
   if (!props.balance) return null
-  return roundTo(Number(props.balance.toToken(props.token)), 7)
+  return String(roundTo(Number(props.balance.toToken(props.token)), 7))
 })
 </script>
 
 <template>
   <div
-    class="item flex items-center px-4 py-2 space-x-2 cursor-pointer"
+    class="item flex items-center px-4 py-3 space-x-2 cursor-pointer"
     :class="{ 'opacity-40 pointer-events-none': disabled }"
+    data-testid="modal-list-item"
   >
     <KlayCharAvatar :symbol="token.symbol" />
 
-    <div class="flex flex-col space-y-1">
-      <span class="token-symbol">{{ token.symbol }}</span>
+    <div class="flex flex-1 flex-col space-y-[2px]">
+      <div class="flex items-center justify-between">
+        <span class="token-symbol">{{ token.symbol }}</span>
+        <span
+          v-if="!forImport"
+          class="balance"
+        >
+          <ValueOrDash :value="balanceFormatted" />
+        </span>
+      </div>
       <span class="token-name">{{ token.name }}</span>
     </div>
-
-    <div class="flex-1" />
 
     <KlayButton
       v-if="forImport"
@@ -38,13 +45,6 @@ const balanceFormatted = computed(() => {
     >
       Import
     </KlayButton>
-
-    <span
-      v-else
-      class="balance"
-    >
-      <ValueOrDash :value="balanceFormatted" />
-    </span>
   </div>
 </template>
 
@@ -69,5 +69,10 @@ const balanceFormatted = computed(() => {
     letter-spacing: 0em;
     color: #778294;
   }
+}
+
+.balance {
+  font-size: 14px;
+  font-weight: 600;
 }
 </style>

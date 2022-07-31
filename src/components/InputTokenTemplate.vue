@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   modelValue?: string | number
   inputDisabled?: boolean
   inputLoading?: boolean
@@ -10,7 +10,11 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue', 'click:max'])
 
-const model = useVModel(props, 'modelValue', emit)
+function onInput(e: Event) {
+  const value = (e.target as HTMLInputElement).value
+  const num = Number(value)
+  if (!Number.isNaN(num)) emit('update:modelValue', String(num))
+}
 </script>
 
 <template>
@@ -19,10 +23,11 @@ const model = useVModel(props, 'modelValue', emit)
       <div class="flex-1">
         <input
           v-bind="$attrs"
-          v-model="model"
+          :value="modelValue"
           :disabled="inputDisabled || inputLoading"
           :readonly="inputReadonly"
           placeholder="0"
+          @input="onInput"
         >
       </div>
 

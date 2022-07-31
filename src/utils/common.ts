@@ -66,6 +66,14 @@ export const JSON_SERIALIZER: Serializer<JsonValue> = {
   write: (parsed) => JSON.stringify(parsed),
 }
 
+export function nonNullSet<T>(values: (null | undefined | T)[]): Set<T> {
+  const set = new Set<T>()
+  for (const val of values) {
+    if (val !== null && val !== undefined) set.add(val)
+  }
+  return set
+}
+
 if (import.meta.vitest) {
   const { test, expect, describe } = import.meta.vitest
 
