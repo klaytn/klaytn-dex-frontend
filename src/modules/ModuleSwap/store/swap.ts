@@ -11,7 +11,6 @@ import { buildSwapProps, TokenAddrAndWeiInput } from '../util.swap-props'
 import { useExchangeRateInput, useInertExchangeRateInput } from '../../ModuleTradeShared/composable.exchange-rate-input'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
-import BN from 'bn.js'
 import { RouteName } from '@/types'
 
 const debugModule = Debug('swap-store')
@@ -21,6 +20,7 @@ type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { amountFor: TokenT
 function useSwap(input: Ref<null | NormalizedWeiInput>) {
   const kaikasStore = useKaikasStore()
   const tokensStore = useTokensStore()
+  const { notify } = useNotify()
 
   const [active, setActive] = useToggle(false)
 
@@ -66,7 +66,7 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
       wheneverFulfilled(swapState, () => {
         tokensStore.touchUserBalance()
       })
-      useNotifyOnError(swapState, 'Swap failed')
+      useNotifyOnError(swapState, notify, 'Swap failed')
 
       return {
         prepare,

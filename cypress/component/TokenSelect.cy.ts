@@ -2,7 +2,8 @@ import TokenSelectModal from '@/components/TokenSelect/Modal.vue'
 import { Address, Token, Wei } from '@/core/kaikas'
 import { WHITELIST_TOKENS } from '@/core/kaikas/const'
 import { TokenWithOptionBalance } from '@/store/tokens'
-import { MaybeRef, useCycleList } from '@vueuse/core'
+import { MaybeRef } from '@vueuse/core'
+import { TOASTS_API_KEY, defineToastsApi } from '@soramitsu-ui/ui'
 
 const testid = (id: string) => `[data-testid=${id}]`
 const TESTID_RECENT_TOKEN = testid('modal-recent-token')
@@ -53,6 +54,9 @@ describe('Token select modal', () => {
       {
         global: {
           stubs: { transition: false },
+          provide: {
+            [TOASTS_API_KEY as symbol]: defineToastsApi(),
+          },
         },
       },
     )

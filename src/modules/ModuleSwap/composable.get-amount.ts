@@ -36,6 +36,7 @@ async function getAmount(props: GetAmountProps & { kaikas: Kaikas }): Promise<We
 
 export function useGetAmount(props: Ref<null | GetAmountProps>) {
   const kaikasStore = useKaikasStore()
+  const { notify } = useNotify()
 
   const scope = useParamScope(
     computed(() => {
@@ -51,7 +52,7 @@ export function useGetAmount(props: Ref<null | GetAmountProps>) {
 
       const { set, state } = usePromise<Wei>()
       usePromiseLog(state, 'swap-get-amount')
-      useNotifyOnError(state, 'Failed to compute amount')
+      useNotifyOnError(state, notify, 'Failed to compute amount')
 
       function run() {
         set(getAmount({ ...actualProps, kaikas: kaikasStore.getKaikasAnyway() }))

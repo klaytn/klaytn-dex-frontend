@@ -13,6 +13,7 @@ export function useEnableState({
   active: Ref<boolean>
 }) {
   const kaikasStore = useKaikasStore()
+  const { notify } = useNotify()
 
   const checkAllowanceScope = useParamScope(
     computed(() => {
@@ -29,7 +30,7 @@ export function useEnableState({
         immediate: true,
       })
       usePromiseLog(state, 'allowance')
-      useNotifyOnError(state, 'Failed to get allowance')
+      useNotifyOnError(state, notify, 'Failed to get allowance')
       return { state, touch }
     },
   )
@@ -50,7 +51,7 @@ export function useEnableState({
     await kaikas.cfg.approveAmount(unref(addr), new Wei(MAX_UINT256), unref(contractAddr))
   })
   usePromiseLog(enableState, 'enable')
-  useNotifyOnError(enableState, 'Failed to set max possible allowance')
+  useNotifyOnError(enableState, notify, 'Failed to set max possible allowance')
   wheneverFulfilled(enableState, touchAllowance)
   const isEnablePending = toRef(enableState, 'pending')
 

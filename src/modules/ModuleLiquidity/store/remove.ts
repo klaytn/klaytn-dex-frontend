@@ -25,6 +25,7 @@ function usePrepareSupply(props: {
 }) {
   const kaikasStore = useKaikasStore()
   const tokensStore = useTokensStore()
+  const { notify } = useNotify()
 
   const [active, setActive] = useToggle(false)
 
@@ -63,7 +64,7 @@ function usePrepareSupply(props: {
       )
 
       usePromiseLog(prepareState, 'liquidity-remove-prepare-supply')
-      useNotifyOnError(prepareState, 'Supply preparation failed')
+      useNotifyOnError(prepareState, notify, 'Supply preparation failed')
 
       const { state: supplyState, run: supply } = useTask(async () => {
         const { send } = prepareState.fulfilled?.value ?? {}
@@ -72,7 +73,7 @@ function usePrepareSupply(props: {
       })
 
       usePromiseLog(supplyState, 'liquidity-remove-supply')
-      useNotifyOnError(supplyState, 'Supply failed')
+      useNotifyOnError(supplyState, notify, 'Supply failed')
       wheneverFulfilled(supplyState, () => {
         tokensStore.touchUserBalance()
       })
