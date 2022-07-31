@@ -78,7 +78,7 @@ function viewMore() {
 }
 
 const pools = computed<Pool[] | null>(() => {
-  if (rawPools.value === null || blockNumber.value === null || rewards.value === null || tokens.value === null) return null
+  if (!rawPools.value || blockNumber.value === null || !rewards.value || !tokens.value) return null
 
   let pools = [] as Pool[]
 
