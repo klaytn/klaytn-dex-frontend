@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { roundTo } from 'round-to'
 import { toRefs } from '@vueuse/core'
-import { LiquidityPairsPosition, LiquidityPairValueRaw } from '../query.liquidity-pairs'
+import { LiquidityPairsPosition } from '../query.liquidity-pairs'
 import BigNumber from 'bignumber.js'
 import { RouteName } from '@/types'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
+import { WeiAsToken } from '@/core/kaikas'
 
 const cssRowMd = cssRows.rowMd
 
@@ -21,11 +22,11 @@ const pairAddrs = computed(() => ({
   tokenB: token1.id,
 }))
 
-function formatValueRaw(value: LiquidityPairValueRaw) {
+function formatValueRaw(value: WeiAsToken) {
   return roundTo(Number(value), 5)
 }
 
-function formatPercent(v1: LiquidityPairValueRaw, v2: LiquidityPairValueRaw) {
+function formatPercent(v1: WeiAsToken, v2: WeiAsToken) {
   if (v1 === '0') return '0'
   const percent = new BigNumber(v1).dividedToIntegerBy(100)
   return `${new BigNumber(v2).dividedBy(percent).toFixed(2)}%`
