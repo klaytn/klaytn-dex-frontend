@@ -3,6 +3,7 @@ import { formatAddress } from '@/core/kaikas'
 import { type HeaderMenuItem, RouteName } from '@/types'
 import { storeToRefs } from 'pinia'
 import { KlayIconDexLogo, KlayIconWallet } from '~klay-icons'
+import { SToastsDisplay } from '@soramitsu-ui/ui'
 
 const { t } = useI18n()
 
@@ -46,8 +47,7 @@ onMounted(() => kaikasStore.connect())
 
 <template>
   <main class="layout">
-    <!-- <notifications /> -->
-    <header>
+    <header class="relative">
       <div class="col">
         <a href="#">
           <KlayIconDexLogo />
@@ -70,6 +70,15 @@ onMounted(() => kaikasStore.connect())
             {{ formattedAddress }}
           </span>
         </div>
+      </div>
+
+      <div class="toasts-mount absolute right-0 bottom-0 w-full">
+        <SToastsDisplay
+          :to="(null as any)"
+          absolute
+          vertical="top"
+          horizontal="right"
+        />
       </div>
     </header>
 
@@ -122,6 +131,15 @@ onMounted(() => kaikasStore.connect())
     & svg {
       margin-right: 8px;
     }
+  }
+}
+
+.toasts-mount {
+  pointer-events: none;
+  z-index: 9999;
+
+  & :deep(.s-toasts-display) {
+    padding: 0;
   }
 }
 </style>

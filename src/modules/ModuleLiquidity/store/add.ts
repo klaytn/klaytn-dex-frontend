@@ -6,7 +6,6 @@ import {
   usePairReserves,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
-import { Status } from '@soramitsu-ui/ui'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -77,6 +76,7 @@ function useQuoting(props: { pair: Ref<null | PairAddressResult>; input: Ref<nul
 function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSupply: () => void }) {
   const kaikasStore = useKaikasStore()
   const tokensStore = useTokensStore()
+  const { notify } = useNotify()
 
   const [active, setActive] = useToggle(false)
 
@@ -119,12 +119,12 @@ function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSup
 
       usePromiseLog(statePrepare, 'add-liquidity-prepare')
       usePromiseLog(stateSupply, 'add-liquidity-supply')
-      useNotifyOnError(statePrepare, 'Preparation failed')
-      useNotifyOnError(stateSupply, 'Liquidity addition failed')
+      useNotifyOnError(statePrepare, notify, 'Preparation failed')
+      useNotifyOnError(stateSupply, notify, 'Liquidity addition failed')
       wheneverFulfilled(stateSupply, () => {
         tokensStore.touchUserBalance()
         props.onSupply()
-        $notify({ status: Status.Success, description: 'Liquidity addition succeeded!' })
+        notify({ type: 'ok', description: 'Liquidity addition succeeded!' })
       })
 
       const fee = computed(() => statePrepare.fulfilled?.value.fee ?? null)
@@ -287,4 +287,4 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   }
 })
 
-if (import.meta.hot) import.meta.hot?.accept(acceptHMRUpdate(useLiquidityAddStore, import.meta.hot))
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useLiquidityAddStore, import.meta.hot))

@@ -1,16 +1,10 @@
 /* eslint-disable no-duplicate-imports */
 
 import type Caver from 'caver-js'
-import type { ShowNotificationParams, ShowNotificationReturn } from '@soramitsu-ui/ui'
 import { type Klaytn } from '@/core/kaikas'
 
 declare global {
   interface Window {
-    // extend the window
-    /**
-     * @deprecated
-     */
-    $notify: (params: ShowNotificationParams) => ShowNotificationReturn
     caver?: Caver
     klaytn?: Klaytn
   }

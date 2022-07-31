@@ -8,7 +8,6 @@ import { Ref } from 'vue'
 import { deepClone } from '@/utils/common'
 import { not, or } from '@vueuse/core'
 import { farmingFromWei, farmingToWei } from '../utils'
-import { Status } from '@soramitsu-ui/ui'
 import { useFetchFarmingRewards } from '../composable.fetch-rewards'
 import { useBlockNumber } from '@/modules/ModuleEarnShared/composable.block-number'
 import { useFarmingQuery } from '../query.farming'
@@ -55,6 +54,8 @@ function setupQueries({
   searchQuery: Ref<string>
   sorting: Ref<Sorting>
 }) {
+  const { notify } = useNotify()
+
   const blockNumber = useBlockNumber(kaikas)
   function updateBlockNumber(value: number) {
     blockNumber.value = value
@@ -223,7 +224,7 @@ function setupQueries({
   for (const [QueryName, Query] of Object.entries({ FarmingQuery, LiquidityPositionsQuery, PairsAndRewardTokenQuery })) {
     Query.onError((param) => {
       console.error('query error', param)
-      $notify({ status: Status.Error, description: `Apollo error (${QueryName}): ${String(param)}` })
+      notify({ type: 'err', description: `Apollo error (${QueryName}): ${String(param)}` })
     })
   }
 

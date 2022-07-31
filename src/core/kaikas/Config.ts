@@ -95,12 +95,9 @@ export default class Config {
     contractAddr = this.addrs.router,
   ): Promise<void> {
     const allowance = await this.getAllowanceWithContract(contract, contractAddr)
+    if (amount.asBigInt <= allowance.asBigInt) return
 
-    const nAmount = amount.asBN
-    const nAllowance = allowance.asBN
-    if (nAmount.lte(nAllowance)) return
-
-    const approveMethod = contract.methods.approve(this.addrs.router, nAmount)
+    const approveMethod = contract.methods.approve(contractAddr, amount.asStr)
 
     const gas = await approveMethod.estimateGas()
     await approveMethod.send({

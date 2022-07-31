@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { nonNullSet } from '@/utils/common'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 import { KlayIconPlus, KlayIconImportant } from '~klay-icons'
@@ -20,6 +21,8 @@ const models = reactive(
     }
   }),
 )
+
+const allSelectedTokens = computed(() => nonNullSet(Object.values(addrs.value)))
 </script>
 
 <template>
@@ -34,6 +37,7 @@ const models = reactive(
           v-model:token="models[type].addr"
           :is-loading="isQuotePendingFor === type"
           :estimated="inputRates[type]?.type === 'estimated'"
+          :selected="allSelectedTokens"
         />
         <div
           v-if="i === 0"

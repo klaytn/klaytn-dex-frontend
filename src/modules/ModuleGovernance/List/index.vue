@@ -33,14 +33,13 @@ const emptyText = computed(() => {
     return 'There are no proposals yet'
 })
 
-function setInitShowViewMore() {
-  const proposalsCount = (ProposalsQuery.result.value?.proposals.length ?? 0)
-  if (proposalsCount > 0 && proposalsCount < PAGE_SIZE)
-    showViewMore.value = false
+function setShowViewMore() {
+  if (!ProposalsQuery.result.value) return
+  showViewMore.value = ProposalsQuery.result.value.proposals.length === PAGE_SIZE * page.value
 }
-setInitShowViewMore()
+setShowViewMore()
 ProposalsQuery.onResult(() => {
-  setInitShowViewMore()
+  setShowViewMore()
 })
 
 if (ProposalsQuery.result.value)
@@ -78,7 +77,6 @@ function viewMore() {
     // Transform the previous result with new data
     updateQuery: (previousResult, { fetchMoreResult }) => {
       if (!fetchMoreResult) return previousResult
-      showViewMore.value = fetchMoreResult.proposals.length === PAGE_SIZE
       return {
         proposals: [...previousResult.proposals, ...fetchMoreResult.proposals],
       }
@@ -113,7 +111,7 @@ function viewMore() {
       </div>
     </template>
     <div
-      v-if="loading && !showViewMore"
+      v-if="loading && (!showViewMore || !proposals)"
       v-bem="'loader'"
     >
       <KlayLoader />

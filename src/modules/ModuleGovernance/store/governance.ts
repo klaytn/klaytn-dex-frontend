@@ -1,7 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { Sorting } from '../types'
 
-export const useGovernanceStore = defineStore('governance', () => {
+export const useGovernanceStore = defineStore('staking', () => {
   const onlyActive = ref(false)
   const searchQuery = ref('')
   const sorting = ref<Sorting>(Sorting.StartDay)

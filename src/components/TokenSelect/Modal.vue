@@ -1,32 +1,39 @@
 <script lang="ts" setup>
 import { Status, SModal } from '@soramitsu-ui/ui'
 import { isAddress, Token, Address } from '@/core/kaikas'
-import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
+import { TokenWithOptionBalance } from '@/store/tokens'
+import escapeStringRegex from 'escape-string-regexp'
 
 const props = defineProps<{
   open: boolean
-  selected: Address | null
+  selected: Set<Address> | null
+  tokens: TokenWithOptionBalance[]
+  isSmartContract: (addr: Address) => Promise<boolean>
+  getToken: (addr: Address) => Promise<Token>
+  lookupToken: (addr: Address) => null | Token
 }>()
 
-const emit = defineEmits(['select', 'update:open'])
-
+const emit = defineEmits(['select', 'update:open', 'import-token'])
 const openModel = useVModel(props, 'open', emit)
+const tokens = $toRef(props, 'tokens')
 
-const tokensStore = useTokensStore()
-const kaikasStore = useKaikasStore()
+function isSelected(addr: Address): boolean {
+  return props.selected?.has(addr) ?? false
+}
 
-const { tokensWithBalance: tokens } = $(storeToRefs(tokensStore))
+const { notify } = useNotify()
 
 let search = $ref('')
 
 const tokensFilteredBySearch = $computed(() => {
-  const value = search
-  const valueUpper = value.toUpperCase()
-  return tokens?.filter((token) => token.symbol.includes(valueUpper) || token.address === value) ?? []
+  const regex = new RegExp(escapeStringRegex(search), 'i')
+  return (
+    tokens?.filter((token) => regex.test(token.symbol) || regex.test(token.name) || regex.test(token.address)) ?? []
+  )
 })
 
-const recentTokens = $computed(() => tokensFilteredBySearch.slice(0, 6))
+const recentTokens = $computed(() => tokens.slice(0, 6))
 
 /**
  * it is ref, thus it is possible to reset it immediately,
@@ -35,7 +42,7 @@ const recentTokens = $computed(() => tokensFilteredBySearch.slice(0, 6))
 let searchAsAddress = $computed<null | Address>(() => (isAddress(search) ? search : null))
 
 const searchAsAddressSmartcontractCheckScope = useParamScope($$(searchAsAddress), (addr) => {
-  const { state } = useTask(() => kaikasStore.getKaikasAnyway().cfg.isSmartContract(addr), { immediate: true })
+  const { state } = useTask(() => props.isSmartContract(addr), { immediate: true })
   usePromiseLog(state, 'smartcontract-check-' + addr)
   return state
 })
@@ -44,11 +51,11 @@ const importLookupScope = useParamScope(
   computed(() => {
     const addr = searchAsAddress
     const addrSmartcontractCheckState = searchAsAddressSmartcontractCheckScope.value?.expose
-    if (addr && addrSmartcontractCheckState?.fulfilled?.value && !tokensStore.findTokenData(addr)) return addr
+    if (addr && addrSmartcontractCheckState?.fulfilled?.value && !props.lookupToken(addr)) return addr
     return null
   }),
   (addr) => {
-    const { state } = useTask(() => kaikasStore.getKaikasAnyway().tokens.getToken(addr), { immediate: true })
+    const { state } = useTask(() => props.getToken(addr), { immediate: true })
     usePromiseLog(state, 'import-lookup')
     return state
   },
@@ -79,9 +86,9 @@ function selectToken(token: Address) {
 
 function doImport() {
   invariant(tokenToImport)
-  tokensStore.importToken(tokenToImport)
+  emit('import-token', tokenToImport)
   resetSearch()
-  $notify({ status: Status.Success, description: 'Token added' })
+  notify({ type: 'ok', description: 'Token added' })
 }
 </script>
 
@@ -99,15 +106,17 @@ function doImport() {
             v-model="search"
             class="mx-[17px]"
             label="Search name or paste address"
+            data-testid="modal-search"
           />
 
           <div class="p-2 flex items-center flex-wrap">
             <TagName
               v-for="t in recentTokens"
               :key="t.address"
-              :disabled="t.address === selected"
+              :disabled="isSelected(t.address)"
               :label="t.symbol"
               class="m-2 cursor-pointer"
+              data-testid="modal-recent-token"
               @click="selectToken(t.address)"
             >
               <KlayCharAvatar :symbol="t.symbol" />
@@ -148,7 +157,7 @@ function doImport() {
 
                 <TokenSelectModalListItem
                   :token="token"
-                  :disabled="token.address === selected"
+                  :disabled="isSelected(token.address)"
                   :balance="token.balance"
                   class="py-2"
                   @click="selectToken(token.address)"
