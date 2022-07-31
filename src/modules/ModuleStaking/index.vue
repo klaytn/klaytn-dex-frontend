@@ -7,7 +7,7 @@ import { useTokensQuery } from './query.tokens'
 import { PAGE_SIZE, BLOCKS_PER_YEAR } from './const'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { useFetchStakingRewards } from './composable.fetch-rewards'
-import { Wei, WeiAsToken, WeiRaw } from '@/core/kaikas'
+import { Wei, WeiAsToken, WeiRaw, Address } from '@/core/kaikas'
 import { deepClone } from '@/utils/common'
 
 const kaikasStore = useKaikasStore()
@@ -34,10 +34,11 @@ const rawPoolIds = computed(() => {
 
 const stakeAndRewardTokenIds = computed(() => {
   if (!rawPools.value) return null
-  return Array.from(new Set([
-    ...rawPools.value.map(pool => pool.stakeToken.id),
-    ...rawPools.value.map(pool => pool.rewardToken.id),
-  ]))
+  return Array.from(new Set(rawPools.value.reduce((accumulator, pool) => {
+    accumulator.push(pool.stakeToken.id)
+    accumulator.push(pool.rewardToken.id)
+    return accumulator
+  }, [] as Address[])))
 })
 
 const TokensQuery = useTokensQuery(computed(() => stakeAndRewardTokenIds.value || []))
