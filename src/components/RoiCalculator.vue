@@ -275,7 +275,7 @@ const detailsDescription = computed(() => {
           :tabs="compoundingTabs"
           :disabled="!compoundingEnabled"
         />
-        <hr>
+        <hr class="klay-divider my-4">
         <span v-bem="'label'">
           Amount staked
         </span>
@@ -363,11 +363,6 @@ const detailsDescription = computed(() => {
 
 .roi-calculator
   width: 345px
-  hr
-    width: 100%
-    height: 1px
-    margin: 16px 0
-    background-color: $gray5
   &__content
     display: flex
     flex-direction: column
