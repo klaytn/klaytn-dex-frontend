@@ -1,4 +1,5 @@
 <script setup lang="ts" name="RoiCalculator">
+import { WeiAsToken } from '@/core/kaikas'
 import { KlayIconSwitch } from '~klay-icons'
 import { SModal } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
@@ -49,8 +50,8 @@ const props = defineProps<{
   type: RoiType
   apr: BigNumber
   lpApr?: BigNumber
-  staked: BigNumber
-  balance: BigNumber
+  staked: WeiAsToken
+  balance: WeiAsToken
   stakeTokenPrice: BigNumber
   stakeTokenDecimals: number
   rewardTokenDecimals: number
