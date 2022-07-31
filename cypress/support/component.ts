@@ -42,3 +42,5 @@ import 'uno.css'
 import '@/styles/soramitsu-ui.scss'
 import '@/styles/main.sass'
 import './component.scss'
+
+import '@/auto-imports.d'
