@@ -196,7 +196,7 @@ const detailsList = computed(() => {
     <KlayModalCard
       v-bem
       class="w-[420px]"
-      :title="t('RoiCalculator.title')"
+      :title="t('ModuleEarnSharedRoiCalculator.title')"
     >
       <div
         v-bem="'content'"
