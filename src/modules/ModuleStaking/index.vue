@@ -6,6 +6,7 @@ import { usePoolsQuery } from './query.pools'
 import { useTokensQuery } from './query.tokens'
 import { PAGE_SIZE, BLOCKS_PER_YEAR } from './const'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
+import { TokenPriceInUSD, AmountInUSD, PercentageRate } from '../ModuleEarnShared/types'
 import { useFetchStakingRewards } from './composable.fetch-rewards'
 import { Wei, WeiAsToken, WeiRaw, Address } from '@/core/kaikas'
 import { deepClone } from '@/utils/common'
@@ -91,7 +92,7 @@ const pools = computed<Pool[] | null>(() => {
     const earned = reward
       ? new BigNumber(
           reward.toToken(pool.rewardToken)
-        )
+        ) as WeiAsToken<BigNumber>
       : null
 
     if (earned === null) return
@@ -107,24 +108,24 @@ const pools = computed<Pool[] | null>(() => {
 
     const staked = new BigNumber(
       new Wei(pool.users[0]?.amount ?? '0').toToken(pool.stakeToken),
-    )
+    ) as WeiAsToken<BigNumber>
 
     const stakeTokenFromTokensQuery = tokens.value.find(token => token.id === pool.stakeToken.id)
     const rewardTokenFromTokensQuery = tokens.value.find(token => token.id === pool.rewardToken.id)
 
     if (!stakeTokenFromTokensQuery || !rewardTokenFromTokensQuery) return
     
-    const stakeTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD)
-    const rewardTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD)
+    const stakeTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
+    const rewardTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
 
     const totalTokensStaked = new BigNumber(
       new Wei(pool.totalTokensStaked).toToken(stakeToken)
-    )
-    const totalStaked = stakeTokenPrice.times(totalTokensStaked)
+    ) as WeiAsToken<BigNumber>
+    const totalStaked = stakeTokenPrice.times(totalTokensStaked) as AmountInUSD
 
     const rewardRate = new BigNumber(pool.rewardRate)
     const totalRewardPricePerYear = rewardRate.times(BLOCKS_PER_YEAR).times(rewardTokenPrice)
-    const annualPercentageRate = !totalStaked.isZero() ? totalRewardPricePerYear.div(totalStaked).times(100) : new BigNumber(0)
+    const annualPercentageRate = (!totalStaked.isZero() ? totalRewardPricePerYear.div(totalStaked).times(100) : new BigNumber(0)) as PercentageRate
 
     const createdAtBlock = Number(pool.createdAtBlock)
 

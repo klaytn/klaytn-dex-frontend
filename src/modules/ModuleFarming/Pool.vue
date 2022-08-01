@@ -288,7 +288,7 @@ function openRoiCalculator(event: Event, pool: Pool) {
     @unstaked="handleUnstaked"
   />
 
-  <RoiCalculator
+  <ModuleEarnSharedRoiCalculator
     v-if="roiPool"
     v-model:show="showRoiCalculator"
     :type="roiType"

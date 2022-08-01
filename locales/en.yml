@@ -49,7 +49,7 @@ ModuleStakingModal:
   stakeTitle: Stake in pool
   unstakeTitle: Unstake {symbol}
 
-RoiCalculator:
+ModuleEarnSharedRoiCalculator:
   title: ROI Calculator
 
 ModuleGovernanceWrap:

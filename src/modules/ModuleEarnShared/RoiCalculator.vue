@@ -4,43 +4,8 @@ import { KlayIconSwitch } from '~klay-icons'
 import { SModal } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
 import { RoiType, Tab } from '@/types'
-
-const Period = {
-  d1: '1D',
-  d7: '7D',
-  d14: '14D',
-  d30: '30D',
-  y1: '1Y',
-  y5: '5Y'
-} as const
-
-type Period = typeof Period[keyof typeof Period]
-
-const StakeTabs = {
-  d1: Period.d1,
-  d7: Period.d7,
-  d30: Period.d30,
-  y1: Period.y1,
-  y5: Period.y5
-} as const
-
-type StakeTabs = typeof StakeTabs[keyof typeof StakeTabs]
-
-const CompoundingTabs = {
-  d1: Period.d1,
-  d7: Period.d7,
-  d14: Period.d14,
-  d30: Period.d30
-} as const
-
-type CompoundingTabs = typeof CompoundingTabs[keyof typeof CompoundingTabs]
-
-const StakeUnits = {
-  tokens: 'tokens',
-  USD: 'USD',
-} as const
-
-type StakeUnits = typeof StakeUnits[keyof typeof StakeUnits]
+import { periodDays } from './const'
+import { Period, StakeTabs, CompoundingTabs, StakeUnits } from './types'
 
 const { t } = useI18n()
 const vBem = useBemClass()
@@ -50,8 +15,8 @@ const props = defineProps<{
   type: RoiType
   apr: BigNumber
   lpApr?: BigNumber
-  staked: WeiAsToken
-  balance: WeiAsToken
+  staked: WeiAsToken<BigNumber>
+  balance: WeiAsToken<BigNumber>
   stakeTokenPrice: BigNumber
   stakeTokenDecimals: number
   rewardTokenDecimals: number
@@ -111,14 +76,7 @@ const totalApr = computed(() => {
 })
 
 function getPeriodDays(period: Period): number {
-  return {
-    [Period.d1]: 1,
-    [Period.d7]: 7,
-    [Period.d14]: 14,
-    [Period.d30]: 30,
-    [Period.y1]: 365,
-    [Period.y5]: 365 * 5
-  }[period]
+  return periodDays[period]
 }
 
 const compoundsPerYear = computed(() => {

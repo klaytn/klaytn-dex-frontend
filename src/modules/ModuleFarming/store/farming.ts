@@ -10,6 +10,7 @@ import { not, or } from '@vueuse/core'
 import { farmingFromWei, farmingToWei } from '../utils'
 import { useFetchFarmingRewards } from '../composable.fetch-rewards'
 import { useBlockNumber } from '@/modules/ModuleEarnShared/composable.block-number'
+import { PercentageRate, TokenPriceInUSD } from '@/modules/ModuleEarnShared/types'
 import { useFarmingQuery } from '../query.farming'
 import { usePairsAndRewardTokenQuery } from '../query.pairs-and-reward-token'
 import { useLiquidityPositionsQuery } from '../query.liquidity-positions'
@@ -128,28 +129,28 @@ function setupQueries({
       const pair = pairs.value.find((pair) => pair.id === pool.pair) ?? null
 
       const reward = rewards.value[pool.id]
-      const earned = reward ? new BigNumber(farmingFromWei(reward)) : null
+      const earned = reward ? new BigNumber(farmingFromWei(reward)) as WeiAsToken<BigNumber> : null
 
       if (pair === null || earned === null) return
 
       const pairId = pair.id
       const name = pair.name
 
-      const staked = new BigNumber(farmingFromWei(new Wei(pool.users[0]?.amount ?? '0')))
+      const staked = new BigNumber(farmingFromWei(new Wei(pool.users[0]?.amount ?? '0'))) as WeiAsToken<BigNumber>
 
       const liquidityPosition = liquidityPositions.value?.find((position) => position.pair.id === pairId) ?? null
-      const balance = new BigNumber(liquidityPosition?.liquidityTokenBalance ?? 0)
+      const balance = new BigNumber(liquidityPosition?.liquidityTokenBalance ?? 0) as WeiAsToken<BigNumber>
 
       const reserveUSD = new BigNumber(pair.reserveUSD)
       const totalSupply = new BigNumber(pair.totalSupply)
       const totalTokensStaked = new BigNumber(farmingFromWei(new Wei(pool.totalTokensStaked)))
-      const stakeTokenPrice = reserveUSD.dividedBy(totalSupply)
-      const liquidity = reserveUSD.dividedBy(totalSupply).multipliedBy(totalTokensStaked)
+      const stakeTokenPrice = reserveUSD.dividedBy(totalSupply) as TokenPriceInUSD
+      const liquidity = reserveUSD.dividedBy(totalSupply).multipliedBy(totalTokensStaked) as WeiAsToken<BigNumber>
 
-      const annualPercentageRate = new BigNumber(0)
+      const annualPercentageRate = new BigNumber(0) as PercentageRate
     
       const totalLpRewardPricePerYear = new BigNumber(pair.dayData[0].volumeUSD).times(365)
-      const lpAnnualPercentageRate = !liquidity.isZero() ? totalLpRewardPricePerYear.div(liquidity).times(100) : new BigNumber(0)
+      const lpAnnualPercentageRate = (!liquidity.isZero() ? totalLpRewardPricePerYear.div(liquidity).times(100) : new BigNumber(0)) as PercentageRate
 
       const bonusEndBlock = Number(pool.bonusEndBlock)
       const allocPoint = new BigNumber(pool.allocPoint)
@@ -187,7 +188,7 @@ function setupQueries({
       const farmingRewardRate = new BigNumber(farmingFromWei(new Wei(farming.value.rewardRate)))
       const poolRewardRate = farmingRewardRate.times(pool.multiplier.div(sumOfMultipliers))
       const totalRewardPricePerYear = poolRewardRate.times(BLOCKS_PER_YEAR).times(rewardToken.value.derivedUSD)
-      const annualPercentageRate = !pool.liquidity.isZero() ? totalRewardPricePerYear.div(pool.liquidity).times(100) : new BigNumber(0)
+      const annualPercentageRate = (!pool.liquidity.isZero() ? totalRewardPricePerYear.div(pool.liquidity).times(100) : new BigNumber(0)) as PercentageRate
       return {
         ...pool,
         annualPercentageRate
