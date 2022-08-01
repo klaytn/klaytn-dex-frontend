@@ -1,4 +1,4 @@
-<script setup lang="ts" name="RoiCalculator">
+<script setup lang="ts" name="ModuleEarnSharedRoiCalculator">
 import { WeiAsToken } from '@/core/kaikas'
 import { KlayIconSwitch } from '~klay-icons'
 import { SModal } from '@soramitsu-ui/ui'
@@ -189,16 +189,6 @@ const detailsList = computed(() => {
       { label: 'APY', value: apy.value.toFixed(2) + '%' }
     ]
 })
-
-const detailsDescription = computed(() => {
-  if (type.value === RoiType.Farming)
-    return `— Calculated based on current rates.
-            — LP rewards: 0.17% trading fees, distributed proportionally among LP token holders.
-            — All figures are estimates provided for your convenience only, and by no means represent guaranteed returns.`
-  else
-    return `— Calculated based on current rates.
-            — All figures are estimates provided for your convenience only, and by no means represent guaranteed returns.`
-})
 </script>
 
 <template>
@@ -302,9 +292,17 @@ const detailsDescription = computed(() => {
               {{ item.value }}
             </div>
           </div>
-          <div v-bem="'details-description'">
-            {{ detailsDescription }}
-          </div>
+          <ul v-bem="'details-description'">
+            <template v-if="type === RoiType.Farming">
+              <li>— Calculated based on current rates.</li>
+              <li>— LP rewards: 0.17% trading fees, distributed proportionally among LP token holders.</li>
+              <li>— All figures are estimates provided for your convenience only, and by no means represent guaranteed returns.</li>
+            </template>
+            <template v-else>
+              <li>— Calculated based on current rates.</li>
+              <li>— All figures are estimates provided for your convenience only, and by no means represent guaranteed returns.</li>
+            </template>
+          </ul>
         </template>
       </KlayCollapse>
     </KlayModalCard>
@@ -314,7 +312,7 @@ const detailsDescription = computed(() => {
 <style lang="sass">
 @import '@/styles/vars.sass'
 
-.roi-calculator
+.module-earn-shared-roi-calculator
   width: 345px
   &__content
     display: flex
