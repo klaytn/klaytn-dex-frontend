@@ -3,8 +3,9 @@ import { WeiAsToken } from '@/core/kaikas'
 import { KlayIconSwitch } from '~klay-icons'
 import { SModal } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
-import { RoiType, Tab } from '@/types'
+import { RoiType } from '@/types'
 import { periodDays } from './const'
+import { makeTabsArray } from '@/utils/common'
 import { Period, StakeTabs, CompoundingTabs, StakeUnits } from './types'
 
 const { t } = useI18n()
@@ -38,13 +39,6 @@ const {
 const emit = defineEmits<(e: 'update:show', value: boolean) => void>()
 
 const showModel = useVModel(props, 'show', emit)
-
-function makeTabsArray(data: string[]): Tab[] {
-  return data.map(item => ({
-    id: item,
-    label: item
-  }))
-}
 
 const stakeTabs = readonly(makeTabsArray(Object.values(StakeTabs)))
 const compoundingTabs = readonly(makeTabsArray(Object.values(CompoundingTabs)))
