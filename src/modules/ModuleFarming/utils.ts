@@ -1,6 +1,6 @@
 import { Wei, WeiAsToken } from '@/core/kaikas'
 
-const CONSTANT_FARMING_DECIMALS = Object.freeze({ decimals: 18 })
+export const CONSTANT_FARMING_DECIMALS = Object.freeze({ decimals: 18 })
 
 export function farmingFromWei(wei: Wei): WeiAsToken {
   return wei.toToken(CONSTANT_FARMING_DECIMALS)

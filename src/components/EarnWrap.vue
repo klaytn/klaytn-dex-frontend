@@ -151,10 +151,6 @@ const menuActiveClass = 'earn-wrap__head-button--active'
         color: $dark
   &__staked-only
     margin-left: 32px
-    .s-switch__label
-      margin-left: 10px
-      font-weight: 700
-      font-size: 14px
   &__sorting
     margin-left: 8px
     &-label
