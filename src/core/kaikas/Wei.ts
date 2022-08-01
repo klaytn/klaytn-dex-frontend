@@ -9,7 +9,7 @@ export type WeiInputValue = number | string | BigNumber | BN | bigint
 /**
  * It is a number constructed from Wei using token decimals.
  */
-export type WeiAsToken = Opaque<string, 'TokenValue'>
+export type WeiAsToken<T extends BigNumber | string = string> = Opaque<T, 'TokenValue'>
 
 /**
  * Useful for typing in cases you need to mark value as wei
