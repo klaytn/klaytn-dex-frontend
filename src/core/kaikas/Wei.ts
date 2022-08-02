@@ -82,6 +82,8 @@ function setRepr(map: RepresentationMapNullable, value: WeiInputValue): void {
     map.bigint = BigInt(value)
   } else if (BigNumber.isBigNumber(value)) {
     map.BigNumber = value
+      // `BigNumber` could have decimal places, but `Wei` cannot
+      .decimalPlaces(0)
   } else {
     map.BN = value
   }

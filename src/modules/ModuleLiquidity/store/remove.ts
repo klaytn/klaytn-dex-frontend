@@ -128,7 +128,7 @@ function useRemoveAmounts(
       const lpTokenValue = liquidity.value
       if (!pairAddr || !lpTokenValue) return null
 
-      const key = `${pairAddr}-${lpTokenValue}`
+      const key = `${pairAddr}-${lpTokenValue.asStr}`
 
       return {
         key,
