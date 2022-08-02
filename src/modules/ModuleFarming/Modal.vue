@@ -1,5 +1,5 @@
 <script setup lang="ts" name="ModuleFarmingStakeModal">
-import { Status, SModal } from '@soramitsu-ui/ui'
+import { SModal } from '@soramitsu-ui/ui'
 import { ModalOperation, Pool } from './types'
 import { FARMING_CONTRACT_ADDRESS, FORMATTED_BIG_INT_DECIMALS } from './const'
 import BigNumber from 'bignumber.js'
@@ -11,6 +11,7 @@ import { or } from '@vueuse/core'
 import { WeiAsToken } from '@/core/kaikas'
 
 const kaikasStore = useKaikasStore()
+const { notify } = useNotify()
 
 const FarmingContract = computed(() =>
   kaikasStore.kaikas?.cfg.createContract<Farming>(FARMING_CONTRACT_ADDRESS, FARMING),
@@ -104,10 +105,10 @@ const { state: stakeState, run: stake } = useTask(async () => {
   return { amount }
 })
 wheneverFulfilled(stakeState, ({ amount }) => {
-  $notify({ status: Status.Success, description: `${amount} LP tokens were staked` })
+  notify({ type: 'ok', description: `${amount} LP tokens were staked` })
   emit('staked', amount)
 })
-useNotifyOnError(stakeState, 'Stake LP tokens error')
+useNotifyOnError(stakeState, notify, 'Stake LP tokens error')
 
 const { state: unstakeState, run: unstake } = useTask(async () => {
   const kaikas = kaikasStore.getKaikasAnyway()
@@ -129,10 +130,10 @@ const { state: unstakeState, run: unstake } = useTask(async () => {
   return { amount }
 })
 wheneverFulfilled(unstakeState, ({ amount }) => {
-  $notify({ status: Status.Success, description: `${amount} LP tokens were unstaked` })
+  notify({ type: 'ok', description: `${amount} LP tokens were unstaked` })
   emit('unstaked', amount)
 })
-useNotifyOnError(unstakeState, 'Unstake LP tokens error')
+useNotifyOnError(unstakeState, notify, 'Unstake LP tokens error')
 
 const loading = or(toRef(stakeState, 'pending'), toRef(unstakeState, 'pending'))
 

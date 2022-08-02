@@ -1,4 +1,5 @@
 import { Wei } from '@/core/kaikas'
+import { Tab } from '@/types'
 import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'
 import rfdc from 'rfdc'
@@ -101,4 +102,11 @@ if (import.meta.vitest) {
 export function shortenStringInTheMiddle(string: string) {
   const stringLength = string.length
   return `${string.slice(2, 6)}...${string.slice(stringLength - 6, stringLength - 2)}`
+}
+
+export function makeTabsArray(data: string[]): Tab[] {
+  return data.map((item) => ({
+    id: item,
+    label: item,
+  }))
 }

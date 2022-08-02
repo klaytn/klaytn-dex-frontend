@@ -56,6 +56,7 @@
     "@iconify-json/ic": "^1.1.7",
     "@iconify-json/material-symbols": "^1.1.12",
     "@intlify/vite-plugin-vue-i18n": "^4.0.0",
+    "@pinia/testing": "^0.0.13",
     "@types/debounce": "^1.2.1",
     "@types/dompurify": "^2.3.3",
     "@types/lodash": "^4.14.182",

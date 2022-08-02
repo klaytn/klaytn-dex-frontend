@@ -1,6 +1,5 @@
 <script setup lang="ts" name="ModuleFarmingPool">
-import { Status } from '@soramitsu-ui/ui'
-import { RouteName } from '@/types'
+import { RouteName, RoiType } from '@/types'
 import { FARMING } from '@/core/kaikas/smartcontracts/abi'
 import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS, FARMING_CONTRACT_ADDRESS } from './const'
@@ -8,8 +7,10 @@ import { Farming } from '@/types/typechain/farming'
 import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
+import { CONSTANT_FARMING_DECIMALS } from './utils'
 
 const kaikasStore = useKaikasStore()
+const { notify } = useNotify()
 const kaikas = kaikasStore.getKaikasAnyway()
 const FarmingContract = kaikas.cfg.createContract<Farming>(FARMING_CONTRACT_ADDRESS, FARMING)
 
@@ -28,6 +29,9 @@ const emit = defineEmits<{
 
 const expanded = ref(false)
 const modalOperation = ref<ModalOperation | null>(null)
+const showRoiCalculator = ref(false)
+const roiType = RoiType.Farming
+const roiPool = ref<Pool | null>(null)
 
 const modalOpen = computed({
   get() {
@@ -51,11 +55,11 @@ const formattedEarned = computed(() => {
 })
 
 const formattedAnnualPercentageRate = computed(() => {
-  return '%' + new BigNumber(pool.value.annualPercentageRate.toFixed(FORMATTED_BIG_INT_DECIMALS))
+  return '%' + new BigNumber(pool.value.annualPercentageRate.toFixed(2, BigNumber.ROUND_UP))
 })
 
 const formattedLiquidity = computed(() => {
-  return '$' + new BigNumber(pool.value.liquidity.toFixed(0))
+  return '$' + new BigNumber(pool.value.liquidity.toFixed(0, BigNumber.ROUND_UP))
 })
 
 const formattedMultiplier = computed(() => {
@@ -77,14 +81,13 @@ function goToLiquidityAddPage(pairId: Pool['pairId']) {
 
 const {
   pending: checkEnabledInProgress,
-  check: triggerCheckEnabled,
   enable,
   enabled,
-} = useEnableState(
-  computed(() => pool.value.pairId),
-  FARMING_CONTRACT_ADDRESS,
-)
-whenever(() => expanded.value && !enabled.value, triggerCheckEnabled)
+} = useEnableState({
+  addr: eagerComputed(() => pool.value.pairId),
+  contractAddr: FARMING_CONTRACT_ADDRESS,
+  active: expanded,
+})
 
 const loading = computed(() => {
   // FIXME include "enableTask" pending here too?
@@ -120,9 +123,9 @@ wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
     const { earned } = result.fulfilled.value
     emit('withdrawn')
-    $notify({ status: Status.Success, description: `${earned} DEX tokens were withdrawn` })
+    notify({ type: 'ok', description: `${earned} DEX tokens were withdrawn` })
   } else {
-    $notify({ status: Status.Error, description: 'Withdraw DEX tokens error' })
+    notify({ type: 'err', description: 'Withdraw DEX tokens error', error: result.rejected.reason })
   }
 })
 
@@ -138,6 +141,12 @@ function handleUnstaked(amount: string) {
 
 function handleModalClose() {
   modalOperation.value = null
+}
+
+function openRoiCalculator(event: Event, pool: Pool) {
+  event.stopPropagation()
+  showRoiCalculator.value = true
+  roiPool.value = pool
 }
 </script>
 
@@ -172,6 +181,7 @@ function handleModalClose() {
             <KlayIconCalculator
               v-if="label === 'annualPercentageRate'"
               v-bem="'stats-item-calculator'"
+              @click="openRoiCalculator($event, pool)"
             />
           </div>
         </div>
@@ -276,6 +286,21 @@ function handleModalClose() {
     @update:mode="handleModalClose"
     @staked="handleStaked"
     @unstaked="handleUnstaked"
+  />
+
+  <ModuleEarnSharedRoiCalculator
+    v-if="roiPool"
+    v-model:show="showRoiCalculator"
+    :type="roiType"
+    :balance="roiPool.balance"
+    :staked="roiPool.staked"
+    :apr="roiPool.annualPercentageRate"
+    :lp-apr="roiPool.lpAnnualPercentageRate"
+    :stake-token-price="roiPool.stakeTokenPrice"
+    :stake-token-decimals="CONSTANT_FARMING_DECIMALS.decimals"
+    :reward-token-decimals="CONSTANT_FARMING_DECIMALS.decimals"
+    :stake-token-symbol="pool.name"
+    reward-token-symbol="DEX"
   />
 </template>
 

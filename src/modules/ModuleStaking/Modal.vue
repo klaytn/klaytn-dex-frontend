@@ -10,6 +10,7 @@ import { Wei, WeiAsToken } from '@/core/kaikas'
 
 const kaikasStore = useKaikasStore()
 const kaikas = kaikasStore.getKaikasAnyway()
+const { notify } = useNotify()
 
 const vBem = useBemClass()
 const { t } = useI18n()
@@ -17,9 +18,10 @@ const { t } = useI18n()
 const props = defineProps<{
   modelValue: boolean
   pool: Pool
+  balance: BigNumber
   operation: ModalOperation
 }>()
-const { pool, operation } = toRefs(props)
+const { pool, balance, operation } = toRefs(props)
 const emit = defineEmits<{
   (event: 'update:modelValue', value: boolean): void
   (e: 'staked' | 'unstaked', value: string): void
@@ -33,23 +35,6 @@ const value = ref<WeiAsToken>('0' as WeiAsToken)
 
 watch(model, () => {
   value.value = '0' as WeiAsToken
-})
-
-const balanceScope = useParamScope(model, () => {
-  const { state } = useTask(
-    async () => {
-      const token = pool.value.stakeToken
-      const balance = await kaikas.tokens.getTokenBalanceOfUser(token.id)
-      return new BigNumber(balance.toToken(token))
-    },
-    { immediate: true },
-  )
-  usePromiseLog(state, 'get-balance')
-
-  return state
-})
-const balance = computed(() => {
-  return balanceScope.value?.expose?.fulfilled?.value ?? null
 })
 
 const formattedStaked = computed(() => {
@@ -118,10 +103,10 @@ usePromiseLog(stakeState, 'stake')
 wheneverDone(stakeState, (result) => {
   if (result.fulfilled) {
     const { amount } = result.fulfilled.value
-    $notify({ status: Status.Success, description: `${amount} ${pool.value.stakeToken.symbol} tokens were staked` })
+    notify({ type: 'ok', description: `${amount} ${pool.value.stakeToken.symbol} tokens were staked` })
     emit('staked', amount)
   } else {
-    $notify({ status: Status.Error, description: `Stake ${pool.value.stakeToken.symbol} tokens error` })
+    notify({ type: 'err', description: `Stake ${pool.value.stakeToken.symbol} tokens error` })
   }
 })
 
@@ -145,10 +130,14 @@ usePromiseLog(unstakeState, 'stake')
 wheneverDone(unstakeState, (result) => {
   if (result.fulfilled) {
     const { amount } = result.fulfilled.value
-    $notify({ status: Status.Success, description: `${amount} ${pool.value.stakeToken.symbol} tokens were unstaked` })
+    notify({ type: 'ok', description: `${amount} ${pool.value.stakeToken.symbol} tokens were unstaked` })
     emit('unstaked', amount)
   } else {
-    $notify({ status: Status.Error, description: `Unstake ${pool.value.stakeToken.symbol} tokens error` })
+    notify({
+      type: 'err',
+      description: `Unstake ${pool.value.stakeToken.symbol} tokens error`,
+      error: result.rejected.reason,
+    })
   }
 })
 

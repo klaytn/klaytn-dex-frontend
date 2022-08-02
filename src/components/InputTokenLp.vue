@@ -12,15 +12,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:liquidityRaw', 'click:max'])
 
-const model = computed({
-  get: () => {
-    const value = props.liquidityRaw
-    if (!value) return ''
-    return String(roundTo(Number(value), 5))
-  },
-  set: (v) => emit('update:liquidityRaw', v),
-})
-
+const model = useVModel(props, 'liquidityRaw', emit)
 const modelDebounced = ref(model.value)
 syncRef(model, modelDebounced, { direction: 'ltr' })
 watchDebounced(

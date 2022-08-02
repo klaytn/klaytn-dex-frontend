@@ -1,6 +1,6 @@
-import { Status } from '@soramitsu-ui/ui'
 import Debug from 'debug'
 import { PromiseStateAtomic } from '@vue-kakuyaku/core'
+import { NotifyFn } from '@/plugins/notifications'
 
 interface PromiseStateBoolInvariantPending {
   pending: true
@@ -51,9 +51,9 @@ export function usePromiseLog(state: PromiseStateAtomic<unknown>, name: string) 
   )
 }
 
-export function useNotifyOnError(state: PromiseStateAtomic<unknown>, message: string) {
-  wheneverRejected(state, () => {
-    $notify({ status: Status.Error, description: message })
+export function useNotifyOnError(state: PromiseStateAtomic<unknown>, notify: NotifyFn, message?: string) {
+  wheneverRejected(state, (error) => {
+    notify({ type: 'err', title: message, error })
   })
 }
 

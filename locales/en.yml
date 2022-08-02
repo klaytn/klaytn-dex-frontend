@@ -49,6 +49,9 @@ ModuleStakingModal:
   stakeTitle: Stake in pool
   unstakeTitle: Unstake {symbol}
 
+ModuleEarnSharedRoiCalculator:
+  title: ROI Calculator
+
 ModuleGovernanceWrap:
   onlyActive: Only active
   sorting:
