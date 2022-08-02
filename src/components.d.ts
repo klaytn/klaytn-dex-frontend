@@ -5,8 +5,6 @@ import '@vue/runtime-core'
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
-    BignumberInput: typeof import('./components/BignumberInput.vue')['default']
-    BigNumberInput: typeof import('./components/BigNumberInput.vue')['default']
     EarnWrap: typeof import('./components/EarnWrap.vue')['default']
     HeaderMenu: typeof import('./components/HeaderMenu.vue')['default']
     InputToken: typeof import('./components/InputToken.vue')['default']
@@ -69,7 +67,7 @@ declare module '@vue/runtime-core' {
     ModuleSwapModalConfirmDetails: typeof import('./modules/ModuleSwap/ModalConfirmDetails.vue')['default']
     ModuleSwapModalConfirmTokens: typeof import('./modules/ModuleSwap/ModalConfirmTokens.vue')['default']
     'ModuleTradeSharedSlippage.todo': typeof import('./modules/ModuleTradeShared/Slippage.todo.vue')['default']
-    NumberInput: typeof import('./components/NumberInput.vue')['default']
+    NumberInput: typeof import('./components/BignumberInput.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     RowsRates: typeof import('./components/RowsRates.vue')['default']
