@@ -6,7 +6,7 @@ import BigNumber from 'bignumber.js'
 import { RoiType } from '@/types'
 import { periodDays } from './const'
 import { makeTabsArray } from '@/utils/common'
-import { Period, StakeTabs, CompoundingTabs, StakeUnits } from './types'
+import { StakeTabs, CompoundingTabs, StakeUnits } from './types'
 
 const { t } = useI18n()
 const vBem = useBemClass()
@@ -51,9 +51,9 @@ const stakeValueRaw = ref('$0')
 const parsedStakeValue = ref(new BigNumber(0))
 const stakeUnits = ref<StakeUnits>(StakeUnits.USD)
 
-function setStakeValueInUSD(amount: number) {
+function setStakeValueInUSD(amount: BigNumber | number) {
   if (stakeUnits.value === StakeUnits.USD)
-    updateStakeValueRaw(String(amount))
+    updateStakeValueRaw(amount.toFixed(stakeTokenDecimals.value))
   else
     updateStakeValueRaw(new BigNumber(new BigNumber(amount).div(stakeTokenPrice.value).toFixed(stakeTokenDecimals.value)).toString())
 }
@@ -69,12 +69,8 @@ const totalApr = computed(() => {
   return apr.value.plus(lpApr?.value ? lpApr.value : 0)
 })
 
-function getPeriodDays(period: Period): number {
-  return periodDays[period]
-}
-
 const compoundsPerYear = computed(() => {
-  return Math.floor(365 / getPeriodDays(compoundingEvery.value))
+  return Math.floor(365 / periodDays[compoundingEvery.value])
 })
 
 const apy = computed(() => {
@@ -143,7 +139,7 @@ const formattedStakeValueInAnotherUnits = computed(() => {
 })
 
 const receiveValue = computed(() => {
-  return apy.value.div(100).times(parsedStakeValue.value)
+  return apy.value.div(100).times(parsedStakeValue.value).times(periodDays[stakeFor.value] / 365)
 })
 
 const formattedReceiveValue = computed(() => {
@@ -154,7 +150,7 @@ const formattedReceiveValue = computed(() => {
 })
 
 const receiveValueInAnotherUnits = computed(() => {
-  return apy.value.div(100).times(stakeValueInAnotherUnits.value)
+  return apy.value.div(100).times(stakeValueInAnotherUnits.value).times(periodDays[stakeFor.value] / 365)
 })
 
 const formattedReceiveValueInAnotherUnits = computed(() => {
@@ -172,9 +168,11 @@ function switchUnits() {
 
 watch(showModel, (value) => {
   if (value) {
-    updateStakeValueRaw(staked.value.toString())
+    nextTick(() => {
+      setStakeValueInUSD(staked.value)
+    })
   }
-})
+}, { immediate: true })
 
 const detailsList = computed(() => {
   if (type.value === RoiType.Farming)
