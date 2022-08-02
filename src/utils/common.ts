@@ -105,8 +105,8 @@ export function shortenStringInTheMiddle(string: string) {
 }
 
 export function makeTabsArray(data: string[]): Tab[] {
-  return data.map(item => ({
+  return data.map((item) => ({
     id: item,
-    label: item
+    label: item,
   }))
 }

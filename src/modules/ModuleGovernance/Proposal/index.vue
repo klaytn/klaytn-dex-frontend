@@ -8,8 +8,7 @@ const route = useRoute()
 
 const proposalId = route.params.id
 
-if (typeof proposalId !== 'string')
-  throw new Error('Wrong id parameter')
+if (typeof proposalId !== 'string') throw new Error('Wrong id parameter')
 
 const ProposalQuery = useProposalQuery(computed(() => proposalId))
 const rawProposal = computed(() => {
@@ -32,7 +31,7 @@ const proposal = computed<Proposal | null>(() => {
     scoresTotal: scores_total,
     body,
     author,
-    snapshot
+    snapshot,
   }
 })
 
