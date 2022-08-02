@@ -6,7 +6,14 @@ const props = defineProps<{
   positions: LiquidityPairsPosition[]
 }>()
 
-const filtered = computed(() => props.positions.filter((x) => new BigNumber(x.liquidityTokenBalance).isGreaterThan(0)))
+const filtered = computed(() =>
+  props.positions.filter(
+    (x) =>
+      new BigNumber(x.liquidityTokenBalance).isGreaterThan(0) &&
+      new BigNumber(x.pair.reserve0).isGreaterThan(0) &&
+      new BigNumber(x.pair.reserve1).isGreaterThan(0),
+  ),
+)
 </script>
 
 <template>
