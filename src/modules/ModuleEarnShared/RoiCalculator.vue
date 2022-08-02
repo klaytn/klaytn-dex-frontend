@@ -229,15 +229,15 @@ const detailsList = computed(() => {
             :model-value="stakeValueRaw"
             @update:model-value="(value: string) => updateStakeValueRaw(value, true)"
           />
-          <KlayIconSwitch
-            v-bem="'input-switch'"
-            @click="switchUnits"
-          />
           <div
             v-bem="'input-another-units'"
           >
             {{ formattedStakeValueInAnotherUnits }}
           </div>
+          <KlayIconSwitch
+            v-bem="'input-switch'"
+            @click="switchUnits"
+          />
         </div>
         <div v-bem="'amounts'">
           <KlayButton
@@ -349,6 +349,7 @@ const detailsList = computed(() => {
       line-height: 22px
       font-weight: 400
       color: $gray2
+      user-select: none
   &__amounts
     margin: 8px 0 24px
   &__amount
