@@ -125,6 +125,23 @@ test('Constructing Wei from "0b" number', () => {
   expect(wei.asStr).toEqual((0b111010).toString())
 })
 
+describe('BigNumber with decimal points', () => {
+  const INPUT = new BigNumber('107379045131102303.26')
+
+  test('When input BigNumber has decimal points, they are omitted', () => {
+    const wei = new Wei(INPUT)
+
+    expect(wei.asBigInt).toBe(107379045131102303n)
+    expect(wei.asBigNum.toFixed()).toBe('107379045131102303')
+  })
+
+  test('When input BigNumber has decimal points, `Wei.asBigInt` does not fail', () => {
+    const wei = new Wei(INPUT)
+
+    expect(() => wei.asBigInt).not.toThrow()
+  })
+})
+
 // type tests
 
 type OnlyWei<T extends Wei> = T

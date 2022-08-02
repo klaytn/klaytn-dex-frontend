@@ -128,7 +128,7 @@ function useRemoveAmounts(
       const lpTokenValue = liquidity.value
       if (!pairAddr || !lpTokenValue) return null
 
-      const key = `${pairAddr}-${lpTokenValue}`
+      const key = `${pairAddr}-${lpTokenValue.asStr}`
 
       return {
         key,
@@ -240,7 +240,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
       if (rel === null) return
       const total = pairUserBalance.value
       if (!total) return
-      liquidity.value = new Wei(total.asBigNum.multipliedBy(rel))
+      liquidity.value = new Wei(total.asBigNum.multipliedBy(rel).decimalPlaces(0))
     },
   })
 
