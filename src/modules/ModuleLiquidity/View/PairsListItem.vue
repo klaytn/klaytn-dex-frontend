@@ -26,11 +26,10 @@ function formatValueRaw(value: WeiAsToken) {
   return roundTo(Number(value), 5)
 }
 
-function formatPercent(v1: WeiAsToken, v2: WeiAsToken) {
-  if (v1 === '0') return '0'
-  const percent = new BigNumber(v1).dividedToIntegerBy(100)
-  return `${new BigNumber(v2).dividedBy(percent).toFixed(2)}%`
-}
+const formattedPoolShare = useFormattedPercent(
+  computed(() => new BigNumber(liquidityTokenBalance).dividedBy(totalSupply).toNumber()),
+  7,
+)
 
 const router = useRouter()
 const addLiquidityStore = useLiquidityAddStore()
@@ -85,7 +84,7 @@ function goToRemoveLiquidity() {
         <div :class="cssRowMd">
           <span>Your pool share:</span>
           <span>
-            {{ formatPercent(reserveKLAY, liquidityTokenBalance) }}
+            {{ formattedPoolShare }}
           </span>
         </div>
 
