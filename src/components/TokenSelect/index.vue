@@ -51,6 +51,7 @@ function lookupToken(addr: Address) {
     v-if="!token"
     type="primary"
     icon-position="right"
+    v-bind="$attrs"
     @click="isModalOpen = true"
   >
     Select Token
@@ -62,6 +63,7 @@ function lookupToken(addr: Address) {
 
   <KlayButton
     v-else
+    v-bind="$attrs"
     @click="isModalOpen = true"
   >
     <div
