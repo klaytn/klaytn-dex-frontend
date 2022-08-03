@@ -92,6 +92,7 @@ function setToMax() {
       <TokenSelect
         v-model:token="tokenModel"
         v-bind="{ selected }"
+        data-testid="token-select"
       />
     </template>
 

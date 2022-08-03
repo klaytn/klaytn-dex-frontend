@@ -41,6 +41,7 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(swapStore.addr
           :is-loading="gettingAmountFor === type"
           :estimated="inputRates[type]?.type === 'estimated'"
           :selected="allSelectedTokens"
+          :data-testid="`swap-input-${type}`"
         />
 
         <div
