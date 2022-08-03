@@ -5,8 +5,6 @@ import '@vue/runtime-core'
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
-    BignumberInput: typeof import('./components/BignumberInput.vue')['default']
-    BigNumberInput: typeof import('./components/BigNumberInput.vue')['default']
     EarnWrap: typeof import('./components/EarnWrap.vue')['default']
     HeaderMenu: typeof import('./components/HeaderMenu.vue')['default']
     InputToken: typeof import('./components/InputToken.vue')['default']
