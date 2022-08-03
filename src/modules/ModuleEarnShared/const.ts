@@ -28,6 +28,5 @@ export const periodDays = {
   [Period.d14]: 14,
   [Period.d30]: 30,
   [Period.y1]: 365,
-  [Period.y5]: 365 * 5
+  [Period.y5]: 365 * 5,
 }
-

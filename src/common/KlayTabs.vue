@@ -5,13 +5,13 @@ const vBem = useBemClass()
 
 const props = withDefaults(
   defineProps<{
-    modelValue: Tab['id'],
+    modelValue: Tab['id']
     tabs: Tab[]
     disabled?: boolean
   }>(),
   {
-    disabled: false
-  }
+    disabled: false,
+  },
 )
 const { tabs } = toRefs(props)
 const emit = defineEmits(['update:modelValue'])

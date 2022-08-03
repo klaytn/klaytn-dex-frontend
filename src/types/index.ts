@@ -42,6 +42,6 @@ export const RoiType = {
 export type RoiType = typeof RoiType[keyof typeof RoiType]
 
 export interface Tab {
-  id: string,
+  id: string
   label: string
 }
