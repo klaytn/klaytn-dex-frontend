@@ -34,7 +34,7 @@ const {
   stakeTokenDecimals,
   rewardTokenDecimals,
   stakeTokenSymbol,
-  rewardTokenSymbol
+  rewardTokenSymbol,
 } = toRefs(props)
 const emit = defineEmits<(e: 'update:show', value: boolean) => void>()
 
@@ -52,17 +52,17 @@ const parsedStakeValue = ref(new BigNumber(0))
 const stakeUnits = ref<StakeUnits>(StakeUnits.USD)
 
 function setStakeValueInUSD(amount: number) {
-  if (stakeUnits.value === StakeUnits.USD)
-    updateStakeValueRaw(String(amount))
+  if (stakeUnits.value === StakeUnits.USD) updateStakeValueRaw(String(amount))
   else
-    updateStakeValueRaw(new BigNumber(new BigNumber(amount).div(stakeTokenPrice.value).toFixed(stakeTokenDecimals.value)).toString())
+    updateStakeValueRaw(
+      new BigNumber(new BigNumber(amount).div(stakeTokenPrice.value).toFixed(stakeTokenDecimals.value)).toString(),
+    )
 }
 
 function setStakeValueWithBalance() {
   if (stakeUnits.value === StakeUnits.USD)
     updateStakeValueRaw(new BigNumber(balance.value.times(stakeTokenPrice.value).toFixed(2)).toString())
-  else
-    updateStakeValueRaw( balance.value.toString())
+  else updateStakeValueRaw(balance.value.toString())
 }
 
 const totalApr = computed(() => {
@@ -83,7 +83,7 @@ const apy = computed(() => {
 })
 
 function numberWithCommas(value: string | number | BigNumber) {
-  return value.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")
+  return value.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ',')
 }
 
 function updateStakeValueRaw(value: string, handleCursor = false) {
@@ -91,7 +91,9 @@ function updateStakeValueRaw(value: string, handleCursor = false) {
   const input = stakeValueInputWrapper.value.getElementsByTagName('input')[0]
   const cursor = input.selectionStart ?? 0
   const digitsAndDotRegex = /^[\d\.]$/i
-  const digitsAndDotBeforeCursor = Array.from(value.slice(0, cursor)).filter(char => digitsAndDotRegex.test(char)).join('')
+  const digitsAndDotBeforeCursor = Array.from(value.slice(0, cursor))
+    .filter((char) => digitsAndDotRegex.test(char))
+    .join('')
   const formattedValue = value.replaceAll(',', '').replace('$', '').replace(stakeTokenSymbol.value, '').trim()
   const parsed = new BigNumber(formattedValue !== '' ? formattedValue : 0)
 
@@ -100,20 +102,19 @@ function updateStakeValueRaw(value: string, handleCursor = false) {
   const parsedString = parsed.toFixed(stakeTokenDecimals.value).replace(/\.?0*$/g, '')
   const formattedParsedString = numberWithCommas(parsedString) + (value.at(-1) === '.' ? '.' : '')
   let formattedParsedStringWithUnits
-  if (stakeUnits.value === StakeUnits.USD)
-    formattedParsedStringWithUnits = '$' + formattedParsedString
-  else
-    formattedParsedStringWithUnits = formattedParsedString + ' ' + stakeTokenSymbol.value
+  if (stakeUnits.value === StakeUnits.USD) formattedParsedStringWithUnits = '$' + formattedParsedString
+  else formattedParsedStringWithUnits = formattedParsedString + ' ' + stakeTokenSymbol.value
 
   parsedStakeValue.value = parsed
-  if (stakeValueRaw.value !== formattedParsedStringWithUnits)
-    stakeValueRaw.value = formattedParsedStringWithUnits
+  if (stakeValueRaw.value !== formattedParsedStringWithUnits) stakeValueRaw.value = formattedParsedStringWithUnits
 
   const index = Array.from(stakeValueRaw.value).findIndex((char, index) => {
-    const digitsAndDotBefore = Array.from(stakeValueRaw.value.slice(0, index + 1)).filter(char => digitsAndDotRegex.test(char)).join('')
+    const digitsAndDotBefore = Array.from(stakeValueRaw.value.slice(0, index + 1))
+      .filter((char) => digitsAndDotRegex.test(char))
+      .join('')
     return digitsAndDotBefore === digitsAndDotBeforeCursor
   })
-  let newCursor = index !== -1 ? (index + 1) : cursor
+  let newCursor = index !== -1 ? index + 1 : cursor
   if (stakeValueRaw.value.slice(newCursor) === '0') newCursor++
   nextTick(() => {
     if (handleCursor) input.setSelectionRange(newCursor, newCursor)
@@ -129,17 +130,14 @@ function formatTokens(amount: BigNumber, decimals: number, symbol: string) {
 }
 
 const stakeValueInAnotherUnits = computed(() => {
-  if (stakeUnits.value === StakeUnits.USD)
-    return parsedStakeValue.value.div(stakeTokenPrice.value)
-  else
-    return parsedStakeValue.value.times(stakeTokenPrice.value)
+  if (stakeUnits.value === StakeUnits.USD) return parsedStakeValue.value.div(stakeTokenPrice.value)
+  else return parsedStakeValue.value.times(stakeTokenPrice.value)
 })
 
 const formattedStakeValueInAnotherUnits = computed(() => {
   if (stakeUnits.value === StakeUnits.USD)
     return formatTokens(stakeValueInAnotherUnits.value, stakeTokenDecimals.value, stakeTokenSymbol.value)
-  else
-    return formatUSD(stakeValueInAnotherUnits.value)
+  else return formatUSD(stakeValueInAnotherUnits.value)
 })
 
 const receiveValue = computed(() => {
@@ -147,10 +145,8 @@ const receiveValue = computed(() => {
 })
 
 const formattedReceiveValue = computed(() => {
-  if (stakeUnits.value === StakeUnits.USD)
-    return formatUSD(receiveValue.value)
-  else
-    return formatTokens(receiveValue.value, rewardTokenDecimals.value, rewardTokenSymbol.value)
+  if (stakeUnits.value === StakeUnits.USD) return formatUSD(receiveValue.value)
+  else return formatTokens(receiveValue.value, rewardTokenDecimals.value, rewardTokenSymbol.value)
 })
 
 const receiveValueInAnotherUnits = computed(() => {
@@ -160,12 +156,13 @@ const receiveValueInAnotherUnits = computed(() => {
 const formattedReceiveValueInAnotherUnits = computed(() => {
   if (stakeUnits.value === StakeUnits.USD)
     return formatTokens(receiveValueInAnotherUnits.value, rewardTokenDecimals.value, rewardTokenSymbol.value)
-  else
-    return formatUSD(receiveValueInAnotherUnits.value)
+  else return formatUSD(receiveValueInAnotherUnits.value)
 })
 
 function switchUnits() {
-  const newStakeValue = stakeValueInAnotherUnits.value.toFixed(stakeUnits.value === StakeUnits.USD ? stakeTokenDecimals.value : 2)
+  const newStakeValue = stakeValueInAnotherUnits.value.toFixed(
+    stakeUnits.value === StakeUnits.USD ? stakeTokenDecimals.value : 2,
+  )
   stakeUnits.value = stakeUnits.value === StakeUnits.USD ? StakeUnits.tokens : StakeUnits.USD
   updateStakeValueRaw(newStakeValue)
 }
@@ -181,12 +178,12 @@ const detailsList = computed(() => {
     return [
       { label: 'APR (incl. LP rewards)', value: totalApr.value.toFixed(2) + '%' },
       { label: 'Base APR (DEX-Tokens yield only)', value: apr.value.toFixed(2) + '%' },
-      { label: 'APY', value: apy.value.toFixed(2) + '%' }
+      { label: 'APY', value: apy.value.toFixed(2) + '%' },
     ]
   else
     return [
       { label: 'APR', value: apr.value.toFixed(2) + '%' },
-      { label: 'APY', value: apy.value.toFixed(2) + '%' }
+      { label: 'APY', value: apy.value.toFixed(2) + '%' },
     ]
 })
 </script>
@@ -198,12 +195,8 @@ const detailsList = computed(() => {
       class="w-[420px]"
       :title="t('ModuleEarnSharedRoiCalculator.title')"
     >
-      <div
-        v-bem="'content'"
-      >
-        <span v-bem="'label'">
-          Staked for
-        </span>
+      <div v-bem="'content'">
+        <span v-bem="'label'"> Staked for </span>
         <KlayTabs
           v-model="stakeFor"
           :tabs="stakeTabs"
@@ -219,9 +212,7 @@ const detailsList = computed(() => {
           :disabled="!compoundingEnabled"
         />
         <hr class="klay-divider my-4">
-        <span v-bem="'label'">
-          Amount staked
-        </span>
+        <span v-bem="'label'"> Amount staked </span>
         <div
           ref="stakeValueInputWrapper"
           v-bem="'input-wrapper'"
@@ -235,9 +226,7 @@ const detailsList = computed(() => {
             v-bem="'input-switch'"
             @click="switchUnits"
           />
-          <div
-            v-bem="'input-another-units'"
-          >
+          <div v-bem="'input-another-units'">
             {{ formattedStakeValueInAnotherUnits }}
           </div>
         </div>
@@ -259,18 +248,14 @@ const detailsList = computed(() => {
             My balance
           </KlayButton>
         </div>
-        <span v-bem="'label'">
-          You will receive (APY = {{ apy.toFixed(2) }}%)
-        </span>
+        <span v-bem="'label'"> You will receive (APY = {{ apy.toFixed(2) }}%) </span>
         <div v-bem="'input-wrapper'">
           <KlayTextField
             v-model="formattedReceiveValue"
             v-bem="'input'"
             :disabled="true"
           />
-          <div
-            v-bem="'input-another-units'"
-          >
+          <div v-bem="'input-another-units'">
             {{ formattedReceiveValueInAnotherUnits }}
           </div>
         </div>
@@ -296,11 +281,17 @@ const detailsList = computed(() => {
             <template v-if="type === RoiType.Farming">
               <li>— Calculated based on current rates.</li>
               <li>— LP rewards: 0.17% trading fees, distributed proportionally among LP token holders.</li>
-              <li>— All figures are estimates provided for your convenience only, and by no means represent guaranteed returns.</li>
+              <li>
+                — All figures are estimates provided for your convenience only, and by no means represent guaranteed
+                returns.
+              </li>
             </template>
             <template v-else>
               <li>— Calculated based on current rates.</li>
-              <li>— All figures are estimates provided for your convenience only, and by no means represent guaranteed returns.</li>
+              <li>
+                — All figures are estimates provided for your convenience only, and by no means represent guaranteed
+                returns.
+              </li>
             </template>
           </ul>
         </template>
