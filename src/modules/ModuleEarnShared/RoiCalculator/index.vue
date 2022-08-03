@@ -340,6 +340,7 @@ const detailsList = computed(() => {
       font-size: 12px
       font-weight: 400
       color: $gray2
+      user-select: none
   &__amounts
     margin: 8px 0 24px
   &__amount
