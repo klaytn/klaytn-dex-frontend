@@ -1,0 +1,5 @@
+dist
+public
+src/types/typechain
+src/auto-imports.d.ts
+src/components.d.ts
