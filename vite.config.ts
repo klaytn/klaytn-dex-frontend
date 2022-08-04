@@ -1,5 +1,5 @@
 import path from 'path'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import Vue from '@vitejs/plugin-vue'
 import Pages from 'vite-plugin-pages'
 import Layouts from 'vite-plugin-vue-layouts'
@@ -11,28 +11,28 @@ import VueI18n from '@intlify/vite-plugin-vue-i18n'
 import Inspect from 'vite-plugin-inspect'
 import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
-import SvgLoader from 'vite-svg-loader'
+import SvgLoader from '@soramitsu-ui/vite-plugin-svg'
 import VueSetupExtend from 'vite-plugin-vue-setup-extend'
+import UnoCSS from 'unocss/vite'
+import Icons from 'unplugin-icons/vite'
+import { FileSystemIconLoader } from 'unplugin-icons/loaders'
+import { RouteRecordRaw } from 'vue-router'
+import KlaytnIcons from './etc/vite-plugin-klaytn-icons'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
 export default defineConfig({
-  css: {
-    preprocessorOptions: {
-      scss: {
-        additionalData: '@use \'@soramitsu-ui/ui/styles\'; @use \'@soramitsu-ui/theme/fonts/Sora\'; @use \'@soramitsu-ui/theme/sass\' as theme; @import \'@/styles/vars.sass\';',
-      },
-      sass: {
-        additionalData: '@use \'@soramitsu-ui/ui/styles\'\n@use \'@soramitsu-ui/theme/fonts/Sora\'\n@use \'@soramitsu-ui/theme/sass\' as theme\n@import \'@/styles/vars.sass\'\n',
-      },
-    },
-  },
-
   resolve: {
     alias: {
       '@/': `${path.resolve(__dirname, 'src')}/`,
-      'web3': 'web3/dist/web3.min.js',
+      web3: 'web3/dist/web3.min.js',
+      '@popperjs/core': '@popperjs/core/lib/index',
+      '@soramitsu-ui/ui': process.env.NODE_ENV === 'test' ? '@soramitsu-ui/ui/dist/lib.cjs' : '@soramitsu-ui/ui',
     },
+  },
+
+  define: {
+    'import.meta.vitest': 'undefined',
   },
 
   plugins: [
@@ -43,19 +43,33 @@ export default defineConfig({
 
     VueSetupExtend(),
 
+    UnoCSS(),
+
     SvgLoader(),
+
+    Icons({
+      customCollections: {
+        klay: FileSystemIconLoader('./src/assets/icons'),
+      },
+    }),
+
+    KlaytnIcons(),
 
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({
       extensions: ['vue', 'md'],
-      extendRoute(route) {
-        if (route.path === '/swap') {
-          return {
-            ...route,
-            alias: '/',
-          }
+      extendRoute(route: RouteRecordRaw): null | undefined | RouteRecordRaw {
+        // making them root-level
+        if (route.path.match(/^(farms|pools|swap|liquidity)/)) {
+          return { ...route, path: '/' + route.path }
         }
-        return route
+      },
+      onRoutesGenerated(routes: RouteRecordRaw[]) {
+        // default route
+        routes.push({
+          path: '/:catchAll(.*)*',
+          redirect: '/swap',
+        })
       },
     }),
 
@@ -71,13 +85,35 @@ export default defineConfig({
         'vue/macros',
         '@vueuse/head',
         '@vueuse/core',
+        {
+          '@vue-kakuyaku/core': [
+            'useParamScope',
+            'useDeferredScope',
+            'useErrorRetry',
+            'usePromise',
+            'wheneverDone',
+            'wheneverFulfilled',
+            'wheneverRejected',
+            'useStaleState',
+            'flattenState',
+            'useTask',
+          ],
+        },
       ],
       dts: 'src/auto-imports.d.ts',
       dirs: [
         'src/composables',
         'src/store',
+        'src/modules/ModuleFarming/store',
+        'src/modules/ModuleStaking/store',
+        'src/modules/ModuleGovernance/store',
+        'src/modules/ModuleSwap/store',
+        'src/modules/ModuleLiquidity/store',
       ],
       vueTemplate: true,
+      eslintrc: {
+        enabled: true,
+      },
     }),
 
     // https://github.com/antfu/unplugin-vue-components
@@ -152,10 +188,30 @@ export default defineConfig({
 
   // https://github.com/vitest-dev/vitest
   test: {
-    include: ['test/**/*.test.ts'],
+    include: ['src/**/*.spec.ts'],
+    includeSource: ['src/**/*.ts'],
     environment: 'jsdom',
     deps: {
       inline: ['@vue', '@vueuse', 'vue-demi'],
+    },
+  },
+
+  css: {
+    modules: {
+      localsConvention: 'camelCaseOnly',
+    },
+  },
+
+  build: {
+    target: 'esnext',
+  },
+
+  server: {
+    watch: {
+      // Soramitsu Jenkins configures PNPM to make store in the working directory.
+      // To workaround "System limit for number of file watchers reached" error,
+      // this option is here
+      ignored: ['**/.pnpm-store/**'],
     },
   },
 })

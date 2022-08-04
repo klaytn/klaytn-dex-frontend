@@ -1,30 +1,23 @@
-<script lang="ts">
-import { mapActions, mapState } from 'pinia'
+<script setup lang="ts" name="KlaySlippage">
+import { KlayIconImportant } from '~klay-icons'
 
-export default {
-  name: 'KlaySlippage',
-  data() {
-    return {
-      selectedPercent: 0.5,
-    }
+const props = defineProps<{
+  modelValue: number
+}>()
+
+const emit = defineEmits(['update:modelValue'])
+
+let slippageModel = $computed({
+  get: () => props.modelValue,
+  set: (value) => {
+    if (value > 0 && value <= 10) emit('update:modelValue', value)
   },
-  computed: {
-    ...mapState(useSwapStore, ['slippagePercent']),
-    renderPercent() {
-      return `${this.slippagePercent}%`
-    },
-  },
-  methods: {
-    ...mapActions(useSwapStore, ['setSlippage']),
-    input(value) {
-      if (value > 0 && value <= 10)
-        this.setSlippage(value)
-    },
-    select(value) {
-      this.selectedPercent = value
-      this.setSlippage(value)
-    },
-  },
+})
+
+const renderPercent = $computed(() => `${slippageModel}%`)
+
+function select(value: number) {
+  slippageModel = value
 }
 </script>
 
@@ -34,7 +27,7 @@ export default {
       <template #head>
         <div class="slippage--head">
           <span class="label"> Slippage tolerance </span>
-          <KlayIcon name="important" />
+          <KlayIconImportant />
           <span class="percent">
             {{ renderPercent }}
           </span>
@@ -43,23 +36,35 @@ export default {
 
       <template #main>
         <div class="slippage--body">
-          <button class="percent" @click="select(0.1)">
+          <button
+            class="percent"
+            @click="select(0.1)"
+          >
             0.1%
           </button>
-          <button class="percent" @click="select(0.5)">
+          <button
+            class="percent"
+            @click="select(0.5)"
+          >
             0.5%
           </button>
-          <button class="percent" @click="select(1)">
+          <button
+            class="percent"
+            @click="select(1)"
+          >
             1%
           </button>
-          <button class="percent" @click="select(3)">
+          <button
+            class="percent"
+            @click="select(3)"
+          >
             3%
           </button>
           <input
+            v-model.number="slippageModel"
             class="input"
             type="text"
             :placeholder="renderPercent"
-            @input="input($event.target.value)"
           >
         </div>
       </template>

@@ -1,6 +1,4 @@
 <script setup lang="ts" name="KlaySlider">
-// import { STextField } from '@soramitsu-ui/ui'
-
 import { useStore } from './composables/store'
 import { useClasses } from './composables/classes'
 import { useStyles } from './composables/styles'
@@ -42,14 +40,12 @@ const vBem = useBemClass()
       v-bem="classes.thumb"
       :style="styles.thumb"
     />
-    <!-- <STextField
-      :model-value="modelValue"
-      @update:modelValue="handleInput"
-    /> -->
   </div>
 </template>
 
 <style lang="sass">
+@import '@/styles/vars.sass'
+
 .klay-slider
   position: relative
   display: flex
@@ -63,7 +59,7 @@ const vBem = useBemClass()
     height: 4px
     width: 100%
     border-radius: 2px
-    background: $gray3
+    background: $gray6
   &__line
     position: absolute
     height: 100%

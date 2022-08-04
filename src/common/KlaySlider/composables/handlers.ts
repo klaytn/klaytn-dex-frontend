@@ -1,22 +1,21 @@
-import type { Emit, Props } from '../types'
-import { Event, Orientation } from '../types'
+/* eslint-disable no-param-reassign */
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+import { type Emit, type Props, Event, Orientation } from '../types'
 import type { Store } from './store'
 
 export function useHandlers(store: Store, props: Props, emit: Emit) {
   const previousValue = ref(props.modelValue)
 
   function formatValue(value: number) {
-    return +value.toFixed(props.discrete ? 0 : 2)
+    return Number(value.toFixed(props.discrete ? 0 : 2))
   }
 
   function calcValue(mouseX: number, mouseY: number): number {
     const rect = store.slider.value.getBoundingClientRect()
     let value = 0
 
-    if (props.orientation === Orientation.Horizontal)
-      value = (mouseX - rect.x) / store.pixelsPerStep.value
-    else
-      value = (rect.y + rect.height - mouseY) / store.pixelsPerStep.value
+    if (props.orientation === Orientation.Horizontal) value = (mouseX - rect.x) / store.pixelsPerStep.value
+    else value = (rect.y + rect.height - mouseY) / store.pixelsPerStep.value
 
     value = Math.min(store.sliderRange.value, Math.max(value, 0))
 
@@ -30,11 +29,9 @@ export function useHandlers(store: Store, props: Props, emit: Emit) {
     if (event.type === 'mousemove') {
       event = <MouseEvent>event
       tap = event
-    }
-    else {
+    } else {
       event = <TouchEvent>event
-      if (event.touches.length > 1)
-        return
+      if (event.touches.length > 1) return
       tap = event.touches[0]
     }
 
@@ -48,14 +45,12 @@ export function useHandlers(store: Store, props: Props, emit: Emit) {
   }
 
   function handleRelease(event: MouseEvent | TouchEvent) {
-    if (store.dragging.value)
-      store.dragging.value = false
+    if (store.dragging.value) store.dragging.value = false
 
     if (event.type === 'mouseup') {
       window.removeEventListener('mouseup', handleRelease)
       window.removeEventListener('mousemove', handleDragging)
-    }
-    else {
+    } else {
       window.removeEventListener('touchend', handleRelease)
       window.removeEventListener('touchmove', handleDragging)
     }
@@ -71,8 +66,7 @@ export function useHandlers(store: Store, props: Props, emit: Emit) {
 
     if (event.type === 'touchstart') {
       event = <TouchEvent>event
-      if (event.touches.length > 1)
-        return
+      if (event.touches.length > 1) return
       const t = event.touches[0]
 
       const value = calcValue(t.pageX - window.scrollX, t.pageY - window.scrollY)
@@ -81,8 +75,7 @@ export function useHandlers(store: Store, props: Props, emit: Emit) {
       window.addEventListener('touchend', handleRelease)
 
       window.addEventListener('touchmove', handleDragging)
-    }
-    else {
+    } else {
       event = <MouseEvent>event
 
       const value = calcValue(event.pageX - window.scrollX, event.pageY - window.scrollY)

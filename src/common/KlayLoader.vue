@@ -1,40 +1,35 @@
-<script lang="ts">
-export default {
-  name: 'KlayLoader',
-}
+<script setup lang="ts" name="KlayLoader">
+import { SSpinner } from '@soramitsu-ui/ui'
+
+withDefaults(
+  defineProps<{
+    size?: string | number
+    width?: string | number
+    color?: 'blue' | 'gray'
+  }>(),
+  {
+    size: 36,
+    color: 'blue',
+    width: 4,
+  },
+)
 </script>
 
 <template>
-  <div class="loader" />
+  <SSpinner
+    :class="`color-${color}`"
+    v-bind="{ size, width }"
+  />
 </template>
 
 <style scoped lang="scss">
-.loader {
-  border: 6px solid $white;
-  border-radius: 50%;
-  border-top: 6px solid $blue;
-  width: 40px;
-  height: 40px;
-  -webkit-animation: spin 2s linear infinite; /* Safari */
-  animation: spin 2s linear infinite;
+@import '@/styles/vars';
+
+.color-blue {
+  color: $blue;
 }
 
-/* Safari */
-@-webkit-keyframes spin {
-  0% {
-    -webkit-transform: rotate(0deg);
-  }
-  100% {
-    -webkit-transform: rotate(360deg);
-  }
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.color-gray {
+  color: $gray2;
 }
 </style>

@@ -1,279 +1,188 @@
-<script lang="ts">
-import { mapActions, mapState } from 'pinia'
-import { Status } from '@soramitsu-ui/ui'
-import kip7 from '@/utils/smartcontracts/kip-7.json'
+<script lang="ts" setup>
+import { Status, SModal } from '@soramitsu-ui/ui'
+import { isAddress, Token, Address } from '@/core/kaikas'
+import invariant from 'tiny-invariant'
+import { TokenWithOptionBalance } from '@/store/tokens'
+import escapeStringRegex from 'escape-string-regexp'
 
-export default {
-  name: 'TokenSelectModal',
-  emits: ['close', 'select'],
-  data() {
-    return {
-      searchValue: '',
-      importToken: null,
-    }
+const props = defineProps<{
+  open: boolean
+  selected: Set<Address> | null
+  tokens: TokenWithOptionBalance[]
+  isSmartContract: (addr: Address) => Promise<boolean>
+  getToken: (addr: Address) => Promise<Token>
+  lookupToken: (addr: Address) => null | Token
+}>()
+
+const emit = defineEmits(['select', 'update:open', 'import-token'])
+const openModel = useVModel(props, 'open', emit)
+const tokens = $toRef(props, 'tokens')
+
+function isSelected(addr: Address): boolean {
+  return props.selected?.has(addr) ?? false
+}
+
+const { notify } = useNotify()
+
+let search = $ref('')
+
+const tokensFilteredBySearch = $computed(() => {
+  const regex = new RegExp(escapeStringRegex(search), 'i')
+  return (
+    tokens?.filter((token) => regex.test(token.symbol) || regex.test(token.name) || regex.test(token.address)) ?? []
+  )
+})
+
+const recentTokens = $computed(() => tokens.slice(0, 6))
+
+/**
+ * it is ref, thus it is possible to reset it immediately,
+ * not after debounce delay
+ */
+let searchAsAddress = $computed<null | Address>(() => (isAddress(search) ? search : null))
+
+const searchAsAddressSmartcontractCheckScope = useParamScope($$(searchAsAddress), (addr) => {
+  const { state } = useTask(() => props.isSmartContract(addr), { immediate: true })
+  usePromiseLog(state, 'smartcontract-check-' + addr)
+  return state
+})
+
+const importLookupScope = useParamScope(
+  computed(() => {
+    const addr = searchAsAddress
+    const addrSmartcontractCheckState = searchAsAddressSmartcontractCheckScope.value?.expose
+    if (addr && addrSmartcontractCheckState?.fulfilled?.value && !props.lookupToken(addr)) return addr
+    return null
+  }),
+  (addr) => {
+    const { state } = useTask(() => props.getToken(addr), { immediate: true })
+    usePromiseLog(state, 'import-lookup')
+    return state
   },
-  computed: {
-    ...mapState(useTokensStore, ['tokensList']),
-    renderTokens() {
-      return this.tokensList.filter(
-        token =>
-          token.symbol.search(this.searchValue.toUpperCase()) !== -1
-          || token.address === this.searchValue,
-      )
-    },
-  },
-  watch: {
-    async searchValue(_new) {
-      const code
-        = $kaikas.utils.isAddress(_new)
-        && (await $kaikas.config.caver.klay.getCode(_new))
+)
 
-      const isExists = this.tokensList.find(({ address }) => address === _new)
+const isImportLookupPending = $computed<boolean>(
+  () => !!importLookupScope.value?.expose.pending || !!searchAsAddressSmartcontractCheckScope.value?.expose.pending,
+)
 
-      if (!$kaikas.isAddress(_new) || code === '0x' || isExists) {
-        this.importToken = null
-        return
-      }
-      try {
-        const contract = $kaikas.config.createContract(_new, kip7.abi)
-        const symbol = await contract.methods.symbol().call()
-        const name = await contract.methods.name().call()
+const tokenToImport = $computed<Token | null>(() => importLookupScope.value?.expose.fulfilled?.value ?? null)
 
-        const balance = await contract.methods
-          .balanceOf($kaikas.config.address)
-          .call()
-        this.importToken = {
-          id: _new,
-          name,
-          symbol,
-          logo: '-',
-          balance,
-          slug: '-',
-          address: _new,
-        }
-      }
-      catch (e) {
-        console.log(e)
-      }
-    },
-  },
-  methods: {
-    ...mapActions(useTokensStore, {
-      updateTokens: 'setTokens',
-    }),
-    getRenderBalance(balance) {
-      const value = $kaikas.bigNumber($kaikas.fromWei(balance))
-      return value.toFixed(4)
-    },
-    onSelect(t) {
-      if (Number(t.balance) <= 0)
-        return
+const nothingFound = $computed(() => {
+  if (tokensFilteredBySearch.length) return false
+  // maybe importing something
+  if (searchAsAddress && (tokenToImport || isImportLookupPending)) return false
 
-      this.$emit('select', t)
-    },
-    onAddToken() {
-      if (this.importToken) {
-        this.updateTokens([this.importToken, ...this.tokensList])
-        this.searchValue = ''
-        this.importToken = null
-        $notify({ status: Status.Success, description: 'Token added' })
-      }
-    },
-  },
+  return true
+})
+
+function resetSearch() {
+  search = ''
+  searchAsAddress = null
+}
+
+function selectToken(token: Address) {
+  emit('select', token)
+}
+
+function doImport() {
+  invariant(tokenToImport)
+  emit('import-token', tokenToImport)
+  resetSearch()
+  notify({ type: 'ok', description: 'Token added' })
 }
 </script>
 
 <template>
-  <KlayModal
-    padding="20px 0"
-    width="344"
-    label="Select a token"
-    @close="$emit('close')"
-  >
-    <div class="row">
-      <div class="token-select-modal">
-        <div class="token-select-modal--input">
-          <p>Search name or paste adress</p>
-          <input v-model="searchValue" type="text" placeholder="KLAY">
-        </div>
-      </div>
-    </div>
+  <SModal v-model:show="openModel">
+    <KlayModalCard
+      style="width: 344px"
+      no-padding
+      title="Select a token"
+      class="flex flex-col min-h-0 h-90vh overflow-hidden"
+    >
+      <template #body>
+        <div class="flex-1 min-h-0 flex flex-col">
+          <KlayTextField
+            v-model="search"
+            class="mx-[17px]"
+            label="Search name or paste address"
+            data-testid="modal-search"
+          />
 
-    <div class="token-select-modal--recent row">
-      <div
-        v-for="t in renderTokens.slice(0, 6)"
-        :key="t.address"
-        class="token-select-modal--tag"
-        @click="onSelect(t)"
-      >
-        <TagName :key="t.symbol" :label="t.symbol">
-          <KlayIcon :char="t.symbol[0]" name="empty-token" />
-          <!--          <img class="token-logo" :src="t.logo" alt="token logo" /> -->
-        </TagName>
-      </div>
-    </div>
+          <div class="p-2 flex items-center flex-wrap">
+            <TagName
+              v-for="t in recentTokens"
+              :key="t.address"
+              :disabled="isSelected(t.address)"
+              :label="t.symbol"
+              class="m-2 cursor-pointer"
+              data-testid="modal-recent-token"
+              @click="selectToken(t.address)"
+            >
+              <KlayCharAvatar :symbol="t.symbol" />
+            </TagName>
+          </div>
 
-    <div class="token-select-modal--list">
-      <div
-        v-if="importToken"
-        class="token-select-modal--item"
-        @click="onAddToken"
-      >
-        <KlayIcon :char="importToken.symbol[0]" name="empty-token" />
-        <div class="info">
-          <p class="token">
-            {{ importToken.symbol }}
-          </p>
-          <span class="token-name">{{ importToken.name }}</span>
-        </div>
-        <button type="button" class="token-select-modal--import">
-          Import
-        </button>
-      </div>
+          <div class="flex-1 min-h-0 overflow-y-scroll list">
+            <div class="h-full">
+              <div
+                v-if="nothingFound"
+                class="p-4 text-center no-results"
+              >
+                No results found
+              </div>
 
-      <div
-        v-for="t in renderTokens"
-        :key="t.address"
-        class="token-select-modal--item"
-        :class="{ 'token-select-modal--item-disabled': Number(t.balance) <= 0 }"
-        @click="onSelect(t)"
-      >
-        <KlayIcon :char="t.symbol[0]" name="empty-token" />
-        <div class="info">
-          <p class="token">
-            {{ t.symbol }}
-          </p>
-          <span class="token-name">{{ t.name.toLowerCase() }}</span>
+              <TokenSelectModalListItem
+                v-else-if="tokenToImport"
+                :token="tokenToImport"
+                for-import
+                @click:import="doImport()"
+              />
+
+              <div
+                v-if="isImportLookupPending"
+                class="p-8 flex items-center justify-center"
+              >
+                <KlayLoader />
+              </div>
+
+              <template
+                v-for="(token, i) in tokensFilteredBySearch"
+                :key="token.address"
+              >
+                <div
+                  v-if="i > 0 || tokenToImport"
+                  class="list-div mx-4"
+                />
+
+                <TokenSelectModalListItem
+                  :token="token"
+                  :disabled="isSelected(token.address)"
+                  :balance="token.balance"
+                  class="py-2"
+                  @click="selectToken(token.address)"
+                />
+              </template>
+            </div>
+          </div>
         </div>
-        <KlayTextField :title="`${t.balance} ${t.symbol}`" class="token-count">
-          {{ getRenderBalance(t.balance) }} {{ t.symbol }}
-        </KlayTextField>
-      </div>
-    </div>
-  </KlayModal>
+      </template>
+    </KlayModalCard>
+  </SModal>
 </template>
 
 <style scoped lang="scss">
-.row {
-  padding: 0 17px;
+@import '@/styles/vars';
+
+.list {
+  border-top: 1px solid $gray5;
 }
 
-.token-select-modal {
-  margin-top: 17px;
-  width: 100%;
-  background: $gray3;
-  border-radius: 8px;
-  padding: 10px 16px;
-
-  & p {
-    color: $gray4;
-    font-weight: 500;
-    font-size: 12px;
-    line-height: 180%;
-  }
-
-  & input {
-    font-style: normal;
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 180%;
-    color: $dark;
-    background: none;
-    border: none;
-    width: 100%;
-  }
-
-  &--recent {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-top: 16px;
-  }
-
-  &--tag {
-    margin-right: 8px;
-    margin-bottom: 8px;
-    cursor: pointer;
-  }
-
-  &--list {
-    margin-top: 17px;
-    max-height: 400px;
-  }
-
-  &--item {
-    display: flex;
-    align-items: flex-start;
-    padding: 8px 17px;
-    border-top: 1px solid $gray5;
-    cursor: pointer;
-
-    &-disabled {
-      opacity: 0.5 !important;
-      cursor: default !important;
-
-      &:hover {
-        background: $white !important;
-      }
-    }
-
-    &:hover {
-      background: $gray3;
-    }
-
-    &:last-child {
-      border-bottom: 1px solid $gray5;
-    }
-
-    & .info {
-      margin-left: 5px;
-    }
-
-    & .token {
-      font-style: normal;
-      font-weight: 600;
-      font-size: 14px;
-      line-height: 17px;
-      color: $dark;
-    }
-
-    & .token-name {
-      font-style: normal;
-      font-weight: 500;
-      font-size: 12px;
-      line-height: 180%;
-      color: $gray4;
-    }
-
-    & .token-logo {
-      display: block;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      object-fit: contain;
-    }
-
-    .token-count {
-      font-style: normal;
-      font-weight: 600;
-      font-size: 14px;
-      line-height: 17px;
-      color: $dark;
-      margin-left: auto;
-      max-width: 150px;
-    }
-  }
-
-  &--import {
-    background: $blue;
-    border-radius: 10px;
-    color: $white;
-    margin-left: auto;
-    font-weight: 700;
-    font-size: 12px;
-    line-height: 18px;
-    padding: 7px 24px;
-    cursor: pointer;
-  }
+.list-div {
+  border-top: 1px solid $gray5;
+}
+.no-results {
+  color: rgba(49, 49, 49, 1);
+  font-size: 14px;
 }
 </style>

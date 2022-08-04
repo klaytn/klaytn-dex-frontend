@@ -7,8 +7,7 @@ export function useStyles(store: Store, props: Props) {
   const { orientation } = props
 
   const thumbTranslateRatio = computed(() => {
-    if (sliderSize.value.length === 0)
-      return 1
+    if (sliderSize.value.length === 0) return 1
 
     return (sliderSize.value.length - thumbSize.value) / sliderSize.value.length
   })

@@ -20,14 +20,20 @@ export default {
       <br>
       <p>
         You can install kaikas
-        <a href="https://docs.kaikas.io/" target="_blank">here</a>
+        <a
+          href="https://docs.kaikas.io/"
+          target="_blank"
+        >here</a>
       </p>
     </div>
 
     <div v-else-if="!address">
       <h2>Connect kaikas</h2>
       <br>
-      <KlayButton type="button" @click="connect()">
+      <KlayButton
+        type="button"
+        @click="connect()"
+      >
         Connect
       </KlayButton>
     </div>
@@ -44,10 +50,16 @@ export default {
     <KlayButton type="button">
       Button
     </KlayButton>
-    <KlayButton type="button" :loading="true">
+    <KlayButton
+      type="button"
+      :loading="true"
+    >
       Loading
     </KlayButton>
-    <KlayButton type="button" disabled>
+    <KlayButton
+      type="button"
+      disabled
+    >
       Button
     </KlayButton>
     <br>

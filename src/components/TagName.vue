@@ -1,17 +1,15 @@
-<script lang="ts">
-export default {
-  name: 'TagName',
-  props: {
-    label: {
-      type: String,
-      required: true,
-    },
-  },
-}
+<script setup lang="ts" name="TagName">
+defineProps<{
+  label: string
+  disabled?: boolean
+}>()
 </script>
 
 <template>
-  <div class="tag-name">
+  <div
+    class="tag-name"
+    :class="{ 'opacity-40 pointer-events-none': disabled }"
+  >
     <div class="tag-name--content">
       <slot />
     </div>
@@ -20,6 +18,8 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+@import '@/styles/vars';
+
 .tag-name {
   display: flex;
   align-items: center;

@@ -1,0 +1,92 @@
+[
+  {
+    "liquidityTokenBalance": "0.565152869111064754",
+    "pair": {
+      "id": "0x85c32ca7e071823b781dda7a43f213258c931c94",
+      "name": "EA-MER",
+      "reserve0": "93963.55232676724706708",
+      "reserve1": "10224746.537751247321604932",
+      "token0": {
+        "id": "0x2486a551714f947c386fe9c8b895c2a6b3275ec9",
+        "name": "Earth",
+        "symbol": "EA",
+        "decimals": "18",
+        "__typename": "Token"
+      },
+      "token1": {
+        "id": "0xb9920bd871e39c6ef46169c32e7ac4c698688881",
+        "name": "Mercury",
+        "symbol": "MER",
+        "decimals": "18",
+        "__typename": "Token"
+      },
+      "reserveKLAY": "5402947.584516955466329851742736209",
+      "reserveUSD": "1457039.889854609965382502768722387",
+      "token1Price": "108.8160918203019034538655675789556",
+      "totalSupply": "978124.613620478513101762",
+      "volumeUSD": "0",
+      "__typename": "Pair"
+    },
+    "__typename": "LiquidityPosition"
+  },
+  {
+    "liquidityTokenBalance": "1754.807954103219468827",
+    "pair": {
+      "id": "0xcaa17dd94f9c140dde7ef836514b818a5ffc817e",
+      "name": "VEN-MER",
+      "reserve0": "183841.835784068542246847",
+      "reserve1": "446965.16184834348906048",
+      "token0": {
+        "id": "0x1cdcd477994e86a11e21c27ca907bea266ea3a0a",
+        "name": "Venus",
+        "symbol": "VEN",
+        "decimals": "18",
+        "__typename": "Token"
+      },
+      "token1": {
+        "id": "0xb9920bd871e39c6ef46169c32e7ac4c698688881",
+        "name": "Mercury",
+        "symbol": "MER",
+        "decimals": "18",
+        "__typename": "Token"
+      },
+      "reserveKLAY": "8610688.48826515693494069690996606",
+      "reserveUSD": "2112201.886171442996140952952014675",
+      "token1Price": "2.43124836053816657766325620087874",
+      "totalSupply": "286495.182143060639549924",
+      "volumeUSD": "0",
+      "__typename": "Pair"
+    },
+    "__typename": "LiquidityPosition"
+  },
+  {
+    "liquidityTokenBalance": "0",
+    "pair": {
+      "id": "0xf318d8ab59e3f6bca4849be9619642028ad4cde4",
+      "name": "VEN-ARS",
+      "reserve0": "400",
+      "reserve1": "400",
+      "token0": {
+        "id": "0x1cdcd477994e86a11e21c27ca907bea266ea3a0a",
+        "name": "Venus",
+        "symbol": "VEN",
+        "decimals": "18",
+        "__typename": "Token"
+      },
+      "token1": {
+        "id": "0xafea7569b745eae7ab22cf17c3b237c3350407a1",
+        "name": "Mars",
+        "symbol": "ARS",
+        "decimals": "18",
+        "__typename": "Token"
+      },
+      "reserveKLAY": "18277.62343759661022055231119809127",
+      "reserveUSD": "4840.371626861522301657765813034521",
+      "token1Price": "1",
+      "totalSupply": "399.999999999999999",
+      "volumeUSD": "0",
+      "__typename": "Pair"
+    },
+    "__typename": "LiquidityPosition"
+  }
+]

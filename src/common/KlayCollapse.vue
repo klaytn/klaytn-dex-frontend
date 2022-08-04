@@ -1,45 +1,59 @@
-<script lang="ts">
-export default {
-  name: 'KlayCollapse',
-  data() {
-    return {
-      isOpen: false,
-    }
-  },
-}
+<script setup lang="ts">
+import { SCollapseTransition } from '@soramitsu-ui/ui'
+import { KlayIconCollapseArrow } from '~klay-icons'
+
+defineProps<{
+  alwaysOpened?: boolean
+}>()
+
+const isOpen = ref(false)
 </script>
 
 <template>
-  <div class="collapse">
-    <div class="collapse--head" @click="isOpen = !isOpen">
-      <slot name="head" />
-      <div class="icon-wrap" :style="{ transform: `rotate(${isOpen ? 180 : 0}deg)` }">
-        <KlayIcon name="collapse-arrow" />
+  <div class="collapse px-4">
+    <div
+      class="flex items-center cursor-pointer py-3"
+      @click="isOpen = !isOpen"
+    >
+      <div class="head">
+        <slot name="head" />
+      </div>
+      <div
+        v-if="!alwaysOpened"
+        class="ml-auto"
+        :class="{
+          'chevron--opened rotate-180': isOpen,
+        }"
+      >
+        <KlayIconCollapseArrow />
       </div>
     </div>
-    <slot v-if="isOpen" name="main" />
+
+    <SCollapseTransition>
+      <div v-if="isOpen || alwaysOpened">
+        <div class="mb-4">
+          <slot name="main" />
+        </div>
+      </div>
+    </SCollapseTransition>
   </div>
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/vars';
+
 .collapse {
-  border: 1px solid $gray3;
-  box-sizing: border-box;
+  border: 1px solid $gray6;
   border-radius: 8px;
-  padding: 8px 16px;
   background: $white;
-  text-align: left;
+}
 
-  &--head {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-  }
+.head {
+  font-size: 14px;
+  font-weight: 600;
+}
 
-  & .icon-wrap {
-    margin-left: auto;
-    display: flex;
-  }
+.chevron--opened {
+  color: $blue;
 }
 </style>

@@ -1,0 +1,29 @@
+@use '@soramitsu-ui/ui/styles';
+@use '@soramitsu-ui/theme/fonts/Sora';
+@use '@soramitsu-ui/theme/sass' as theme;
+@use './vars';
+
+@include theme.typography-preset-default;
+
+:root {
+  @include theme.tokens-preset-light;
+
+  $blue-bg: #8fbafb;
+
+  @include theme.eval-tokens-partial(
+    (
+      sys: (
+        color: (
+          primary: vars.$blue,
+          primary-hover: darken(vars.$blue, 10%),
+          primary-pressed: darken(vars.$blue, 20%),
+          primary-focused: darken(vars.$blue, 25%),
+          'primary-background': $blue-bg,
+          'primary-hover-background': darken($blue-bg, 5%),
+          'primary-pressed-background': darken($blue-bg, 10%),
+          'primary-focused-background': darken($blue-bg, 15%),
+        ),
+      ),
+    )
+  );
+}

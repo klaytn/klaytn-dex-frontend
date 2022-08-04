@@ -1,230 +1,214 @@
-import { acceptHMRUpdate, defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
+import { Address, Kaikas, Token, Wei } from '@/core/kaikas'
+import { WHITELIST_TOKENS } from '@/core/kaikas/const'
+import invariant from 'tiny-invariant'
+import { Ref } from 'vue'
 
-import type { AbiItem } from 'caver-js'
-import kip7 from '@/utils/smartcontracts/kip-7.json'
-import pairAbi from '@/utils/smartcontracts/pair.json'
-import type { Address, Token } from '@/types'
-import type { DexPair } from '@/types/typechain/swap'
-import type { KIP7 } from '@/types/typechain/tokens'
-import { useConfigWithConnectedKaikas } from '@/utils/kaikas/config'
+export interface TokenWithOptionBalance extends Token {
+  balance: null | Wei
+}
 
-const mockedTokens = [
-  '0xb9920BD871e39C6EF46169c32e7AC4C698688881',
-  '0x1CDcD477994e86A11E21C27ca907bEA266EA3A0a',
-  '0x2486A551714F947C386Fe9c8b895C2A6b3275EC9',
-  '0xAFea7569B745EaE7AB22cF17c3B237c3350407A1',
-  '0xC20A9eB22de0C6920619aDe93A11283C2a07273e',
-  '0xce77229fF8451f5791ef4Cc2a841735Ed4edc3cA',
-  '0xFbcb69f52D6A08C156c543Dd4Dc0521F5F545755',
-  '0x7cB550723972d7F29b047D6e71b62DcCcAF93992',
-  '0xcdBD333BDBB99bC80D77B10CCF74285a97150E5d',
-  '0x246C989333Fa3C3247C7171F6bca68062172992C',
-]
+function listItemsFromMapOrNull<K, V>(keys: K[], map: Map<K, V>): null | V[] {
+  const fromMap: V[] = []
 
-interface State {
-  tokensList: Token[]
-  computedToken: 'tokenB' | 'tokenA' | null
-  selectedTokens: {
-    emptyPair: boolean
-    pairAddress: Address | null
-    pairBalance: string | null
-    userBalance: string | null
-    tokenA: Token | null
-    tokenB: Token | null
+  for (const key of keys) {
+    const value = map.get(key)
+    if (!value) return null
+    fromMap.push(value)
+  }
+
+  return fromMap
+}
+
+async function loadTokens(kaikas: Kaikas, addrs: Address[]): Promise<Map<Address, Token>> {
+  const pairs = await Promise.all(
+    addrs.map(async (addr) => {
+      const token = await kaikas.tokens.getToken(addr)
+      return [addr, token] as [Address, Token]
+    }),
+  )
+
+  return new Map(pairs)
+}
+
+async function loadBalances(kaikas: Kaikas, tokens: Address[]): Promise<Map<Address, Wei>> {
+  const entries = await Promise.all(
+    tokens.map(async (addr) => {
+      const balance = await kaikas.tokens.getTokenBalanceOfUser(addr)
+      return [addr, balance] as [Address, Wei]
+    }),
+  )
+
+  return new Map(entries)
+}
+
+function useImportedTokens() {
+  const kaikasStore = useKaikasStore()
+  const { isConnected } = storeToRefs(kaikasStore)
+
+  const tokens = useLocalStorage<Address[]>('klaytn-dex-imported-tokens', [])
+
+  const fetchScope = useParamScope(isConnected, () => {
+    const { state, run } = useTask(
+      async () => {
+        const kaikas = kaikasStore.getKaikasAnyway()
+        return loadTokens(kaikas, tokens.value)
+      },
+      { immediate: true },
+    )
+
+    usePromiseLog(state, 'imported-tokens')
+    useErrorRetry(state, run)
+
+    return useStaleState(state)
+  })
+
+  const isPending = computed(() => fetchScope.value?.expose.pending ?? false)
+  const result = computed(() => fetchScope.value?.expose.fulfilled?.value ?? null)
+  const isLoaded = computed(() => !!result.value)
+
+  const tokensFetched = computed<null | Token[]>(() => {
+    if (!result.value) return null
+    return listItemsFromMapOrNull(tokens.value, result.value)
+  })
+
+  /**
+   * Saves new imported token.
+   * Does not fetch token data again
+   */
+  function importToken(token: Token): void {
+    tokens.value.unshift(token.address)
+    if (result.value) {
+      result.value.set(token.address, token)
+    }
+  }
+
+  return {
+    tokens,
+    tokensFetched,
+    isPending,
+    isLoaded,
+    importToken,
   }
 }
 
-const state = (): State => ({
-  tokensList: [],
-  computedToken: null,
-  selectedTokens: {
-    emptyPair: false,
-    pairAddress: null,
-    pairBalance: null,
-    userBalance: null,
-    tokenA: null,
-    tokenB: null,
-  },
-})
+function useUserBalance(tokens: Ref<null | Address[]>) {
+  const kaikasStore = useKaikasStore()
 
-export const useTokensStore = defineStore('tokens', {
-  state,
-  actions: {
-    async checkEmptyPair() {
-      const { tokenA, tokenB } = this.selectedTokens
-      if (!tokenA || !tokenB)
-        return
+  const fetchScope = useParamScope(
+    computed(() => !!tokens.value && kaikasStore.isConnected),
+    () => {
+      const { state, run } = useTask<Map<Address, Wei>>(
+        async () => {
+          const kaikas = kaikasStore.getKaikasAnyway()
+          invariant(tokens.value)
 
-      const pairAddress = await $kaikas.tokens.getPairAddress(
-        tokenA.address,
-        tokenB.address,
-      )
-      if ($kaikas.utils.isEmptyAddress(pairAddress)) {
-        this.selectedTokens = {
-          ...this.selectedTokens,
-          emptyPair: true,
-        }
-        return
-      }
-
-      this.selectedTokens = {
-        ...this.selectedTokens,
-        emptyPair: false,
-      }
-    },
-    async setSelectedTokensByPair(pairAddress: Address) {
-      const config = useConfigWithConnectedKaikas()
-
-      const pairContract = $kaikas.config.createContract<DexPair>(
-        pairAddress,
-        pairAbi.abi as AbiItem[],
-      )
-
-      const token0Address = await pairContract.methods.token0().call({
-        from: config.address,
-      })
-      const token1Address = await pairContract.methods.token1().call({
-        from: config.address,
-      })
-
-      const contractToken0 = $kaikas.createContract<KIP7>(
-        token0Address,
-        kip7.abi as AbiItem[],
-      )
-      const contractToken1 = $kaikas.createContract<KIP7>(
-        token1Address,
-        kip7.abi as AbiItem[],
-      )
-
-      const token0: Token = {
-        address: token0Address,
-        name: await contractToken0.methods.name().call(),
-        symbol: await contractToken0.methods.symbol().call(),
-        balance: await contractToken0.methods
-          .balanceOf(config.address)
-          .call(),
-      }
-      const token1: Token = {
-        address: token1Address,
-        name: await contractToken1.methods.name().call(),
-        symbol: await contractToken1.methods.symbol().call(),
-        balance: await contractToken1.methods
-          .balanceOf(config.address)
-          .call(),
-      }
-      const { pairBalance, userBalance } = await $kaikas.tokens.getPairBalance(
-        token0Address,
-        token1Address,
-      )
-
-      this.selectedTokens = {
-        tokenA: token0,
-        tokenB: token1,
-        pairBalance,
-        userBalance,
-        emptyPair: false,
-        pairAddress,
-      }
-    },
-    async getTokens() {
-      const config = useConfigWithConnectedKaikas()
-      const { caver } = window
-
-      const balance = await caver.klay.getBalance(config.address)
-
-      const klay = {
-        id: '0xae3a8a1D877a446b22249D8676AFeB16F056B44e',
-        address: '0xae3a8a1D877a446b22249D8676AFeB16F056B44e',
-        symbol: 'KLAY',
-        name: 'Klaytn',
-        logo: '-',
-        slug: '-',
-        balance,
-      }
-
-      const listTokens = mockedTokens.map(async (token) => {
-        const contract = $kaikas.createContract<KIP7>(
-          token,
-          kip7.abi as AbiItem[],
-        )
-        const name = await contract.methods.name().call()
-        const symbol = await contract.methods.symbol().call()
-        const balance = await contract.methods
-          .balanceOf(config.address)
-          .call()
-
-        return {
-          id: token,
-          name,
-          symbol,
-          logo: '-',
-          balance,
-          slug: '-',
-          address: token,
-        }
-      })
-
-      const resultList = await Promise.all([klay, ...listTokens])
-
-      this.tokensList = resultList
-    },
-
-    refreshStore() {
-      this.$state = state() // TODO: CHECK IT
-    },
-
-    async setCurrencyRate({ type }: { type: 'tokenB' | 'tokenA' }) {
-      const token = this.selectedTokens[type]
-      if (token === null)
-        throw new Error('No selected tokens')
-
-      this.selectedTokens[type] = {
-        ...token,
-        price: '-',
-      }
-    },
-
-    setSelectedToken({ type, token }: { type: 'tokenB' | 'tokenA'; token: Token }) {
-      this.selectedTokens[type] = token
-    },
-
-    setComputedToken(token: 'tokenB' | 'tokenA' | null) {
-      this.computedToken = token
-    },
-
-    clearSelectedTokens() {
-      this.selectedTokens = {
-        emptyPair: false,
-        pairAddress: null,
-        pairBalance: null,
-        userBalance: null,
-        tokenA: null,
-        tokenB: null,
-      }
-      return state
-    },
-
-    setTokenValue(
-      { type, value, pairBalance, userBalance }:
-      {
-        type: 'tokenB' | 'tokenA'
-        value: any
-        pairBalance: string | null
-        userBalance: string | null
-      },
-    ) {
-      this.selectedTokens = {
-        ...this.selectedTokens,
-        pairBalance,
-        userBalance,
-        [type]: {
-          ...this.selectedTokens[type],
-          value,
+          return loadBalances(kaikas, tokens.value)
         },
+        { immediate: true },
+      )
+
+      usePromiseLog(state, 'user-balance')
+      useErrorRetry(state, run)
+      watch(tokens, run)
+      whenever(() => kaikasStore.isConnected, run, { immediate: true })
+
+      /**
+       * Refetch balance
+       */
+      function touch() {
+        run()
       }
+
+      return reactive({ ...toRefs(useStaleState(state)), touch })
     },
-  },
+  )
+
+  const isPending = computed<boolean>(() => fetchScope.value?.expose.pending ?? false)
+  const result = computed<null | Map<Address, Wei>>(() => {
+    const data = fetchScope.value?.expose.fulfilled?.value
+    if (data) return new Map([...data].map(([addr, balance]) => [addr.toLowerCase() as Address, balance]))
+    return null
+  })
+  const isLoaded = computed<boolean>(() => !!result.value)
+
+  function touch() {
+    fetchScope.value?.expose.touch()
+  }
+
+  function lookup(addr: Address): Wei | null {
+    return result.value?.get(addr.toLowerCase() as Address) ?? null
+  }
+
+  return { isPending, isLoaded, lookup, touch }
+}
+
+function useTokensIndex(tokens: Ref<null | readonly Token[]>) {
+  /**
+   * All addresses are written in lower-case
+   */
+  type TokensIndexMap = Map<Address, Token>
+
+  const tokensIndexMap = computed<null | TokensIndexMap>(() => {
+    const list = tokens.value
+    if (!list) return null
+    return new Map(list.map((item) => [item.address.toLowerCase() as Address, item]))
+  })
+
+  /**
+   * Lookup for token data by token's address. **Case insensitive**.
+   */
+  function findTokenData(addr: Address): null | Token {
+    return tokensIndexMap.value?.get(addr.toLowerCase() as Address) ?? null
+  }
+
+  return { findTokenData }
+}
+
+export const useTokensStore = defineStore('tokens', () => {
+  const {
+    tokensFetched: importedFetched,
+    isLoaded: isImportedLoaded,
+    isPending: isImportedPending,
+    importToken,
+  } = useImportedTokens()
+
+  const tokensLoaded = computed(() => {
+    return importedFetched.value ? [...importedFetched.value, ...WHITELIST_TOKENS] : WHITELIST_TOKENS
+  })
+  const tokensLoadedAddrs = computed(() => tokensLoaded.value?.map((x) => x.address) ?? null)
+
+  const { findTokenData } = useTokensIndex(tokensLoaded)
+
+  const {
+    lookup: lookupUserBalance,
+    isPending: isBalancePending,
+    touch: touchUserBalance,
+  } = useUserBalance(tokensLoadedAddrs)
+
+  const tokensWithBalance = computed(() => {
+    return (
+      tokensLoaded.value?.map<TokenWithOptionBalance>((x) => {
+        return {
+          ...x,
+          balance: lookupUserBalance(x.address),
+        }
+      }) ?? null
+    )
+  })
+
+  return {
+    isBalancePending,
+    isImportedPending,
+    isImportedLoaded,
+    tokensLoaded,
+    tokensWithBalance,
+
+    importToken,
+    findTokenData,
+    lookupUserBalance,
+    touchUserBalance,
+  }
 })
 
-if (import.meta.hot)
-  import.meta.hot.accept(acceptHMRUpdate(useTokensStore, import.meta.hot))
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useTokensStore, import.meta.hot))
