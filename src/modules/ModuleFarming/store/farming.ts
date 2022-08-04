@@ -79,7 +79,9 @@ function setupQueries({
   const pairsAndRewardTokenQueryVariables = ref<{ pairIds: Address[] }>({
     pairIds: [],
   })
-  const PairsAndRewardTokenQuery = usePairsAndRewardTokenQuery(computed(() => pairsAndRewardTokenQueryVariables.value.pairIds))
+  const PairsAndRewardTokenQuery = usePairsAndRewardTokenQuery(
+    computed(() => pairsAndRewardTokenQueryVariables.value.pairIds),
+  )
 
   const pairs = computed(() => {
     return PairsAndRewardTokenQuery.result.value?.pairs ?? null
@@ -118,7 +120,8 @@ function setupQueries({
   })
 
   const pools = computed<Pool[] | null>(() => {
-    if (farming.value === null || pairs.value === null || blockNumber.value === null || rewardToken.value === null) return null
+    if (farming.value === null || pairs.value === null || blockNumber.value === null || rewardToken.value === null)
+      return null
 
     let pools = [] as Pool[]
 
@@ -129,7 +132,7 @@ function setupQueries({
       const pair = pairs.value.find((pair) => pair.id === pool.pair) ?? null
 
       const reward = rewards.value[pool.id]
-      const earned = reward ? new BigNumber(farmingFromWei(reward)) as WeiAsToken<BigNumber> : null
+      const earned = reward ? (new BigNumber(farmingFromWei(reward)) as WeiAsToken<BigNumber>) : null
 
       if (pair === null || earned === null) return
 
@@ -148,9 +151,11 @@ function setupQueries({
       const liquidity = reserveUSD.dividedBy(totalSupply).multipliedBy(totalTokensStaked) as WeiAsToken<BigNumber>
 
       const annualPercentageRate = new BigNumber(0) as PercentageRate
-    
+
       const totalLpRewardPricePerYear = new BigNumber(pair.dayData[0].volumeUSD).times(365)
-      const lpAnnualPercentageRate = (!liquidity.isZero() ? totalLpRewardPricePerYear.div(liquidity).times(100) : new BigNumber(0)) as PercentageRate
+      const lpAnnualPercentageRate = (
+        !liquidity.isZero() ? totalLpRewardPricePerYear.div(liquidity).times(100) : new BigNumber(0)
+      ) as PercentageRate
 
       const bonusEndBlock = Number(pool.bonusEndBlock)
       const allocPoint = new BigNumber(pool.allocPoint)
@@ -178,20 +183,19 @@ function setupQueries({
       })
     })
 
-    const sumOfMultipliers = pools.reduce(
-      (acc, pool) => acc.plus(pool.multiplier),
-      new BigNumber(0)
-    );
+    const sumOfMultipliers = pools.reduce((acc, pool) => acc.plus(pool.multiplier), new BigNumber(0))
 
-    pools = pools.map(pool => {
+    pools = pools.map((pool) => {
       if (!farming.value || !rewardToken.value) return pool
       const farmingRewardRate = new BigNumber(farmingFromWei(new Wei(farming.value.rewardRate)))
       const poolRewardRate = farmingRewardRate.times(pool.multiplier.div(sumOfMultipliers))
       const totalRewardPricePerYear = poolRewardRate.times(BLOCKS_PER_YEAR).times(rewardToken.value.derivedUSD)
-      const annualPercentageRate = (!pool.liquidity.isZero() ? totalRewardPricePerYear.div(pool.liquidity).times(100) : new BigNumber(0)) as PercentageRate
+      const annualPercentageRate = (
+        !pool.liquidity.isZero() ? totalRewardPricePerYear.div(pool.liquidity).times(100) : new BigNumber(0)
+      ) as PercentageRate
       return {
         ...pool,
-        annualPercentageRate
+        annualPercentageRate,
       }
     })
 
@@ -222,7 +226,11 @@ function setupQueries({
     not(areRewardsFetched),
   )
 
-  for (const [QueryName, Query] of Object.entries({ FarmingQuery, LiquidityPositionsQuery, PairsAndRewardTokenQuery })) {
+  for (const [QueryName, Query] of Object.entries({
+    FarmingQuery,
+    LiquidityPositionsQuery,
+    PairsAndRewardTokenQuery,
+  })) {
     Query.onError((param) => {
       console.error('query error', param)
       notify({ type: 'err', description: `Apollo error (${QueryName}): ${String(param)}` })

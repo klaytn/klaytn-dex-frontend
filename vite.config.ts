@@ -205,4 +205,13 @@ export default defineConfig({
   build: {
     target: 'esnext',
   },
+
+  server: {
+    watch: {
+      // Soramitsu Jenkins configures PNPM to make store in the working directory.
+      // To workaround "System limit for number of file watchers reached" error,
+      // this option is here
+      ignored: ['**/.pnpm-store/**'],
+    },
+  },
 })

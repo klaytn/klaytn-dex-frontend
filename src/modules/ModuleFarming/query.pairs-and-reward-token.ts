@@ -13,7 +13,7 @@ export interface PairsAndRewardTokenQueryResult {
     dayData: {
       volumeUSD: string
     }[]
-  }[],
+  }[]
   token: {
     derivedUSD: string
   }
