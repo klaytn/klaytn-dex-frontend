@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
 import invariant from 'tiny-invariant'
 import { Opaque } from 'type-fest'
-import { Token } from './types'
+import { Token } from '../types'
 
 export type WeiInputValue = number | string | BigNumber | BN | bigint
 

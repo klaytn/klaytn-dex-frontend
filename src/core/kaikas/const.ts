@@ -1,5 +1,7 @@
 import type { Token, Address } from './types'
-import Wei from './Wei'
+import Wei from './entities/Wei'
+
+export const ONE = 1
 
 /**
  * Klay token address

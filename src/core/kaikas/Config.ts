@@ -5,7 +5,7 @@ import type { Klaytn, Address } from './types'
 import { MAGIC_ROUTER_ADDR, MAGIC_FACTORY_ADDR, MAGIC_WETH_ADDR, MAGIC_GAS_PRICE } from './const'
 import { ROUTER, FACTORY, WETH, KIP7 as KIP7_ABI } from './smartcontracts/abi'
 import { KIP7 } from '@/types/typechain/tokens'
-import Wei from './Wei'
+import Wei from './entities/Wei'
 
 export default class Config {
   public static async connectKaikas(params?: ConnectParams): Promise<ConnectResult> {

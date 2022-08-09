@@ -1,5 +1,5 @@
 <script setup lang="ts" name="ModuleStakingStakeModal">
-import { Status, SModal } from '@soramitsu-ui/ui'
+import { SModal } from '@soramitsu-ui/ui'
 import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'

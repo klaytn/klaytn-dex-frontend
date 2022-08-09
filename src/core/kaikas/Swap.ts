@@ -2,7 +2,7 @@ import type { Address, Deadline } from './types'
 import Config from './Config'
 import { MAGIC_GAS_PRICE } from './const'
 import { computeTransactionFee, deadlineFiveMinutesFromNow } from './utils'
-import Wei from './Wei'
+import Wei from './entities/Wei'
 
 export interface AddrsPair {
   addressA: Address

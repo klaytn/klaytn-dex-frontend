@@ -1,6 +1,5 @@
 import { Wei } from '@/core/kaikas'
 import { MaybeRef } from '@vueuse/core'
-import BigNumber from 'bignumber.js'
 import { roundTo } from 'round-to'
 import { Ref } from 'vue'
 

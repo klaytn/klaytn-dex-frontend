@@ -1,8 +1,9 @@
 import web3 from 'web3'
-import type { Address, Token, Deadline } from './types'
+import type { Address, Token, Deadline, BigNumberIsh } from './types'
 import { MAGIC_GAS_PRICE, NATIVE_TOKEN } from './const'
-import Wei from './Wei'
+import Wei from './entities/Wei'
 import { shortenStringInTheMiddle } from '@/utils/common'
+import BigNumber from 'bignumber.js'
 
 export function formatAddress(address: Address): string {
   return shortenStringInTheMiddle(address)
@@ -70,4 +71,8 @@ if (import.meta.vitest) {
       expect(computeTransactionFee(MAGIC_GAS_PRICE, 31_000).toToken({ decimals: 18 })).toEqual('0.00775')
     })
   })
+}
+
+export function parseBigNumberIsh(value: BigNumberIsh): BigNumber {
+  return value instanceof BigNumber ? value : new BigNumber(value)
 }

@@ -1,3 +1,5 @@
+import BigNumber from 'bignumber.js'
+import BN from 'bn.js'
 import { Opaque } from 'type-fest'
 
 export interface Klaytn {
@@ -50,3 +52,5 @@ export type TokenSymbol = Opaque<string, 'TokenSymbol'>
  * So... it seems to be a unix epoch time in seconds
  */
 export type Deadline = Opaque<number, 'Deadline'>
+
+export type BigNumberIsh = BigNumber | number | string

@@ -1,9 +1,9 @@
 import Kaikas from './Kaikas'
 import Config from './Config'
-import Wei from './Wei'
+import Wei from './entities/Wei'
 
 export * from './Config'
-export * from './Wei'
+export * from './entities/Wei'
 export * from './utils'
 export * from './types'
 

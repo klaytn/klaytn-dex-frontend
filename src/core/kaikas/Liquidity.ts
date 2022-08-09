@@ -6,7 +6,7 @@ import { computeTransactionFee, deadlineFiveMinutesFromNow, isNativeToken } from
 import { DexPair } from '@/types/typechain/swap'
 import { PAIR } from './smartcontracts/abi'
 import Tokens from './Tokens'
-import Wei from './Wei'
+import Wei from './entities/Wei'
 
 export interface PrepareAddLiquidityProps {
   tokens: TokensPair<TokenAddressAndDesiredValue>

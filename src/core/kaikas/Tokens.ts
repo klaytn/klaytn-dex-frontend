@@ -6,7 +6,7 @@ import { PAIR, KIP7 as KIP7_ABI } from './smartcontracts/abi'
 import { TokensPair, TokenType } from '@/utils/pair'
 import invariant from 'tiny-invariant'
 import { KIP7 } from '@/types/typechain/tokens'
-import Wei from './Wei'
+import Wei from './entities/Wei'
 
 export interface GetTokenQuoteProps extends TokensPair<Address> {
   value: Wei
