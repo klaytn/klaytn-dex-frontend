@@ -1,23 +1,36 @@
 module.exports = {
   root: true,
-  env: {
-    browser: true,
-    node: true,
-  },
+  extends: ['alloy', 'alloy/typescript', 'plugin:vue/vue3-recommended', './.eslintrc-auto-import.json'],
+  parser: 'vue-eslint-parser',
   parserOptions: {
-    parser: "@babel/eslint-parser",
-    requireConfigFile: false,
+    parser: '@typescript-eslint/parser',
+    ecmaVersion: 2020,
+    sourceType: 'module',
   },
-  extends: [
-    "eslint:recommended",
-    "plugin:vue/recommended",
-    "plugin:prettier/recommended",
-  ],
-  plugins: ["vue"],
+  globals: {
+    defineProps: 'readonly',
+    defineEmits: 'readonly',
+    defineExpose: 'readonly',
+    withDefaults: 'readonly',
+  },
   rules: {
-    semi: [2, "never"],
-    "no-console": "off",
-    "vue/max-attributes-per-line": "off",
-    "prettier/prettier": ["error", { semi: false }],
+    'vue/html-indent': ['warn', 2],
+    'vue/multi-word-component-names': 'off',
+
+    // make possible `/// <reference...`
+    'spaced-comment': ['error', 'always', { markers: ['/'] }],
+
+    'no-unused-vars': 'warn',
+    'no-duplicate-imports': 'off',
   },
+  overrides: [
+    {
+      files: ['**/cypress/**/*.{j,t}s', '**/*.cy.{js,ts}'],
+      plugins: ['cypress'],
+      extends: ['plugin:cypress/recommended'],
+      env: {
+        'cypress/globals': true,
+      },
+    },
+  ],
 }
