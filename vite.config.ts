@@ -18,6 +18,7 @@ import Icons from 'unplugin-icons/vite'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 import { RouteRecordRaw } from 'vue-router'
 import KlaytnIcons from './etc/vite-plugin-klaytn-icons'
+import AppAbi from './etc/vite-plugin-abi'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
@@ -54,6 +55,8 @@ export default defineConfig({
     }),
 
     KlaytnIcons(),
+
+    AppAbi(),
 
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({

@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.6.9",
+    "@metamask/detect-provider": "^1.2.0",
     "@soramitsu-ui/icons": "^0.1.0",
     "@soramitsu-ui/theme": "^0.3.0",
     "@soramitsu-ui/ui": "^0.6.1",
@@ -28,12 +29,12 @@
     "bignumber.js": "^9.0.2",
     "bn.js": "^5.2.1",
     "bulma": "^0.9.4",
-    "caver-js": "^1.8.2",
     "dayjs": "^1.11.4",
     "debounce": "^1.2.1",
     "debug": "^4.3.4",
     "dompurify": "^2.3.10",
     "escape-string-regexp": "^5.0.0",
+    "ethers": "^5.6.9",
     "github-markdown-css": "^5.1.0",
     "graphql": "^16.5.0",
     "graphql-tag": "^2.12.6",
@@ -48,8 +49,7 @@
     "vue": "3.2.37",
     "vue-demi": "^0.13.1",
     "vue-i18n": "^9.1.10",
-    "vue-router": "^4.0.15",
-    "web3": "^1.7.3"
+    "vue-router": "^4.0.15"
   },
   "devDependencies": {
     "@iconify-json/carbon": "^1.1.5",
@@ -98,6 +98,7 @@
     "vite-plugin-vue-setup-extend": "^0.4.0",
     "vite-svg-loader": "^3.3.0",
     "vitest": "^0.19.1",
-    "vue-tsc": "^0.36.0"
+    "vue-tsc": "^0.36.0",
+    "web3modal": "^1.9.8"
   }
 }

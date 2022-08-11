@@ -1,10 +1,10 @@
-import type { DexFactory, DexPair, DexRouter } from '@/types/typechain/swap'
-import type { WETH9 } from '@/types/typechain/tokens/WKLAY.sol'
+import type { DexFactory, DexPair, DexRouter } from '@/core/kaikas/typechain/swap'
+import type { WETH9 } from '@/core/kaikas/typechain/tokens/WKLAY.sol'
 import Caver, { type AbiItem } from 'caver-js'
-import type { Klaytn, Address } from './types'
+import type { Kaikas, Address } from '../types'
 import { MAGIC_ROUTER_ADDR, MAGIC_FACTORY_ADDR, MAGIC_WETH_ADDR, MAGIC_GAS_PRICE } from './const'
 import { ROUTER, FACTORY, WETH, KIP7 as KIP7_ABI } from './smartcontracts/abi'
-import { KIP7 } from '@/types/typechain/tokens'
+import { KIP7 } from '@/core/kaikas/typechain/tokens'
 import Wei from './Wei'
 
 export default class Config {
@@ -56,7 +56,7 @@ export default class Config {
   }>
 
   public readonly caver!: Caver
-  public readonly klaytn!: Klaytn
+  public readonly klaytn!: Kaikas
 
   private constructor(data: Pick<Config, 'addrs' | 'contracts' | 'caver' | 'klaytn'>) {
     Object.assign(this, data)
@@ -120,7 +120,7 @@ export default class Config {
 
 interface KaikasProvider {
   caver?: Caver
-  klaytn?: Klaytn
+  klaytn?: Kaikas
 }
 
 export interface ConnectParams {

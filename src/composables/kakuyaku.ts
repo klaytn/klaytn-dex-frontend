@@ -37,7 +37,7 @@ export function usePromiseLog(state: PromiseStateAtomic<unknown>, name: string) 
 
   watch(
     state,
-    (state) => {
+    (state: PromiseStateAtomic<unknown>) => {
       if (state.pending) {
         debug('pending...')
       } else if (state.fulfilled) {
@@ -47,7 +47,7 @@ export function usePromiseLog(state: PromiseStateAtomic<unknown>, name: string) 
         console.error(`Promise "${name}" errored:`, state.rejected.reason)
       }
     },
-    { deep: true },
+    { deep: true, immediate: true },
   )
 }
 
