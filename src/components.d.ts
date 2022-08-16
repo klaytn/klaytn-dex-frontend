@@ -71,10 +71,10 @@ declare module '@vue/runtime-core' {
     RouterView: typeof import('vue-router')['RouterView']
     RowsRates: typeof import('./components/RowsRates.vue')['default']
     TagName: typeof import('./components/TagName.vue')['default']
+    TheWalletConnect: typeof import('./components/TheWalletConnect.vue')['default']
     TokenSelect: typeof import('./components/TokenSelect/index.vue')['default']
     TokenSelectModal: typeof import('./components/TokenSelect/Modal.vue')['default']
     TokenSelectModalListItem: typeof import('./components/TokenSelect/ModalListItem.vue')['default']
-    Tutorial: typeof import('./components/Tutorial.vue')['default']
     ValueOrDash: typeof import('./components/ValueOrDash.vue')['default']
   }
 }
