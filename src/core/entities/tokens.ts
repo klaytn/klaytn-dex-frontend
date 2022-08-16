@@ -1,11 +1,11 @@
-import { isEmptyAddress } from './utils'
-import { type DexPair } from './typechain'
-import type { Address, Token, TokenSymbol } from './types'
-import { UserKlaytnAgent } from './Wallet'
+import { isEmptyAddress } from '../utils'
+import { type DexPair } from '../typechain'
+import type { Address, Token, TokenSymbol } from '../types'
 import Wei from './Wei'
-import BaseContracts from './BaseContracts'
+import CommonContracts from './CommonContracts'
 import invariant from 'tiny-invariant'
 import { TokensPair, TokenType } from '@/utils/pair'
+import { AgentAnon, Agent } from './agent'
 
 export interface GetTokenQuoteProps extends TokensPair<Address> {
   value: Wei
@@ -41,28 +41,23 @@ function sortReservesForQuote({
  *
  * - optimize pair contract creation; use the same one for the set of operations
  */
-export default class Tokens {
-  #wallet: UserKlaytnAgent
-  #contracts: BaseContracts
+export class TokensAnon {
+  #agent: AgentAnon
+  #contracts: CommonContracts
 
-  public constructor(props: { wallet: UserKlaytnAgent; contracts: BaseContracts }) {
-    this.#wallet = props.wallet
+  public constructor(props: { agent: AgentAnon; contracts: CommonContracts }) {
+    this.#agent = props.agent
     this.#contracts = props.contracts
   }
 
-  private get addr(): Address {
-    return this.#wallet.address
-  }
-
-  private get routerContract() {
+  protected get router() {
     return this.#contracts.router
   }
 
-  private get factoryContract() {
+  protected get factory() {
     return this.#contracts.factory
   }
 
-  // eslint-disable-next-line max-params
   public async getTokenQuote({ tokenA, tokenB, value, quoteFor }: GetTokenQuoteProps): Promise<Wei> {
     const pairContract = await this.createPairContract({ tokenA, tokenB })
     const token0 = (await pairContract.token0()) as Address
@@ -71,11 +66,7 @@ export default class Tokens {
     const sortedReserves = sortReservesForQuote({ reserves, token0, tokenA, quoteFor })
 
     return new Wei(
-      await this.routerContract.quote(
-        value.asBigInt,
-        sortedReserves.reserve0.asBigInt,
-        sortedReserves.reserve1.asBigInt,
-      ),
+      await this.router.quote(value.asBigInt, sortedReserves.reserve0.asBigInt, sortedReserves.reserve1.asBigInt),
     )
   }
 
@@ -89,27 +80,15 @@ export default class Tokens {
   }
 
   /**
-   * Fails if there is no such a pair
-   */
-  public async getPairBalanceOfUser(pair: TokensPair<Address>): Promise<{ totalSupply: Wei; userBalance: Wei }> {
-    const pairContract = await this.createPairContract(pair)
-
-    const totalSupply = new Wei(await pairContract.totalSupply())
-    const userBalance = new Wei(await pairContract.balanceOf(this.addr))
-
-    return { totalSupply, userBalance }
-  }
-
-  /**
    * If there is no such a pair, returns an empty one (`0x00...`)
    */
   public async getPairAddress({ tokenA, tokenB }: TokensPair<Address>): Promise<Address> {
-    const addr = (await this.factoryContract.getPair(tokenA, tokenB)) as Address
+    const addr = (await this.factory.getPair(tokenA, tokenB)) as Address
     return addr
   }
 
   public async getToken(addr: Address): Promise<Token> {
-    const contract = await this.#wallet.base.createContract(addr, 'kip7')
+    const contract = await this.#agent.createContract(addr, 'kip7')
     const [name, symbol, decimals] = await Promise.all([
       contract.name(),
       contract.symbol() as Promise<TokenSymbol>,
@@ -119,13 +98,46 @@ export default class Tokens {
   }
 
   public async getTokenBalanceOfAddr(token: Address, balanceOf: Address): Promise<Wei> {
-    const balance = await (await this.#wallet.base.createContract(token, 'kip7')).balanceOf(balanceOf)
+    const balance = await (await this.#agent.createContract(token, 'kip7')).balanceOf(balanceOf)
     return new Wei(balance)
   }
 
   public async createPairContract(pair: TokensPair<Address>): Promise<DexPair> {
     const pairAddr = await this.getPairAddress(pair)
     invariant(!isEmptyAddress(pairAddr), 'Empty address')
-    return this.#wallet.base.createContract(pairAddr, 'pair')
+    return this.#agent.createContract(pairAddr, 'pair')
+  }
+}
+
+export class Tokens extends TokensAnon {
+  #agent: Agent
+
+  public constructor(props: { agent: Agent; contracts: CommonContracts }) {
+    super(props)
+    this.#agent = props.agent
+  }
+
+  private get address() {
+    return this.#agent.address
+  }
+
+  public async getTokenBalanceOfUser(token: Address): Promise<Wei> {
+    return this.getTokenBalanceOfAddr(token, this.address)
+  }
+
+  public async getKlayBalance(): Promise<Wei> {
+    return this.#agent.getBalance(this.address)
+  }
+
+  /**
+   * Fails if there is no such a pair
+   */
+  public async getPairBalanceOfUser(pair: TokensPair<Address>): Promise<{ totalSupply: Wei; userBalance: Wei }> {
+    const pairContract = await this.createPairContract(pair)
+
+    const totalSupply = new Wei(await pairContract.totalSupply())
+    const userBalance = new Wei(await pairContract.balanceOf(this.address))
+
+    return { totalSupply, userBalance }
   }
 }

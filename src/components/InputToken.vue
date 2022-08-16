@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Token, Address, Wei, WeiAsToken } from '@/core/kaikas'
+import { Token, Address, Wei, WeiAsToken } from '@/core'
 import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 import { roundTo } from 'round-to'
@@ -48,11 +48,11 @@ watchDebounced(
 //   return props.token && formatAddress(props.token)
 // })
 
-const kaikasStore = useKaikasStore()
-const { isConnected: isKaikasConnected } = $(storeToRefs(kaikasStore))
+const dexStore = useDexStore()
+const { isWalletConnected } = storeToRefs(dexStore)
 
 const tokensStore = useTokensStore()
-const { isBalancePending } = $(storeToRefs(tokensStore))
+const { isBalancePending } = storeToRefs(tokensStore)
 
 const tokenData = $computed<null | Token>(() => (props.token && tokensStore.findTokenData(props.token)) ?? null)
 
@@ -109,7 +109,7 @@ function setToMax() {
         class="balance flex items-center space-x-2"
       >
         <span>
-          <template v-if="isKaikasConnected">
+          <template v-if="isWalletConnected">
             Balance:
             <ValueOrDash :value="balanceFormatted" />
           </template>

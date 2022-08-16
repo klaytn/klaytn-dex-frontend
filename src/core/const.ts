@@ -1,5 +1,4 @@
 import type { Token, Address, TokenSymbol, Network } from './types'
-import Wei from './Wei'
 
 /**
  * Klay token address
@@ -7,20 +6,14 @@ import Wei from './Wei'
 export const NATIVE_TOKEN = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address
 export const NATIVE_TOKEN_DECIMALS = 18
 
-export const MAGIC_ROUTER_ADDR = '0xB0B695584234F2CC16266588b2b951F3d2885705' as Address
-export const MAGIC_FACTORY_ADDR = '0xEB487a3A623E25cAa668B6D199F1aBa9D2380456' as Address
-export const MAGIC_WETH_ADDR = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address
+export const ADDRESS_ROUTER = '0xB0B695584234F2CC16266588b2b951F3d2885705' as Address
+export const ADDRESS_FACTORY = '0xEB487a3A623E25cAa668B6D199F1aBa9D2380456' as Address
+export const ADDRESS_WETH = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address
 
 /**
  * We totally sure that all our LP tokens have this decimals value
  */
 export const LP_TOKEN_DECIMALS = 18
-
-/**
- * FIXME use `caver.klay.getGasPrice` instead
- * @deprecated
- */
-export const MAGIC_GAS_PRICE = new Wei(250000000000)
 
 /**
  * Data comes from:

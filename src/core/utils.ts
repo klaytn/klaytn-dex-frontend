@@ -1,13 +1,12 @@
 import { Contract } from 'ethers'
 import { isAddress as ethersIsAddress } from '@ethersproject/address'
 import type { Address, Deadline } from './types'
-import Wei from './Wei'
-import { shortenStringInTheMiddle } from '@/utils/common'
+import { Wei } from './entities'
 
-const isAddress = ethersIsAddress as (raw: string) => raw is Address
+export const isAddress = ethersIsAddress as (raw: string) => raw is Address
 
 export function formatAddress(address: Address): string {
-  return shortenStringInTheMiddle(address)
+  return `${address.slice(2, 6)}....${address.slice(-4)}`
 }
 
 export function isEmptyAddress(address: Address): boolean {

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Address } from '@/core/kaikas'
+import { Address } from '@/core'
 import { KlayIconCollapseArrow } from '~klay-icons'
 
 const props = withDefaults(
@@ -12,7 +12,7 @@ const props = withDefaults(
 
 const emit = defineEmits(['update:token'])
 
-const kaikasStore = useKaikasStore()
+const dexStore = useDexStore()
 const tokensStore = useTokensStore()
 const tokenData = computed(() => props.token && tokensStore.findTokenData(props.token))
 
@@ -25,11 +25,11 @@ function onSelect(token: Address) {
 }
 
 function isSmartContract(addr: Address) {
-  return kaikasStore.getKaikasAnyway().cfg.isSmartContract(addr)
+  return dexStore.anyDex.dex().agent.isSmartContract(addr)
 }
 
 function getToken(addr: Address) {
-  return kaikasStore.getKaikasAnyway().tokens.getToken(addr)
+  return dexStore.anyDex.dex().tokens.getToken(addr)
 }
 
 function lookupToken(addr: Address) {

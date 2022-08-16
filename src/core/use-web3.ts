@@ -9,7 +9,7 @@ const KAIKAS = window.klaytn ?? null
 
 export const isKaikasDetected = !!KAIKAS
 
-type SupportedWallet = 'kaikas' | 'metamask'
+export type SupportedWallet = 'kaikas' | 'metamask'
 
 /**
  * https://github.com/pancakeswap/pancake-frontend/blob/8a88b53db0b575437f94311aaaac59c3d910ead9/src/utils/wallet.ts#L26
@@ -78,18 +78,22 @@ interface ConnectedProvider {
 }
 
 export function useWeb3Provider(props: { network: AppNetwork }) {
-  const { state: ethProviderState, run: detechEthProvider } = useTask(
+  const { state: detectMetamaskState, run: detectMetamask } = useTask(
     () => detectEthereumProvider({ mustBeMetaMask: true }) as Promise<null | ExtendedExternalProvider>,
     { immediate: true },
   )
-  useErrorRetry(ethProviderState, detechEthProvider, { count: Infinity, interval: 1_000 })
-  usePromiseLog(ethProviderState, 'detect-eth-provider')
-  const isEthProviderDetectionDone = computed(() => !!ethProviderState.fulfilled)
-  const detectedEthProvider = computed(() => ethProviderState.fulfilled?.value ?? null)
-  const isEthProviderDetected = computed(() => !!detectedEthProvider.value)
+  useErrorRetry(detectMetamaskState, detectMetamask, { count: Infinity, interval: 1_000 })
+  usePromiseLog(detectMetamaskState, 'detect-eth-provider')
+  const isMetamaskDetectionDone = computed(() => !!detectMetamaskState.fulfilled)
+  const detectedMetamask = computed(() => detectMetamaskState.fulfilled?.value ?? null)
+  const isMetamaskDetected = computed(() => !!detectedMetamask.value)
 
   // TODO reset this value when it is set to some wallet but wallet is not detected
   const selectedWallet = useLocalStorage<SupportedWallet | null>('selected-wallet', null)
+
+  function selectWallet(wallet: SupportedWallet | null) {
+    selectedWallet.value = wallet
+  }
 
   type RawProvider =
     | {
@@ -118,8 +122,8 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
         wallet &&
         (wallet === 'kaikas' && KAIKAS
           ? { key: wallet, payload: { kind: wallet, kaikas: KAIKAS } }
-          : wallet === 'metamask' && detectedEthProvider.value
-          ? { key: wallet, payload: { kind: wallet, ethereum: detectedEthProvider.value } }
+          : wallet === 'metamask' && detectedMetamask.value
+          ? { key: wallet, payload: { kind: wallet, ethereum: detectedMetamask.value } }
           : null)
       )
     }),
@@ -140,6 +144,8 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
         )
         usePromiseLog(enableState, 'enable-kaikas')
         const enabled = computed(() => !!enableState.fulfilled)
+
+        wheneverRejected(enableState, () => selectWallet(null))
 
         const account = ref<null | Address>(null)
         const onAccountsChange = (accounts: Address[]) => {
@@ -180,6 +186,8 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
         )
         usePromiseLog(enableState, 'enable-ethereum')
         const enabled = computed(() => !!enableState.fulfilled)
+
+        wheneverRejected(enableState, () => selectWallet(null))
 
         const account = ref<null | Address>(ethereum.selectedAddress)
         const onAccountsChanged = (accounts: Address[]) => {
@@ -230,18 +238,14 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
     return null
   })
 
-  function selectWallet(wallet: SupportedWallet | null) {
-    selectedWallet.value = wallet
-  }
-
   const connectState = computed(() => providerScope.value?.expose.enableState ?? null)
   const isChainLoaded = computed(() => providerScope.value?.expose.isChainLoaded ?? false)
   const isChainCorrect = computed(() => providerScope.value?.expose.isChainCorrect ?? false)
   const isProviderSetupPending = computed(() => providerScope.value?.expose.isSetupPending ?? false)
 
   return {
-    isEthProviderDetectionDone,
-    isEthProviderDetected,
+    isMetamaskDetectionDone,
+    isMetamaskDetected,
 
     selectedWallet,
     selectWallet,

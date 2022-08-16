@@ -1,5 +1,5 @@
-import { Address, isNativeToken, Wei } from '@/core/kaikas'
-import { SwapProps, SwapExactAForB, SwapAForExactB } from '@/core/kaikas/Swap'
+import { Address, isNativeToken, Wei } from '@/core'
+import { SwapProps, SwapExactAForB, SwapAForExactB } from '@/core/entities/swap'
 import { TokenType } from '@/utils/pair'
 import invariant from 'tiny-invariant'
 import { Except } from 'type-fest'

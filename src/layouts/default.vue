@@ -1,8 +1,6 @@
 <script setup lang="ts" name="DefaultLayout">
-import { formatAddress } from '@/core/kaikas'
 import { type HeaderMenuItem, RouteName } from '@/types'
-import { storeToRefs } from 'pinia'
-import { KlayIconDexLogo, KlayIconWallet } from '~klay-icons'
+import { KlayIconDexLogo } from '~klay-icons'
 import { SToastsDisplay } from '@soramitsu-ui/ui'
 
 const { t } = useI18n()
@@ -33,16 +31,6 @@ const menu = computed<HeaderMenuItem[]>(() => {
     },
   ]
 })
-
-const kaikasStore = useKaikasStore()
-const { address, isNotInstalled } = storeToRefs(kaikasStore)
-
-const formattedAddress = computed(() => {
-  if (!address.value) return ''
-  return formatAddress(address.value)
-})
-
-onMounted(() => kaikasStore.connect())
 </script>
 
 <template>
@@ -58,18 +46,7 @@ onMounted(() => kaikasStore.connect())
       </div>
 
       <div class="col col-right">
-        <div v-if="isNotInstalled || !address">
-          Connect Wallet
-        </div>
-        <div
-          v-if="address"
-          class="address"
-        >
-          <KlayIconWallet />
-          <span>
-            {{ formattedAddress }}
-          </span>
-        </div>
+        <TheWalletConnect />
       </div>
 
       <div class="toasts-mount absolute right-0 bottom-0 w-full">

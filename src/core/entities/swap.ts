@@ -1,13 +1,13 @@
-import type { Address, Deadline } from './types'
+import type { Address, Deadline } from '../types'
 import {
   computeTransactionFee,
   deadlineFiveMinutesFromNow,
   UniContractMethod,
   universalizeContractMethod,
-} from './utils'
+} from '../utils'
 import Wei from './Wei'
-import { UserKlaytnAgent } from './Wallet'
-import BaseContracts from './BaseContracts'
+import CommonContracts from './CommonContracts'
+import { Agent } from './agent'
 
 export interface AddrsPair {
   addressA: Address
@@ -59,36 +59,39 @@ interface GetAmountsOutProps extends AddrsPair {
 
 type GetAmountsProps = GetAmountsInProps | GetAmountsOutProps
 
-export default class Swap {
-  #wallet: UserKlaytnAgent
-  #contracts: BaseContracts
-  // private readonly cfg: Config
+export class SwapAnon {
+  #contracts: CommonContracts
 
-  public constructor(cfg: Config) {
-    this.cfg = cfg
+  public constructor(props: { contracts: CommonContracts }) {
+    this.#contracts = props.contracts
   }
 
-  private get addr() {
-    return this.cfg.addrs.self
-  }
-
-  private get routerMethods() {
-    return this.cfg.contracts.router.methods
+  protected get router() {
+    return this.#contracts.router
   }
 
   public async getAmounts(props: GetAmountsProps): Promise<[Wei, Wei]> {
     const path = [props.addressA, props.addressB]
     const [amount0, amount1] = await (props.mode === 'in'
-      ? this.routerMethods.getAmountsIn(props.amountOut.asStr, path)
-      : this.routerMethods.getAmountsOut(props.amountIn.asStr, path)
-    ).call()
+      ? this.router.getAmountsIn(props.amountOut.asBigInt, path)
+      : this.router.getAmountsOut(props.amountIn.asBigInt, path))
     return [new Wei(amount0), new Wei(amount1)]
+  }
+}
+
+export class Swap extends SwapAnon {
+  #agent: Agent
+
+  public constructor(props: { agent: Agent; contracts: CommonContracts }) {
+    super(props)
+    this.#agent = props.agent
   }
 
   public async swap(props: SwapProps): Promise<SwapResult> {
-    const { router } = this.#contracts
     const { deadline = deadlineFiveMinutesFromNow() } = props
-    const gasPrice = await this.#wallet.base.getGasPrice()
+    const { router } = this
+    const { address } = this.#agent
+    const gasPrice = await this.#agent.getGasPrice()
 
     let method: UniContractMethod
 
@@ -98,7 +101,7 @@ export default class Swap {
           props.amountIn.asBigInt,
           props.amountOutMin.asBigInt,
           [props.addressA, props.addressB],
-          this.addr,
+          address,
           deadline,
         ])
 
@@ -110,7 +113,7 @@ export default class Swap {
           props.amountInMax.asBigInt,
           props.amountOut.asBigInt,
           [props.addressA, props.addressB],
-          this.addr,
+          address,
           deadline,
         ])
 
@@ -121,7 +124,7 @@ export default class Swap {
           props.amountIn.asBigInt,
           props.amountOutMin.asBigInt,
           [props.addressA, props.addressB],
-          this.addr,
+          address,
           deadline,
         ])
 
@@ -131,7 +134,7 @@ export default class Swap {
         method = universalizeContractMethod(router, 'swapExactETHForTokens', [
           props.amountOutMin.asStr,
           [props.addressA, props.addressB],
-          this.addr,
+          address,
           deadline,
         ])
 
@@ -141,7 +144,7 @@ export default class Swap {
         method = universalizeContractMethod(router, 'swapETHForExactTokens', [
           props.amountOut.asStr,
           [props.addressA, props.addressB],
-          this.addr,
+          address,
           deadline,
         ])
 
@@ -152,7 +155,7 @@ export default class Swap {
           props.amountOut.asStr,
           props.amountInMax.asStr,
           [props.addressA, props.addressB],
-          this.addr,
+          address,
           deadline,
         ])
 

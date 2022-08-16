@@ -1,29 +1,27 @@
-import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers'
-import { Contract, type ContractInterface } from 'ethers'
-import type { DexPair, KIP7 } from '@/core/typechain'
-import type { Address } from './types'
+import { JsonRpcProvider } from '@ethersproject/providers'
+import { Contract } from 'ethers'
+import { KIP7, DexPair } from '../typechain'
+import { Address } from '../types'
+import { AbiLoader, type AbiToContract, type AvailableAbi } from '../abi'
 import Wei from './Wei'
-import invariant from 'tiny-invariant'
-import { AbiLoader, AbiToContract, AvailableAbi } from './abi'
 
-interface WalletAddrs {
-  // self: null | Address
+export interface CommonAddrs {
   router: Address
   factory: Address
 }
 
-interface NewWalletProps {
+interface AnonCtorProps {
   provider: JsonRpcProvider
-  addrs: WalletAddrs
+  addrs: CommonAddrs
   abi: AbiLoader
 }
 
-export default class KlaytnAgent {
+export class AgentAnon {
   #provider: JsonRpcProvider
-  #addrs: WalletAddrs
+  #addrs: CommonAddrs
   #abi: AbiLoader
 
-  public constructor(props: NewWalletProps) {
+  public constructor(props: AnonCtorProps) {
     this.#addrs = props.addrs
     this.#provider = props.provider
     this.#abi = props.abi
@@ -62,17 +60,12 @@ export default class KlaytnAgent {
   }
 }
 
-export class UserKlaytnAgent {
-  #agent: KlaytnAgent
+export class Agent extends AgentAnon {
   #address: Address
 
-  public constructor(props: { agent: KlaytnAgent; address: Address }) {
-    this.#agent = props.agent
-    this.#address = this.address
-  }
-
-  public get base() {
-    return this.#agent
+  public constructor({ address, base }: { address: Address; base: AnonCtorProps }) {
+    super(base)
+    this.#address = address
   }
 
   public get address() {
@@ -82,31 +75,23 @@ export class UserKlaytnAgent {
   /**
    * Uses KIP7 by default
    */
-  public async approveAmount(address: Address, amount: Wei, spender = this.#agent.routerAddress): Promise<void> {
-    const contract = await this.#agent.createContract(address, 'kip7')
+  public async approveAmount(address: Address, amount: Wei, spender = this.routerAddress): Promise<void> {
+    const contract = await this.createContract(address, 'kip7')
     await this.approveAmountWithContract(contract, amount, spender)
   }
 
   public async approveAmountWithContract(
     contract: KIP7 | DexPair,
     amount: Wei,
-    spender = this.#agent.routerAddress,
+    spender = this.routerAddress,
   ): Promise<void> {
     const allowance = await this.getAllowanceWithContract(contract, spender)
     if (amount.asBigInt <= allowance.asBigInt) return
     await contract.approve(spender, amount.asStr)
   }
 
-  public async getAllowanceWithContract(contract: KIP7 | DexPair, spender = this.#agent.routerAddress): Promise<Wei> {
+  public async getAllowanceWithContract(contract: KIP7 | DexPair, spender = this.routerAddress): Promise<Wei> {
     const value = await contract.allowance(this.#address, spender)
     return new Wei(value)
   }
 }
-
-// class AuthorizedWallet extends Wallet {
-//   public constructor()
-
-//   public aaa() {
-
-//   }
-// }

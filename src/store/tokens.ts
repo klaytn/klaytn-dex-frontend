@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
-import { Address, Kaikas, Token, Wei } from '@/core/kaikas'
-import { WHITELIST_TOKENS } from '@/core/kaikas/const'
+import { Address, DexAnon, Dex, Token, Wei, isNativeToken } from '@/core'
+import { WHITELIST_TOKENS } from '@/core'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 
@@ -20,10 +20,10 @@ function listItemsFromMapOrNull<K, V>(keys: K[], map: Map<K, V>): null | V[] {
   return fromMap
 }
 
-async function loadTokens(kaikas: Kaikas, addrs: Address[]): Promise<Map<Address, Token>> {
+async function loadTokens(dex: DexAnon, addrs: Address[]): Promise<Map<Address, Token>> {
   const pairs = await Promise.all(
     addrs.map(async (addr) => {
-      const token = await kaikas.tokens.getToken(addr)
+      const token = await dex.tokens.getToken(addr)
       return [addr, token] as [Address, Token]
     }),
   )
@@ -31,10 +31,10 @@ async function loadTokens(kaikas: Kaikas, addrs: Address[]): Promise<Map<Address
   return new Map(pairs)
 }
 
-async function loadBalances(kaikas: Kaikas, tokens: Address[]): Promise<Map<Address, Wei>> {
+async function loadBalances(dex: Dex, tokens: Address[]): Promise<Map<Address, Wei>> {
   const entries = await Promise.all(
     tokens.map(async (addr) => {
-      const balance = await kaikas.tokens.getTokenBalanceOfUser(addr)
+      const balance = await (isNativeToken(addr) ? dex.tokens.getKlayBalance() : dex.tokens.getTokenBalanceOfUser(addr))
       return [addr, balance] as [Address, Wei]
     }),
   )
@@ -43,28 +43,23 @@ async function loadBalances(kaikas: Kaikas, tokens: Address[]): Promise<Map<Addr
 }
 
 function useImportedTokens() {
-  const kaikasStore = useKaikasStore()
-  const { isConnected } = storeToRefs(kaikasStore)
+  const dexStore = useDexStore()
+  const { active: activeDex } = storeToRefs(dexStore)
 
   const tokens = useLocalStorage<Address[]>('klaytn-dex-imported-tokens', [])
+  const { state, run } = useTask(
+    async () => {
+      const dex = activeDex.value.dex()
+      return loadTokens(dex, tokens.value)
+    },
+    { immediate: true },
+  )
 
-  const fetchScope = useParamScope(isConnected, () => {
-    const { state, run } = useTask(
-      async () => {
-        const kaikas = kaikasStore.getKaikasAnyway()
-        return loadTokens(kaikas, tokens.value)
-      },
-      { immediate: true },
-    )
+  usePromiseLog(state, 'imported-tokens')
+  useErrorRetry(state, run)
 
-    usePromiseLog(state, 'imported-tokens')
-    useErrorRetry(state, run)
-
-    return useStaleState(state)
-  })
-
-  const isPending = computed(() => fetchScope.value?.expose.pending ?? false)
-  const result = computed(() => fetchScope.value?.expose.fulfilled?.value ?? null)
+  const isPending = toRef(state, 'pending')
+  const result = computed(() => state.fulfilled?.value ?? null)
   const isLoaded = computed(() => !!result.value)
 
   const tokensFetched = computed<null | Token[]>(() => {
@@ -93,34 +88,22 @@ function useImportedTokens() {
 }
 
 function useUserBalance(tokens: Ref<null | Address[]>) {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
 
   const fetchScope = useParamScope(
-    computed(() => !!tokens.value && kaikasStore.isConnected),
-    () => {
-      const { state, run } = useTask<Map<Address, Wei>>(
-        async () => {
-          const kaikas = kaikasStore.getKaikasAnyway()
-          invariant(tokens.value)
-
-          return loadBalances(kaikas, tokens.value)
-        },
-        { immediate: true },
-      )
+    computed(
+      () => !!tokens.value && dexStore.active.kind === 'named' && { key: 'active', payload: dexStore.active.dex() },
+    ),
+    (dex) => {
+      const { state, run } = useTask<Map<Address, Wei>>(() => loadBalances(dex, tokens.value ?? []), {
+        immediate: true,
+      })
 
       usePromiseLog(state, 'user-balance')
       useErrorRetry(state, run)
       watch(tokens, run)
-      whenever(() => kaikasStore.isConnected, run, { immediate: true })
 
-      /**
-       * Refetch balance
-       */
-      function touch() {
-        run()
-      }
-
-      return reactive({ ...toRefs(useStaleState(state)), touch })
+      return reactive({ ...toRefs(useStaleState(state)), touch: run })
     },
   )
 

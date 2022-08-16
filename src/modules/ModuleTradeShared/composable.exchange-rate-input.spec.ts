@@ -1,7 +1,7 @@
 import { useInertExchangeRateInput } from './composable.exchange-rate-input'
 import { describe, expect, test } from 'vitest'
 import { TokenType } from '@/utils/pair'
-import { WeiAsToken } from '@/core/kaikas'
+import { WeiAsToken } from '@/core'
 
 describe('inert exchange rate', () => {
   function inputFactory<T extends { type: TokenType; value: string } | null>(

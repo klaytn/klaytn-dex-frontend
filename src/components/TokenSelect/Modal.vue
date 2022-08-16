@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { Status, SModal } from '@soramitsu-ui/ui'
-import { isAddress, Token, Address } from '@/core/kaikas'
+import { SModal } from '@soramitsu-ui/ui'
+import { isAddress, Token, Address } from '@/core'
 import invariant from 'tiny-invariant'
 import { TokenWithOptionBalance } from '@/store/tokens'
 import escapeStringRegex from 'escape-string-regexp'

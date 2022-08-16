@@ -1,4 +1,4 @@
-import { Address, Wei, WeiAsToken } from '@/core/kaikas'
+import { Address, Wei, WeiAsToken } from '@/core'
 import { JSON_SERIALIZER } from '@/utils/common'
 import { buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
 import { Serializer } from '@vueuse/core'

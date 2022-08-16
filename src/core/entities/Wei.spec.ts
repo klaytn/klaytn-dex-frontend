@@ -61,6 +61,8 @@ describe.each([0n, 42n, 15n * 10n ** 18n, 99n * 10n ** 40n])('Wei creation & cas
   })
 })
 
+describe.todo('test how it works with `BigNumber` from `ethers`')
+
 describe('Construction from a number', () => {
   test('ok if number is less than max safe integer', () => {
     const wei = new Wei(42)

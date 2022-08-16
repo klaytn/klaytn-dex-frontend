@@ -1,4 +1,4 @@
-import { Address, isEmptyAddress, Wei } from '@/core/kaikas'
+import { Address, DexAnon, isEmptyAddress, Wei } from '@/core'
 import { TokensPair } from '@/utils/pair'
 import { MaybeRef } from '@vueuse/core'
 import { Except } from 'type-fest'
@@ -13,6 +13,16 @@ function nullableReactiveTokensToComposedKey(tokens: NullableReactiveTokens) {
     key: `${tokenA}-${tokenB}`,
     payload: { tokenA, tokenB },
   }
+}
+
+function dexAndTokensScopeParam(tokens: NullableReactiveTokens, anyDex: { key: string; dex: () => DexAnon }) {
+  const actualTokens = nullableReactiveTokensToComposedKey(tokens)
+  return (
+    actualTokens && {
+      key: anyDex.key + actualTokens.key,
+      payload: { dex: anyDex.dex(), tokens: actualTokens.payload },
+    }
+  )
 }
 
 export type PairAddressResult =
@@ -31,16 +41,14 @@ export function usePairAddress(tokens: NullableReactiveTokens): {
   pair: Ref<null | PairAddressResult>
   touch: () => void
 } {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
 
   const scope = useParamScope(
-    computed(() => kaikasStore.isConnected && nullableReactiveTokensToComposedKey(tokens)),
-    (actualTokens) => {
-      const kaikas = kaikasStore.getKaikasAnyway()
-
+    computed(() => dexAndTokensScopeParam(tokens, dexStore.anyDex)),
+    ({ tokens, dex }) => {
       const { state, run } = useTask<Except<PairAddressResult, 'tokens'>>(
         async () => {
-          const addr = await kaikas.tokens.getPairAddress(actualTokens)
+          const addr = await dex.tokens.getPairAddress(tokens)
           if (isEmptyAddress(addr)) return { kind: 'empty' }
           return { kind: 'exist', addr }
         },
@@ -58,7 +66,7 @@ export function usePairAddress(tokens: NullableReactiveTokens): {
     if (!result) return null
     return {
       ...result,
-      tokens: scope.value!.payload,
+      tokens: scope.value!.payload.tokens,
     }
   })
 
@@ -76,14 +84,12 @@ export function useSimplifiedResult(result: Ref<null | PairAddressResult>): Ref<
 }
 
 export function usePairReserves(tokens: NullableReactiveTokens) {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
 
   const scope = useParamScope(
-    computed(() => kaikasStore.isConnected && nullableReactiveTokensToComposedKey(tokens)),
-    (actualTokens) => {
-      const { state, run } = useTask(() => kaikasStore.getKaikasAnyway().tokens.getPairReserves(actualTokens), {
-        immediate: true,
-      })
+    computed(() => dexAndTokensScopeParam(tokens, dexStore.anyDex)),
+    ({ tokens, dex }) => {
+      const { state, run } = useTask(() => dex.tokens.getPairReserves(tokens), { immediate: true })
       usePromiseLog(state, 'pair-reserves')
       return { state: flattenState(state), run }
     },
@@ -110,15 +116,26 @@ export function usePairBalance(
   result: Ref<null | PairBalance>
   touch: () => void
 } {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
 
   const scope = useParamScope(
-    computed(() => (kaikasStore.isConnected && unref(pairExists) ? nullableReactiveTokensToComposedKey(tokens) : null)),
-    (actualTokens) => {
+    computed(() => {
+      const { active } = dexStore
+      const tokensKey = nullableReactiveTokensToComposedKey(tokens)
+
+      return (
+        unref(pairExists) &&
+        tokensKey &&
+        active.kind === 'named' && {
+          key: `${active.wallet}-${tokensKey.key}`,
+          payload: { dex: active.dex(), tokens: tokensKey.payload },
+        }
+      )
+    }),
+    ({ tokens, dex }) => {
       const { state, run } = useTask(
         async () => {
-          const kaikas = kaikasStore.getKaikasAnyway()
-          const { totalSupply, userBalance } = await kaikas.tokens.getPairBalanceOfUser(actualTokens)
+          const { totalSupply, userBalance } = await dex.tokens.getPairBalanceOfUser(tokens)
           const poolShare = userBalance.asBigNum.dividedBy(totalSupply.asBigNum).toNumber()
 
           return {

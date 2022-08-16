@@ -1,4 +1,4 @@
-import { Address, Kaikas, Wei } from '@/core/kaikas'
+import { Address, DexAnon, Wei } from '@/core'
 import { TokensPair, TokenType } from '@/utils/pair'
 import { Ref } from 'vue'
 import Debug from 'debug'
@@ -10,13 +10,13 @@ export interface GetAmountProps extends TokensPair<Address> {
   referenceValue: Wei
 }
 
-async function getAmount(props: GetAmountProps & { kaikas: Kaikas }): Promise<Wei> {
+async function getAmount(props: GetAmountProps & { dex: DexAnon }): Promise<Wei> {
   const addrsPair = { addressA: props.tokenA, addressB: props.tokenB }
 
   const refValue = props.referenceValue
 
   if (props.amountFor === 'tokenB') {
-    const [, amountOut] = await props.kaikas.swap.getAmounts({
+    const [, amountOut] = await props.dex.swap.getAmounts({
       mode: 'out',
       amountIn: refValue,
       ...addrsPair,
@@ -24,7 +24,7 @@ async function getAmount(props: GetAmountProps & { kaikas: Kaikas }): Promise<We
 
     return amountOut
   } else {
-    const [amountIn] = await props.kaikas.swap.getAmounts({
+    const [amountIn] = await props.dex.swap.getAmounts({
       mode: 'in',
       amountOut: refValue,
       ...addrsPair,
@@ -35,27 +35,30 @@ async function getAmount(props: GetAmountProps & { kaikas: Kaikas }): Promise<We
 }
 
 export function useGetAmount(props: Ref<null | GetAmountProps>) {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
   const { notify } = useNotify()
 
   const scope = useParamScope(
     computed(() => {
-      const val = props.value
-      if (!val) return null
-      return {
-        key: `${val.tokenA}-${val.tokenB}-for-${val.amountFor}-${val.referenceValue}`,
-        payload: val,
-      }
+      const anyDex = dexStore.anyDex
+
+      const propsValue = props.value
+      return (
+        propsValue && {
+          key: `dex-${anyDex.key}-${propsValue.tokenA}-${propsValue.tokenB}-for-${propsValue.amountFor}-${propsValue.referenceValue}`,
+          payload: { props: propsValue, dex: anyDex.dex() },
+        }
+      )
     }),
-    (actualProps) => {
-      debug('setting amounts: %o', actualProps)
+    ({ props, dex }) => {
+      debug('setting amounts: %o', props)
 
       const { set, state } = usePromise<Wei>()
       usePromiseLog(state, 'swap-get-amount')
       useNotifyOnError(state, notify, 'Failed to compute amount')
 
       function run() {
-        set(getAmount({ ...actualProps, kaikas: kaikasStore.getKaikasAnyway() }))
+        set(getAmount({ ...props, dex }))
       }
 
       run()
@@ -66,7 +69,7 @@ export function useGetAmount(props: Ref<null | GetAmountProps>) {
 
   const gettingFor = computed<null | TokenType>(() => {
     const x = scope.value
-    return x?.expose.pending ? x.payload.amountFor : null
+    return x?.expose.pending ? x.payload.props.amountFor : null
   })
 
   const gotFor = computed(() => {
@@ -75,7 +78,7 @@ export function useGetAmount(props: Ref<null | GetAmountProps>) {
     return x?.expose.fulfilled
       ? {
           amount: x.expose.fulfilled.value,
-          props: x.payload,
+          props: x.payload.props,
         }
       : null
   })

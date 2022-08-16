@@ -1,12 +1,11 @@
-import Config from './Config'
 import type { Address, Deadline } from '../types'
-import { MAGIC_GAS_PRICE, NATIVE_TOKEN } from './const'
+import { NATIVE_TOKEN, isNativeToken } from '../const'
 import { buildPair, buildPairAsync, TokensPair } from '@/utils/pair'
-import { computeTransactionFee, deadlineFiveMinutesFromNow, isNativeToken } from './utils'
-import { DexPair } from '@/core/kaikas/typechain/swap'
-import { PAIR } from './smartcontracts/abi'
-import Tokens from './Tokens'
+import { computeTransactionFee, deadlineFiveMinutesFromNow, universalizeContractMethod } from '../utils'
 import Wei from './Wei'
+import { Agent, AgentAnon } from './agent'
+import Tokens, { TokensAnon } from './tokens'
+import CommonContracts from './CommonContracts'
 
 export interface PrepareAddLiquidityProps {
   tokens: TokensPair<TokenAddressAndDesiredValue>
@@ -57,141 +56,26 @@ function detectEth<T extends { addr: Address }>(
   return null
 }
 
-export default class Liquidity {
-  private readonly cfg: Config
-  private readonly tokens: Tokens
+interface AnonCtorProps {
+  agent: AgentAnon
+  tokens: TokensAnon
+}
 
-  public constructor(deps: { cfg: Config; tokens: Tokens }) {
-    this.cfg = deps.cfg
-    this.tokens = deps.tokens
-  }
+export class LiquidityAnon {
+  #agent: AgentAnon
+  #tokens: TokensAnon
 
-  private get router() {
-    return this.cfg.contracts.router
-  }
-
-  private get addr() {
-    return this.cfg.addrs.self
-  }
-
-  /**
-   * - Approves that user has enough of each token
-   * - Detects whether to add liquidity for ETH or not
-   * - Computes minimal amount as 99% of desired value
-   */
-  public async prepareAddLiquidity(props: PrepareAddLiquidityProps): Promise<PrepareTransactionResult> {
-    for (const type of ['tokenA', 'tokenB'] as const) {
-      const { addr, desired } = props.tokens[type]
-      await this.cfg.approveAmount(addr, desired)
-    }
-    const gasPrice = MAGIC_GAS_PRICE
-
-    const detectedEth = detectEth(props.tokens)
-    if (detectedEth) {
-      const {
-        token,
-        eth: { desired: desiredEth },
-      } = detectedEth
-
-      const method = this.router.methods.addLiquidityETH(
-        token.addr,
-        token.desired.asStr,
-        minByDesired(token.desired).asStr,
-        minByDesired(desiredEth).asStr,
-        this.addr,
-        props.deadline,
-      )
-
-      const gas = await method.estimateGas({
-        from: this.cfg.addrs.self,
-        gasPrice: gasPrice.asStr,
-        value: desiredEth.asBN,
-      })
-      const send = async () => {
-        await method.send({
-          from: this.addr,
-          gas,
-          gasPrice: gasPrice.asStr,
-          value: desiredEth.asBN,
-        })
-      }
-
-      return { fee: computeTransactionFee(gasPrice, gas), send }
-    } else {
-      const { tokenA, tokenB } = props.tokens
-
-      const method = this.router.methods.addLiquidity(
-        tokenA.addr,
-        tokenB.addr,
-        tokenA.desired.asStr,
-        tokenB.desired.asStr,
-        minByDesired(tokenA.desired).asStr,
-        minByDesired(tokenB.desired).asStr,
-        this.addr,
-        props.deadline,
-      )
-
-      const gas = await method.estimateGas()
-      const send = async () => {
-        await method.send({
-          from: this.addr,
-          gas,
-          gasPrice: gasPrice.asStr,
-        })
-      }
-
-      return { fee: computeTransactionFee(gasPrice, gas), send }
-    }
-  }
-
-  /**
-   * - Approves that pair has enought amount for `lpTokenValue`
-   */
-  public async prepareRmLiquidity(props: PrepareRemoveLiquidityProps): Promise<PrepareTransactionResult> {
-    await this.cfg.approveAmount(props.pair, props.lpTokenValue)
-
-    const { minAmounts } = props
-
-    const detectedEth = detectEth(
-      buildPair((type) => ({
-        addr: props.tokens[type],
-        minAmount: minAmounts[type],
-      })),
-    )
-    const method = detectedEth
-      ? this.router.methods.removeLiquidityETH(
-          detectedEth.token.addr,
-          props.lpTokenValue.asStr,
-          detectedEth.token.minAmount.asStr,
-          detectedEth.eth.minAmount.asStr,
-          this.addr,
-          deadlineFiveMinutesFromNow(),
-        )
-      : this.router.methods.removeLiquidity(
-          props.tokens.tokenA,
-          props.tokens.tokenB,
-          props.lpTokenValue.asStr,
-          minAmounts.tokenA.asStr,
-          minAmounts.tokenB.asStr,
-          this.addr,
-          deadlineFiveMinutesFromNow(),
-        )
-
-    const gasPrice = MAGIC_GAS_PRICE
-    const gas = await method.estimateGas({ from: this.addr, gasPrice: gasPrice.asStr })
-    const send = async () => {
-      await method.send({ from: this.addr, gas, gasPrice: gasPrice.asStr })
-    }
-
-    return { fee: computeTransactionFee(gasPrice, gas), send }
+  public constructor(props: AnonCtorProps) {
+    this.#agent = props.agent
+    this.#tokens = props.tokens
   }
 
   public async computeRmLiquidityAmounts(
     props: ComputeRemoveLiquidityAmountsProps,
   ): Promise<ComputeRemoveLiquidityAmountsResult> {
-    const pairContract = this.cfg.createContract<DexPair>(props.pair, PAIR)
+    const pairContract = await this.#agent.createContract(props.pair, 'pair')
 
-    const totalSupply = new Wei(await pairContract.methods.totalSupply().call())
+    const totalSupply = new Wei(await pairContract.totalSupply())
 
     const amounts = await buildPairAsync((type) =>
       this.tokenRmAmount({
@@ -208,10 +92,155 @@ export default class Liquidity {
   /**
    * amount = (lpTokenValue * tokenBalanceOfPair / totalSupply) - 1
    */
-  private async tokenRmAmount(props: { token: Address; pair: Address; lpToken: Wei; totalSupply: Wei }): Promise<Wei> {
-    const balance = await this.tokens.getTokenBalanceOfAddr(props.token, props.pair)
-    const amount = props.lpToken.asBN.mul(balance.asBN).div(props.totalSupply.asBN).subn(1)
+  protected async tokenRmAmount(props: {
+    token: Address
+    pair: Address
+    lpToken: Wei
+    totalSupply: Wei
+  }): Promise<Wei> {
+    const balance = await this.#tokens.getTokenBalanceOfAddr(props.token, props.pair)
+    const amount = props.lpToken.asBigNum.multipliedBy(balance.asBigNum).dividedBy(props.totalSupply.asBigNum).minus(1)
     return new Wei(amount)
+  }
+}
+
+export class Liquidity extends LiquidityAnon {
+  #agent: Agent
+  #contracts: CommonContracts
+
+  public constructor(props: { agent: Agent; tokens: TokensAnon; contracts: CommonContracts }) {
+    super(props)
+    this.#agent = props.agent
+    this.#contracts = props.contracts
+  }
+
+  private get router() {
+    return this.#contracts.router
+  }
+
+  private get address() {
+    return this.#agent.address
+  }
+
+  /**
+   * - Approves that user has enough of each token
+   * - Detects whether to add liquidity for ETH or not
+   * - Computes minimal amount as 99% of desired value
+   */
+  public async prepareAddLiquidity(props: PrepareAddLiquidityProps): Promise<PrepareTransactionResult> {
+    for (const type of ['tokenA', 'tokenB'] as const) {
+      const { addr, desired } = props.tokens[type]
+      await this.#agent.approveAmount(addr, desired)
+    }
+    const { address } = this
+    const gasPrice = await this.#agent.getGasPrice()
+
+    const detectedEth = detectEth(props.tokens)
+    if (detectedEth) {
+      const {
+        token,
+        eth: { desired: desiredEth },
+      } = detectedEth
+
+      const { estimateGas, send } = universalizeContractMethod(this.router, 'addLiquidityETH', [
+        token.addr,
+        token.desired.asStr,
+        minByDesired(token.desired).asBigInt,
+        minByDesired(desiredEth).asBigInt,
+        address,
+        props.deadline,
+      ])
+
+      const gas = await estimateGas()
+
+      // const gas = await method.estimateGas({
+      //   from: this.cfg.addrs.self,
+      //   gasPrice: gasPrice.asStr,
+      //   value: desiredEth.asBN,
+      // })
+      // const send = async () => {
+      //   await method.send({
+      //     from: this.addr,
+      //     gas,
+      //     gasPrice: gasPrice.asStr,
+      //     value: desiredEth.asBN,
+      //   })
+      // }
+
+      return { fee: computeTransactionFee(gasPrice, gas), send }
+    } else {
+      const { tokenA, tokenB } = props.tokens
+
+      const { estimateGas, send } = universalizeContractMethod(this.router, 'addLiquidity', [
+        tokenA.addr,
+        tokenB.addr,
+        tokenA.desired.asBigInt,
+        tokenB.desired.asBigInt,
+        minByDesired(tokenA.desired).asBigInt,
+        minByDesired(tokenB.desired).asBigInt,
+        address,
+        props.deadline,
+      ])
+
+      const gas = await estimateGas()
+
+      // const gas = await method.estimateGas()
+      // const send = async () => {
+      //   await method.send({
+      //     from: this.addr,
+      //     gas,
+      //     gasPrice: gasPrice.asStr,
+      //   })
+      // }
+
+      return { fee: computeTransactionFee(gasPrice, gas), send }
+    }
+  }
+
+  /**
+   * - Approves that pair has enought amount for `lpTokenValue`
+   */
+  public async prepareRmLiquidity(props: PrepareRemoveLiquidityProps): Promise<PrepareTransactionResult> {
+    await this.#agent.approveAmount(props.pair, props.lpTokenValue)
+
+    const { minAmounts } = props
+
+    const { address, router } = this
+
+    const detectedEth = detectEth(
+      buildPair((type) => ({
+        addr: props.tokens[type],
+        minAmount: minAmounts[type],
+      })),
+    )
+    const { estimateGas, send } = detectedEth
+      ? universalizeContractMethod(router, 'removeLiquidityETH', [
+          detectedEth.token.addr,
+          props.lpTokenValue.asStr,
+          detectedEth.token.minAmount.asStr,
+          detectedEth.eth.minAmount.asStr,
+          address,
+          deadlineFiveMinutesFromNow(),
+        ])
+      : universalizeContractMethod(router, 'removeLiquidity', [
+          props.tokens.tokenA,
+          props.tokens.tokenB,
+          props.lpTokenValue.asStr,
+          minAmounts.tokenA.asStr,
+          minAmounts.tokenB.asStr,
+          address,
+          deadlineFiveMinutesFromNow(),
+        ])
+
+    const gasPrice = await this.#agent.getGasPrice()
+    const gas = await estimateGas()
+
+    // const gas = await method.estimateGas({ from: this.addr, gasPrice: gasPrice.asStr })
+    // const send = async () => {
+    //   await method.send({ from: this.addr, gas, gasPrice: gasPrice.asStr })
+    // }
+
+    return { fee: computeTransactionFee(gasPrice, gas), send }
   }
 }
 

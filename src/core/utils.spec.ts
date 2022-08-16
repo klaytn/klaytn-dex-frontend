@@ -1,13 +1,12 @@
 import { describe, test, expect } from 'vitest'
 import { NATIVE_TOKEN } from './const'
 import { formatAddress, parseAddress, isEmptyAddress, computeTransactionFee } from './utils'
-import Wei from './Wei'
+import { Wei } from './entities'
 
 describe('Formatting address', () => {
   test('some token formatted', () => {
-    // FIXME format is not correct!
     expect(formatAddress(parseAddress('0xae3a8a1D877a446b22249D8676AFeB16F056B44e'))).toMatchInlineSnapshot(
-      '"ae3a...56B4"',
+      '"ae3a...B44e"',
     )
   })
 })
