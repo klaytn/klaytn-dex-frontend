@@ -5,6 +5,29 @@ import { and, type MaybeRef, not } from '@vueuse/core'
 import { type Ref } from 'vue'
 import { type PromiseStateAtomic } from '@vue-kakuyaku/core'
 
+function patchKaikas(
+  kaikas: Kaikas,
+  props: {
+    getAccounts: () => Address[]
+  },
+): ExternalProvider {
+  async function sendAsync(...args: any[]) {
+    const [{ method, jsonrpc, id }, callback] = args
+    if (method === 'eth_accounts') {
+      callback(null, { result: props.getAccounts(), id, jsonrpc })
+    }
+
+    return (kaikas.sendAsync as any)(...args)
+  }
+
+  return new Proxy(kaikas, {
+    get(target, prop) {
+      if (prop === 'sendAsync') return sendAsync
+      return (target as any)[prop]
+    },
+  }) as any
+}
+
 const KAIKAS = window.klaytn ?? null
 
 export const isKaikasDetected = !!KAIKAS
@@ -83,7 +106,6 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
     { immediate: true },
   )
   useErrorRetry(detectMetamaskState, detectMetamask, { count: Infinity, interval: 1_000 })
-  usePromiseLog(detectMetamaskState, 'detect-eth-provider')
   const isMetamaskDetectionDone = computed(() => !!detectMetamaskState.fulfilled)
   const detectedMetamask = computed(() => detectMetamaskState.fulfilled?.value ?? null)
   const isMetamaskDetected = computed(() => !!detectedMetamask.value)
@@ -130,7 +152,20 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
     (wallet): ProviderScope => {
       if (wallet.kind === 'kaikas') {
         const { kaikas } = wallet
-        const providerFactory = () => markRaw(new Web3Provider(kaikas as any as ExternalProvider))
+        const providerFactory = () => {
+          const provider = markRaw(
+            new Web3Provider(
+              patchKaikas(kaikas, {
+                getAccounts: () => {
+                  const addr = account.value
+                  return addr ? [addr] : []
+                },
+              }),
+            ),
+          )
+
+          return provider
+        }
         const provider = shallowRef(providerFactory())
         const updateProvider = () => {
           provider.value = providerFactory()

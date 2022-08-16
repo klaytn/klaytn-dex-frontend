@@ -34,7 +34,9 @@ export function universalizeContractMethod<T extends Contract, K extends string>
 ): UniContractMethod {
   return {
     estimateGas: () => contract.estimateGas[method](...params).then((x) => x.toBigInt()),
-    send: async () => {},
+    send: async () => {
+      await contract[method](...params)
+    },
   }
 }
 

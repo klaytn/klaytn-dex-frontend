@@ -1,4 +1,6 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
+import { Signer } from '@ethersproject/abstract-signer'
+import { Provider } from '@ethersproject/abstract-provider'
 import { Contract } from 'ethers'
 import { KIP7, DexPair } from '../typechain'
 import { Address } from '../types'
@@ -40,8 +42,7 @@ export class AgentAnon {
   }
 
   public async createContract<T extends AvailableAbi>(address: Address, abiKey: T): Promise<AbiToContract<T>> {
-    const abi = this.#abi.get(abiKey) || (await this.#abi.load(abiKey))
-    return new Contract(address, abi, this.#provider) as unknown as AbiToContract<T>
+    return this.createContractInternal(address, abiKey, this.#provider)
   }
 
   public async getGasPrice(): Promise<Wei> {
@@ -57,6 +58,15 @@ export class AgentAnon {
   public async getBalance(address: Address): Promise<Wei> {
     const value = await this.#provider.getBalance(address)
     return new Wei(value)
+  }
+
+  protected async createContractInternal<T extends AvailableAbi>(
+    address: Address,
+    abiKey: T,
+    providerOrSigner: Provider | Signer,
+  ): Promise<AbiToContract<T>> {
+    const abi = this.#abi.get(abiKey) || (await this.#abi.load(abiKey))
+    return new Contract(address, abi, providerOrSigner) as unknown as AbiToContract<T>
   }
 }
 
@@ -93,5 +103,9 @@ export class Agent extends AgentAnon {
   public async getAllowanceWithContract(contract: KIP7 | DexPair, spender = this.routerAddress): Promise<Wei> {
     const value = await contract.allowance(this.#address, spender)
     return new Wei(value)
+  }
+
+  public async createContract<T extends AvailableAbi>(address: Address, abiKey: T): Promise<AbiToContract<T>> {
+    return this.createContractInternal(address, abiKey, this.provider.getSigner())
   }
 }

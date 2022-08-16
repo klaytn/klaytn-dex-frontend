@@ -91,7 +91,8 @@ export class Swap extends SwapAnon {
     const { deadline = deadlineFiveMinutesFromNow() } = props
     const { router } = this
     const { address } = this.#agent
-    const gasPrice = await this.#agent.getGasPrice()
+    const gasPriceWei = await this.#agent.getGasPrice()
+    const gasPrice = gasPriceWei.asBigInt
 
     let method: UniContractMethod
 
@@ -103,6 +104,7 @@ export class Swap extends SwapAnon {
           [props.addressA, props.addressB],
           address,
           deadline,
+          { gasPrice, from: address },
         ])
 
         break
@@ -115,6 +117,7 @@ export class Swap extends SwapAnon {
           [props.addressA, props.addressB],
           address,
           deadline,
+          { gasPrice, from: address },
         ])
 
         break
@@ -126,37 +129,41 @@ export class Swap extends SwapAnon {
           [props.addressA, props.addressB],
           address,
           deadline,
+          { gasPrice, from: address },
         ])
 
         break
       }
       case 'exact-eth-for-tokens': {
         method = universalizeContractMethod(router, 'swapExactETHForTokens', [
-          props.amountOutMin.asStr,
+          props.amountOutMin.asBigInt,
           [props.addressA, props.addressB],
           address,
           deadline,
+          { gasPrice, value: props.amountIn.asBigInt, from: address },
         ])
 
         break
       }
       case 'eth-for-exact-tokens': {
         method = universalizeContractMethod(router, 'swapETHForExactTokens', [
-          props.amountOut.asStr,
+          props.amountOut.asBigInt,
           [props.addressA, props.addressB],
           address,
           deadline,
+          { gasPrice, value: props.amountInMax.asBigInt, from: address },
         ])
 
         break
       }
       case 'tokens-for-exact-eth': {
         method = universalizeContractMethod(router, 'swapTokensForExactETH', [
-          props.amountOut.asStr,
-          props.amountInMax.asStr,
+          props.amountOut.asBigInt,
+          props.amountInMax.asBigInt,
           [props.addressA, props.addressB],
           address,
           deadline,
+          { gasPrice, from: address },
         ])
 
         break
@@ -170,7 +177,7 @@ export class Swap extends SwapAnon {
 
     const { estimateGas, send } = method
     const gas = await estimateGas()
-    const fee = computeTransactionFee(gasPrice, gas)
+    const fee = computeTransactionFee(gasPriceWei, gas)
 
     return {
       fee,
