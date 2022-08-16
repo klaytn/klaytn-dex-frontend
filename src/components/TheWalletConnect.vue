@@ -69,6 +69,7 @@ const wallets = computed<Wallet[]>(() => {
     v-else
     placement="bottom"
     distance="8"
+    hide-delay="400"
   >
     <template #trigger>
       <div
