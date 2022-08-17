@@ -43,7 +43,7 @@ export function usePromiseLog(state: PromiseStateAtomic<unknown>, name: string) 
       } else if (state.fulfilled) {
         debug('fulfilled: %o', state.fulfilled.value)
       } else if (state.rejected) {
-        debug('rejected: %o', state.rejected.reason)
+        debug('rejected')
         console.error(`Promise "${name}" errored:`, state.rejected.reason)
       }
     },

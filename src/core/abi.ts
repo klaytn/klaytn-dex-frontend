@@ -1,8 +1,11 @@
-import { JsonFragment } from '@ethersproject/abi'
-import { DexFactory, DexPair, DexRouter, Farming, KIP7, Multicall, StakingFactory, WETH9 } from './typechain'
+import type { JsonFragment } from '@ethersproject/abi'
+import type { Contract as ContractEthers } from 'ethers'
+import type * as TypechainEthers from './typechain-ethers'
+import type * as TypechainWeb3 from './typechain-web3'
+import type { BaseContract as ContractWeb3 } from './typechain-web3/types'
 
 function takeDefault<T>(fn: () => Promise<{ default: T }>): () => Promise<T> {
-  return () => fn().then((x) => x.default)
+  return () => fn().then((x) => Object.freeze(x.default))
 }
 
 export type RawABI = readonly JsonFragment[]
@@ -19,21 +22,37 @@ export const ABIs: Record<AvailableAbi, () => Promise<RawABI>> = {
   erc20: () => import('./smartcontracts/erc20.json').then((x) => x.default),
 }
 
-export type AvailableAbi = keyof AbiContract
+export type AvailableAbi = keyof AbiContractEthers & keyof AbiContractWeb3
 
-export interface AbiContract {
-  kip7: KIP7
-  pair: DexPair
-  router: DexRouter
-  factory: DexFactory
-  weth: WETH9
-  farming: Farming
-  staking: StakingFactory
-  multicall: Multicall
-  erc20: any
+export interface AbiContractEthers {
+  kip7: TypechainEthers.KIP7
+  pair: TypechainEthers.DexPair
+  router: TypechainEthers.DexRouter
+  factory: TypechainEthers.DexFactory
+  weth: TypechainEthers.WETH9
+  farming: TypechainEthers.Farming
+  staking: TypechainEthers.StakingFactory
+  multicall: TypechainEthers.Multicall
+  erc20: ContractEthers
 }
 
-export type AbiToContract<T extends AvailableAbi> = AbiContract[T]
+export interface AbiContractWeb3 {
+  kip7: TypechainWeb3.tokens.KIP7
+  pair: TypechainWeb3.swap.DexPair
+  router: TypechainWeb3.swap.DexRouter
+  factory: TypechainWeb3.swap.DexFactory
+  weth: TypechainWeb3.tokens.wklaySol.WETH9
+  farming: TypechainWeb3.farming.Farming
+  staking: TypechainWeb3.farming.StakingFactory
+  multicall: TypechainWeb3.farming.multiCallSol.Multicall
+  erc20: ContractWeb3
+}
+
+export type TypechainTarget = 'ethers' | 'web3'
+
+export type AbiToContract<A extends AvailableAbi, T extends TypechainTarget> = T extends 'web3'
+  ? AbiContractWeb3[A]
+  : AbiContractEthers[A]
 
 export class AbiLoader {
   #cache: { [K in AvailableAbi]?: RawABI } = {}

@@ -1,9 +1,9 @@
-import { DexFactory, DexRouter } from '../typechain'
 import { AgentAnon } from './agent'
+import { type IsomorphicContract } from './isomorphic-contract'
 
 interface Contracts {
-  router: DexRouter
-  factory: DexFactory
+  router: IsomorphicContract<'router'>
+  factory: IsomorphicContract<'factory'>
 }
 
 export default class CommonContracts implements Readonly<Contracts> {
@@ -16,8 +16,8 @@ export default class CommonContracts implements Readonly<Contracts> {
     return new CommonContracts({ router, factory })
   }
 
-  public readonly router!: DexRouter
-  public readonly factory!: DexFactory
+  public readonly router!: IsomorphicContract<'router'>
+  public readonly factory!: IsomorphicContract<'factory'>
 
   private constructor(x: Contracts) {
     Object.assign(this, x)

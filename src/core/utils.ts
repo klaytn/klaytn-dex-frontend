@@ -1,4 +1,3 @@
-import { Contract } from 'ethers'
 import { isAddress as ethersIsAddress } from '@ethersproject/address'
 import type { Address, Deadline } from './types'
 import { Wei } from './entities'
@@ -20,24 +19,6 @@ export function parseAddress(raw: string): Address {
 
 export function deadlineFiveMinutesFromNow(): Deadline {
   return (~~(Date.now() / 1000) + 300) as Deadline
-}
-
-export interface UniContractMethod {
-  estimateGas: () => Promise<bigint>
-  send: () => Promise<void>
-}
-
-export function universalizeContractMethod<T extends Contract, K extends string>(
-  contract: T,
-  method: K,
-  params: Parameters<T[K]> & Parameters<T['estimateGas'][K]>,
-): UniContractMethod {
-  return {
-    estimateGas: () => contract.estimateGas[method](...params).then((x) => x.toBigInt()),
-    send: async () => {
-      await contract[method](...params)
-    },
-  }
 }
 
 /**

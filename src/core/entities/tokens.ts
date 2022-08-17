@@ -1,11 +1,11 @@
 import { isEmptyAddress } from '../utils'
-import { type DexPair } from '../typechain'
 import type { Address, Token, TokenSymbol } from '../types'
 import Wei from './Wei'
 import CommonContracts from './CommonContracts'
 import invariant from 'tiny-invariant'
-import { TokensPair, TokenType } from '@/utils/pair'
-import { AgentAnon, Agent } from './agent'
+import type { TokensPair, TokenType } from '@/utils/pair'
+import { AgentAnon, Agent, type ContractForLib } from './agent'
+import { IsomorphicContract, isomorphicContract } from './isomorphic-contract'
 
 export interface GetTokenQuoteProps extends TokensPair<Address> {
   value: Wei
@@ -59,20 +59,20 @@ export class TokensAnon {
   }
 
   public async getTokenQuote({ tokenA, tokenB, value, quoteFor }: GetTokenQuoteProps): Promise<Wei> {
-    const pairContract = await this.createPairContract({ tokenA, tokenB })
-    const token0 = (await pairContract.token0()) as Address
+    const contract = await this.createPairContract({ tokenA, tokenB })
+    const token0 = (await contract.token0([]).call()) as Address
     const reserves = await this.getPairReserves({ tokenA, tokenB })
 
     const sortedReserves = sortReservesForQuote({ reserves, token0, tokenA, quoteFor })
 
     return new Wei(
-      await this.router.quote(value.asBigInt, sortedReserves.reserve0.asBigInt, sortedReserves.reserve1.asBigInt),
+      await this.router.quote([value.asStr, sortedReserves.reserve0.asStr, sortedReserves.reserve1.asStr]).call(),
     )
   }
 
   public async getPairReserves(tokens: TokensPair<Address>): Promise<PairReserves> {
     const contract = await this.createPairContract(tokens)
-    const reserves = await contract.getReserves()
+    const reserves = await contract.getReserves([]).call()
     return {
       reserve0: new Wei(reserves[0]),
       reserve1: new Wei(reserves[1]),
@@ -83,26 +83,30 @@ export class TokensAnon {
    * If there is no such a pair, returns an empty one (`0x00...`)
    */
   public async getPairAddress({ tokenA, tokenB }: TokensPair<Address>): Promise<Address> {
-    const addr = (await this.factory.getPair(tokenA, tokenB)) as Address
+    const addr = (await this.factory.getPair([tokenA, tokenB]).call()) as Address
     return addr
   }
 
-  public async getToken(addr: Address): Promise<Token> {
-    const contract = await this.#agent.createContract(addr, 'kip7')
+  public async getToken(address: Address): Promise<Token> {
+    const contract = await this.#agent.createContract(address, 'kip7')
     const [name, symbol, decimals] = await Promise.all([
-      contract.name(),
-      contract.symbol() as Promise<TokenSymbol>,
-      contract.decimals(),
+      contract.name([]).call(),
+      contract.symbol([]).call() as Promise<TokenSymbol>,
+      contract
+        .decimals([])
+        .call()
+        .then((x) => Number(x)),
     ])
-    return { address: addr, name, symbol, decimals }
+    return { address, name, symbol, decimals }
   }
 
   public async getTokenBalanceOfAddr(token: Address, balanceOf: Address): Promise<Wei> {
-    const balance = await (await this.#agent.createContract(token, 'kip7')).balanceOf(balanceOf)
+    const contract = await this.#agent.createContract(token, 'kip7')
+    const balance = await contract.balanceOf([balanceOf]).call()
     return new Wei(balance)
   }
 
-  public async createPairContract(pair: TokensPair<Address>): Promise<DexPair> {
+  public async createPairContract(pair: TokensPair<Address>): Promise<IsomorphicContract<'pair'>> {
     const pairAddr = await this.getPairAddress(pair)
     invariant(!isEmptyAddress(pairAddr), 'Empty address')
     return this.#agent.createContract(pairAddr, 'pair')
@@ -133,11 +137,9 @@ export class Tokens extends TokensAnon {
    * Fails if there is no such a pair
    */
   public async getPairBalanceOfUser(pair: TokensPair<Address>): Promise<{ totalSupply: Wei; userBalance: Wei }> {
-    const pairContract = await this.createPairContract(pair)
-
-    const totalSupply = new Wei(await pairContract.totalSupply())
-    const userBalance = new Wei(await pairContract.balanceOf(this.address))
-
+    const contract = await this.createPairContract(pair)
+    const totalSupply = new Wei(await contract.totalSupply([]).call())
+    const userBalance = new Wei(await contract.balanceOf([this.address]).call())
     return { totalSupply, userBalance }
   }
 }

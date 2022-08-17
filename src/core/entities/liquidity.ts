@@ -1,10 +1,10 @@
 import type { Address, Deadline } from '../types'
 import { NATIVE_TOKEN, isNativeToken } from '../const'
 import { buildPair, buildPairAsync, TokensPair } from '@/utils/pair'
-import { computeTransactionFee, deadlineFiveMinutesFromNow, universalizeContractMethod } from '../utils'
+import { computeTransactionFee, deadlineFiveMinutesFromNow } from '../utils'
 import Wei from './Wei'
 import { Agent, AgentAnon } from './agent'
-import Tokens, { TokensAnon } from './tokens'
+import { TokensAnon } from './tokens'
 import CommonContracts from './CommonContracts'
 
 export interface PrepareAddLiquidityProps {
@@ -75,7 +75,7 @@ export class LiquidityAnon {
   ): Promise<ComputeRemoveLiquidityAmountsResult> {
     const pairContract = await this.#agent.createContract(props.pair, 'pair')
 
-    const totalSupply = new Wei(await pairContract.totalSupply())
+    const totalSupply = new Wei(await pairContract.totalSupply([]).call())
 
     const amounts = await buildPairAsync((type) =>
       this.tokenRmAmount({
@@ -142,56 +142,41 @@ export class Liquidity extends LiquidityAnon {
         eth: { desired: desiredEth },
       } = detectedEth
 
-      const { estimateGas, send } = universalizeContractMethod(this.router, 'addLiquidityETH', [
-        token.addr,
-        token.desired.asStr,
-        minByDesired(token.desired).asBigInt,
-        minByDesired(desiredEth).asBigInt,
-        address,
-        props.deadline,
-      ])
+      const { estimateGas, send: sendWithGas } = this.router.addLiquidityETH(
+        [
+          token.addr,
+          token.desired.asStr,
+          minByDesired(token.desired).asStr,
+          minByDesired(desiredEth).asStr,
+          address,
+          props.deadline,
+        ],
+        { gasPrice, value: desiredEth },
+      )
 
       const gas = await estimateGas()
-
-      // const gas = await method.estimateGas({
-      //   from: this.cfg.addrs.self,
-      //   gasPrice: gasPrice.asStr,
-      //   value: desiredEth.asBN,
-      // })
-      // const send = async () => {
-      //   await method.send({
-      //     from: this.addr,
-      //     gas,
-      //     gasPrice: gasPrice.asStr,
-      //     value: desiredEth.asBN,
-      //   })
-      // }
+      const send = () => sendWithGas({ gas })
 
       return { fee: computeTransactionFee(gasPrice, gas), send }
     } else {
       const { tokenA, tokenB } = props.tokens
 
-      const { estimateGas, send } = universalizeContractMethod(this.router, 'addLiquidity', [
-        tokenA.addr,
-        tokenB.addr,
-        tokenA.desired.asBigInt,
-        tokenB.desired.asBigInt,
-        minByDesired(tokenA.desired).asBigInt,
-        minByDesired(tokenB.desired).asBigInt,
-        address,
-        props.deadline,
-      ])
+      const { estimateGas, send: sendWithoutGas } = this.router.addLiquidity(
+        [
+          tokenA.addr,
+          tokenB.addr,
+          tokenA.desired.asStr,
+          tokenB.desired.asStr,
+          minByDesired(tokenA.desired).asStr,
+          minByDesired(tokenB.desired).asStr,
+          address,
+          props.deadline,
+        ],
+        { gasPrice },
+      )
 
       const gas = await estimateGas()
-
-      // const gas = await method.estimateGas()
-      // const send = async () => {
-      //   await method.send({
-      //     from: this.addr,
-      //     gas,
-      //     gasPrice: gasPrice.asStr,
-      //   })
-      // }
+      const send = () => sendWithoutGas({ gas })
 
       return { fee: computeTransactionFee(gasPrice, gas), send }
     }
@@ -204,8 +189,8 @@ export class Liquidity extends LiquidityAnon {
     await this.#agent.approveAmount(props.pair, props.lpTokenValue)
 
     const { minAmounts } = props
-
     const { address, router } = this
+    const gasPrice = await this.#agent.getGasPrice()
 
     const detectedEth = detectEth(
       buildPair((type) => ({
@@ -213,32 +198,33 @@ export class Liquidity extends LiquidityAnon {
         minAmount: minAmounts[type],
       })),
     )
-    const { estimateGas, send } = detectedEth
-      ? universalizeContractMethod(router, 'removeLiquidityETH', [
-          detectedEth.token.addr,
-          props.lpTokenValue.asStr,
-          detectedEth.token.minAmount.asStr,
-          detectedEth.eth.minAmount.asStr,
-          address,
-          deadlineFiveMinutesFromNow(),
-        ])
-      : universalizeContractMethod(router, 'removeLiquidity', [
-          props.tokens.tokenA,
-          props.tokens.tokenB,
-          props.lpTokenValue.asStr,
-          minAmounts.tokenA.asStr,
-          minAmounts.tokenB.asStr,
-          address,
-          deadlineFiveMinutesFromNow(),
-        ])
+    const { estimateGas, send: sendWithGas } = detectedEth
+      ? router.removeLiquidityETH(
+          [
+            detectedEth.token.addr,
+            props.lpTokenValue.asStr,
+            detectedEth.token.minAmount.asStr,
+            detectedEth.eth.minAmount.asStr,
+            address,
+            deadlineFiveMinutesFromNow(),
+          ],
+          { gasPrice },
+        )
+      : router.removeLiquidity(
+          [
+            props.tokens.tokenA,
+            props.tokens.tokenB,
+            props.lpTokenValue.asStr,
+            minAmounts.tokenA.asStr,
+            minAmounts.tokenB.asStr,
+            address,
+            deadlineFiveMinutesFromNow(),
+          ],
+          { gasPrice },
+        )
 
-    const gasPrice = await this.#agent.getGasPrice()
     const gas = await estimateGas()
-
-    // const gas = await method.estimateGas({ from: this.addr, gasPrice: gasPrice.asStr })
-    // const send = async () => {
-    //   await method.send({ from: this.addr, gas, gasPrice: gasPrice.asStr })
-    // }
+    const send = () => sendWithGas({ gas })
 
     return { fee: computeTransactionFee(gasPrice, gas), send }
   }

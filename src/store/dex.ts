@@ -16,7 +16,11 @@ type ActiveDex =
 const abi = new AbiLoader()
 const commonAddrs = { router: ADDRESS_ROUTER, factory: ADDRESS_FACTORY }
 const anonymousProvider = new JsonRpcProvider(NETWORK.rpcUrl)
-const dexAnon = await DexAnon.initAnonymous({ provider: anonymousProvider, addrs: commonAddrs, abi })
+const dexAnon = await DexAnon.initAnonymous({
+  provider: { kind: 'ethers', ethers: anonymousProvider },
+  addrs: commonAddrs,
+  abi,
+})
 
 export const useDexStore = defineStore('dex', () => {
   const {
@@ -41,7 +45,9 @@ export const useDexStore = defineStore('dex', () => {
       }
     }),
     ({ provider, account }) => {
-      const { state } = useTask(() => Dex.init({ provider, addrs: commonAddrs, abi }, account), { immediate: true })
+      const { state } = useTask(() => Dex.init({ provider, addrs: commonAddrs, abi }, account), {
+        immediate: true,
+      })
       return state
     },
   )

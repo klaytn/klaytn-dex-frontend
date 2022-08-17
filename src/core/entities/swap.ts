@@ -1,13 +1,9 @@
 import type { Address, Deadline } from '../types'
-import {
-  computeTransactionFee,
-  deadlineFiveMinutesFromNow,
-  UniContractMethod,
-  universalizeContractMethod,
-} from '../utils'
+import { computeTransactionFee, deadlineFiveMinutesFromNow } from '../utils'
 import Wei from './Wei'
 import CommonContracts from './CommonContracts'
 import { Agent } from './agent'
+import { BuiltMethod, IsomorphicOverrides } from './isomorphic-contract'
 
 export interface AddrsPair {
   addressA: Address
@@ -73,8 +69,8 @@ export class SwapAnon {
   public async getAmounts(props: GetAmountsProps): Promise<[Wei, Wei]> {
     const path = [props.addressA, props.addressB]
     const [amount0, amount1] = await (props.mode === 'in'
-      ? this.router.getAmountsIn(props.amountOut.asBigInt, path)
-      : this.router.getAmountsOut(props.amountIn.asBigInt, path))
+      ? this.router.getAmountsIn([props.amountOut.asStr, path]).call()
+      : this.router.getAmountsOut([props.amountIn.asStr, path]).call())
     return [new Wei(amount0), new Wei(amount1)]
   }
 }
@@ -87,84 +83,65 @@ export class Swap extends SwapAnon {
     this.#agent = props.agent
   }
 
-  public async swap(props: SwapProps): Promise<SwapResult> {
+  public async prepareSwap(props: SwapProps): Promise<SwapResult> {
     const { deadline = deadlineFiveMinutesFromNow() } = props
     const { router } = this
     const { address } = this.#agent
-    const gasPriceWei = await this.#agent.getGasPrice()
-    const gasPrice = gasPriceWei.asBigInt
+    const gasPrice = await this.#agent.getGasPrice()
 
-    let method: UniContractMethod
+    const baseOverrides: IsomorphicOverrides = {
+      gasPrice,
+      from: address,
+    }
+
+    let method: BuiltMethod<unknown>
 
     switch (props.mode) {
       case 'exact-tokens-for-tokens': {
-        method = universalizeContractMethod(router, 'swapExactTokensForTokens', [
-          props.amountIn.asBigInt,
-          props.amountOutMin.asBigInt,
-          [props.addressA, props.addressB],
-          address,
-          deadline,
-          { gasPrice, from: address },
-        ])
+        method = router.swapExactTokensForTokens(
+          [props.amountIn.asStr, props.amountOutMin.asStr, [props.addressA, props.addressB], address, deadline],
+          baseOverrides,
+        )
 
         break
       }
       case 'tokens-for-exact-tokens': {
-        method = universalizeContractMethod(router, 'swapTokensForExactTokens', [
-          // FIXME?
-          props.amountInMax.asBigInt,
-          props.amountOut.asBigInt,
-          [props.addressA, props.addressB],
-          address,
-          deadline,
-          { gasPrice, from: address },
-        ])
+        method = router.swapTokensForExactTokens(
+          [props.amountInMax.asStr, props.amountOut.asStr, [props.addressA, props.addressB], address, deadline],
+          baseOverrides,
+        )
 
         break
       }
       case 'exact-tokens-for-eth': {
-        method = universalizeContractMethod(router, 'swapExactTokensForETH', [
-          props.amountIn.asBigInt,
-          props.amountOutMin.asBigInt,
-          [props.addressA, props.addressB],
-          address,
-          deadline,
-          { gasPrice, from: address },
-        ])
+        method = router.swapExactTokensForETH(
+          [props.amountIn.asStr, props.amountOutMin.asStr, [props.addressA, props.addressB], address, deadline],
+          baseOverrides,
+        )
 
         break
       }
       case 'exact-eth-for-tokens': {
-        method = universalizeContractMethod(router, 'swapExactETHForTokens', [
-          props.amountOutMin.asBigInt,
-          [props.addressA, props.addressB],
-          address,
-          deadline,
-          { gasPrice, value: props.amountIn.asBigInt, from: address },
-        ])
+        method = router.swapExactETHForTokens(
+          [props.amountOutMin.asStr, [props.addressA, props.addressB], address, deadline],
+          { ...baseOverrides, value: props.amountIn },
+        )
 
         break
       }
       case 'eth-for-exact-tokens': {
-        method = universalizeContractMethod(router, 'swapETHForExactTokens', [
-          props.amountOut.asBigInt,
-          [props.addressA, props.addressB],
-          address,
-          deadline,
-          { gasPrice, value: props.amountInMax.asBigInt, from: address },
-        ])
+        method = router.swapETHForExactTokens(
+          [props.amountOut.asStr, [props.addressA, props.addressB], address, deadline],
+          { ...baseOverrides, value: props.amountInMax },
+        )
 
         break
       }
       case 'tokens-for-exact-eth': {
-        method = universalizeContractMethod(router, 'swapTokensForExactETH', [
-          props.amountOut.asBigInt,
-          props.amountInMax.asBigInt,
-          [props.addressA, props.addressB],
-          address,
-          deadline,
-          { gasPrice, from: address },
-        ])
+        method = router.swapTokensForExactETH(
+          [props.amountOut.asStr, props.amountInMax.asStr, [props.addressA, props.addressB], address, deadline],
+          baseOverrides,
+        )
 
         break
       }
@@ -175,13 +152,12 @@ export class Swap extends SwapAnon {
       }
     }
 
-    const { estimateGas, send } = method
+    const { estimateGas, send: sendWithGas } = method
     const gas = await estimateGas()
-    const fee = computeTransactionFee(gasPriceWei, gas)
+    const send = () => sendWithGas({ gas })
 
-    return {
-      fee,
-      send,
-    }
+    const fee = computeTransactionFee(gasPrice, gas)
+
+    return { fee, send }
   }
 }

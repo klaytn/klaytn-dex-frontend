@@ -1,34 +1,42 @@
 import detectEthereumProvider from '@metamask/detect-provider'
-import { type ExternalProvider, Web3Provider, type JsonRpcProvider } from '@ethersproject/providers'
+import { type ExternalProvider, Web3Provider, JsonRpcProvider, type JsonRpcSigner } from '@ethersproject/providers'
 import type { Address, Kaikas, Network as AppNetwork } from './types'
 import { and, type MaybeRef, not } from '@vueuse/core'
 import { type Ref } from 'vue'
 import { type PromiseStateAtomic } from '@vue-kakuyaku/core'
+import type Caver from 'caver-js'
+import type { AgentProvider } from './entities/agent'
 
-function patchKaikas(
-  kaikas: Kaikas,
-  props: {
-    getAccounts: () => Address[]
-  },
-): ExternalProvider {
-  async function sendAsync(...args: any[]) {
-    const [{ method, jsonrpc, id }, callback] = args
-    if (method === 'eth_accounts') {
-      callback(null, { result: props.getAccounts(), id, jsonrpc })
-    }
+// function patchKaikas(
+//   kaikas: Kaikas,
+//   props: {
+//     getAccounts: () => Address[]
+//   },
+// ): ExternalProvider {
+//   async function sendAsync(...args: any[]) {
+//     const [{ method, jsonrpc, id }, callback] = args
+//     if (method === 'eth_accounts') {
+//       callback(null, { result: props.getAccounts(), id, jsonrpc })
+//     }
 
-    return (kaikas.sendAsync as any)(...args)
-  }
+//     return (kaikas.sendAsync as any)(...args)
+//   }
 
-  return new Proxy(kaikas, {
-    get(target, prop) {
-      if (prop === 'sendAsync') return sendAsync
-      return (target as any)[prop]
-    },
-  }) as any
+//   return new Proxy(kaikas, {
+//     get(target, prop) {
+//       if (prop === 'sendAsync') return sendAsync
+//       return (target as any)[prop]
+//     },
+//   }) as any
+// }
+
+type KaikasWithCaver = Required<Pick<Window, 'klaytn' | 'caver'>>
+
+let KAIKAS: null | undefined | KaikasWithCaver
+{
+  const { caver, klaytn } = window
+  KAIKAS = caver && klaytn && { caver, klaytn }
 }
-
-const KAIKAS = window.klaytn ?? null
 
 export const isKaikasDetected = !!KAIKAS
 
@@ -96,7 +104,7 @@ function useChainGuard(provider: Ref<JsonRpcProvider>, enabled: Ref<boolean>, ex
 
 interface ConnectedProvider {
   wallet: SupportedWallet
-  provider: Web3Provider
+  provider: AgentProvider
   account: Address
 }
 
@@ -121,6 +129,7 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
     | {
         kind: 'kaikas'
         kaikas: Kaikas
+        caver: Caver
       }
     | {
         kind: 'metamask'
@@ -128,7 +137,7 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
       }
 
   interface ProviderScope {
-    provider: Web3Provider
+    provider: () => AgentProvider
     account: null | Address
     isChainLoaded: boolean
     isChainCorrect: boolean
@@ -143,7 +152,7 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
       return (
         wallet &&
         (wallet === 'kaikas' && KAIKAS
-          ? { key: wallet, payload: { kind: wallet, kaikas: KAIKAS } }
+          ? { key: wallet, payload: { kind: wallet, kaikas: KAIKAS.klaytn, caver: KAIKAS.caver } }
           : wallet === 'metamask' && detectedMetamask.value
           ? { key: wallet, payload: { kind: wallet, ethereum: detectedMetamask.value } }
           : null)
@@ -151,25 +160,8 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
     }),
     (wallet): ProviderScope => {
       if (wallet.kind === 'kaikas') {
-        const { kaikas } = wallet
-        const providerFactory = () => {
-          const provider = markRaw(
-            new Web3Provider(
-              patchKaikas(kaikas, {
-                getAccounts: () => {
-                  const addr = account.value
-                  return addr ? [addr] : []
-                },
-              }),
-            ),
-          )
-
-          return provider
-        }
-        const provider = shallowRef(providerFactory())
-        const updateProvider = () => {
-          provider.value = providerFactory()
-        }
+        const { kaikas, caver } = wallet
+        const provider: AgentProvider = { kind: 'caver', caver }
 
         const { state: enableState } = useTask(
           async () => {
@@ -178,9 +170,6 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
           { immediate: true },
         )
         usePromiseLog(enableState, 'enable-kaikas')
-        const enabled = computed(() => !!enableState.fulfilled)
-
-        wheneverRejected(enableState, () => selectWallet(null))
 
         const account = ref<null | Address>(null)
         const onAccountsChange = (accounts: Address[]) => {
@@ -189,25 +178,36 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
         kaikas.on('accountsChanged', onAccountsChange)
         onScopeDispose(() => kaikas.removeListener('accountsChanged', onAccountsChange))
 
-        const {
-          isCorrect: isChainCorrect,
-          isLoaded: isChainLoaded,
-          isPending: isChainPending,
-        } = useChainGuard(provider, enabled, props.network.chainId)
+        const getChainId = () => Number(kaikas.networkVersion)
+        const chainId = ref<null | number>(null)
+        const isChainCorrect = computed(() => chainId.value === props.network.chainId)
+        const isChainLoaded = computed(() => typeof chainId.value === 'number')
+        const updateChainId = () => {
+          chainId.value = getChainId()
+        }
 
-        kaikas.on('networkChanged', updateProvider)
-        onScopeDispose(() => kaikas.removeListener('networkChanged', updateProvider))
+        kaikas.on('networkChanged', updateChainId)
+        onScopeDispose(() => kaikas.removeListener('networkChanged', updateChainId))
 
         wheneverFulfilled(enableState, () => {
           account.value = kaikas.selectedAddress
+          updateChainId()
         })
+        wheneverRejected(enableState, () => selectWallet(null))
 
-        const isSetupPending = computed(() => enableState.pending || isChainPending.value)
+        const isSetupPending = toRef(enableState, 'pending')
 
-        return reactive({ account, provider, isChainCorrect, isChainLoaded, enableState, isSetupPending })
+        return reactive({
+          account,
+          provider: () => provider,
+          isChainCorrect,
+          isChainLoaded,
+          enableState,
+          isSetupPending,
+        })
       } else {
         const { ethereum } = wallet
-        const providerFactory = () => markRaw(new Web3Provider(ethereum))
+        const providerFactory = () => ({ kind: 'ethers', ethers: new Web3Provider(ethereum) } as const)
         const provider = shallowRef(providerFactory())
         const updateProvider = () => {
           provider.value = providerFactory()
@@ -215,7 +215,7 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
 
         const { state: enableState } = useTask(
           async () => {
-            await provider.value.send('eth_requestAccounts', [])
+            await provider.value.ethers.send('eth_requestAccounts', [])
           },
           { immediate: true },
         )
@@ -235,12 +235,16 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
           isCorrect: isChainCorrect,
           isLoaded: isChainLoaded,
           isPending: isChainPending,
-        } = useChainGuard(provider, enabled, props.network.chainId)
+        } = useChainGuard(
+          computed(() => provider.value.ethers),
+          enabled,
+          props.network.chainId,
+        )
         ethereum.on('chainChanged', updateProvider)
         onScopeDispose(() => ethereum.removeListener('chainChanged', updateProvider))
 
         const { run: trySwitchNetwork, state: switchNetworkState } = useTask(async () => {
-          await setupEthereumProviderNetwork(provider.value, props.network)
+          await setupEthereumProviderNetwork(provider.value.ethers, props.network)
         })
         usePromiseLog(switchNetworkState, 'ethereum-switch-network')
 
@@ -249,7 +253,14 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
 
         const isSetupPending = computed(() => enableState.pending || switchNetworkState.pending || isChainPending.value)
 
-        return reactive({ account, provider, isChainCorrect, isChainLoaded, enableState, isSetupPending })
+        return reactive({
+          account,
+          provider: () => provider.value,
+          isChainCorrect,
+          isChainLoaded,
+          enableState,
+          isSetupPending,
+        })
       }
     },
   )
@@ -264,7 +275,7 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
       if (isChainCorrect && account) {
         return {
           wallet,
-          provider,
+          provider: provider(),
           account,
         }
       }

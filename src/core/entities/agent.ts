@@ -1,11 +1,12 @@
-import { JsonRpcProvider } from '@ethersproject/providers'
-import { Signer } from '@ethersproject/abstract-signer'
-import { Provider } from '@ethersproject/abstract-provider'
+import { JsonRpcSigner, type JsonRpcProvider } from '@ethersproject/providers'
 import { Contract } from 'ethers'
-import { KIP7, DexPair } from '../typechain'
 import { Address } from '../types'
-import { AbiLoader, type AbiToContract, type AvailableAbi } from '../abi'
+import { AbiContractEthers, AbiContractWeb3, AbiLoader, type AbiToContract, type AvailableAbi } from '../abi'
 import Wei from './Wei'
+import type Caver from 'caver-js'
+import type { AbiItem } from 'caver-js'
+import { isomorphicContract, IsomorphicContract } from './isomorphic-contract'
+import invariant from 'tiny-invariant'
 
 export interface CommonAddrs {
   router: Address
@@ -13,13 +14,33 @@ export interface CommonAddrs {
 }
 
 interface AnonCtorProps {
-  provider: JsonRpcProvider
+  provider: AgentProvider
   addrs: CommonAddrs
   abi: AbiLoader
 }
 
+export type AgentProvider =
+  | {
+      kind: 'caver'
+      caver: Caver
+    }
+  | {
+      kind: 'ethers'
+      ethers: JsonRpcProvider
+    }
+
+export type ContractForLib<A extends AvailableAbi> =
+  | {
+      lib: 'web3'
+      web3: AbiToContract<A, 'web3'>
+    }
+  | {
+      lib: 'ethers'
+      ethers: AbiToContract<A, 'ethers'>
+    }
+
 export class AgentAnon {
-  #provider: JsonRpcProvider
+  #provider: AgentProvider
   #addrs: CommonAddrs
   #abi: AbiLoader
 
@@ -41,32 +62,63 @@ export class AgentAnon {
     return this.#addrs.factory
   }
 
-  public async createContract<T extends AvailableAbi>(address: Address, abiKey: T): Promise<AbiToContract<T>> {
-    return this.createContractInternal(address, abiKey, this.#provider)
+  public async createContract<A extends AvailableAbi>(address: Address, abiKey: A): Promise<IsomorphicContract<A>> {
+    return this.createContractInternal(address, abiKey, 'provider')
   }
 
   public async getGasPrice(): Promise<Wei> {
-    const value = await this.#provider.getGasPrice()
-    return new Wei(value)
+    return new Wei(
+      this.#provider.kind === 'ethers'
+        ? await this.#provider.ethers.getGasPrice()
+        : await this.#provider.caver.klay.getGasPrice(),
+    )
   }
 
-  public async isSmartContract(addr: Address): Promise<boolean> {
-    const code = await this.#provider.getCode(addr)
+  public async isSmartContract(address: Address): Promise<boolean> {
+    const code =
+      this.#provider.kind === 'ethers'
+        ? await this.#provider.ethers.getCode(address)
+        : await this.#provider.caver.klay.getCode(address)
     return code !== '0x'
   }
 
   public async getBalance(address: Address): Promise<Wei> {
-    const value = await this.#provider.getBalance(address)
+    const value =
+      this.#provider.kind === 'ethers'
+        ? await this.#provider.ethers.getBalance(address)
+        : await this.#provider.caver.klay.getBalance(address)
     return new Wei(value)
   }
 
-  protected async createContractInternal<T extends AvailableAbi>(
+  /**
+   * @param mode actual only for `ethers` provider
+   */
+  protected async createContractInternal<A extends AvailableAbi>(
     address: Address,
-    abiKey: T,
-    providerOrSigner: Provider | Signer,
-  ): Promise<AbiToContract<T>> {
+    abiKey: A,
+    mode: 'provider' | 'signer',
+  ): Promise<IsomorphicContract<A>> {
     const abi = this.#abi.get(abiKey) || (await this.#abi.load(abiKey))
-    return new Contract(address, abi, providerOrSigner) as unknown as AbiToContract<T>
+
+    if (this.#provider.kind === 'ethers') {
+      const { ethers: provider } = this.#provider
+
+      let useForContract: JsonRpcProvider | JsonRpcSigner = provider
+      if (mode === 'signer') {
+        const signer = provider.getSigner()
+        invariant(signer)
+        useForContract = signer
+      }
+
+      const contract = new Contract(address, abi, useForContract) as unknown as AbiContractEthers[A]
+      return isomorphicContract({ lib: 'ethers', ethers: contract })
+    }
+
+    const { caver } = this.#provider
+
+    // eslint-disable-next-line new-cap
+    const contract = new caver.contract(abi as AbiItem[], address) as unknown as AbiContractWeb3[A]
+    return isomorphicContract({ lib: 'web3', web3: contract })
   }
 }
 
@@ -91,21 +143,24 @@ export class Agent extends AgentAnon {
   }
 
   public async approveAmountWithContract(
-    contract: KIP7 | DexPair,
+    contract: IsomorphicContract<'kip7' | 'pair'>,
     amount: Wei,
     spender = this.routerAddress,
   ): Promise<void> {
     const allowance = await this.getAllowanceWithContract(contract, spender)
     if (amount.asBigInt <= allowance.asBigInt) return
-    await contract.approve(spender, amount.asStr)
+    await contract.approve([spender, amount.asStr]).call()
   }
 
-  public async getAllowanceWithContract(contract: KIP7 | DexPair, spender = this.routerAddress): Promise<Wei> {
-    const value = await contract.allowance(this.#address, spender)
+  public async getAllowanceWithContract(
+    contract: IsomorphicContract<'kip7' | 'pair'>,
+    spender = this.routerAddress,
+  ): Promise<Wei> {
+    const value = await contract.allowance([this.#address, spender]).call()
     return new Wei(value)
   }
 
-  public async createContract<T extends AvailableAbi>(address: Address, abiKey: T): Promise<AbiToContract<T>> {
-    return this.createContractInternal(address, abiKey, this.provider.getSigner())
+  public async createContract<A extends AvailableAbi>(address: Address, abiKey: A): Promise<IsomorphicContract<A>> {
+    return this.createContractInternal(address, abiKey, 'signer')
   }
 }

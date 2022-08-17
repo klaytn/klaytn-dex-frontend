@@ -1,7 +1,6 @@
-import { JsonRpcProvider } from '@ethersproject/providers'
 import { AbiLoader } from '../abi'
 import { Address } from '../types'
-import { Agent, AgentAnon, CommonAddrs } from './agent'
+import { Agent, AgentAnon, CommonAddrs, AgentProvider } from './agent'
 import CommonContracts from './CommonContracts'
 import { Liquidity, LiquidityAnon } from './liquidity'
 import { Swap, SwapAnon } from './swap'
@@ -14,7 +13,7 @@ export class DexAnon<
   L extends LiquidityAnon = LiquidityAnon,
 > {
   public static async initAnonymous(props: {
-    provider: JsonRpcProvider
+    provider: AgentProvider
     abi: AbiLoader
     addrs: CommonAddrs
   }): Promise<DexAnon> {
@@ -40,7 +39,7 @@ export class DexAnon<
 
 export class Dex extends DexAnon<Agent, Tokens, Swap, Liquidity> {
   public static async init(
-    props: { provider: JsonRpcProvider; abi: AbiLoader; addrs: CommonAddrs },
+    props: { provider: AgentProvider; abi: AbiLoader; addrs: CommonAddrs },
     address: Address,
   ): Promise<Dex> {
     const agent = new Agent({ base: props, address })
