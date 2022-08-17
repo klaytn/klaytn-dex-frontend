@@ -1,4 +1,4 @@
-import { deadlineFiveMinutesFromNow, Address, Wei, WeiAsToken } from '@/core/kaikas'
+import { deadlineFiveMinutesFromNow, Address, Wei, WeiAsToken } from '@/core'
 import {
   usePairAddress,
   PairAddressResult,
@@ -20,7 +20,7 @@ import { RouteName } from '@/types'
 type NormalizedWeiInput = TokensPair<{ addr: Address; input: Wei }>
 
 function useQuoting(props: { pair: Ref<null | PairAddressResult>; input: Ref<null | InputWei> }) {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
 
   const scope = useParamScope(
     computed(() => {
@@ -39,8 +39,8 @@ function useQuoting(props: { pair: Ref<null | PairAddressResult>; input: Ref<nul
     ({ tokens: { tokenA, tokenB }, quoteFor, value }) => {
       const { state, run } = useTask(
         () =>
-          kaikasStore
-            .getKaikasAnyway()
+          dexStore.anyDex
+            .dex()
             .tokens.getTokenQuote({
               tokenA,
               tokenB,
@@ -74,20 +74,22 @@ function useQuoting(props: { pair: Ref<null | PairAddressResult>; input: Ref<nul
 }
 
 function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSupply: () => void }) {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
   const tokensStore = useTokensStore()
   const { notify } = useNotify()
 
   const [active, setActive] = useToggle(false)
 
   const scopeKey = computed(() => {
+    const activeDex = dexStore.active
     const { tokenA, tokenB } = props.tokens.value ?? {}
 
     return (
       tokenA &&
-      tokenB && {
-        key: `${tokenA.addr}-${tokenA.input}-${tokenB.addr}-${tokenB.input}`,
-        payload: { tokenA, tokenB },
+      tokenB &&
+      activeDex.kind === 'named' && {
+        key: `dex-${activeDex.wallet}-${tokenA.addr}-${tokenA.input}-${tokenB.addr}-${tokenB.input}`,
+        payload: { tokens: { tokenA, tokenB }, dex: activeDex.dex() },
       }
     )
   })
@@ -95,11 +97,10 @@ function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSup
 
   const scope = useParamScope(
     computed(() => active.value && scopeKey.value),
-    (tokens) => {
+    ({ tokens, dex }) => {
       const { state: statePrepare, run: runPrepare } = useTask(
         async () => {
-          const kaikas = kaikasStore.getKaikasAnyway()
-          const { send, fee } = await kaikas.liquidity.prepareAddLiquidity({
+          const { send, fee } = await dex.liquidity.prepareAddLiquidity({
             tokens: buildPair((type) => ({ addr: tokens[type].addr, desired: tokens[type].input })),
             deadline: deadlineFiveMinutesFromNow(),
           })

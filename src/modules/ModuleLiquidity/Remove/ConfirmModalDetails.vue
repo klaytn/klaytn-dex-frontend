@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Wei } from '@/core/kaikas'
-import { NATIVE_TOKEN_DECIMALS } from '@/core/kaikas/const'
+import { NATIVE_TOKEN_DECIMALS, Wei } from '@/core'
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import { Ref } from 'vue'
