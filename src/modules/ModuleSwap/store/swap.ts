@@ -61,6 +61,7 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
       )
 
       usePromiseLog(prepareState, 'prepare-swap')
+      useNotifyOnError(prepareState, notify, 'Swap preparation failed')
 
       const { state: swapState, run: swap } = useTask(async () => {
         invariant(prepareState.fulfilled)

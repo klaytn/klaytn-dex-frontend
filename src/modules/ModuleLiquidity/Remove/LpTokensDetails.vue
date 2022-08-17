@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
-import { LP_TOKEN_DECIMALS } from '@/core/kaikas/const'
+import { LP_TOKEN_DECIMALS } from '@/core'
 import { roundTo } from 'round-to'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
 

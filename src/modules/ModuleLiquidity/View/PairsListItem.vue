@@ -5,7 +5,7 @@ import { LiquidityPairsPosition } from '../query.liquidity-pairs'
 import BigNumber from 'bignumber.js'
 import { RouteName } from '@/types'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
-import { WeiAsToken } from '@/core/kaikas'
+import { WeiAsToken } from '@/core'
 
 const cssRowMd = cssRows.rowMd
 
