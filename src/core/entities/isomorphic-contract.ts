@@ -178,7 +178,7 @@ export function isomorphicContract<A extends AvailableAbi>(contract: ContractFor
           }
 
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          return {
+          return new TransactionObject({
             call: () => (x as ContractEthers)[method](...args(), normOverrides),
             estimateGas: async () => {
               const y = await ((x as ContractEthers).estimateGas[method](
@@ -190,7 +190,7 @@ export function isomorphicContract<A extends AvailableAbi>(contract: ContractFor
             send: async ({ gas }) => {
               await (x as ContractEthers)[method](...args(), { ...normOverrides, gasLimit: gas })
             },
-          }
+          })
         }) as MethodBuilder<A, any>
 
         return [method, builder]
@@ -214,7 +214,7 @@ export function isomorphicContract<A extends AvailableAbi>(contract: ContractFor
 
         const createTxObject = () => (x as ContractWeb3).methods[method](...args()) as PayableTransactionObject<any>
 
-        return {
+        return new TransactionObject({
           call: () => createTxObject().call(normOverrides),
           estimateGas: async () => {
             const gas = await createTxObject().estimateGas(normOverrides)
@@ -223,7 +223,7 @@ export function isomorphicContract<A extends AvailableAbi>(contract: ContractFor
           send: async ({ gas }) => {
             await createTxObject().send({ ...normOverrides, gas: gas.toString() })
           },
-        }
+        })
       }) as MethodBuilder<A, any>
 
       return [method, builder]

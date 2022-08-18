@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
-import { BigNumber as EthersBigNumber } from 'ethers'
+import { BigNumber as EthersBigNumber } from '@ethersproject/bignumber'
 import invariant from 'tiny-invariant'
 import { Opaque } from 'type-fest'
 import { Token } from '../types'
@@ -82,9 +82,11 @@ function setRepr(map: RepresentationMapNullable, value: WeiInputValue): void {
     // it may be a number in a form like `0x4123`, so let BigInt parse it
     map.bigint = BigInt(value)
   } else if (value instanceof BigNumber) {
-    map.BigNumber = value
+    const bn = value
       // `BigNumber` could have decimal places, but `Wei` cannot
       .decimalPlaces(0)
+    invariant(!bn.isNaN(), 'NaN')
+    map.BigNumber = bn
   } else if (value instanceof EthersBigNumber) {
     map.bigint = value.toBigInt()
   } else {

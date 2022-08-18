@@ -63,6 +63,18 @@ describe.each([0n, 42n, 15n * 10n ** 18n, 99n * 10n ** 40n])('Wei creation & cas
 
 describe.todo('test how it works with `BigNumber` from `ethers`')
 
+describe('NaN checks', () => {
+  test.each([['412fff'], [NaN], [new BigNumber(NaN)]])('throws when creating Wei from %o', (input) => {
+    expect(() => new Wei(input)).toThrowError()
+  })
+
+  const NAN_BNJS = new BN(NaN)
+
+  test('not throws with NaN bn.js', () => {
+    expect(() => new Wei(NAN_BNJS)).not.toThrowError()
+  })
+})
+
 describe('Construction from a number', () => {
   test('ok if number is less than max safe integer', () => {
     const wei = new Wei(42)
