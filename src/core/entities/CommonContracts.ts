@@ -1,25 +1,26 @@
 import { AgentAnon } from './agent'
 import { type IsomorphicContract } from './isomorphic-contract'
 
-interface Contracts {
-  router: IsomorphicContract<'router'>
-  factory: IsomorphicContract<'factory'>
-}
+type CommonContractKey = 'router' | 'factory'
 
-export default class CommonContracts implements Readonly<Contracts> {
-  public static async load(agent: AgentAnon): Promise<CommonContracts> {
-    const [router, factory] = await Promise.all([
-      agent.createContract(agent.routerAddress, 'router'),
-      agent.createContract(agent.factoryAddress, 'factory'),
-    ])
+export default class CommonContracts {
+  #cache = new Map<CommonContractKey, IsomorphicContract<CommonContractKey>>()
+  #agent: AgentAnon
 
-    return new CommonContracts({ router, factory })
+  public constructor(agent: AgentAnon) {
+    this.#agent = agent
   }
 
-  public readonly router!: IsomorphicContract<'router'>
-  public readonly factory!: IsomorphicContract<'factory'>
+  public get<T extends CommonContractKey>(what: T): undefined | IsomorphicContract<T> {
+    return this.#cache.get(what) as undefined | IsomorphicContract<T>
+  }
 
-  private constructor(x: Contracts) {
-    Object.assign(this, x)
+  public async init<T extends CommonContractKey>(what: T): Promise<IsomorphicContract<T>> {
+    const contract = await this.#agent.createContract(
+      what === 'router' ? this.#agent.routerAddress : this.#agent.factoryAddress,
+      what,
+    )
+    this.#cache.set(what, contract)
+    return contract
   }
 }

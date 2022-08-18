@@ -50,15 +50,9 @@ export class TokensAnon {
     this.#contracts = props.contracts
   }
 
-  protected get router() {
-    return this.#contracts.router
-  }
-
-  protected get factory() {
-    return this.#contracts.factory
-  }
-
   public async getTokenQuote({ tokenA, tokenB, value, quoteFor }: GetTokenQuoteProps): Promise<Wei> {
+    const router = this.#contracts.get('router') || (await this.#contracts.init('router'))
+
     const contract = await this.createPairContract({ tokenA, tokenB })
     const token0 = (await contract.token0([]).call()) as Address
     const reserves = await this.getPairReserves({ tokenA, tokenB })
@@ -66,7 +60,7 @@ export class TokensAnon {
     const sortedReserves = sortReservesForQuote({ reserves, token0, tokenA, quoteFor })
 
     return new Wei(
-      await this.router.quote([value.asStr, sortedReserves.reserve0.asStr, sortedReserves.reserve1.asStr]).call(),
+      await router.quote([value.asStr, sortedReserves.reserve0.asStr, sortedReserves.reserve1.asStr]).call(),
     )
   }
 
@@ -83,7 +77,8 @@ export class TokensAnon {
    * If there is no such a pair, returns an empty one (`0x00...`)
    */
   public async getPairAddress({ tokenA, tokenB }: TokensPair<Address>): Promise<Address> {
-    const addr = (await this.factory.getPair([tokenA, tokenB]).call()) as Address
+    const factory = this.#contracts.get('factory') || (await this.#contracts.init('factory'))
+    const addr = (await factory.getPair([tokenA, tokenB]).call()) as Address
     return addr
   }
 

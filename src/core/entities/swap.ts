@@ -62,15 +62,17 @@ export class SwapAnon {
     this.#contracts = props.contracts
   }
 
-  protected get router() {
-    return this.#contracts.router
+  protected get contracts() {
+    return this.#contracts
   }
 
   public async getAmounts(props: GetAmountsProps): Promise<[Wei, Wei]> {
+    const router = this.#contracts.get('router') || (await this.#contracts.init('router'))
+
     const path = [props.addressA, props.addressB]
     const [amount0, amount1] = await (props.mode === 'in'
-      ? this.router.getAmountsIn([props.amountOut.asStr, path]).call()
-      : this.router.getAmountsOut([props.amountIn.asStr, path]).call())
+      ? router.getAmountsIn([props.amountOut.asStr, path]).call()
+      : router.getAmountsOut([props.amountIn.asStr, path]).call())
     return [new Wei(amount0), new Wei(amount1)]
   }
 }
@@ -84,8 +86,9 @@ export class Swap extends SwapAnon {
   }
 
   public async prepareSwap(props: SwapProps): Promise<SwapResult> {
+    const router = this.contracts.get('router') || (await this.contracts.init('router'))
+
     const { deadline = deadlineFiveMinutesFromNow() } = props
-    const { router } = this
     const { address } = this.#agent
 
     const gasPrice = await this.#agent.getGasPrice()

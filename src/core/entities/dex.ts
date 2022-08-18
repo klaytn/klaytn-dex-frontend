@@ -14,13 +14,9 @@ export class DexAnon<
   L extends LiquidityAnon = LiquidityAnon,
   E extends EarnAnon = EarnAnon,
 > {
-  public static async initAnonymous(props: {
-    provider: AgentProvider
-    abi: AbiLoader
-    addrs: CommonAddrs
-  }): Promise<DexAnon> {
+  public static initAnonymous(props: { provider: AgentProvider; abi: AbiLoader; addrs: CommonAddrs }): DexAnon {
     const agent = new AgentAnon(props)
-    const contracts = await CommonContracts.load(agent)
+    const contracts = new CommonContracts(agent)
 
     const tokens = new TokensAnon({ agent, contracts })
     const swap = new SwapAnon({ contracts })
@@ -42,12 +38,9 @@ export class DexAnon<
 }
 
 export class Dex extends DexAnon<Agent, Tokens, Swap, Liquidity, Earn> {
-  public static async init(
-    props: { provider: AgentProvider; abi: AbiLoader; addrs: CommonAddrs },
-    address: Address,
-  ): Promise<Dex> {
+  public static init(props: { provider: AgentProvider; abi: AbiLoader; addrs: CommonAddrs }, address: Address): Dex {
     const agent = new Agent({ base: props, address })
-    const contracts = await CommonContracts.load(agent)
+    const contracts = new CommonContracts(agent)
 
     const tokens = new Tokens({ agent, contracts })
     const swap = new Swap({ agent, contracts })
@@ -57,7 +50,7 @@ export class Dex extends DexAnon<Agent, Tokens, Swap, Liquidity, Earn> {
     return new Dex({ agent, tokens, swap, liquidity, earn })
   }
 
-  public constructor(props: Pick<Dex, 'agent' | 'tokens' | 'swap' | 'liquidity' | 'earn'>) {
+  protected constructor(props: Pick<Dex, 'agent' | 'tokens' | 'swap' | 'liquidity' | 'earn'>) {
     super(props)
   }
 }

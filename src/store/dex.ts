@@ -27,7 +27,7 @@ export const useDexStore = defineStore('dex', () => {
   const {
     isMetamaskDetected,
     isMetamaskDetectionDone,
-    validProvider: validWeb3Provider,
+    validProvider,
     selectWallet,
     selectedWallet,
     connectState,
@@ -36,31 +36,21 @@ export const useDexStore = defineStore('dex', () => {
     isProviderSetupPending,
   } = useWeb3Provider({ network: NETWORK })
 
-  const dexByProvider = useParamScope(
-    computed(() => {
-      const prov = validWeb3Provider.value
-      if (!prov) return null
-      return {
-        key: prov.wallet,
-        payload: prov,
-      }
-    }),
-    ({ provider, account }) => {
-      const { state } = useTask(() => Dex.init({ provider, addrs: commonAddrs, abi }, account), {
-        immediate: true,
-      })
-      return state
-    },
-  )
+  const dexByProvider = computed(() => {
+    const connected = validProvider.value
+    if (!connected) return null
+
+    const { provider, account } = connected
+
+    return {
+      wallet: connected.wallet,
+      dex: Dex.init({ provider, addrs: commonAddrs, abi }, account),
+    }
+  })
 
   const active = computed<ActiveDex>(() => {
-    if (dexByProvider.value?.expose.fulfilled) {
-      const {
-        expose: {
-          fulfilled: { value: dex },
-        },
-        key: wallet,
-      } = dexByProvider.value
+    if (dexByProvider.value) {
+      const { dex, wallet } = dexByProvider.value
       return { kind: 'named', wallet, dex: () => dex }
     }
 

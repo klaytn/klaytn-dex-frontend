@@ -114,10 +114,6 @@ export class Liquidity extends LiquidityAnon {
     this.#contracts = props.contracts
   }
 
-  private get router() {
-    return this.#contracts.router
-  }
-
   private get address() {
     return this.#agent.address
   }
@@ -128,6 +124,8 @@ export class Liquidity extends LiquidityAnon {
    * - Computes minimal amount as 99% of desired value
    */
   public async prepareAddLiquidity(props: PrepareAddLiquidityProps): Promise<PrepareTransactionResult> {
+    const router = this.#contracts.get('router') || (await this.#contracts.init('router'))
+
     for (const type of ['tokenA', 'tokenB'] as const) {
       const { addr, desired } = props.tokens[type]
       await this.#agent.approveAmount(addr, desired)
@@ -142,7 +140,7 @@ export class Liquidity extends LiquidityAnon {
         eth: { desired: desiredEth },
       } = detectedEth
 
-      const tx = this.router.addLiquidityETH(
+      const tx = router.addLiquidityETH(
         [
           token.addr,
           token.desired.asStr,
@@ -159,7 +157,7 @@ export class Liquidity extends LiquidityAnon {
     } else {
       const { tokenA, tokenB } = props.tokens
 
-      const tx = this.router.addLiquidity(
+      const tx = router.addLiquidity(
         [
           tokenA.addr,
           tokenB.addr,
@@ -185,7 +183,10 @@ export class Liquidity extends LiquidityAnon {
     await this.#agent.approveAmount(props.pair, props.lpTokenValue)
 
     const { minAmounts } = props
-    const { address, router } = this
+    const { address } = this
+
+    const router = this.#contracts.get('router') || (await this.#contracts.init('router'))
+
     const gasPrice = await this.#agent.getGasPrice()
 
     const detectedEth = detectEth(
