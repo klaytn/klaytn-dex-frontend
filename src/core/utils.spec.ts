@@ -6,7 +6,7 @@ import { Wei } from './entities'
 describe('Formatting address', () => {
   test('some token formatted', () => {
     expect(formatAddress(parseAddress('0xae3a8a1D877a446b22249D8676AFeB16F056B44e'))).toMatchInlineSnapshot(
-      '"ae3a...B44e"',
+      '"ae3a....B44e"',
     )
   })
 })

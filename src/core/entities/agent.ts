@@ -1,12 +1,13 @@
 import { JsonRpcSigner, type JsonRpcProvider } from '@ethersproject/providers'
 import { Contract } from 'ethers'
-import { Address } from '../types'
+import { Address, Kaikas, Token } from '../types'
 import { AbiContractEthers, AbiContractWeb3, AbiLoader, type AbiToContract, type AvailableAbi } from '../abi'
 import Wei from './Wei'
 import type Caver from 'caver-js'
 import type { AbiItem } from 'caver-js'
 import { isomorphicContract, IsomorphicContract } from './isomorphic-contract'
 import invariant from 'tiny-invariant'
+import { Except } from 'type-fest'
 
 export interface CommonAddrs {
   router: Address
@@ -23,6 +24,8 @@ export type AgentProvider =
   | {
       kind: 'caver'
       caver: Caver
+      kaikas: Kaikas
+      unstableEthers: JsonRpcProvider
     }
   | {
       kind: 'ethers'
@@ -52,6 +55,10 @@ export class AgentAnon {
 
   public get provider() {
     return this.#provider
+  }
+
+  public get abi() {
+    return this.#abi
   }
 
   public get routerAddress(): Address {
@@ -88,6 +95,12 @@ export class AgentAnon {
         ? await this.#provider.ethers.getBalance(address)
         : await this.#provider.caver.klay.getBalance(address)
     return new Wei(value)
+  }
+
+  public async getBlockNumber(): Promise<number> {
+    return this.#provider.kind === 'ethers'
+      ? this.#provider.ethers.getBlockNumber()
+      : this.#provider.caver.klay.getBlockNumber()
   }
 
   /**
@@ -155,6 +168,16 @@ export class Agent extends AgentAnon {
     await tx.send({ gas })
   }
 
+  /**
+   * Note: uses KIP7
+   *
+   * @param spender default is the router address
+   */
+  public async getAllowance(contract: Address, spender = this.routerAddress): Promise<Wei> {
+    const kip = await this.createContract(contract, 'kip7')
+    return this.getAllowanceWithContract(kip, spender)
+  }
+
   public async getAllowanceWithContract(
     contract: IsomorphicContract<'kip7' | 'pair'>,
     spender = this.routerAddress,
@@ -165,5 +188,33 @@ export class Agent extends AgentAnon {
 
   public async createContract<A extends AvailableAbi>(address: Address, abiKey: A): Promise<IsomorphicContract<A>> {
     return this.createContractInternal(address, abiKey, 'signer')
+  }
+
+  /**
+   * @see https://eips.ethereum.org/EIPS/eip-747
+   * @see https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
+   * @see https://docs.kaikas.io/02_api_reference/01_klaytn_provider#wallet_watchasset
+   */
+  public async watchAsset(
+    asset: Partial<Except<Token, 'name'>> & {
+      /**
+       * image url
+       */
+      image?: string
+    },
+  ): Promise<void> {
+    const ethers =
+      this.provider.kind === 'caver'
+        ? // by using `ethers` and not `Kaikas` directly, we uniform the interaction
+          // also we aren't need to generate random request id - `ethers` does it for us
+          this.provider.unstableEthers
+        : this.provider.ethers
+
+    await ethers.send('wallet_watchAsset', [
+      {
+        type: 'ERC20',
+        options: asset,
+      },
+    ])
   }
 }

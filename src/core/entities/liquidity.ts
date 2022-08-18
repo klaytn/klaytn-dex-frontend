@@ -142,7 +142,7 @@ export class Liquidity extends LiquidityAnon {
         eth: { desired: desiredEth },
       } = detectedEth
 
-      const { estimateGas, send: sendWithGas } = this.router.addLiquidityETH(
+      const tx = this.router.addLiquidityETH(
         [
           token.addr,
           token.desired.asStr,
@@ -153,15 +153,13 @@ export class Liquidity extends LiquidityAnon {
         ],
         { gasPrice, value: desiredEth },
       )
-
-      const gas = await estimateGas()
-      const send = () => sendWithGas({ gas })
+      const { gas, send } = await tx.estimateAndPrepareSend()
 
       return { fee: computeTransactionFee(gasPrice, gas), send }
     } else {
       const { tokenA, tokenB } = props.tokens
 
-      const { estimateGas, send: sendWithoutGas } = this.router.addLiquidity(
+      const tx = this.router.addLiquidity(
         [
           tokenA.addr,
           tokenB.addr,
@@ -174,9 +172,7 @@ export class Liquidity extends LiquidityAnon {
         ],
         { gasPrice },
       )
-
-      const gas = await estimateGas()
-      const send = () => sendWithoutGas({ gas })
+      const { gas, send } = await tx.estimateAndPrepareSend()
 
       return { fee: computeTransactionFee(gasPrice, gas), send }
     }
@@ -198,7 +194,7 @@ export class Liquidity extends LiquidityAnon {
         minAmount: minAmounts[type],
       })),
     )
-    const { estimateGas, send: sendWithGas } = detectedEth
+    const tx = detectedEth
       ? router.removeLiquidityETH(
           [
             detectedEth.token.addr,
@@ -222,9 +218,7 @@ export class Liquidity extends LiquidityAnon {
           ],
           { gasPrice },
         )
-
-    const gas = await estimateGas()
-    const send = () => sendWithGas({ gas })
+    const { gas, send } = await tx.estimateAndPrepareSend()
 
     return { fee: computeTransactionFee(gasPrice, gas), send }
   }

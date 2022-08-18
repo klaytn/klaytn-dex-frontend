@@ -1,20 +1,18 @@
-import { Kaikas, Address, Wei } from '@/core/kaikas'
-import { MULTICALL } from '@/core/kaikas/smartcontracts/abi'
-import { Multicall } from '@/types/typechain/farming/MultiCall.sol'
+import { Address, Wei, defaultAbiCoder } from '@/core'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
-import { MULTICALL_CONTRACT_ADDRESS, REFETCH_REWARDS_INTERVAL } from './const'
+import { REFETCH_REWARDS_INTERVAL } from './const'
 import { PoolId, Rewards } from './types'
+import { CallStruct } from '@/core/entities/earn'
+import { PromiseOrValue } from '@/core/typechain-ethers/common'
 
 export interface GenericFetchRewardsProps<T extends PoolId | Address> {
-  kaikas: Kaikas
   poolIds: Ref<T[] | null>
   updateBlockNumber: (value: number) => void
-  prepareCalls: (ids: T[]) => [string, string][]
+  prepareCalls: (ids: T[]) => PromiseOrValue<CallStruct[]>
 }
 
 export function useFetchRewards<T extends PoolId | Address>({
-  kaikas,
   poolIds,
   updateBlockNumber,
   prepareCalls,
@@ -22,16 +20,19 @@ export function useFetchRewards<T extends PoolId | Address>({
   rewards: Ref<null | Rewards<T>>
   areRewardsFetched: Ref<boolean>
 } {
-  const MulticallContract = kaikas.cfg.createContract<Multicall>(MULTICALL_CONTRACT_ADDRESS, MULTICALL)
+  const dexStore = useDexStore()
 
   async function fetchRewards(ids: T[]): Promise<FetchRewardsResult> {
-    const calls = prepareCalls(ids)
-    const aggrResult = await MulticallContract.methods.aggregate(calls).call()
+    const calls = await prepareCalls(ids)
+    const dex = dexStore.anyDex.dex()
+    const aggrResult = await dex.earn.multicallAggregate(calls)
 
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const rewards = {} as Rewards<T>
     aggrResult.returnData.forEach((hex, idx) => {
-      rewards[ids[idx]] = new Wei(kaikas.cfg.caver.klay.abi.decodeParameter('uint256', hex))
+      // FIXME is that correct?
+      rewards[ids[idx]] = new Wei(defaultAbiCoder.decode(['uint256'], hex)[0])
+      // rewards[ids[idx]] = new Wei(kaikas.cfg.caver.klay.abi.decodeParameter('uint256', hex))
     })
 
     return {

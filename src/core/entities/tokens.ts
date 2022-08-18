@@ -4,8 +4,8 @@ import Wei from './Wei'
 import CommonContracts from './CommonContracts'
 import invariant from 'tiny-invariant'
 import type { TokensPair, TokenType } from '@/utils/pair'
-import { AgentAnon, Agent, type ContractForLib } from './agent'
-import { IsomorphicContract, isomorphicContract } from './isomorphic-contract'
+import { AgentAnon, Agent } from './agent'
+import { IsomorphicContract } from './isomorphic-contract'
 
 export interface GetTokenQuoteProps extends TokensPair<Address> {
   value: Wei

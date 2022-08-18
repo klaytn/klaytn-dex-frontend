@@ -1,7 +1,7 @@
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { Ref } from 'vue'
-import { Address } from '@/core/kaikas'
+import { Address } from '@/core'
 import { ProposalState } from './types'
 
 export interface ProposalQueryResult {

@@ -77,16 +77,57 @@ type TestWeb3Call2 = AssertExtends<
 
 type GetCallResult<A extends AvailableAbi, M extends string> = GetEthersCallResult<A, M> | GetWeb3CallResult<A, M>
 
-export interface BuiltMethod<CallResult> {
+interface BuiltMethod<CallResult> {
   call: () => Promise<CallResult>
   estimateGas: () => Promise<bigint>
   send: (params: { gas: bigint }) => Promise<void>
 }
 
-type MethodBuilder<A extends AvailableAbi, M extends string> = (
-  args: GetBothArgs<A, M>,
-  overrides?: IsomorphicOverrides,
-) => BuiltMethod<GetCallResult<A, M>>
+export class TransactionObject<T> {
+  #call: () => Promise<T>
+  #estimateGas: () => Promise<bigint>
+  #send: (params: { gas: bigint }) => Promise<void>
+
+  public constructor(props: BuiltMethod<T>) {
+    this.#call = props.call
+    this.#estimateGas = props.estimateGas
+    this.#send = props.send
+  }
+
+  public call(this: this) {
+    return this.#call()
+  }
+
+  public estimateGas(this: this) {
+    return this.#estimateGas()
+  }
+
+  public async send(this: this, params: { gas: bigint }) {
+    await this.#send(params)
+  }
+
+  public async estimateAndSend(): Promise<void> {
+    const gas = await this.estimateGas()
+    await this.send({ gas })
+  }
+
+  public async estimateAndPrepareSend(): Promise<{ gas: bigint; send: () => Promise<void> }> {
+    const gas = await this.estimateGas()
+    const send = () => this.send({ gas })
+    return { gas, send }
+  }
+}
+
+interface MethodBuilderProps<A extends AvailableAbi, M extends string> {
+  argsEthers: () => GetEthersMethodArgs<A, M>
+  argsWeb3: () => GetWeb3MethodArgs<A, M>
+  overrides?: IsomorphicOverrides
+}
+
+interface MethodBuilder<A extends AvailableAbi, M extends string> {
+  (props: MethodBuilderProps<A, M>): TransactionObject<GetCallResult<A, M>>
+  (args: GetBothArgs<A, M>, overrides?: IsomorphicOverrides): TransactionObject<GetCallResult<A, M>>
+}
 
 export interface IsomorphicOverrides {
   from?: Address
@@ -106,6 +147,19 @@ type TestAAA = Parameters<GetEthersMethod<GetEthersContract<'router'>, 'addLiqui
 
 type TestWeb3Args = GetWeb3MethodArgs<'router', 'addLiquidity'>
 
+function normalizeBuilderProps<A extends AvailableAbi, M extends string>(
+  propsOrArgs: GetBothArgs<A, M> | MethodBuilderProps<A, M>,
+  overrides?: IsomorphicOverrides,
+): MethodBuilderProps<A, M> {
+  if (Array.isArray(propsOrArgs))
+    return {
+      overrides,
+      argsEthers: () => propsOrArgs,
+      argsWeb3: () => propsOrArgs,
+    }
+  return propsOrArgs
+}
+
 export function isomorphicContract<A extends AvailableAbi>(contract: ContractForLib<A>): IsomorphicContract<A> {
   if (contract.lib === 'ethers') {
     const { ethers: x } = contract
@@ -114,27 +168,30 @@ export function isomorphicContract<A extends AvailableAbi>(contract: ContractFor
 
     return Object.fromEntries(
       methods.map<[string, MethodBuilder<A, any>]>((method) => {
-        const builder: MethodBuilder<A, any> = (args, overrides) => {
+        const builder: MethodBuilder<A, any> = ((propsOrArgs, maybeOverrides) => {
+          const { argsEthers: args, overrides } = normalizeBuilderProps(propsOrArgs, maybeOverrides)
+
           const normOverrides: PayableOverrides & { from?: Address } = {
             from: overrides?.from,
             gasPrice: overrides?.gasPrice?.asBigInt,
             value: overrides?.value?.asBigInt,
           }
 
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           return {
-            call: () => (x as ContractEthers)[method](...args, normOverrides),
+            call: () => (x as ContractEthers)[method](...args(), normOverrides),
             estimateGas: async () => {
               const y = await ((x as ContractEthers).estimateGas[method](
-                ...args,
+                ...args(),
                 normOverrides,
               ) as Promise<BigNumberEthers>)
               return y.toBigInt()
             },
             send: async ({ gas }) => {
-              await (x as ContractEthers)[method](...args, { ...normOverrides, gasLimit: gas })
+              await (x as ContractEthers)[method](...args(), { ...normOverrides, gasLimit: gas })
             },
           }
-        }
+        }) as MethodBuilder<A, any>
 
         return [method, builder]
       }),
@@ -147,13 +204,15 @@ export function isomorphicContract<A extends AvailableAbi>(contract: ContractFor
 
   return Object.fromEntries(
     methods.map<[string, MethodBuilder<A, any>]>((method) => {
-      const builder: MethodBuilder<A, any> = (args, overrides) => {
+      const builder: MethodBuilder<A, any> = ((propsOrArgs, maybeOverrides) => {
+        const { overrides, argsWeb3: args } = normalizeBuilderProps(propsOrArgs, maybeOverrides)
+
         const normOverrides: PayableTx = {}
         overrides?.from && (normOverrides.from = overrides.from)
         overrides?.gasPrice && (normOverrides.gasPrice = overrides.gasPrice.asStr)
         overrides?.value && (normOverrides.value = overrides.value.asStr)
 
-        const createTxObject = () => (x as ContractWeb3).methods[method](...args) as PayableTransactionObject<any>
+        const createTxObject = () => (x as ContractWeb3).methods[method](...args()) as PayableTransactionObject<any>
 
         return {
           call: () => createTxObject().call(normOverrides),
@@ -165,7 +224,7 @@ export function isomorphicContract<A extends AvailableAbi>(contract: ContractFor
             await createTxObject().send({ ...normOverrides, gas: gas.toString() })
           },
         }
-      }
+      }) as MethodBuilder<A, any>
 
       return [method, builder]
     }),

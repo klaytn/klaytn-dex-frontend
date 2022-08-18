@@ -1,6 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { Dex, DexAnon, NETWORK, AbiLoader, useWeb3Provider, ADDRESS_ROUTER, ADDRESS_FACTORY, Address } from '@/core'
+import invariant from 'tiny-invariant'
 
 type ActiveDex =
   | {
@@ -83,7 +84,15 @@ export const useDexStore = defineStore('dex', () => {
 
   const isWalletConnected = computed(() => active.value.kind === 'named')
 
+  function getNamedDexAnyway() {
+    const act = active.value
+    invariant(act.kind === 'named')
+    return act.dex()
+  }
+
   return {
+    abi: () => abi,
+
     isMetamaskDetected,
     isMetamaskDetectionDone,
     selectWallet,
@@ -96,6 +105,7 @@ export const useDexStore = defineStore('dex', () => {
     anyDex,
     account,
     isWalletConnected,
+    getNamedDexAnyway,
   }
 })
 

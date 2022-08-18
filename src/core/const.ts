@@ -9,6 +9,10 @@ export const NATIVE_TOKEN_DECIMALS = 18
 export const ADDRESS_ROUTER = '0xB0B695584234F2CC16266588b2b951F3d2885705' as Address
 export const ADDRESS_FACTORY = '0xEB487a3A623E25cAa668B6D199F1aBa9D2380456' as Address
 export const ADDRESS_WETH = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address
+export const ADDRESS_MULTICALL = '0xc88098CEaE07D1FE443372a0accC464A5fb94668' as Address
+export const ADDRESS_FARMING = '0x32bE07FB9dBf294c2e92715F562f7aBA02b7443A' as Address
+
+export const ADDRESS_REWARD_TOKEN = '0x825e1ba886c90f15a921a7ac9b19b6d645fa2429' as Address
 
 /**
  * We totally sure that all our LP tokens have this decimals value

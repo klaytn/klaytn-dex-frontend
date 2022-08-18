@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TokenSymbol } from '@/core/kaikas'
+import { TokenSymbol } from '@/core'
 
 defineProps<{
   tokenA: TokenSymbol

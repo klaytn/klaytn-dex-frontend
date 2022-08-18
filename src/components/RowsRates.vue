@@ -5,7 +5,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { TokenSymbol } from '@/core/kaikas'
+import { TokenSymbol } from '@/core'
 import { TokensPair, TOKEN_TYPES, mirrorTokenType, TokenType } from '@/utils/pair'
 import { RatesRounded } from '@/utils/common'
 

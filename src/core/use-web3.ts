@@ -161,7 +161,12 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
     (wallet): ProviderScope => {
       if (wallet.kind === 'kaikas') {
         const { kaikas, caver } = wallet
-        const provider: AgentProvider = { kind: 'caver', caver }
+        const provider: AgentProvider = {
+          kind: 'caver',
+          caver,
+          kaikas,
+          unstableEthers: new Web3Provider(kaikas as any),
+        }
 
         const { state: enableState } = useTask(
           async () => {

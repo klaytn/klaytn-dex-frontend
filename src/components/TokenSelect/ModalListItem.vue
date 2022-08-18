@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Token, Wei } from '@/core/kaikas'
+import { Token, Wei } from '@/core'
 import { roundTo } from 'round-to'
 
 const props = defineProps<{

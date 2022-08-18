@@ -31,7 +31,7 @@ export interface AbiContractEthers {
   factory: TypechainEthers.DexFactory
   weth: TypechainEthers.WETH9
   farming: TypechainEthers.Farming
-  staking: TypechainEthers.StakingFactory
+  staking: TypechainEthers.StakingInitializable
   multicall: TypechainEthers.Multicall
   erc20: ContractEthers
 }
@@ -43,7 +43,7 @@ export interface AbiContractWeb3 {
   factory: TypechainWeb3.swap.DexFactory
   weth: TypechainWeb3.tokens.wklaySol.WETH9
   farming: TypechainWeb3.farming.Farming
-  staking: TypechainWeb3.farming.StakingFactory
+  staking: TypechainWeb3.farming.stakingFactoryPoolSol.StakingInitializable
   multicall: TypechainWeb3.farming.multiCallSol.Multicall
   erc20: ContractWeb3
 }

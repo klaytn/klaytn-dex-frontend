@@ -8,11 +8,10 @@ import { PAGE_SIZE, BLOCKS_PER_YEAR } from './const'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { TokenPriceInUSD, AmountInUSD, PercentageRate } from '../ModuleEarnShared/types'
 import { useFetchStakingRewards } from './composable.fetch-rewards'
-import { Wei, WeiAsToken, WeiRaw, Address } from '@/core/kaikas'
+import { Wei, WeiAsToken, WeiRaw, Address } from '@/core'
 import { deepClone } from '@/utils/common'
 
-const kaikasStore = useKaikasStore()
-const kaikas = kaikasStore.getKaikasAnyway()
+const dexStore = useDexStore()
 
 const vBem = useBemClass()
 
@@ -21,9 +20,9 @@ const { stakedOnly, searchQuery, sorting } = toRefs(stakingStore)
 
 const page = ref(1)
 
-const blockNumber = useBlockNumber(kaikas)
+const blockNumber = useBlockNumber(computed(() => dexStore.anyDex.dex().agent))
 
-const PoolsQuery = usePoolsQuery(computed(() => kaikas.selfAddress))
+const PoolsQuery = usePoolsQuery(toRef(dexStore, 'account'))
 const rawPools = computed(() => {
   return PoolsQuery.result.value?.pools ?? null
 })
@@ -63,7 +62,6 @@ PoolsQuery.onResult(() => {
 if (PoolsQuery.result.value) handlePoolsQueryResult()
 
 const { rewards, areRewardsFetched } = useFetchStakingRewards({
-  kaikas,
   poolIds: rawPoolIds,
   updateBlockNumber: (v) => {
     blockNumber.value = v

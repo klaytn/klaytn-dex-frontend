@@ -1,4 +1,4 @@
-import { Address, TokenSymbol, WeiAsToken } from '@/core/kaikas'
+import { Address, TokenSymbol, WeiAsToken } from '@/core'
 import BigNumber from 'bignumber.js'
 import { TokenPriceInUSD, AmountInUSD, PercentageRate } from '../ModuleEarnShared/types'
 export * from '../ModuleEarnShared/types'

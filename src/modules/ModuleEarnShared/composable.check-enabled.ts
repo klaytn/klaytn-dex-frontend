@@ -1,34 +1,30 @@
-import { Address, Wei } from '@/core/kaikas'
+import { Address, Wei } from '@/core'
 import { MAX_UINT256 } from './const'
 import { MaybeRef, or } from '@vueuse/core'
 import { Ref } from 'vue'
 
-export function useEnableState({
-  addr,
-  contractAddr,
-  active,
-}: {
-  addr: MaybeRef<Address>
-  contractAddr: MaybeRef<Address>
+export function useEnableState(props: {
+  contract: MaybeRef<Address>
+  spender: MaybeRef<Address>
   active: Ref<boolean>
 }) {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
   const { notify } = useNotify()
 
   const checkAllowanceScope = useParamScope(
     computed(() => {
-      if (!kaikasStore.isConnected || !unref(active)) return null
-      const self = unref(addr)
-      const contract = unref(contractAddr)
+      const activeDex = dexStore.active
+      if (activeDex.kind !== 'named' || !unref(props.active)) return null
+      const dex = activeDex.dex()
+      const spender = unref(props.spender)
+      const contract = unref(props.contract)
       return {
-        key: `${self}-${contract}`,
-        payload: { self, contract },
+        key: `dex-${activeDex.wallet}-${spender}-${contract}`,
+        payload: { spender, contract, dex },
       }
     }),
-    ({ self, contract }) => {
-      const { state, run: touch } = useTask(() => kaikasStore.getKaikasAnyway().cfg.getAllowance(self, contract), {
-        immediate: true,
-      })
+    ({ spender, contract, dex }) => {
+      const { state, run: touch } = useTask(() => dex.agent.getAllowance(contract, spender), { immediate: true })
       usePromiseLog(state, 'allowance')
       useNotifyOnError(state, notify, 'Failed to get allowance')
       return { state, touch }
@@ -47,8 +43,8 @@ export function useEnableState({
   }
 
   const { state: enableState, run: enable } = useTask(async () => {
-    const kaikas = kaikasStore.getKaikasAnyway()
-    await kaikas.cfg.approveAmount(unref(addr), new Wei(MAX_UINT256), unref(contractAddr))
+    const dex = dexStore.getNamedDexAnyway()
+    await dex.agent.approveAmount(unref(props.contract), new Wei(MAX_UINT256), unref(props.spender))
   })
   usePromiseLog(enableState, 'enable')
   useNotifyOnError(enableState, notify, 'Failed to set max possible allowance')

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Token, Wei, WeiAsToken } from '@/core/kaikas'
-import { LP_TOKEN_DECIMALS } from '@/core/kaikas/const'
+import { Token, Wei, WeiAsToken, LP_TOKEN_DECIMALS } from '@/core'
 import { TokensPair } from '@/utils/pair'
 import { roundTo } from 'round-to'
 

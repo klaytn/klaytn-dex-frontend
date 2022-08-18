@@ -1,4 +1,4 @@
-import { Address } from '@/core/kaikas'
+import { Address } from '@/core'
 import { useQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
@@ -14,7 +14,7 @@ export interface LiquidityPositionsQueryResult {
   }
 }
 
-export function useLiquidityPositionsQuery(userId: MaybeRef<Address>) {
+export function useLiquidityPositionsQuery(userId: MaybeRef<Address | null>) {
   return useQuery<LiquidityPositionsQueryResult>(
     gql`
       query LiquidityPositionsQuery($userId: String!) {
@@ -31,6 +31,6 @@ export function useLiquidityPositionsQuery(userId: MaybeRef<Address>) {
     () => ({
       userId: unref(userId),
     }),
-    { clientId: 'exchange' },
+    { clientId: 'exchange', enabled: !!unref(userId) },
   )
 }

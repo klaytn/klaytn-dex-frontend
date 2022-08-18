@@ -1,11 +1,9 @@
 import BigNumber from 'bignumber.js'
 import { Opaque } from 'type-fest'
-import { Address, Wei } from '@/core/kaikas'
+import { Address, Wei } from '@/core'
+import { PoolId } from '@/core'
 
-/**
- * Stringified number
- */
-export type PoolId = Opaque<string, 'PoolId'>
+export { PoolId }
 
 export type Rewards<T extends Address | PoolId> = Record<T, Wei | undefined>
 

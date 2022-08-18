@@ -3,7 +3,7 @@ import { computeTransactionFee, deadlineFiveMinutesFromNow } from '../utils'
 import Wei from './Wei'
 import CommonContracts from './CommonContracts'
 import { Agent } from './agent'
-import { BuiltMethod, IsomorphicOverrides } from './isomorphic-contract'
+import { TransactionObject, IsomorphicOverrides } from './isomorphic-contract'
 
 export interface AddrsPair {
   addressA: Address
@@ -94,7 +94,7 @@ export class Swap extends SwapAnon {
       from: address,
     }
 
-    let tx: BuiltMethod<unknown>
+    let tx: TransactionObject<unknown>
 
     switch (props.mode) {
       case 'exact-tokens-for-tokens': {
@@ -152,10 +152,7 @@ export class Swap extends SwapAnon {
       }
     }
 
-    const { estimateGas, send: sendWithGas } = tx
-    const gas = await estimateGas()
-    const send = () => sendWithGas({ gas })
-
+    const { gas, send } = await tx.estimateAndPrepareSend()
     const fee = computeTransactionFee(gasPrice, gas)
 
     return { fee, send }
