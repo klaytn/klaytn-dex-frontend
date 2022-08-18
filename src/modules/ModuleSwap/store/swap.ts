@@ -53,7 +53,7 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
           // 2. Perform swap according to which token is "exact" and if
           // some of them is native
           const swapProps = buildSwapProps({ tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
-          const { send, fee } = await dex.swap.swap(swapProps)
+          const { send, fee } = await dex.swap.prepareSwap(swapProps)
 
           return { send, fee }
         },

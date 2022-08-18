@@ -116,8 +116,7 @@ export class AgentAnon {
 
     const { caver } = this.#provider
 
-    // eslint-disable-next-line new-cap
-    const contract = new caver.contract(abi as AbiItem[], address) as unknown as AbiContractWeb3[A]
+    const contract = new caver.klay.Contract(abi as AbiItem[], address) as unknown as AbiContractWeb3[A]
     return isomorphicContract({ lib: 'web3', web3: contract })
   }
 }
@@ -149,14 +148,18 @@ export class Agent extends AgentAnon {
   ): Promise<void> {
     const allowance = await this.getAllowanceWithContract(contract, spender)
     if (amount.asBigInt <= allowance.asBigInt) return
-    await contract.approve([spender, amount.asStr]).call()
+
+    const gasPrice = await this.getGasPrice()
+    const tx = contract.approve([spender, amount.asStr], { gasPrice, from: this.address })
+    const gas = await tx.estimateGas()
+    await tx.send({ gas })
   }
 
   public async getAllowanceWithContract(
     contract: IsomorphicContract<'kip7' | 'pair'>,
     spender = this.routerAddress,
   ): Promise<Wei> {
-    const value = await contract.allowance([this.#address, spender]).call()
+    const value = await contract.allowance([this.#address, spender], { from: this.address }).call()
     return new Wei(value)
   }
 

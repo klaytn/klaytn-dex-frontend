@@ -87,18 +87,18 @@ export class Swap extends SwapAnon {
     const { deadline = deadlineFiveMinutesFromNow() } = props
     const { router } = this
     const { address } = this.#agent
-    const gasPrice = await this.#agent.getGasPrice()
 
+    const gasPrice = await this.#agent.getGasPrice()
     const baseOverrides: IsomorphicOverrides = {
       gasPrice,
       from: address,
     }
 
-    let method: BuiltMethod<unknown>
+    let tx: BuiltMethod<unknown>
 
     switch (props.mode) {
       case 'exact-tokens-for-tokens': {
-        method = router.swapExactTokensForTokens(
+        tx = router.swapExactTokensForTokens(
           [props.amountIn.asStr, props.amountOutMin.asStr, [props.addressA, props.addressB], address, deadline],
           baseOverrides,
         )
@@ -106,7 +106,7 @@ export class Swap extends SwapAnon {
         break
       }
       case 'tokens-for-exact-tokens': {
-        method = router.swapTokensForExactTokens(
+        tx = router.swapTokensForExactTokens(
           [props.amountInMax.asStr, props.amountOut.asStr, [props.addressA, props.addressB], address, deadline],
           baseOverrides,
         )
@@ -114,7 +114,7 @@ export class Swap extends SwapAnon {
         break
       }
       case 'exact-tokens-for-eth': {
-        method = router.swapExactTokensForETH(
+        tx = router.swapExactTokensForETH(
           [props.amountIn.asStr, props.amountOutMin.asStr, [props.addressA, props.addressB], address, deadline],
           baseOverrides,
         )
@@ -122,7 +122,7 @@ export class Swap extends SwapAnon {
         break
       }
       case 'exact-eth-for-tokens': {
-        method = router.swapExactETHForTokens(
+        tx = router.swapExactETHForTokens(
           [props.amountOutMin.asStr, [props.addressA, props.addressB], address, deadline],
           { ...baseOverrides, value: props.amountIn },
         )
@@ -130,7 +130,7 @@ export class Swap extends SwapAnon {
         break
       }
       case 'eth-for-exact-tokens': {
-        method = router.swapETHForExactTokens(
+        tx = router.swapETHForExactTokens(
           [props.amountOut.asStr, [props.addressA, props.addressB], address, deadline],
           { ...baseOverrides, value: props.amountInMax },
         )
@@ -138,7 +138,7 @@ export class Swap extends SwapAnon {
         break
       }
       case 'tokens-for-exact-eth': {
-        method = router.swapTokensForExactETH(
+        tx = router.swapTokensForExactETH(
           [props.amountOut.asStr, props.amountInMax.asStr, [props.addressA, props.addressB], address, deadline],
           baseOverrides,
         )
@@ -152,7 +152,7 @@ export class Swap extends SwapAnon {
       }
     }
 
-    const { estimateGas, send: sendWithGas } = method
+    const { estimateGas, send: sendWithGas } = tx
     const gas = await estimateGas()
     const send = () => sendWithGas({ gas })
 

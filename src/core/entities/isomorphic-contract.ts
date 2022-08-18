@@ -15,9 +15,6 @@ import type { AllExceptLast } from '@/types'
 import type { Address } from '../types'
 import Wei from './Wei'
 import type { ContractForLib } from './agent'
-import Debug from 'debug'
-
-const moduleDebug = Debug('iso-contract')
 
 type AssertExtends<T, U extends T> = 'ok'
 
@@ -112,7 +109,6 @@ type TestWeb3Args = GetWeb3MethodArgs<'router', 'addLiquidity'>
 export function isomorphicContract<A extends AvailableAbi>(contract: ContractForLib<A>): IsomorphicContract<A> {
   if (contract.lib === 'ethers') {
     const { ethers: x } = contract
-    const debug = moduleDebug.extend('ethers')
 
     const methods = Object.keys(x.functions)
 
@@ -126,18 +122,15 @@ export function isomorphicContract<A extends AvailableAbi>(contract: ContractFor
           }
 
           return {
-            call: () => {
-              debug('call():', method, args, overrides)
-              return (x as ContractEthers)[method](...args, normOverrides)
-            },
-            estimateGas: () => {
-              debug('estimateGas():', method, args, overrides)
-              return (
-                (x as ContractEthers).estimateGas[method](...args, normOverrides) as Promise<BigNumberEthers>
-              ).then((x) => x.toBigInt())
+            call: () => (x as ContractEthers)[method](...args, normOverrides),
+            estimateGas: async () => {
+              const y = await ((x as ContractEthers).estimateGas[method](
+                ...args,
+                normOverrides,
+              ) as Promise<BigNumberEthers>)
+              return y.toBigInt()
             },
             send: async ({ gas }) => {
-              debug('send():', method, args, overrides)
               await (x as ContractEthers)[method](...args, { ...normOverrides, gasLimit: gas })
             },
           }
@@ -149,7 +142,6 @@ export function isomorphicContract<A extends AvailableAbi>(contract: ContractFor
   }
 
   const { web3: x } = contract
-  const debug = moduleDebug.extend('web3')
 
   const methods = Object.keys(x.methods)
 
@@ -164,22 +156,12 @@ export function isomorphicContract<A extends AvailableAbi>(contract: ContractFor
         const createTxObject = () => (x as ContractWeb3).methods[method](...args) as PayableTransactionObject<any>
 
         return {
-          call: () => {
-            debug('call():', method, args, overrides)
-            return createTxObject()
-              .call(normOverrides)
-              .catch((e) => {
-                debug('%o failed: %o', method, e)
-                throw e
-              })
-          },
+          call: () => createTxObject().call(normOverrides),
           estimateGas: async () => {
-            debug('estimateGas():', method, args, overrides)
             const gas = await createTxObject().estimateGas(normOverrides)
             return BigInt(gas)
           },
           send: async ({ gas }) => {
-            debug('send():', method, args, overrides)
             await createTxObject().send({ ...normOverrides, gas: gas.toString() })
           },
         }
