@@ -1,4 +1,4 @@
-import TokenSelectModal from '@/components/TokenSelect/Modal.vue'
+import TokenSelectModal from '@/components/common/TokenSelect/Modal.vue'
 import { Address, Token, Wei } from '@/core'
 import { WHITELIST_TOKENS } from '@/core/const'
 import { TokenWithOptionBalance } from '@/store/tokens'
