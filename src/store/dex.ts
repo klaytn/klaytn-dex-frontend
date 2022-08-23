@@ -34,9 +34,12 @@ export const useDexStore = defineStore('dex', () => {
     isChainCorrect,
     isChainLoaded,
     isProviderSetupPending,
+    initialDelayActive,
   } = useWeb3Provider({ network: NETWORK })
 
   const dexByProvider = computed(() => {
+    invariant(!initialDelayActive.value, 'Dex should not be accessed in any way while initial delay is active')
+
     const connected = validProvider.value
     if (!connected) return null
 
@@ -96,6 +99,8 @@ export const useDexStore = defineStore('dex', () => {
     account,
     isWalletConnected,
     getNamedDexAnyway,
+
+    initialDelayActive,
   }
 })
 

@@ -6,6 +6,7 @@ import HeaderMenu from '@/components/HeaderMenu.vue'
 
 // Good for tree-shaking
 const TheWalletConnect = defineAsyncComponent(() => import('@/components/TheWalletConnect.vue'))
+const DexInitGuard = defineAsyncComponent(() => import('@/components/DexInitGuard.vue'))
 
 const { t } = useI18n()
 
@@ -38,33 +39,35 @@ const menu = computed<HeaderMenuItem[]>(() => {
 </script>
 
 <template>
-  <main class="layout">
-    <header class="relative">
-      <div class="col">
-        <a href="#">
-          <KlayIconDexLogo />
-        </a>
-      </div>
-      <div class="col col-center">
-        <HeaderMenu :items="menu" />
-      </div>
+  <DexInitGuard>
+    <main class="layout">
+      <header class="relative">
+        <div class="col">
+          <a href="#">
+            <KlayIconDexLogo />
+          </a>
+        </div>
+        <div class="col col-center">
+          <HeaderMenu :items="menu" />
+        </div>
 
-      <div class="col col-right">
-        <TheWalletConnect />
-      </div>
+        <div class="col col-right">
+          <TheWalletConnect />
+        </div>
 
-      <div class="toasts-mount absolute right-0 bottom-0 w-full">
-        <SToastsDisplay
-          :to="(null as any)"
-          absolute
-          vertical="top"
-          horizontal="right"
-        />
-      </div>
-    </header>
+        <div class="toasts-mount absolute right-0 bottom-0 w-full">
+          <SToastsDisplay
+            :to="(null as any)"
+            absolute
+            vertical="top"
+            horizontal="right"
+          />
+        </div>
+      </header>
 
-    <RouterView />
-  </main>
+      <RouterView />
+    </main>
+  </DexInitGuard>
 </template>
 
 <style scoped lang="scss">

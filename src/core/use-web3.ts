@@ -7,6 +7,8 @@ import { type PromiseStateAtomic } from '@vue-kakuyaku/core'
 import type Caver from 'caver-js'
 import type { AgentProvider } from './entities/agent'
 
+const INITIAL_DELAY_TIMEOUT = 300
+
 // function patchKaikas(
 //   kaikas: Kaikas,
 //   props: {
@@ -305,6 +307,15 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
   const isChainCorrect = computed(() => providerScope.value?.expose.isChainCorrect ?? false)
   const isProviderSetupPending = computed(() => providerScope.value?.expose.isSetupPending ?? false)
 
+  const initialDelayActive = ref(!!selectedWallet.value)
+  if (initialDelayActive.value) {
+    const offInitialDelay = () => {
+      initialDelayActive.value = false
+    }
+    useTimeoutFn(offInitialDelay, INITIAL_DELAY_TIMEOUT)
+    whenever(() => !!providerScope.value?.expose.enableState.fulfilled, offInitialDelay, { immediate: true })
+  }
+
   return {
     isMetamaskDetectionDone,
     isMetamaskDetected,
@@ -317,5 +328,7 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
     isChainLoaded,
     isChainCorrect,
     isProviderSetupPending,
+
+    initialDelayActive,
   }
 }
