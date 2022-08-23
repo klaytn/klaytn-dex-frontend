@@ -74,6 +74,8 @@ const emit = defineEmits(['click:close'])
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
   border-radius: 8px;
   max-width: 260px;
+  overflow: hidden;
+  max-height: 400px;
 
   &[data-type='ok'] .icon {
     color: vars.$green;

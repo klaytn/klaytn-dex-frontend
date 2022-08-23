@@ -2,6 +2,10 @@
 import { type HeaderMenuItem, RouteName } from '@/types'
 import { KlayIconDexLogo } from '~klay-icons'
 import { SToastsDisplay } from '@soramitsu-ui/ui'
+import HeaderMenu from '@/components/HeaderMenu.vue'
+
+// Good for tree-shaking
+const TheWalletConnect = defineAsyncComponent(() => import('@/components/TheWalletConnect.vue'))
 
 const { t } = useI18n()
 

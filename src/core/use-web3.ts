@@ -1,5 +1,5 @@
 import detectEthereumProvider from '@metamask/detect-provider'
-import { type ExternalProvider, Web3Provider, JsonRpcProvider, type JsonRpcSigner } from '@ethersproject/providers'
+import { type ExternalProvider, Web3Provider, JsonRpcProvider } from '@ethersproject/providers'
 import type { Address, Kaikas, Network as AppNetwork } from './types'
 import { and, type MaybeRef, not } from '@vueuse/core'
 import { type Ref } from 'vue'
