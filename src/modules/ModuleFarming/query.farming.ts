@@ -53,10 +53,10 @@ export function useFarmingQuery(userId: MaybeRef<Address | null>) {
     () => ({
       userId: unref(userId),
     }),
-    {
+    () => ({
       clientId: 'farming',
       enabled: !!unref(userId),
       pollInterval: REFETCH_FARMING_INTERVAL,
-    },
+    }),
   )
 }

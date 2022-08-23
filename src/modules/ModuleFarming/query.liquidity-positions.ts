@@ -31,6 +31,6 @@ export function useLiquidityPositionsQuery(userId: MaybeRef<Address | null>) {
     () => ({
       userId: unref(userId),
     }),
-    { clientId: 'exchange', enabled: !!unref(userId) },
+    () => ({ clientId: 'exchange', enabled: !!unref(userId) }),
   )
 }

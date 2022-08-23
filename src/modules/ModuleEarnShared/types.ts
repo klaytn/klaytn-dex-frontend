@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js'
 import { Opaque } from 'type-fest'
 import { Address, Wei } from '@/core'
-import { PoolId } from '@/core'
+import type { PoolId } from '@/core'
 
 export { PoolId }
 

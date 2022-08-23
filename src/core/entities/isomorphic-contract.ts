@@ -179,7 +179,10 @@ export function isomorphicContract<A extends AvailableAbi>(contract: ContractFor
 
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           return new TransactionObject({
-            call: () => (x as ContractEthers)[method](...args(), normOverrides),
+            call: async () => {
+              const result = await (x as ContractEthers).callStatic[method](...args(), normOverrides)
+              return result
+            },
             estimateGas: async () => {
               const y = await ((x as ContractEthers).estimateGas[method](
                 ...args(),

@@ -89,8 +89,10 @@ function setRepr(map: RepresentationMapNullable, value: WeiInputValue): void {
     map.BigNumber = bn
   } else if (value instanceof EthersBigNumber) {
     map.bigint = value.toBigInt()
-  } else {
+  } else if (value instanceof BN) {
     map.BN = value
+  } else {
+    throw new Error(`Cannot accept this value as Wei input: ${String(value)}`)
   }
 }
 

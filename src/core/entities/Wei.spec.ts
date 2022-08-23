@@ -166,6 +166,10 @@ describe('BigNumber with decimal points', () => {
   })
 })
 
+test('When Wei is created from unknown type, error is thrown', () => {
+  expect(() => new Wei({ message: 'wtf' } as any)).toThrowError()
+})
+
 // type tests
 
 type OnlyWei<T extends Wei> = T

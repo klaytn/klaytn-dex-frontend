@@ -30,9 +30,8 @@ export function useFetchRewards<T extends PoolId | Address>({
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const rewards = {} as Rewards<T>
     aggrResult.returnData.forEach((hex, idx) => {
-      // FIXME is that correct?
-      rewards[ids[idx]] = new Wei(defaultAbiCoder.decode(['uint256'], hex)[0])
-      // rewards[ids[idx]] = new Wei(kaikas.cfg.caver.klay.abi.decodeParameter('uint256', hex))
+      const [decoded] = defaultAbiCoder.decode(['uint256'], hex)
+      rewards[ids[idx]] = new Wei(decoded)
     })
 
     return {
