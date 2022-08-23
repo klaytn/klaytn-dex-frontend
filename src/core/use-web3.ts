@@ -118,8 +118,19 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
   const detectedMetamask = computed(() => detectMetamaskState.fulfilled?.value ?? null)
   const isMetamaskDetected = computed(() => !!detectedMetamask.value)
 
-  // TODO reset this value when it is set to some wallet but wallet is not detected
   const selectedWallet = useLocalStorage<SupportedWallet | null>('selected-wallet', null)
+
+  whenever(
+    () => selectedWallet.value === 'metamask' && isMetamaskDetectionDone.value && !isMetamaskDetected.value,
+    () => selectWallet(null),
+    { immediate: true },
+  )
+
+  whenever(
+    () => selectedWallet.value === 'kaikas' && !isKaikasDetected,
+    () => selectWallet(null),
+    { immediate: true },
+  )
 
   function selectWallet(wallet: SupportedWallet | null) {
     selectedWallet.value = wallet
