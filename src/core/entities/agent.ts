@@ -163,9 +163,7 @@ export class Agent extends AgentPure {
     if (amount.asBigInt <= allowance.asBigInt) return
 
     const gasPrice = await this.getGasPrice()
-    const tx = contract.approve([spender, amount.asStr], { gasPrice, from: this.address })
-    const gas = await tx.estimateGas()
-    await tx.send({ gas })
+    await contract.approve([spender, amount.asStr], { gasPrice, from: this.address }).estimateAndSend()
   }
 
   /**

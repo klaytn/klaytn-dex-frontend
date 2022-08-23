@@ -187,8 +187,12 @@ export function isomorphicContract<A extends AvailableAbi>(contract: ContractFor
               ) as Promise<BigNumberEthers>)
               return y.toBigInt()
             },
-            send: async ({ gas }) => {
-              await (x as ContractEthers)[method](...args(), { ...normOverrides, gasLimit: gas })
+            send: async ({ gas: gasLimit }) => {
+              const tx: ContractTransaction = await (x as ContractEthers)[method](...args(), {
+                ...normOverrides,
+                gasLimit,
+              })
+              await tx.wait()
             },
           })
         }) as MethodBuilder<A, any>
