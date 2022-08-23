@@ -1,4 +1,4 @@
-import { Address, DexAnon, isEmptyAddress, Wei } from '@/core'
+import { Address, DexPure, isEmptyAddress, Wei } from '@/core'
 import { TokensPair } from '@/utils/pair'
 import { MaybeRef } from '@vueuse/core'
 import { Except } from 'type-fest'
@@ -15,7 +15,7 @@ function nullableReactiveTokensToComposedKey(tokens: NullableReactiveTokens) {
   }
 }
 
-function dexAndTokensScopeParam(tokens: NullableReactiveTokens, anyDex: { key: string; dex: () => DexAnon }) {
+function dexAndTokensScopeParam(tokens: NullableReactiveTokens, anyDex: { key: string; dex: () => DexPure }) {
   const actualTokens = nullableReactiveTokensToComposedKey(tokens)
   return (
     actualTokens && {

@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
-import { Address, DexAnon, Dex, Token, Wei, isNativeToken } from '@/core'
+import { Address, DexPure, Dex, Token, Wei, isNativeToken } from '@/core'
 import { WHITELIST_TOKENS } from '@/core'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -20,7 +20,7 @@ function listItemsFromMapOrNull<K, V>(keys: K[], map: Map<K, V>): null | V[] {
   return fromMap
 }
 
-async function loadTokens(dex: DexAnon, addrs: Address[]): Promise<Map<Address, Token>> {
+async function loadTokens(dex: DexPure, addrs: Address[]): Promise<Map<Address, Token>> {
   const pairs = await Promise.all(
     addrs.map(async (addr) => {
       const token = await dex.tokens.getToken(addr)

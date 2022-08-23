@@ -1,4 +1,4 @@
-import { Agent, AgentAnon } from './agent'
+import { Agent, AgentPure } from './agent'
 import { IsomorphicContract } from './isomorphic-contract'
 import { ADDRESS_FARMING, ADDRESS_MULTICALL } from '../const'
 import Wei from './Wei'
@@ -23,11 +23,11 @@ export interface CallStruct {
   callData: string | number[]
 }
 
-export class EarnAnon {
-  #agent: AgentAnon
+export class EarnPure {
+  #agent: AgentPure
   #contract: IsomorphicContract<'multicall'> | null = null
 
-  public constructor(props: { agent: AgentAnon }) {
+  public constructor(props: { agent: AgentPure }) {
     this.#agent = props.agent
   }
 
@@ -50,7 +50,7 @@ export class EarnAnon {
   }
 }
 
-export class Earn extends EarnAnon {
+export class Earn extends EarnPure {
   public readonly farming: Farming
   public readonly staking: Staking
 

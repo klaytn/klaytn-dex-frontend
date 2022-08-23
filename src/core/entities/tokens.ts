@@ -4,7 +4,7 @@ import Wei from './Wei'
 import CommonContracts from './CommonContracts'
 import invariant from 'tiny-invariant'
 import type { TokensPair, TokenType } from '@/utils/pair'
-import { AgentAnon, Agent } from './agent'
+import { AgentPure, Agent } from './agent'
 import { IsomorphicContract } from './isomorphic-contract'
 
 export interface GetTokenQuoteProps extends TokensPair<Address> {
@@ -41,11 +41,11 @@ function sortReservesForQuote({
  *
  * - optimize pair contract creation; use the same one for the set of operations
  */
-export class TokensAnon {
-  #agent: AgentAnon
+export class TokensPure {
+  #agent: AgentPure
   #contracts: CommonContracts
 
-  public constructor(props: { agent: AgentAnon; contracts: CommonContracts }) {
+  public constructor(props: { agent: AgentPure; contracts: CommonContracts }) {
     this.#agent = props.agent
     this.#contracts = props.contracts
   }
@@ -108,7 +108,7 @@ export class TokensAnon {
   }
 }
 
-export class Tokens extends TokensAnon {
+export class Tokens extends TokensPure {
   #agent: Agent
 
   public constructor(props: { agent: Agent; contracts: CommonContracts }) {

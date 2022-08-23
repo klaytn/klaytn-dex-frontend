@@ -1,29 +1,29 @@
 import { AbiLoader } from '../abi'
 import { Address } from '../types'
-import { Agent, AgentAnon, CommonAddrs, AgentProvider } from './agent'
+import { Agent, AgentPure, CommonAddrs, AgentProvider } from './agent'
 import CommonContracts from './CommonContracts'
-import { EarnAnon, Earn } from './earn'
-import { Liquidity, LiquidityAnon } from './liquidity'
-import { Swap, SwapAnon } from './swap'
-import { Tokens, TokensAnon } from './tokens'
+import { EarnPure, Earn } from './earn'
+import { Liquidity, LiquidityPure } from './liquidity'
+import { Swap, SwapPure } from './swap'
+import { Tokens, TokensPure } from './tokens'
 
-export class DexAnon<
-  A extends AgentAnon = AgentAnon,
-  T extends TokensAnon = TokensAnon,
-  S extends SwapAnon = SwapAnon,
-  L extends LiquidityAnon = LiquidityAnon,
-  E extends EarnAnon = EarnAnon,
+export class DexPure<
+  A extends AgentPure = AgentPure,
+  T extends TokensPure = TokensPure,
+  S extends SwapPure = SwapPure,
+  L extends LiquidityPure = LiquidityPure,
+  E extends EarnPure = EarnPure,
 > {
-  public static initAnonymous(props: { provider: AgentProvider; abi: AbiLoader; addrs: CommonAddrs }): DexAnon {
-    const agent = new AgentAnon(props)
+  public static initAnonymous(props: { provider: AgentProvider; abi: AbiLoader; addrs: CommonAddrs }): DexPure {
+    const agent = new AgentPure(props)
     const contracts = new CommonContracts(agent)
 
-    const tokens = new TokensAnon({ agent, contracts })
-    const swap = new SwapAnon({ contracts })
-    const liquidity = new LiquidityAnon({ agent, tokens })
-    const earn = new EarnAnon({ agent })
+    const tokens = new TokensPure({ agent, contracts })
+    const swap = new SwapPure({ contracts })
+    const liquidity = new LiquidityPure({ agent, tokens })
+    const earn = new EarnPure({ agent })
 
-    return new DexAnon({ agent, tokens, swap, liquidity, earn })
+    return new DexPure({ agent, tokens, swap, liquidity, earn })
   }
 
   public readonly agent!: A
@@ -32,12 +32,12 @@ export class DexAnon<
   public readonly liquidity!: L
   public readonly earn!: E
 
-  protected constructor(props: Pick<DexAnon, 'agent' | 'tokens' | 'swap' | 'liquidity' | 'earn'>) {
+  protected constructor(props: Pick<DexPure, 'agent' | 'tokens' | 'swap' | 'liquidity' | 'earn'>) {
     Object.assign(this, props)
   }
 }
 
-export class Dex extends DexAnon<Agent, Tokens, Swap, Liquidity, Earn> {
+export class Dex extends DexPure<Agent, Tokens, Swap, Liquidity, Earn> {
   public static init(props: { provider: AgentProvider; abi: AbiLoader; addrs: CommonAddrs }, address: Address): Dex {
     const agent = new Agent({ base: props, address })
     const contracts = new CommonContracts(agent)

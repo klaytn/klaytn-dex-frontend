@@ -1,13 +1,13 @@
-import { AgentAnon } from './agent'
+import { AgentPure } from './agent'
 import { type IsomorphicContract } from './isomorphic-contract'
 
 type CommonContractKey = 'router' | 'factory'
 
 export default class CommonContracts {
   #cache = new Map<CommonContractKey, IsomorphicContract<CommonContractKey>>()
-  #agent: AgentAnon
+  #agent: AgentPure
 
-  public constructor(agent: AgentAnon) {
+  public constructor(agent: AgentPure) {
     this.#agent = agent
   }
 

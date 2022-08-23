@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
+import { BigNumber as EthersBigNumber } from 'ethers'
 import { test, describe, expect } from 'vitest'
 import Wei, { WeiAsToken } from './Wei'
 
@@ -59,9 +60,18 @@ describe.each([0n, 42n, 15n * 10n ** 18n, 99n * 10n ** 40n])('Wei creation & cas
     expect(wei.asBigNum.toFixed()).toEqual(NUMBER.toString())
     expect(wei.asBN.toString()).toEqual(NUMBER.toString())
   })
-})
 
-describe.todo('test how it works with `BigNumber` from `ethers`')
+  test('from BigNumber (`ethers`)', () => {
+    const num = EthersBigNumber.from(NUMBER)
+
+    const wei = new Wei(num)
+
+    expect(wei.asBigInt).toEqual(NUMBER)
+    expect(wei.asStr).toEqual(NUMBER.toString())
+    expect(wei.asBigNum.toFixed()).toEqual(NUMBER.toString())
+    expect(wei.asBN.toString()).toEqual(NUMBER.toString())
+  })
+})
 
 describe('NaN checks', () => {
   test.each([['412fff'], [NaN], [new BigNumber(NaN)]])('throws when creating Wei from %o', (input) => {

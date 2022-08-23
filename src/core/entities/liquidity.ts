@@ -3,8 +3,8 @@ import { NATIVE_TOKEN, isNativeToken } from '../const'
 import { buildPair, buildPairAsync, TokensPair } from '@/utils/pair'
 import { computeTransactionFee, deadlineFiveMinutesFromNow } from '../utils'
 import Wei from './Wei'
-import { Agent, AgentAnon } from './agent'
-import { TokensAnon } from './tokens'
+import { Agent, AgentPure } from './agent'
+import { TokensPure } from './tokens'
 import CommonContracts from './CommonContracts'
 
 export interface PrepareAddLiquidityProps {
@@ -57,13 +57,13 @@ function detectEth<T extends { addr: Address }>(
 }
 
 interface AnonCtorProps {
-  agent: AgentAnon
-  tokens: TokensAnon
+  agent: AgentPure
+  tokens: TokensPure
 }
 
-export class LiquidityAnon {
-  #agent: AgentAnon
-  #tokens: TokensAnon
+export class LiquidityPure {
+  #agent: AgentPure
+  #tokens: TokensPure
 
   public constructor(props: AnonCtorProps) {
     this.#agent = props.agent
@@ -104,11 +104,11 @@ export class LiquidityAnon {
   }
 }
 
-export class Liquidity extends LiquidityAnon {
+export class Liquidity extends LiquidityPure {
   #agent: Agent
   #contracts: CommonContracts
 
-  public constructor(props: { agent: Agent; tokens: TokensAnon; contracts: CommonContracts }) {
+  public constructor(props: { agent: Agent; tokens: TokensPure; contracts: CommonContracts }) {
     super(props)
     this.#agent = props.agent
     this.#contracts = props.contracts

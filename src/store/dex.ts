@@ -1,12 +1,12 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { JsonRpcProvider } from '@ethersproject/providers'
-import { Dex, DexAnon, NETWORK, AbiLoader, useWeb3Provider, ADDRESS_ROUTER, ADDRESS_FACTORY, Address } from '@/core'
+import { Dex, DexPure, NETWORK, AbiLoader, useWeb3Provider, ADDRESS_ROUTER, ADDRESS_FACTORY, Address } from '@/core'
 import invariant from 'tiny-invariant'
 
 type ActiveDex =
   | {
       kind: 'anon'
-      dex: () => DexAnon
+      dex: () => DexPure
     }
   | {
       kind: 'named'
@@ -17,7 +17,7 @@ type ActiveDex =
 const abi = new AbiLoader()
 const commonAddrs = { router: ADDRESS_ROUTER, factory: ADDRESS_FACTORY }
 const anonymousProvider = new JsonRpcProvider(NETWORK.rpcUrl)
-const dexAnon = await DexAnon.initAnonymous({
+const dexAnon = await DexPure.initAnonymous({
   provider: { kind: 'ethers', ethers: anonymousProvider },
   addrs: commonAddrs,
   abi,
@@ -62,7 +62,7 @@ export const useDexStore = defineStore('dex', () => {
 
   const anyDex = computed<{
     key: string
-    dex: () => DexAnon | Dex
+    dex: () => DexPure | Dex
   }>(() => {
     const x = active.value
     return x.kind === 'anon' ? { key: 'anon', dex: x.dex } : { key: `wallet-${x.wallet}`, dex: x.dex }

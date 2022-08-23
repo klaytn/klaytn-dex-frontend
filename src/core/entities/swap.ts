@@ -55,7 +55,7 @@ interface GetAmountsOutProps extends AddrsPair {
 
 type GetAmountsProps = GetAmountsInProps | GetAmountsOutProps
 
-export class SwapAnon {
+export class SwapPure {
   #contracts: CommonContracts
 
   public constructor(props: { contracts: CommonContracts }) {
@@ -77,7 +77,7 @@ export class SwapAnon {
   }
 }
 
-export class Swap extends SwapAnon {
+export class Swap extends SwapPure {
   #agent: Agent
 
   public constructor(props: { agent: Agent; contracts: CommonContracts }) {

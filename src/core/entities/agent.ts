@@ -42,7 +42,7 @@ export type ContractForLib<A extends AvailableAbi> =
       ethers: AbiToContract<A, 'ethers'>
     }
 
-export class AgentAnon {
+export class AgentPure {
   #provider: AgentProvider
   #addrs: CommonAddrs
   #abi: AbiLoader
@@ -134,7 +134,7 @@ export class AgentAnon {
   }
 }
 
-export class Agent extends AgentAnon {
+export class Agent extends AgentPure {
   #address: Address
 
   public constructor({ address, base }: { address: Address; base: AnonCtorProps }) {

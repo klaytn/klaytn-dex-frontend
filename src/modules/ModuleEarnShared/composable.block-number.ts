@@ -1,9 +1,9 @@
-import { AgentAnon } from '@/core'
+import { AgentPure } from '@/core'
 import { MaybeRef } from '@vueuse/core'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 
-export function useBlockNumber(agent: MaybeRef<AgentAnon>): Ref<number | null> {
+export function useBlockNumber(agent: MaybeRef<AgentPure>): Ref<number | null> {
   const blockNumber = ref<number | null>(null)
   const inc = () => {
     invariant(typeof blockNumber.value === 'number')

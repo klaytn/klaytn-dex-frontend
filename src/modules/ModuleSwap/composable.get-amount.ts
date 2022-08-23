@@ -1,4 +1,4 @@
-import { Address, DexAnon, Wei } from '@/core'
+import { Address, DexPure, Wei } from '@/core'
 import { TokensPair, TokenType } from '@/utils/pair'
 import { Ref } from 'vue'
 import Debug from 'debug'
@@ -10,7 +10,7 @@ export interface GetAmountProps extends TokensPair<Address> {
   referenceValue: Wei
 }
 
-async function getAmount(props: GetAmountProps & { dex: DexAnon }): Promise<Wei> {
+async function getAmount(props: GetAmountProps & { dex: DexPure }): Promise<Wei> {
   const addrsPair = { addressA: props.tokenA, addressB: props.tokenB }
 
   const refValue = props.referenceValue
