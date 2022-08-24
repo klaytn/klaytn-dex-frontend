@@ -1,15 +1,12 @@
-import type { Address, Deadline } from './types'
+import type { Deadline } from './types'
 import Config from './Config'
 import { MAGIC_GAS_PRICE } from './const'
 import { computeTransactionFee, deadlineFiveMinutesFromNow } from './utils'
 import Wei from './entities/Wei'
+import { Route } from './entities'
 
-export interface AddrsPair {
-  addressA: Address
-  addressB: Address
-}
-
-export interface SwapPropsBase extends AddrsPair {
+export interface SwapPropsBase {
+  route: Route
   /**
    * By default it is 5 minutes from now.
    */
@@ -42,14 +39,16 @@ export interface SwapResult {
   send: () => Promise<unknown>
 }
 
-interface GetAmountsInProps extends AddrsPair {
+interface GetAmountsInProps {
   mode: 'in'
   amountOut: Wei
+  route: Route
 }
 
-interface GetAmountsOutProps extends AddrsPair {
+interface GetAmountsOutProps {
   mode: 'out'
   amountIn: Wei
+  route: Route
 }
 
 type GetAmountsProps = GetAmountsInProps | GetAmountsOutProps
@@ -70,12 +69,13 @@ export default class Swap {
   }
 
   public async getAmounts(props: GetAmountsProps): Promise<[Wei, Wei]> {
-    const path = [props.addressA, props.addressB]
-    const [amount0, amount1] = await (props.mode === 'in'
+    const path = props.route.path.map((token) => token.address)
+    console.log(path)
+    const amounts = await (props.mode === 'in'
       ? this.routerMethods.getAmountsIn(props.amountOut.asStr, path)
       : this.routerMethods.getAmountsOut(props.amountIn.asStr, path)
     ).call()
-    return [new Wei(amount0), new Wei(amount1)]
+    return [new Wei(amounts.at(0)!), new Wei(amounts.at(-1)!)]
   }
 
   // TODO prepare swap
@@ -86,12 +86,14 @@ export default class Swap {
     let gas: number
     let send: () => Promise<unknown>
 
+    const path = props.route.path.map((token) => token.address)
+
     switch (props.mode) {
       case 'exact-tokens-for-tokens': {
         const swapMethod = routerMethods.swapExactTokensForTokens(
           props.amountIn.asStr,
           props.amountOutMin.asStr,
-          [props.addressA, props.addressB],
+          path,
           this.addr,
           deadline,
         )
@@ -110,7 +112,7 @@ export default class Swap {
           // FIXME?
           props.amountInMax.asStr,
           props.amountOut.asStr,
-          [props.addressA, props.addressB],
+          path,
           this.addr,
           deadline,
         )
@@ -128,7 +130,7 @@ export default class Swap {
         const swapMethod = routerMethods.swapExactTokensForETH(
           props.amountIn.asStr,
           props.amountOutMin.asStr,
-          [props.addressA, props.addressB],
+          path,
           this.addr,
           deadline,
         )
@@ -146,12 +148,7 @@ export default class Swap {
         break
       }
       case 'exact-eth-for-tokens': {
-        const swapMethod = routerMethods.swapExactETHForTokens(
-          props.amountOutMin.asStr,
-          [props.addressA, props.addressB],
-          this.addr,
-          deadline,
-        )
+        const swapMethod = routerMethods.swapExactETHForTokens(props.amountOutMin.asStr, path, this.addr, deadline)
         gas = await swapMethod.estimateGas({
           // FIXME?
           value: props.amountIn.asStr,
@@ -169,12 +166,7 @@ export default class Swap {
         break
       }
       case 'eth-for-exact-tokens': {
-        const swapMethod = routerMethods.swapETHForExactTokens(
-          props.amountOut.asStr,
-          [props.addressA, props.addressB],
-          this.addr,
-          deadline,
-        )
+        const swapMethod = routerMethods.swapETHForExactTokens(props.amountOut.asStr, path, this.addr, deadline)
         gas = await swapMethod.estimateGas({
           value: props.amountInMax.asStr,
           from: this.addr,
@@ -194,7 +186,7 @@ export default class Swap {
         const swapMethod = routerMethods.swapTokensForExactETH(
           props.amountOut.asStr,
           props.amountInMax.asStr,
-          [props.addressA, props.addressB],
+          path,
           this.addr,
           deadline,
         )

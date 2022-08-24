@@ -16,6 +16,7 @@ specifiers:
   '@types/lodash': ^4.14.182
   '@types/markdown-it-link-attributes': ^3.0.1
   '@types/marked': ^4.0.3
+  '@types/node-dijkstra': ^2.5.3
   '@types/nprogress': ^0.2.0
   '@typescript-eslint/eslint-plugin': ^5.30.0
   '@typescript-eslint/parser': ^5.30.0
@@ -51,6 +52,7 @@ specifiers:
   markdown-it-link-attributes: ^4.0.0
   markdown-it-prism: ^2.2.4
   marked: ^4.0.18
+  node-dijkstra: ^2.5.0
   npm-run-all: ^4.1.5
   nprogress: ^0.2.0
   pinia: ^2.0.14
@@ -108,6 +110,7 @@ dependencies:
   graphql: 16.5.0
   graphql-tag: 2.12.6_graphql@16.5.0
   lodash: 4.17.21
+  node-dijkstra: 2.5.0
   nprogress: 0.2.0
   pinia: 2.0.14_vcmyupim4cga7k7f5hngmth5py
   prism-theme-vars: 0.2.3
@@ -132,6 +135,7 @@ devDependencies:
   '@types/lodash': 4.14.182
   '@types/markdown-it-link-attributes': 3.0.1
   '@types/marked': 4.0.3
+  '@types/node-dijkstra': 2.5.3
   '@types/nprogress': 0.2.0
   '@typescript-eslint/eslint-plugin': 5.30.0_kj6wrcjamhpfaegej257t5irku
   '@typescript-eslint/parser': 5.30.0_ud6rd4xtew5bv4yhvkvu24pzm4
@@ -2475,6 +2479,10 @@ packages:
 
   /@types/ms/0.7.31:
     resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
+    dev: true
+
+  /@types/node-dijkstra/2.5.3:
+    resolution: {integrity: sha512-1D4rS5dK8373h/Ub8Wq2CuTKRT0VhA5KV8hPnhFIYuXvYUzXxjFGkrchd3QqqOVn28Mt6hNIDy22vpT9Ddx+kg==}
     dev: true
 
   /@types/node/10.17.60:
@@ -7774,6 +7782,10 @@ packages:
 
   /node-addon-api/2.0.2:
     resolution: {integrity: sha512-Ntyt4AIXyaLIuMHF6IOoTakB3K+RWxwtsHNRxllEoA6vPwP9o4866g6YWDLUdnucilZhmkxiHwHr11gAENw+QA==}
+    dev: false
+
+  /node-dijkstra/2.5.0:
+    resolution: {integrity: sha512-2REYb1lo8yDRAY1gsdhjwQdGVSh47VI5Z5wS8sCqydO/P1OVAKOwLuV1fDxNLvbrtMspW7k2UZ2JKIKP06hl+A==}
     dev: false
 
   /node-fetch-native/0.1.4:

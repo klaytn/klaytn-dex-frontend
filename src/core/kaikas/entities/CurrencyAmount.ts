@@ -9,10 +9,10 @@ import Currency from './Currency'
 export default class CurrencyAmount extends Fraction {
   public readonly currency: Currency
 
-  protected constructor(currency: Currency, amount: BigNumberIsh) {
+  public constructor(currency: Currency, amount: BigNumberIsh, raw = false) {
     const parsedAmount = parseBigNumberIsh(amount)
-
-    super(parsedAmount, new BigNumber(10).pow(currency.decimals))
+    const denominator = new BigNumber(10).pow(currency.decimals)
+    super(raw ? parsedAmount : parsedAmount.multipliedBy(denominator), denominator)
     this.currency = currency
   }
 
@@ -30,12 +30,13 @@ export default class CurrencyAmount extends Fraction {
     return new CurrencyAmount(this.currency, this.raw.minus(other.raw))
   }
 
-  public toFixed(
-    decimals: number = this.currency.decimals,
-    rounding: BigNumber.RoundingMode = BigNumber.ROUND_DOWN,
-    format?: object,
-  ): string {
+  public toFixed(decimals = 18, rounding?: BigNumber.RoundingMode): string {
     invariant(decimals <= this.currency.decimals, 'DECIMALS')
-    return super.toFixed(decimals, rounding, format)
+    return super.toFixed(decimals, rounding)
+  }
+
+  public toFormat(decimals = 18, rounding?: BigNumber.RoundingMode, format?: object): string {
+    invariant(decimals <= this.currency.decimals, 'DECIMALS')
+    return super.toFormat(decimals, rounding, format)
   }
 }

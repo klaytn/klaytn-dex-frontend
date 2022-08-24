@@ -2,6 +2,7 @@ import Token from './Token'
 import TokenAmount from './TokenAmount'
 import Price from './Price'
 import { Address } from '../types'
+import { TokenSymbol } from '@/core/kaikas'
 
 export default class Pair {
   public readonly liquidityToken: Token
@@ -17,7 +18,7 @@ export default class Pair {
   }: {
     address: Address
     decimals: number
-    symbol?: string
+    symbol?: TokenSymbol
     name?: string
     token0Amount: TokenAmount
     token1Amount: TokenAmount

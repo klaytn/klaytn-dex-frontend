@@ -45,23 +45,23 @@ export default class Fraction {
 
   public isLessThan(other: Fraction | BigNumberIsh): boolean {
     const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigNumberIsh(other))
-    const compareValueOne = this.numerator.times(otherParsed.denominator)
-    const compareValueTwo = otherParsed.numerator.times(this.denominator)
-    return compareValueOne.isLessThan(compareValueTwo)
+    const compareValue = this.numerator.times(otherParsed.denominator)
+    const compareWith = otherParsed.numerator.times(this.denominator)
+    return compareValue.isLessThan(compareWith)
   }
 
   public isEqualTo(other: Fraction | BigNumberIsh): boolean {
     const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigNumberIsh(other))
-    const compareValueOne = this.numerator.times(otherParsed.denominator)
-    const compareValueTwo = otherParsed.numerator.times(this.denominator)
-    return compareValueOne.isEqualTo(compareValueTwo)
+    const compareValue = this.numerator.times(otherParsed.denominator)
+    const compareWith = otherParsed.numerator.times(this.denominator)
+    return compareValue.isEqualTo(compareWith)
   }
 
   public isGreaterThan(other: Fraction | BigNumberIsh): boolean {
     const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigNumberIsh(other))
-    const compareValueOne = this.numerator.times(otherParsed.denominator)
-    const compareValueTwo = otherParsed.numerator.times(this.denominator)
-    return compareValueOne.isGreaterThan(compareValueTwo)
+    const compareValue = this.numerator.times(otherParsed.denominator)
+    const compareWith = otherParsed.numerator.times(this.denominator)
+    return compareValue.isGreaterThan(compareWith)
   }
 
   public multipliedBy(other: Fraction | BigNumberIsh): Fraction {
@@ -74,10 +74,15 @@ export default class Fraction {
     return new Fraction(this.numerator.times(otherParsed.denominator), this.denominator.times(otherParsed.numerator))
   }
 
-  public toFixed(
-    decimals: number,
+  public toFixed(decimals = 2, rounding: BigNumber.RoundingMode = BigNumber.ROUND_HALF_UP): string {
+    invariant(decimals >= 0, `${decimals} is negative.`)
+    return this.numerator.div(this.denominator).toFixed(decimals, rounding)
+  }
+
+  public toFormat(
+    decimals = 2,
     rounding: BigNumber.RoundingMode = BigNumber.ROUND_HALF_UP,
-    format: object = { groupSeparator: '' },
+    format: object = { decimalSeparator: '.' },
   ): string {
     invariant(decimals >= 0, `${decimals} is negative.`)
     return this.numerator.div(this.denominator).toFormat(decimals, rounding, format)

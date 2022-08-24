@@ -1,4 +1,5 @@
-import { Address, isNativeToken, Wei } from '@/core/kaikas'
+import { Address, isNativeToken } from '@/core/kaikas'
+import { Wei, Route } from '@/core/kaikas/entities'
 import { SwapProps, SwapExactAForB, SwapAForExactB } from '@/core/kaikas/Swap'
 import { TokenType } from '@/utils/pair'
 import invariant from 'tiny-invariant'
@@ -10,17 +11,18 @@ export interface TokenAddrAndWeiInput {
 }
 
 export function buildSwapProps({
+  route,
   tokenA,
   tokenB,
   referenceToken,
 }: {
+  route: Route
   tokenA: TokenAddrAndWeiInput
   tokenB: TokenAddrAndWeiInput
   referenceToken: TokenType
 }): SwapProps {
   invariant(tokenA.addr !== tokenB.addr, 'Cannot swap token for itself')
 
-  const addrs = { addressA: tokenA.addr, addressB: tokenB.addr }
   const isTokenANative = isNativeToken(tokenA.addr)
   const isTokenBNative = isNativeToken(tokenB.addr)
 
@@ -33,10 +35,10 @@ export function buildSwapProps({
     }
 
     return isTokenANative
-      ? { mode: 'exact-eth-for-tokens', ...amounts, ...addrs }
+      ? { mode: 'exact-eth-for-tokens', ...amounts, route }
       : isTokenBNative
-      ? { mode: 'exact-tokens-for-eth', ...amounts, ...addrs }
-      : { mode: 'exact-tokens-for-tokens', ...amounts, ...addrs }
+      ? { mode: 'exact-tokens-for-eth', ...amounts, route }
+      : { mode: 'exact-tokens-for-tokens', ...amounts, route }
   } else {
     // A for exact B
 
@@ -47,9 +49,9 @@ export function buildSwapProps({
     }
 
     return isTokenANative
-      ? { mode: 'eth-for-exact-tokens', ...amounts, ...addrs }
+      ? { mode: 'eth-for-exact-tokens', ...amounts, route }
       : isTokenBNative
-      ? { mode: 'tokens-for-exact-eth', ...amounts, ...addrs }
-      : { mode: 'tokens-for-exact-tokens', ...amounts, ...addrs }
+      ? { mode: 'tokens-for-exact-eth', ...amounts, route }
+      : { mode: 'tokens-for-exact-tokens', ...amounts, route }
   }
 }

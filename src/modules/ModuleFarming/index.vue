@@ -4,9 +4,9 @@ import { PAGE_SIZE } from './const'
 
 const vBem = useBemClass()
 
-const farmingStore = useFarmingStore()
-farmingStore.setupQueries()
-const queries = farmingStore.useQueryScopeAnyway()
+const { setupQueries, useQueryScopeAnyway } = useFarmingStore()
+setupQueries()
+const queries = useQueryScopeAnyway()
 const { sortedPools, farming, isLoading } = toRefs(queries)
 
 const page = ref(1)

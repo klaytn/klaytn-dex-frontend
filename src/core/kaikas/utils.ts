@@ -22,7 +22,7 @@ export function isAddress(raw: string): raw is Address {
 }
 
 export function parseAddress(raw: string): Address {
-  if (isAddress(raw)) return raw
+  if (isAddress(raw)) return raw.toLowerCase() as Address
   throw new Error(`not a valid address: "${raw}"`)
 }
 

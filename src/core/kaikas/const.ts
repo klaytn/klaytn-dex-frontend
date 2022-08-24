@@ -1,7 +1,9 @@
 import type { Token, Address } from './types'
-import Wei from './entities/Wei'
+import { Wei, Fraction, Percent } from '@/core/kaikas/entities'
 
 export const ONE = 1
+export const ONE_HUNDRED = 100
+export const ONE_HUNDRED_PERCENT = new Fraction(ONE_HUNDRED)
 
 /**
  * Klay token address
@@ -24,6 +26,11 @@ export const LP_TOKEN_DECIMALS = 18
  * @deprecated
  */
 export const MAGIC_GAS_PRICE = new Wei(250000000000)
+
+/**
+ * It is static and equals 0.3%
+ */
+export const POOL_COMMISSION = new Percent(3, 1000)
 
 export const WHITELIST_TOKENS = Object.freeze([
   {

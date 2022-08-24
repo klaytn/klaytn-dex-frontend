@@ -1,8 +1,9 @@
+import { Address, TokenSymbol } from '@/core/kaikas'
 import { parseAddress } from '../utils'
 import Currency from './Currency'
 
 export default class Token extends Currency {
-  public readonly address: string
+  public readonly address: Address
   public readonly projectLink?: string
 
   public constructor({
@@ -12,9 +13,9 @@ export default class Token extends Currency {
     name,
     projectLink,
   }: {
-    address: string
+    address: Address
     decimals: number
-    symbol?: string
+    symbol?: TokenSymbol
     name?: string
     projectLink?: string
   }) {

@@ -2,7 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { roundTo } from 'round-to'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
-import { POOL_COMISSION } from './const'
+import { POOL_COMMISSION } from '@/core/kaikas/const'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { NATIVE_TOKEN_DECIMALS } from '@/core/kaikas/const'
 import { Ref } from 'vue'
@@ -36,7 +36,7 @@ const formattedReserves = reactive(
 
 const fee = computed(() => supplyScope.value?.fee ?? null)
 const formattedFee = useFormattedToken(fee as Ref<null | Wei>, { decimals: NATIVE_TOKEN_DECIMALS }, 7)
-const formattedComission = `${roundTo(POOL_COMISSION * 100, 2)}%`
+const formattedCommission = POOL_COMMISSION.toFormat()
 </script>
 
 <template>
@@ -73,10 +73,10 @@ const formattedComission = `${roundTo(POOL_COMISSION * 100, 2)}%`
 
       <div :class="cssRowClassForBottomLines">
         <div class="flex items-center space-x-1">
-          <span>Pool comission</span>
+          <span>Pool commission</span>
           <KlayIconImportant />
         </div>
-        <span>{{ formattedComission }}</span>
+        <span>{{ formattedCommission }}</span>
       </div>
 
       <div

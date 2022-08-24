@@ -1,6 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, Wei, WeiAsToken } from '@/core/kaikas'
+import { Address, TokenSymbol, WeiAsToken } from '@/core/kaikas'
+import { Wei, Route, Token, Pair, TokenAmount } from '@/core/kaikas/entities'
 import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
@@ -11,11 +12,15 @@ import { buildSwapProps, TokenAddrAndWeiInput } from '../util.swap-props'
 import { useExchangeRateInput, useInertExchangeRateInput } from '../../ModuleTradeShared/composable.exchange-rate-input'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
+import { usePriceImpact } from '@/modules/ModuleTradeShared/composable.price-impact'
+import { useTokenAmounts } from '@/modules/ModuleTradeShared/composable.token-amounts'
 import { RouteName } from '@/types'
+import { usePairsQuery } from '../query.pairs'
+import { LP_TOKEN_DECIMALS } from '@/core/kaikas/const'
 
 const debugModule = Debug('swap-store')
 
-type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { amountFor: TokenType }
+type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { route: Route; amountFor: TokenType }
 
 function useSwap(input: Ref<null | NormalizedWeiInput>) {
   const kaikasStore = useKaikasStore()
@@ -26,17 +31,17 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
 
   const swapKey = computed(() => {
     if (!input.value) return null
-    const { tokenA, tokenB, amountFor } = input.value
+    const { route, tokenA, tokenB, amountFor } = input.value
     return {
       key: `${tokenA.addr}-${tokenA.input}-${tokenB.addr}-${tokenB.input}-${amountFor}`,
-      payload: { tokenA, tokenB, amountFor },
+      payload: { route, tokenA, tokenB, amountFor },
     }
   })
   watch(swapKey, () => setActive(false))
 
   const scope = useParamScope(
     computed(() => active.value && swapKey.value),
-    ({ tokenA, tokenB, amountFor }) => {
+    ({ route, tokenA, tokenB, amountFor }) => {
       const { state: prepareState, run: prepare } = useTask(
         async () => {
           const kaikas = kaikasStore.getKaikasAnyway()
@@ -46,7 +51,7 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
 
           // 2. Perform swap according to which token is "exact" and if
           // some of them is native
-          const swapProps = buildSwapProps({ tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
+          const swapProps = buildSwapProps({ route, tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
           const { send, fee } = await kaikas.swap.swap(swapProps)
 
           return { send, fee }
@@ -91,8 +96,8 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
 }
 
 export const useSwapStore = defineStore('swap', () => {
-  const route = useRoute()
-  const isActiveRoute = computed(() => route.name === RouteName.Swap)
+  const pageRoute = useRoute()
+  const isActiveRoute = computed(() => pageRoute.name === RouteName.Swap)
 
   const selection = useExchangeRateInput({ localStorageKey: 'swap-selection', isActive: isActiveRoute })
   const selectionInput = useInertExchangeRateInput({ input: selection.input })
@@ -101,6 +106,41 @@ export const useSwapStore = defineStore('swap', () => {
   const addrsReadonly = readonly(selection.addrs)
 
   const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
+
+  const PairsQuery = usePairsQuery()
+
+  const pairs = computed(() => {
+    return (
+      PairsQuery.result.value?.pairs.map((pair) => {
+        const token0 = new Token({
+          address: pair.token0.id,
+          decimals: Number(pair.token0.decimals),
+          symbol: pair.token0.symbol,
+        })
+        const token1 = new Token({
+          address: pair.token1.id,
+          decimals: Number(pair.token1.decimals),
+          symbol: pair.token1.symbol,
+        })
+        const pairSymbol = (token0.symbol + '-' + token1.symbol) as TokenSymbol
+        return new Pair({
+          address: pair.id,
+          decimals: LP_TOKEN_DECIMALS,
+          symbol: pairSymbol,
+          name: pairSymbol,
+          token0Amount: new TokenAmount(token0, pair.reserve0),
+          token1Amount: new TokenAmount(token1, pair.reserve1),
+        })
+      }) ?? null
+    )
+  })
+
+  const inputToken = computed(() => (tokens.tokenA ? new Token(tokens.tokenA) : null))
+  const outputToken = computed(() => (tokens.tokenB ? new Token(tokens.tokenB) : null))
+  const route = computed(() => {
+    if (!pairs.value || !inputToken.value || !outputToken.value) return null
+    return Route.shortestRoute(pairs.value, inputToken.value, outputToken.value)
+  })
 
   const { pair: pairAddrResult } = usePairAddress(addrsReadonly)
   const { result: pairBalance } = usePairBalance(
@@ -118,19 +158,18 @@ export const useSwapStore = defineStore('swap', () => {
       const referenceValue = selection.inputNormalized.value?.wei
       if (!referenceValue || referenceValue.asBigInt <= 0) return null
 
-      const { tokenA, tokenB } = addrsReadonly
-      if (!tokenA || !tokenB) return null
+      if (!route.value) return null
 
       if (pairAddrResult.value?.kind !== 'exist') return null
 
       return {
-        tokenA,
-        tokenB,
+        route: route.value,
         amountFor,
         referenceValue: referenceValue,
       }
     }),
   )
+
   watch(
     [gotAmountFor, selection.tokens],
     ([result]) => {
@@ -154,10 +193,14 @@ export const useSwapStore = defineStore('swap', () => {
     if (gotAmountFor.value) {
       const {
         amount,
-        props: { amountFor, referenceValue, ...addrs },
+        props: { amountFor, referenceValue, route },
       } = gotAmountFor.value
       return {
-        ...buildPair((type) => ({ addr: addrs[type], input: amountFor === type ? amount : referenceValue })),
+        ...buildPair((type) => ({
+          addr: type === 'tokenA' ? route.input.address : route.output.address,
+          input: amountFor === type ? amount : referenceValue,
+        })),
+        route,
         amountFor,
       }
     }
@@ -171,6 +214,19 @@ export const useSwapStore = defineStore('swap', () => {
       return buildPair((type) => wei[type].input)
     }),
   )
+
+  const tokenAmounts = useTokenAmounts({
+    inputToken,
+    outputToken,
+    inputAmountInWei: computed(() => normalizedWeiInputs.value?.tokenA.input ?? null),
+    outputAmountInWei: computed(() => normalizedWeiInputs.value?.tokenB.input ?? null),
+  })
+
+  const priceImpact = usePriceImpact({
+    route,
+    inputAmount: computed(() => tokenAmounts.value?.inputAmount ?? null),
+    outputAmount: computed(() => tokenAmounts.value?.outputAmount ?? null),
+  })
 
   const swapValidation = useSwapValidation({
     tokenA: computed(() => {
@@ -208,8 +264,10 @@ export const useSwapStore = defineStore('swap', () => {
     addrs: addrsReadonly,
     normalizedWeiInputs,
     tokens,
+    route,
     symbols,
     formattedPoolShare,
+    priceImpact,
 
     isValid,
     validationMessage,

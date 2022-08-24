@@ -1,25 +1,26 @@
-import { Address, Kaikas, Wei } from '@/core/kaikas'
-import { TokensPair, TokenType } from '@/utils/pair'
+import { Kaikas, Wei } from '@/core/kaikas'
+import { TokenType } from '@/utils/pair'
 import { Ref } from 'vue'
 import Debug from 'debug'
+import { Route } from '@/core/kaikas/entities'
 
 const debug = Debug('swap-amounts')
 
-export interface GetAmountProps extends TokensPair<Address> {
+export interface GetAmountProps {
   amountFor: TokenType
   referenceValue: Wei
+  route: Route
 }
 
 async function getAmount(props: GetAmountProps & { kaikas: Kaikas }): Promise<Wei> {
-  const addrsPair = { addressA: props.tokenA, addressB: props.tokenB }
-
+  const route = props.route
   const refValue = props.referenceValue
 
   if (props.amountFor === 'tokenB') {
     const [, amountOut] = await props.kaikas.swap.getAmounts({
       mode: 'out',
       amountIn: refValue,
-      ...addrsPair,
+      route,
     })
 
     return amountOut
@@ -27,7 +28,7 @@ async function getAmount(props: GetAmountProps & { kaikas: Kaikas }): Promise<We
     const [amountIn] = await props.kaikas.swap.getAmounts({
       mode: 'in',
       amountOut: refValue,
-      ...addrsPair,
+      route,
     })
 
     return amountIn
@@ -43,7 +44,7 @@ export function useGetAmount(props: Ref<null | GetAmountProps>) {
       const val = props.value
       if (!val) return null
       return {
-        key: `${val.tokenA}-${val.tokenB}-for-${val.amountFor}-${val.referenceValue}`,
+        key: `${val.route.input.symbol}-${val.route.output.symbol}-for-${val.amountFor}-${val.referenceValue}`,
         payload: val,
       }
     }),

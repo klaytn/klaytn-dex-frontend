@@ -1,4 +1,6 @@
 import { Wei } from '@/core/kaikas'
+import { POOL_COMMISSION } from '@/core/kaikas/const'
+import { TokenAmount, Percent, Price, Fraction } from '@/core/kaikas/entities'
 import { Tab } from '@/types'
 import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'
@@ -60,6 +62,16 @@ export function roundRates({ a_per_b, b_per_a }: Rates): RatesRounded {
     a_per_b: roundTo(a_per_b, 7),
     b_per_a: roundTo(b_per_a, 7),
   }
+}
+
+export function computePriceImpact(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
+  const feeCoefficient = new Fraction(1).plus(POOL_COMMISSION)
+  const exactQuote = new TokenAmount(
+    outputAmount.token,
+    midPrice.raw.dividedBy(feeCoefficient).multipliedBy(inputAmount.asFraction).toFixed(outputAmount.currency.decimals),
+  )
+  const slippage = exactQuote.minus(outputAmount).dividedBy(exactQuote)
+  return new Percent(slippage.numerator, slippage.denominator)
 }
 
 export const JSON_SERIALIZER: Serializer<JsonValue> = {

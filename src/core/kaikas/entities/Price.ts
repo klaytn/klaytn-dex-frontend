@@ -25,6 +25,7 @@ export default class Price extends Fraction {
             }),
       )
     }
+
     return prices.slice(1).reduce((accumulator, currentValue) => accumulator.multipliedBy(currentValue), prices[0])
   }
 
@@ -72,7 +73,11 @@ export default class Price extends Fraction {
     })
   }
 
-  public toFixed(decimals: number, rounding?: BigNumber.RoundingMode, format?: object): string {
-    return this.raw.toFixed(decimals, rounding, format)
+  public toFixed(decimals: number, rounding: BigNumber.RoundingMode): string {
+    return this.raw.toFixed(decimals, rounding)
+  }
+
+  public toFormat(decimals = 2, rounding?: BigNumber.RoundingMode, format?: object): string {
+    return this.raw.toFormat(decimals, rounding, format)
   }
 }
