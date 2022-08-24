@@ -18,7 +18,7 @@ const {
 
 <template>
   <div v-if="tokens && symbols">
-    <InputTokenLp
+    <InputCurrencyLp
       v-model:liquidity-raw="liquidityRaw"
       :tokens="tokens"
       :balance="pairUserBalance"

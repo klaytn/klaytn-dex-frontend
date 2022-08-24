@@ -79,7 +79,7 @@ function setToMax() {
 </script>
 
 <template>
-  <InputTokenTemplate
+  <InputCurrencyTemplate
     v-model="modelDebounced"
     :class="{ 'pointer-events-none': isLoading }"
     :input-disabled="isDisabled"
@@ -122,7 +122,7 @@ function setToMax() {
         <KlayIconImportant />
       </div>
     </template>
-  </InputTokenTemplate>
+  </InputCurrencyTemplate>
 </template>
 
 <style scoped lang="scss">

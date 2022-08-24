@@ -216,7 +216,7 @@ const detailsList = computed(() => {
           <hr class="klay-divider my-4">
           <span v-bem="'label'"> Amount staked </span>
 
-          <InputTokenTemplate
+          <InputCurrencyTemplate
             ref="input"
             right
             bottom
@@ -237,7 +237,7 @@ const detailsList = computed(() => {
                 {{ formattedStakeValueInAnotherUnits }}
               </span>
             </template>
-          </InputTokenTemplate>
+          </InputCurrencyTemplate>
 
           <div v-bem="'amounts'">
             <KlayButton
@@ -259,7 +259,7 @@ const detailsList = computed(() => {
           </div>
           <span v-bem="'label'"> You will receive (APY = {{ apy.toFixed(2) }}%) </span>
 
-          <InputTokenTemplate
+          <InputCurrencyTemplate
             data-testid="receive-value"
             input-readonly
             :model-value="formattedReceiveValue"
@@ -269,7 +269,7 @@ const detailsList = computed(() => {
                 {{ formattedReceiveValueInAnotherUnits }}
               </span>
             </template>
-          </InputTokenTemplate>
+          </InputCurrencyTemplate>
 
           <KlayCollapse v-bem="'details'">
             <template #head>

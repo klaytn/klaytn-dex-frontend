@@ -1,4 +1,4 @@
-import InputTokenTemplate from '@/components/InputTokenTemplate.vue'
+import InputTokenTemplate from '@/components/InputCurrencyTemplate.vue'
 import { VueTestUtils } from 'cypress/vue'
 
 before(() => {
@@ -18,7 +18,7 @@ describe('InputTokenTemplate', () => {
         }
       },
       template: `
-        <InputTokenTemplate v-model="model" />
+        <InputCurrencyTemplate v-model="model" />
         <span>Value: {{ model }}</span>
       `,
     })
@@ -35,7 +35,7 @@ describe('InputTokenTemplate', () => {
         }
       },
       template: `
-        <InputTokenTemplate v-model="model" />
+        <InputCurrencyTemplate v-model="model" />
         <span>Value: {{ model || '<none>' }}</span>
       `,
     })
@@ -59,11 +59,11 @@ describe('InputTokenTemplate', () => {
   it('"right" slot is enabled by prop', () => {
     cy.mount({
       template: `
-        <InputTokenTemplate right>
+        <InputCurrencyTemplate right>
           <template #right>
             <span>Chu!</span>
           </template>
-        </InputTokenTemplate>
+        </InputCurrencyTemplate>
       `,
     })
 
@@ -78,7 +78,7 @@ describe('InputTokenTemplate', () => {
         }
       },
       template: `
-        <InputTokenTemplate v-model="model" no-input-filter />
+        <InputCurrencyTemplate v-model="model" no-input-filter />
         <span>Value: {{ model || '<none>' }}</span>
       `,
     })

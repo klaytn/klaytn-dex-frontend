@@ -7,9 +7,9 @@ declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     EarnWrap: typeof import('./components/EarnWrap.vue')['default']
     HeaderMenu: typeof import('./components/HeaderMenu.vue')['default']
-    InputToken: typeof import('./components/InputToken.vue')['default']
-    InputTokenLp: typeof import('./components/InputTokenLp.vue')['default']
-    InputTokenTemplate: typeof import('./components/InputTokenTemplate.vue')['default']
+    InputCurrency: typeof import('./components/InputCurrency.vue')['default']
+    InputCurrencyLp: typeof import('./components/InputCurrencyLp.vue')['default']
+    InputCurrencyTemplate: typeof import('./components/InputCurrencyTemplate.vue')['default']
     KlayAccordionItem: typeof import('./common/KlayAccordionItem.vue')['default']
     KlayButton: typeof import('./common/KlayButton.vue')['default']
     KlayCharAvatar: typeof import('./common/KlayCharAvatar.vue')['default']
