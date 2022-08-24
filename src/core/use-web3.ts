@@ -5,7 +5,7 @@ import { and, type MaybeRef, not } from '@vueuse/core'
 import { type Ref } from 'vue'
 import { type PromiseStateAtomic } from '@vue-kakuyaku/core'
 import type Caver from 'caver-js'
-import type { AgentProvider } from './entities/agent'
+import type { AgentProvider } from './domain/agent'
 
 const INITIAL_DELAY_TIMEOUT = 300
 

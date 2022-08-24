@@ -1,7 +1,7 @@
 import { Agent, AgentPure } from './agent'
-import { IsomorphicContract } from './isomorphic-contract'
+import { IsomorphicContract } from '../isomorphic-contract'
 import { ADDRESS_FARMING, ADDRESS_MULTICALL } from '../const'
-import Wei from './Wei'
+import { Wei } from '../entities'
 import { Opaque } from 'type-fest'
 import { Address } from '../types'
 

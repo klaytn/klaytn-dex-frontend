@@ -4,19 +4,28 @@ import type {
   PayableOverrides,
   BigNumber as BigNumberEthers,
 } from 'ethers'
-import type { AbiContractEthers, AbiContractWeb3, AvailableAbi } from '../abi'
+import type { AbiContractEthers, AbiContractWeb3, AbiToContract, AvailableAbi } from './abi'
 import type {
   BaseContract as ContractWeb3,
   NonPayableTransactionObject,
   PayableTransactionObject,
   PayableTx,
-} from '../typechain-web3/types'
+} from './typechain-web3/types'
 import type { AllExceptLast } from '@/types'
-import type { Address } from '../types'
-import Wei from './Wei'
-import type { ContractForLib } from './agent'
+import type { Address } from './types'
+import Wei from './entities/Wei'
 
 type AssertExtends<T, U extends T> = 'ok'
+
+export type ContractForLib<A extends AvailableAbi> =
+  | {
+      lib: 'web3'
+      web3: AbiToContract<A, 'web3'>
+    }
+  | {
+      lib: 'ethers'
+      ethers: AbiToContract<A, 'ethers'>
+    }
 
 type GetEthersContractMethods<T extends ContractEthers> = keyof T['functions']
 

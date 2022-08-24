@@ -1,11 +1,11 @@
 import { JsonRpcSigner, type JsonRpcProvider } from '@ethersproject/providers'
 import { Contract } from 'ethers'
 import { Address, Kaikas, Token } from '../types'
-import { AbiContractEthers, AbiContractWeb3, AbiLoader, type AbiToContract, type AvailableAbi } from '../abi'
-import Wei from './Wei'
+import { AbiContractEthers, AbiContractWeb3, AbiLoader, type AvailableAbi } from '../abi'
+import { Wei } from '../entities'
 import type Caver from 'caver-js'
 import type { AbiItem } from 'caver-js'
-import { isomorphicContract, IsomorphicContract } from './isomorphic-contract'
+import { isomorphicContract, IsomorphicContract } from '../isomorphic-contract'
 import invariant from 'tiny-invariant'
 import { Except } from 'type-fest'
 
@@ -30,16 +30,6 @@ export type AgentProvider =
   | {
       kind: 'ethers'
       ethers: JsonRpcProvider
-    }
-
-export type ContractForLib<A extends AvailableAbi> =
-  | {
-      lib: 'web3'
-      web3: AbiToContract<A, 'web3'>
-    }
-  | {
-      lib: 'ethers'
-      ethers: AbiToContract<A, 'ethers'>
     }
 
 export class AgentPure {

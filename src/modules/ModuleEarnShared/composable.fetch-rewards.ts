@@ -3,7 +3,7 @@ import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 import { REFETCH_REWARDS_INTERVAL } from './const'
 import { PoolId, Rewards } from './types'
-import { CallStruct } from '@/core/entities/earn'
+import { CallStruct } from '@/core/domain/earn'
 import { PromiseOrValue } from '@/core/typechain-ethers/common'
 
 export interface GenericFetchRewardsProps<T extends PoolId | Address> {

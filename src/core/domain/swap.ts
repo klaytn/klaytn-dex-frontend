@@ -1,9 +1,9 @@
 import type { Address, Deadline } from '../types'
 import { computeTransactionFee, deadlineFiveMinutesFromNow } from '../utils'
-import Wei from './Wei'
+import { Wei } from '../entities'
 import CommonContracts from './CommonContracts'
 import { Agent } from './agent'
-import { TransactionObject, IsomorphicOverrides } from './isomorphic-contract'
+import { TransactionObject, IsomorphicOverrides } from '../isomorphic-contract'
 
 export interface AddrsPair {
   addressA: Address

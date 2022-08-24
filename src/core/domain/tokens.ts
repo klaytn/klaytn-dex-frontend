@@ -1,11 +1,11 @@
 import { isEmptyAddress } from '../utils'
 import type { Address, Token, TokenSymbol } from '../types'
-import Wei from './Wei'
+import { Wei } from '../entities'
 import CommonContracts from './CommonContracts'
 import invariant from 'tiny-invariant'
 import type { TokensPair, TokenType } from '@/utils/pair'
 import { AgentPure, Agent } from './agent'
-import { IsomorphicContract } from './isomorphic-contract'
+import { IsomorphicContract } from '../isomorphic-contract'
 
 export interface GetTokenQuoteProps extends TokensPair<Address> {
   value: Wei

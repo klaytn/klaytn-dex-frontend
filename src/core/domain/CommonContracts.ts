@@ -1,5 +1,5 @@
 import { AgentPure } from './agent'
-import { type IsomorphicContract } from './isomorphic-contract'
+import { type IsomorphicContract } from '../isomorphic-contract'
 
 type CommonContractKey = 'router' | 'factory'
 
