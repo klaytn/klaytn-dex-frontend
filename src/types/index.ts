@@ -1,12 +1,12 @@
 import type { App } from 'vue'
 import type { RouteRecordRaw, Router } from 'vue-router'
-import type { HeadClient } from '@vueuse/head'
+// import type { HeadClient } from '@vueuse/head'
 
 export interface AppContext<HasRouter extends boolean = true> {
   app: App<Element>
   router: HasRouter extends true ? Router : undefined
   routes: HasRouter extends true ? RouteRecordRaw[] : undefined
-  head: HeadClient | undefined
+  // head: HeadClient | undefined
 }
 
 export type Plugin = (ctx: AppContext) => void
@@ -21,6 +21,7 @@ export const RouteName = {
   Farms: 'Farms',
   Pools: 'Pools',
   Voting: 'Voting',
+  VotingProposal: 'VotingProposal',
   Charts: 'Charts',
 } as const
 
@@ -32,3 +33,39 @@ export interface HeaderMenuItem {
   routeName: RouteName
   activeWith?: RouteName[]
 }
+
+export const RoiType = {
+  Farming: 'farming',
+  Staking: 'staking',
+} as const
+
+export type RoiType = typeof RoiType[keyof typeof RoiType]
+
+export interface Tab {
+  id: string
+  label: string
+}
+
+/**
+ * TODO use everywhere instead of hardcode
+ */
+export const ApolloClientId = {
+  Exchange: 'exchange',
+  Farming: 'farming',
+  Staking: 'staking',
+  Snapshot: 'snapshot',
+} as const
+
+export type ApolloClientId = typeof ApolloClientId[keyof typeof ApolloClientId]
+
+export type AllExceptLast<T extends any[]> = T extends [maybe?: any]
+  ? []
+  : T extends [infer Head, ...infer Tail]
+  ? [Head, ...AllExceptLast<Tail>]
+  : never
+
+export type OnlyLast<T extends any[]> = T extends [maybe?: infer T]
+  ? T
+  : T extends [any, ...infer Tail]
+  ? OnlyLast<Tail>
+  : never

@@ -1,17 +1,19 @@
-import { Address } from '@/core/kaikas'
+import { Address, WeiAsToken } from '@/core'
 import BigNumber from 'bignumber.js'
-import { PoolId } from '../ModuleEarnShared/types'
+import { PercentageRate, PoolId, TokenPriceInUSD } from '../ModuleEarnShared/types'
 export * from '../ModuleEarnShared/types'
 
 export interface Pool {
   id: PoolId
   name: string
   pairId: Address
-  staked: BigNumber
-  earned: BigNumber
-  balance: BigNumber
-  annualPercentageRate: BigNumber
-  liquidity: BigNumber
+  staked: WeiAsToken<BigNumber>
+  earned: WeiAsToken<BigNumber>
+  balance: WeiAsToken<BigNumber>
+  annualPercentageRate: PercentageRate
+  lpAnnualPercentageRate: PercentageRate
+  stakeTokenPrice: TokenPriceInUSD
+  liquidity: WeiAsToken<BigNumber>
   multiplier: BigNumber
   createdAtBlock: number
 }

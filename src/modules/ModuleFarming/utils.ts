@@ -1,11 +1,11 @@
-import { ValueWei, tokenWeiToRaw, tokenRawToWei } from '@/core/kaikas'
+import { Wei, WeiAsToken } from '@/core'
 
-const CONSTANT_FARMING_DECIMALS = Object.freeze({ decimals: 18 })
+export const CONSTANT_FARMING_DECIMALS = Object.freeze({ decimals: 18 })
 
-export function farmingFromWei(value: ValueWei<string>): string {
-  return tokenWeiToRaw(CONSTANT_FARMING_DECIMALS, value)
+export function farmingFromWei(wei: Wei): WeiAsToken {
+  return wei.toToken(CONSTANT_FARMING_DECIMALS)
 }
 
-export function farmingToWei(value: string): ValueWei<string> {
-  return tokenRawToWei(CONSTANT_FARMING_DECIMALS, value)
+export function farmingToWei(token: WeiAsToken): Wei {
+  return Wei.fromToken(CONSTANT_FARMING_DECIMALS, token)
 }

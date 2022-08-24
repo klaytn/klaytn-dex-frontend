@@ -1,20 +1,21 @@
 <script setup lang="ts" name="ModuleStakingPool">
-import { Status } from '@soramitsu-ui/ui'
-
+import { KlayIconCalculator, KlayIconClock, KlayIconLink } from '~klay-icons'
 import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
-import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
-import { RouteName } from '@/types'
+import { RouteName, RoiType } from '@/types'
 import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
-import { useTask, wheneverTaskSucceeds, wheneverTaskErrors } from '@vue-kakuyaku/core'
-import { STAKING } from '@/core/kaikas/smartcontracts/abi'
+import { Wei } from '@/core'
 
-const kaikas = useKaikasStore().getKaikasAnyway()
+const dexStore = useDexStore()
+const { notify } = useNotify()
 
 const vBem = useBemClass()
 const router = useRouter()
 const { t } = useI18n()
+const showRoiCalculator = ref(false)
+const roiType = RoiType.Staking
+const roiPool = ref<Pool | null>(null)
 
 const props = defineProps<{
   pool: Pool
@@ -24,10 +25,6 @@ const emit = defineEmits<{
   (e: 'staked' | 'unstaked', value: string): void
   (e: 'withdrawn'): void
 }>()
-
-const PoolContract = kaikas.cfg.createContract<StakingInitializable>(pool.value.id, STAKING)
-
-const stakingStore = useStakingStore()
 
 const expanded = ref(false)
 const modalOperation = ref<ModalOperation | null>(null)
@@ -41,6 +38,35 @@ const modalOpen = computed({
   },
 })
 
+const balanceScope = useParamScope(
+  computed(() => {
+    const activeDex = dexStore.active
+    return (
+      activeDex.kind === 'named' &&
+      (unref(modalOpen) || unref(showRoiCalculator)) && {
+        key: `dex-${activeDex.wallet}`,
+        payload: activeDex.dex(),
+      }
+    )
+  }),
+  (dex) => {
+    const { state } = useTask(
+      async () => {
+        const token = pool.value.stakeToken
+        const balance = await dex.tokens.getTokenBalanceOfUser(token.id)
+        return new BigNumber(balance.toToken(token))
+      },
+      { immediate: true },
+    )
+    usePromiseLog(state, 'get-balance')
+
+    return state
+  },
+)
+const balance = computed(() => {
+  return balanceScope.value?.expose?.fulfilled?.value ?? null
+})
+
 const formattedEarned = computed(() => {
   return new BigNumber(pool.value.earned.toFixed(FORMATTED_BIG_INT_DECIMALS))
 })
@@ -50,11 +76,12 @@ const formattedStaked = computed(() => {
 })
 
 const formattedTotalStaked = computed(() => {
-  return new BigNumber(pool.value.totalStaked.toFixed(FORMATTED_BIG_INT_DECIMALS))
+  return '$' + new BigNumber(pool.value.totalStaked.toFixed(0, BigNumber.ROUND_UP))
 })
 
 const formattedAnnualPercentageRate = computed(() => {
-  return '%' + new BigNumber(pool.value.annualPercentageRate.toFixed(FORMATTED_BIG_INT_DECIMALS))
+  if (pool.value.annualPercentageRate.isZero()) return '—'
+  return '%' + new BigNumber(pool.value.annualPercentageRate.toFixed(2, BigNumber.ROUND_UP))
 })
 
 const formattedEndsIn = computed(() => {
@@ -74,14 +101,13 @@ const stats = computed(() => {
 
 const {
   pending: loading,
-  check: triggerCheckEnabled,
   enable,
   enabled,
-} = useEnableState(
-  computed(() => pool.value.stakeToken.id),
-  computed(() => pool.value.id),
-)
-whenever(expanded, triggerCheckEnabled)
+} = useEnableState({
+  contract: eagerComputed(() => pool.value.stakeToken.id),
+  spender: eagerComputed(() => pool.value.id),
+  active: expanded,
+})
 
 function stake() {
   modalOperation.value = ModalOperation.Stake
@@ -92,7 +118,7 @@ function unstake() {
 }
 
 function addToKaikas(pool: Pool) {
-  stakingStore.addTokenToKaikas({
+  dexStore.getNamedDexAnyway().agent.watchAsset({
     address: pool.rewardToken.id,
     symbol: pool.rewardToken.symbol,
     decimals: pool.rewardToken.decimals,
@@ -110,44 +136,44 @@ function goToSwapPage() {
   router.push({ name: RouteName.Swap })
 }
 
-const withdrawTask = useTask(async () => {
+const { state: withdrawState, run: withdraw } = useTask(async () => {
   const earned = pool.value.earned
-  const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
-  const withdraw = PoolContract.methods.withdraw(0)
-  const estimateGas = await withdraw.estimateGas({
-    from: kaikas.selfAddress,
-    gasPrice,
-  })
-  await withdraw.send({
-    from: kaikas.selfAddress,
-    gas: estimateGas,
-    gasPrice,
-  })
-
+  await dexStore.getNamedDexAnyway().earn.staking.withdraw({ amount: new Wei(0) })
   return { earned }
 })
-useTaskLog(withdrawTask, 'staking-pool-withdraw')
-wheneverTaskSucceeds(withdrawTask, ({ earned }) => {
-  emit('withdrawn')
-  $notify({ status: Status.Success, description: `${earned} ${pool.value.rewardToken.symbol} tokens were withdrawn` })
+usePromiseLog(withdrawState, 'staking-pool-withdraw')
+wheneverDone(withdrawState, (result) => {
+  if (result.fulfilled) {
+    const { earned } = result.fulfilled.value
+    emit('withdrawn')
+    notify({ type: 'ok', description: `${earned} ${pool.value.rewardToken.symbol} tokens were withdrawn` })
+  } else {
+    notify({
+      type: 'err',
+      description: `Withdraw ${pool.value.rewardToken.symbol} tokens error`,
+      error: result.rejected.reason,
+    })
+  }
 })
-wheneverTaskErrors(withdrawTask, () => {
-  $notify({ status: Status.Error, description: `Withdraw ${pool.value.rewardToken.symbol} tokens error` })
-})
-const withdraw = () => withdrawTask.run()
 
-async function handleStaked(amount: string) {
+function handleStaked(amount: string) {
   modalOperation.value = null
   emit('staked', amount)
 }
 
-async function handleUnstaked(amount: string) {
+function handleUnstaked(amount: string) {
   modalOperation.value = null
   emit('unstaked', amount)
 }
 
-async function handleModalClose() {
+function handleModalClose() {
   modalOperation.value = null
+}
+
+function openRoiCalculator(event: Event, pool: Pool) {
+  event.stopPropagation()
+  showRoiCalculator.value = true
+  roiPool.value = pool
 }
 </script>
 
@@ -162,12 +188,10 @@ async function handleModalClose() {
           <KlayCharAvatar
             v-bem="'icon'"
             :symbol="pool.rewardToken.symbol"
-            :lightness="65"
           />
           <KlayCharAvatar
             v-bem="'icon'"
             :symbol="pool.stakeToken.symbol"
-            :lightness="75"
           />
         </div>
         <div v-bem="'title'">
@@ -182,13 +206,14 @@ async function handleModalClose() {
           <div v-bem="'stats-item-label'">
             {{ t(`ModuleStakingPool.stats.${label}`, { symbol: pool.rewardToken.symbol }) }}
           </div>
-          <div v-bem="['stats-item-value', { zero: value == '0' }]">
+          <div v-bem="['stats-item-value', { zero: ['0', '$0'].includes(`${value}`) }]">
             {{ value }}
-            <IconKlayCalculator
-              v-if="label === 'annualPercentageRate'"
+            <KlayIconCalculator
+              v-if="label === 'annualPercentageRate' && value !== '—'"
               v-bem="'stats-item-calculator'"
+              @click="openRoiCalculator($event, pool)"
             />
-            <IconKlayClock
+            <KlayIconClock
               v-if="label === 'endsIn' && value !== '—'"
               v-bem="'stats-item-clock'"
             />
@@ -279,18 +304,18 @@ async function handleModalClose() {
           :href="`https://baobab.klaytnfinder.io/account/${pool.stakeToken.id}`"
         >
           See Token Info
-          <IconKlayLink v-bem="'link-icon'" />
+          <KlayIconLink v-bem="'link-icon'" />
         </a>
         <a v-bem="'link'">
           View Project Site
-          <IconKlayLink v-bem="'link-icon'" />
+          <KlayIconLink v-bem="'link-icon'" />
         </a>
         <a
           v-bem="'link'"
           :href="`https://baobab.klaytnfinder.io/account/${pool.id}`"
         >
           View Contract
-          <IconKlayLink v-bem="'link-icon'" />
+          <KlayIconLink v-bem="'link-icon'" />
         </a>
         <a
           v-bem="'link'"
@@ -315,10 +340,25 @@ async function handleModalClose() {
   <ModuleStakingModal
     v-model="modalOpen"
     :pool="pool"
+    :balance="balance"
     :operation="modalOperation"
     @update:mode="handleModalClose"
     @staked="handleStaked"
     @unstaked="handleUnstaked"
+  />
+
+  <ModuleEarnSharedRoiCalculator
+    v-if="roiPool"
+    v-model:show="showRoiCalculator"
+    :type="roiType"
+    :staked="roiPool.staked"
+    :apr="roiPool.annualPercentageRate"
+    :balance="balance"
+    :stake-token-price="roiPool.stakeTokenPrice"
+    :stake-token-decimals="roiPool.stakeToken.decimals"
+    :reward-token-decimals="roiPool.rewardToken.decimals"
+    :stake-token-symbol="roiPool.stakeToken.symbol"
+    :reward-token-symbol="roiPool.rewardToken.symbol"
   />
 </template>
 

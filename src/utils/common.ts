@@ -1,6 +1,11 @@
-import { ValueWei, fromWei } from '@/core/kaikas'
+import { Wei } from '@/core'
+import { Tab } from '@/types'
+import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'
 import rfdc from 'rfdc'
+import { roundTo } from 'round-to'
+import { JsonValue } from 'type-fest'
+import { TokensPair } from './pair'
 
 const reallyFastDeepClone = rfdc()
 
@@ -21,12 +26,6 @@ export function formatPercent(v1: string, v2: string) {
   return `${bigNB.dividedBy(percent).toFixed(2)}%`
 }
 
-export function formatWeiValue(value: ValueWei<string>): string {
-  if (!value) return '-'
-  const bn = new BigNumber(fromWei(value))
-  return bn.toFixed(4)
-}
-
 export function deepClone<T>(object: T): T {
   return reallyFastDeepClone(object)
 }
@@ -36,6 +35,44 @@ export function stringHashForHsl(str: string): number {
     const h = c.charCodeAt(0) + ((a << 4) - a)
     return h % 360
   }, 0)
+}
+
+/**
+ * Snake-case seems more suitable here
+ */
+export interface Rates {
+  a_per_b: number
+  b_per_a: number
+}
+
+export type RatesRounded = {
+  [K in keyof Rates]: number
+}
+
+export function computeRates(pair: TokensPair<Wei>): Rates {
+  const a_per_b = pair.tokenA.asBigNum.dividedBy(pair.tokenB.asBigNum).toNumber()
+  const b_per_a = 1 / a_per_b
+  return { a_per_b, b_per_a }
+}
+
+export function roundRates({ a_per_b, b_per_a }: Rates): RatesRounded {
+  return {
+    a_per_b: roundTo(a_per_b, 7),
+    b_per_a: roundTo(b_per_a, 7),
+  }
+}
+
+export const JSON_SERIALIZER: Serializer<JsonValue> = {
+  read: (raw) => JSON.parse(raw),
+  write: (parsed) => JSON.stringify(parsed),
+}
+
+export function nonNullSet<T>(values: (null | undefined | T)[]): Set<T> {
+  const set = new Set<T>()
+  for (const val of values) {
+    if (val !== null && val !== undefined) set.add(val)
+  }
+  return set
 }
 
 if (import.meta.vitest) {
@@ -60,10 +97,16 @@ if (import.meta.vitest) {
       expect(formatPercent('1000', '3.5')).toMatchInlineSnapshot('"0.35%"')
     })
   })
+}
 
-  describe('format wei value', () => {
-    test('case 1', () => {
-      expect(formatWeiValue('1523515128848712348' as ValueWei<string>)).toMatchInlineSnapshot('"1.5235"')
-    })
-  })
+export function shortenStringInTheMiddle(string: string) {
+  const stringLength = string.length
+  return `${string.slice(2, 6)}...${string.slice(stringLength - 6, stringLength - 2)}`
+}
+
+export function makeTabsArray(data: string[]): Tab[] {
+  return data.map((item) => ({
+    id: item,
+    label: item,
+  }))
 }

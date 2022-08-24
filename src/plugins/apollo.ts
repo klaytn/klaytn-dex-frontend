@@ -1,5 +1,5 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client/core'
-import type { Plugin } from '@/types'
+import { ApolloClientId, Plugin } from '@/types'
 import { ApolloClients } from '@vue/apollo-composable'
 
 const cache = new InMemoryCache()
@@ -19,10 +19,16 @@ const apolloClientStaking = new ApolloClient({
   uri: import.meta.env.VITE_APP_GRAPHQL_URI_STAKING,
 })
 
+const apolloClientSnapshot = new ApolloClient({
+  cache,
+  uri: import.meta.env.VITE_APP_GRAPHQL_URI_SNAPSHOT,
+})
+
 export const install: Plugin = ({ app }) => {
   app.provide(ApolloClients, {
-    exchange: apolloClientExchange,
-    farming: apolloClientFarming,
-    staking: apolloClientStaking,
+    [ApolloClientId.Exchange]: apolloClientExchange,
+    [ApolloClientId.Farming]: apolloClientFarming,
+    [ApolloClientId.Staking]: apolloClientStaking,
+    [ApolloClientId.Snapshot]: apolloClientSnapshot,
   })
 }

@@ -1,66 +1,53 @@
 <script setup lang="ts" name="SwapModuleDetails">
-import { toRefs } from '@vueuse/core'
-import { formatRate, formatPercent } from '@/utils/common'
+import { storeToRefs } from 'pinia'
+import cssRows from '../ModuleTradeShared/rows.module.scss'
 
-const tokensStore = useTokensStore()
-// FIXME
-const { tokenA, tokenB, userBalance, pairBalance } = $(toRefs(toRef(tokensStore, 'selectedTokens')))
+const store = useSwapStore()
+const { rates, symbols } = storeToRefs(store)
 
-const getRoute = computed(() => {
-  return tokenA && tokenB ? `${tokenA.symbol} > ${tokenB.symbol}` : ''
+const bothSymbols = computed(() => {
+  const { tokenA, tokenB } = symbols.value || {}
+  if (tokenA && tokenB) return { tokenA, tokenB }
+  return null
+})
+
+const route = computed(() => {
+  const { tokenA, tokenB } = bothSymbols.value || {}
+  if (!tokenA || !tokenB) return null
+  return `${tokenA} > ${tokenB}`
 })
 </script>
 
 <template>
-  <div
-    v-if="tokenA?.value && tokenB?.value"
-    class="details--wrap"
-  >
+  <div v-if="bothSymbols">
     <KlayCollapse>
       <template #head>
-        <h3 class="details--title">
+        <h3 class="py-2">
           Transaction Details
         </h3>
       </template>
       <template #main>
-        <div
-          v-if="pairBalance && userBalance"
-          class="details"
-        >
-          <div class="details--row">
-            <span>
-              {{ tokenA.symbol }} per
-              {{ tokenB.symbol }}
-            </span>
-            <span>
-              {{ formatRate(tokenA.value, tokenB.value) }}
-            </span>
-          </div>
-          <div class="details--row">
-            <span>
-              {{ tokenB.symbol }} per
-              {{ tokenA.symbol }}
-            </span>
-            <span>
-              {{ formatRate(tokenB.value, tokenA.value) }}
-            </span>
-          </div>
-          <div
-            v-if="pairBalance"
-            class="details--row"
-          >
-            <span>Share of pool</span>
-            <span>{{ formatPercent(pairBalance, userBalance) }}</span>
-          </div>
-          <div class="details--row">
-            <span>Route</span>
-            <span>{{ getRoute }}</span>
-          </div>
+        <div class="space-y-4 pt-2">
+          <RowsRates
+            :class="cssRows.rowSm"
+            :rounded-rates="rates"
+            :symbols="bothSymbols"
+          />
 
-          <!--          <div class="liquidity&#45;&#45;details&#45;&#45;row"> -->
-          <!--            <span>Transaction Fee</span> -->
-          <!--            <span>0.074 KLAY ($0.013)</span> -->
-          <!--          </div> -->
+          <!-- Not in design -->
+          <!-- <div class="details--row">
+            <span>Share of pool</span>
+            <span>
+              <ValueOrDash :value="formattedPoolShare" />
+            </span>
+          </div> -->
+
+          <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
+            <span>Route</span>
+            <span>
+              <ValueOrDash :value="route" />
+            </span>
+          </div>
         </div>
       </template>
     </KlayCollapse>
@@ -71,30 +58,30 @@ const getRoute = computed(() => {
 @import '@/styles/vars';
 
 .details {
-  margin-top: 8px;
+  // margin-top: 8px;
 
-  &--title,
-  h3 {
-    font-style: normal;
-    font-weight: 700;
-    font-size: 14px;
-    line-height: 17px;
-    color: $dark2;
-    padding: 3px 0;
-  }
+  // &--title,
+  // h3 {
+  //   font-style: normal;
+  //   font-weight: 700;
+  //   font-size: 14px;
+  //   line-height: 17px;
+  //   color: $dark2;
+  //   padding: 3px 0;
+  // }
 
-  &--wrap {
-    margin-top: 16px;
-  }
+  // &--wrap {
+  //   margin-top: 16px;
+  // }
 
-  &--row {
-    display: flex;
-    justify-content: space-between;
-    font-style: normal;
-    font-weight: 600;
-    font-size: 12px;
-    line-height: 230%;
-    color: $dark2;
-  }
+  // &--row {
+  //   display: flex;
+  //   justify-content: space-between;
+  //   font-style: normal;
+  //   font-weight: 600;
+  //   font-size: 12px;
+  //   line-height: 230%;
+  //   color: $dark2;
+  // }
 }
 </style>

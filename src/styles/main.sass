@@ -1,4 +1,7 @@
+@use './vars'
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap')
+
+// FIXME use existing CSS-reset library?
 
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -50,3 +53,8 @@ input::-webkit-inner-spin-button
 	margin: 0
 input[type=number]
 	-moz-appearance: textfield
+
+.klay-divider
+	background: vars.$gray5
+	height: 1px
+	width: 100%

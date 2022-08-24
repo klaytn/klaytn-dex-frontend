@@ -1,24 +1,14 @@
 <script setup lang="ts" name="ModuleFarmingStakeModal">
-import { Status, SModal } from '@soramitsu-ui/ui'
+import { SModal } from '@soramitsu-ui/ui'
 import { ModalOperation, Pool } from './types'
-import { FARMING_CONTRACT_ADDRESS, FORMATTED_BIG_INT_DECIMALS } from './const'
+import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import BigNumber from 'bignumber.js'
-import { Farming } from '@/types/typechain/farming'
-import { FARMING } from '@/core/kaikas/smartcontracts/abi'
-import { useTask, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
-import invariant from 'tiny-invariant'
 import { farmingToWei } from './utils'
+import { or } from '@vueuse/core'
+import { WeiAsToken } from '@/core'
 
-const kaikasStore = useKaikasStore()
-
-const FarmingContract = computed(() =>
-  kaikasStore.kaikas?.cfg.createContract<Farming>(FARMING_CONTRACT_ADDRESS, FARMING),
-)
-const contractAnyway = () => {
-  const item = FarmingContract.value
-  invariant(item)
-  return item
-}
+const dexStore = useDexStore()
+const { notify } = useNotify()
 
 const vBem = useBemClass()
 
@@ -34,10 +24,10 @@ const emit = defineEmits<{
 }>()
 
 const show = useVModel(props, 'modelValue', emit)
-const value = ref('0')
+const value = ref('0' as WeiAsToken)
 
 watch(show, () => {
-  value.value = '0'
+  value.value = '0' as WeiAsToken
 })
 
 const iconChars = computed(() => {
@@ -78,66 +68,43 @@ const disabled = computed(() => {
 })
 
 function setMax() {
-  if (operation.value === ModalOperation.Stake) 
-    value.value = `${pool.value.balance}`
-  else
-    value.value = `${pool.value.staked}`
+  if (operation.value === ModalOperation.Stake) value.value = `${pool.value.balance}` as WeiAsToken
+  else value.value = `${pool.value.staked}` as WeiAsToken
 }
 
-const stakeTask = useTask(async () => {
-  const kaikas = kaikasStore.getKaikasAnyway()
-  const FarmingContract = contractAnyway()
+const { state: stakeState, run: stake } = useTask(async () => {
+  const dex = dexStore.getNamedDexAnyway()
 
   const amount = value.value
-  const gasPrice = await kaikas.cfg.getGasPrice()
-  const deposit = FarmingContract.methods.deposit(props.pool.id, farmingToWei(amount))
-  const estimateGas = await deposit.estimateGas({
-    from: kaikas.selfAddress,
-    gasPrice,
-  })
-  const receipt = await deposit.send({
-    from: kaikas.selfAddress,
-    gas: estimateGas,
-    gasPrice,
-  })
-  if (receipt.status === false) throw new Error('Transaction error')
+  await dex.earn.farming.deposit({ poolId: props.pool.id, amount: farmingToWei(amount) })
+
+  // FIXME is that assertion should exist?
+  // const receipt = await tx.send({ gas })
+  // if (receipt.status === false) throw new Error('Transaction error')
 
   return { amount }
 })
-wheneverTaskSucceeds(stakeTask, ({ amount }) => {
-  $notify({ status: Status.Success, description: `${amount} LP tokens were staked` })
+wheneverFulfilled(stakeState, ({ amount }) => {
+  notify({ type: 'ok', description: `${amount} LP tokens were staked` })
   emit('staked', amount)
 })
-useNotifyOnError(stakeTask, 'Stake LP tokens error')
-const stake = () => stakeTask.run()
+useNotifyOnError(stakeState, notify, 'Stake LP tokens error')
 
-const unstakeTask = useTask(async () => {
-  const kaikas = kaikasStore.getKaikasAnyway()
-  const FarmingContract = contractAnyway()
+const { state: unstakeState, run: unstake } = useTask(async () => {
+  const dex = dexStore.getNamedDexAnyway()
 
   const amount = value.value
-  const gasPrice = await kaikas.cfg.getGasPrice()
-  const withdraw = FarmingContract.methods.withdraw(props.pool.id, farmingToWei(amount))
-  const estimateGas = await withdraw.estimateGas({
-    from: kaikas.selfAddress,
-    gasPrice,
-  })
-  await withdraw.send({
-    from: kaikas.selfAddress,
-    gas: estimateGas,
-    gasPrice,
-  })
+  await dex.earn.farming.withdraw({ poolId: props.pool.id, amount: farmingToWei(amount) })
 
   return { amount }
 })
-wheneverTaskSucceeds(unstakeTask, ({ amount }) => {
-  $notify({ status: Status.Success, description: `${amount} LP tokens were unstaked` })
+wheneverFulfilled(unstakeState, ({ amount }) => {
+  notify({ type: 'ok', description: `${amount} LP tokens were unstaked` })
   emit('unstaked', amount)
 })
-useNotifyOnError(unstakeTask, 'Unstake LP tokens error')
-const unstake = () => unstakeTask.run()
+useNotifyOnError(unstakeState, notify, 'Unstake LP tokens error')
 
-const loading = computed(() => stakeTask.state.kind === 'pending' || unstakeTask.state.kind === 'pending')
+const loading = or(toRef(stakeState, 'pending'), toRef(unstakeState, 'pending'))
 
 function confirm() {
   switch (operation.value) {

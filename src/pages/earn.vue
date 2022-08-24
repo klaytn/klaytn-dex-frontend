@@ -2,7 +2,9 @@
 name: Earn
 </route>
 
-<script setup lang="ts" name="Earn" />
+<script setup lang="ts" name="Earn">
+import EarnWrap from '@/components/EarnWrap.vue'
+</script>
 
 <template>
   <EarnWrap>

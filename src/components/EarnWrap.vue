@@ -2,11 +2,11 @@
 import { Sorting as FarmingSorting } from '@/modules/ModuleFarming/types'
 import { Sorting as StakingSorting } from '@/modules/ModuleStaking/types'
 import { RouteName } from '@/types'
+import { KlayIconSearch } from '~klay-icons'
 
 const { t } = useI18n()
 const vBem = useBemClass()
 
-const kaikasStore = useKaikasStore()
 const farmingStore = useFarmingStore()
 const stakingStore = useStakingStore()
 
@@ -99,21 +99,12 @@ const menuActiveClass = 'earn-wrap__head-button--active'
         label="Search"
       >
         <template #append>
-          <IconKlaySearch v-bem="'search-icon'" />
+          <KlayIconSearch v-bem="'search-icon'" />
         </template>
       </KlayTextField>
     </div>
 
-    <template v-if="kaikasStore.isConnected">
-      <slot />
-    </template>
-
-    <div
-      v-else
-      class="text-2xl font-bold flex-1 w-full flex items-center justify-center"
-    >
-      Connect kaikas first
-    </div>
+    <slot />
   </div>
 </template>
 
@@ -152,10 +143,6 @@ const menuActiveClass = 'earn-wrap__head-button--active'
         color: $dark
   &__staked-only
     margin-left: 32px
-    .s-switch__label
-      margin-left: 10px
-      font-weight: 700
-      font-size: 14px
   &__sorting
     margin-left: 8px
     &-label

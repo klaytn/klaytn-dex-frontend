@@ -1,26 +1,21 @@
-import { Kaikas } from '@/core/kaikas'
-import { useTask, useScope } from '@vue-kakuyaku/core'
+import { AgentPure } from '@/core'
+import { MaybeRef } from '@vueuse/core'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 
-export function useBlockNumber(kaikas: Kaikas): Ref<number | null> {
+export function useBlockNumber(agent: MaybeRef<AgentPure>): Ref<number | null> {
   const blockNumber = ref<number | null>(null)
+  const inc = () => {
+    invariant(typeof blockNumber.value === 'number')
+    blockNumber.value++
+  }
+  const { resume } = useIntervalFn(inc, 1000, { immediate: false })
 
-  const task = useTask(async () => {
-    const value = await kaikas.cfg.caver.klay.getBlockNumber()
-    blockNumber.value = value
+  const { state } = useTask<number>(() => unref(agent).getBlockNumber(), { immediate: true })
+  wheneverFulfilled(state, (num) => {
+    blockNumber.value = num
+    resume()
   })
-  task.run()
-
-  useScope(
-    computed(() => blockNumber.value !== null),
-    () => {
-      useIntervalFn(() => {
-        invariant(typeof blockNumber.value === 'number')
-        blockNumber.value++
-      }, 1000)
-    },
-  )
 
   return blockNumber
 }

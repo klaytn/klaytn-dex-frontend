@@ -1,34 +1,34 @@
 <script setup lang="ts" name="ModuleFarming">
-import { Pool } from './types'
-import { PAGE_SIZE } from './const'
-import { asWei, Address } from '@/core/kaikas'
-import { deepClone } from '@/utils/common'
-import { Status } from '@soramitsu-ui/ui'
-import { or, not } from '@vueuse/core'
+import { PercentageRate, Pool, TokenPriceInUSD } from './types'
+import { BLOCKS_PER_YEAR, PAGE_SIZE } from './const'
 import BigNumber from 'bignumber.js'
+import { WeiAsToken, Wei, WeiRaw, Address } from '@/core'
+import { deepClone } from '@/utils/common'
+import { or, not } from '@vueuse/core'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { useFetchFarmingRewards } from './composable.fetch-rewards'
-import { useSortedPools } from './composable.sort-pools'
 import { useFarmingQuery } from './query.farming'
-import { useLiquidityPairsQuery } from './query.liquidity-pairs'
-import { usePairsQuery } from './query.pairs'
+import { useLiquidityPositionsQuery } from './query.liquidity-positions'
+import { usePairsAndRewardTokenQuery } from './query.pairs-and-reward-token'
 import { farmingFromWei, farmingToWei } from './utils'
 import { storeToRefs } from 'pinia'
+import { useSortedPools } from './composable.sorted-pools'
 
 const vBem = useBemClass()
 
-const kaikasStore = useKaikasStore()
-const kaikas = kaikasStore.getKaikasAnyway()
+const dexStore = useDexStore()
 
 const farmingStore = useFarmingStore()
-const { stakedOnly, searchQuery, sorting } = storeToRefs(farmingStore)
+const { sorting, searchQuery, stakedOnly } = storeToRefs(farmingStore)
 
-const blockNumber = useBlockNumber(kaikas)
+const { notify } = useNotify()
+
+const blockNumber = useBlockNumber(computed(() => dexStore.anyDex.dex().agent))
 function updateBlockNumber(value: number) {
   blockNumber.value = value
 }
 
-const FarmingQuery = useFarmingQuery(kaikas.selfAddress)
+const FarmingQuery = useFarmingQuery(toRef(dexStore, 'account'))
 
 const farming = computed(() => FarmingQuery.result.value?.farming ?? null)
 
@@ -42,21 +42,27 @@ const poolPairIds = computed(() => {
   return farming.value?.pools.map((pool) => pool.pair) ?? []
 })
 
-const pairsQueryVariables = ref<{ pairIds: Address[] }>({
+const pairsAndRewardTokenQueryVariables = ref<{ pairIds: Address[] }>({
   pairIds: [],
 })
-const PairsQuery = usePairsQuery(computed(() => pairsQueryVariables.value.pairIds))
+const PairsAndRewardTokenQuery = usePairsAndRewardTokenQuery(
+  computed(() => pairsAndRewardTokenQueryVariables.value.pairIds),
+)
 
 const pairs = computed(() => {
-  return PairsQuery.result.value?.pairs ?? null
+  return PairsAndRewardTokenQuery.result.value?.pairs ?? null
+})
+
+const rewardToken = computed(() => {
+  return PairsAndRewardTokenQuery.result.value?.token ?? null
 })
 
 function handleFarmingQueryResult() {
-  pairsQueryVariables.value.pairIds = poolPairIds.value
+  pairsAndRewardTokenQueryVariables.value.pairIds = poolPairIds.value
 
-  PairsQuery.load()
+  PairsAndRewardTokenQuery.load()
 
-  if (PairsQuery.result) PairsQuery.refetch()
+  if (PairsAndRewardTokenQuery.result) PairsAndRewardTokenQuery.refetch()
 }
 
 // Workaround for cached results: https://github.com/vuejs/apollo/issues/1154
@@ -67,12 +73,11 @@ FarmingQuery.onResult(() => {
 })
 
 const { rewards, areRewardsFetched } = useFetchFarmingRewards({
-  kaikas,
   poolIds: farmingPoolIds,
   updateBlockNumber,
 })
 
-const LiquidityPositionsQuery = useLiquidityPairsQuery(kaikas.selfAddress)
+const LiquidityPositionsQuery = useLiquidityPositionsQuery(toRef(dexStore, 'account'))
 
 const liquidityPositions = computed(() => {
   if (!LiquidityPositionsQuery.result.value) return null
@@ -80,9 +85,10 @@ const liquidityPositions = computed(() => {
 })
 
 const pools = computed<Pool[] | null>(() => {
-  if (farming.value === null || pairs.value === null || blockNumber.value === null) return null
+  if (farming.value === null || pairs.value === null || blockNumber.value === null || rewardToken.value === null)
+    return null
 
-  const pools = [] as Pool[]
+  let pools = [] as Pool[]
 
   farming.value.pools.forEach((pool) => {
     if (!farming.value || !pairs.value || !blockNumber.value || !rewards.value) return
@@ -91,24 +97,30 @@ const pools = computed<Pool[] | null>(() => {
     const pair = pairs.value.find((pair) => pair.id === pool.pair) ?? null
 
     const reward = rewards.value[pool.id]
-    const earned = reward ? new BigNumber(farmingFromWei(reward)) : null
+    const earned = reward ? (new BigNumber(farmingFromWei(reward)) as WeiAsToken<BigNumber>) : null
 
     if (pair === null || earned === null) return
 
     const pairId = pair.id
     const name = pair.name
 
-    const staked = new BigNumber(farmingFromWei(asWei(pool.users[0]?.amount ?? '0')))
+    const staked = new BigNumber(farmingFromWei(new Wei(pool.users[0]?.amount ?? '0'))) as WeiAsToken<BigNumber>
 
     const liquidityPosition = liquidityPositions.value?.find((position) => position.pair.id === pairId) ?? null
-    const balance = new BigNumber(liquidityPosition?.liquidityTokenBalance ?? 0)
-
-    const annualPercentageRate = new BigNumber(0)
+    const balance = new BigNumber(liquidityPosition?.liquidityTokenBalance ?? 0) as WeiAsToken<BigNumber>
 
     const reserveUSD = new BigNumber(pair.reserveUSD)
     const totalSupply = new BigNumber(pair.totalSupply)
-    const totalTokensStaked = new BigNumber(farmingFromWei(asWei(pool.totalTokensStaked)))
-    const liquidity = reserveUSD.dividedBy(totalSupply).multipliedBy(totalTokensStaked)
+    const totalTokensStaked = new BigNumber(farmingFromWei(new Wei(pool.totalTokensStaked)))
+    const stakeTokenPrice = reserveUSD.dividedBy(totalSupply) as TokenPriceInUSD
+    const liquidity = reserveUSD.dividedBy(totalSupply).multipliedBy(totalTokensStaked) as WeiAsToken<BigNumber>
+
+    const annualPercentageRate = new BigNumber(0) as PercentageRate
+
+    const totalLpRewardPricePerYear = new BigNumber(pair.dayData[0].volumeUSD).times(365)
+    const lpAnnualPercentageRate = (
+      !liquidity.isZero() ? totalLpRewardPricePerYear.div(liquidity).times(100) : new BigNumber(0)
+    ) as PercentageRate
 
     const bonusEndBlock = Number(pool.bonusEndBlock)
     const allocPoint = new BigNumber(pool.allocPoint)
@@ -128,10 +140,28 @@ const pools = computed<Pool[] | null>(() => {
       staked,
       balance,
       annualPercentageRate,
+      lpAnnualPercentageRate,
+      stakeTokenPrice,
       liquidity,
       multiplier,
       createdAtBlock,
     })
+  })
+
+  const sumOfMultipliers = pools.reduce((acc, pool) => acc.plus(pool.multiplier), new BigNumber(0))
+
+  pools = pools.map((pool) => {
+    if (!farming.value || !rewardToken.value) return pool
+    const farmingRewardRate = new BigNumber(farmingFromWei(new Wei(farming.value.rewardRate)))
+    const poolRewardRate = farmingRewardRate.times(pool.multiplier.div(sumOfMultipliers))
+    const totalRewardPricePerYear = poolRewardRate.times(BLOCKS_PER_YEAR).times(rewardToken.value.derivedUSD)
+    const annualPercentageRate = (
+      !pool.liquidity.isZero() ? totalRewardPricePerYear.div(pool.liquidity).times(100) : new BigNumber(0)
+    ) as PercentageRate
+    return {
+      ...pool,
+      annualPercentageRate,
+    }
   })
 
   return pools
@@ -154,12 +184,21 @@ const filteredPools = computed<Pool[] | null>(() => {
 
 const sortedPools = useSortedPools(filteredPools, sorting)
 
-const isLoading = or(FarmingQuery.loading, LiquidityPositionsQuery.loading, PairsQuery.loading, not(areRewardsFetched))
+const isLoading = or(
+  FarmingQuery.loading,
+  LiquidityPositionsQuery.loading,
+  PairsAndRewardTokenQuery.loading,
+  not(areRewardsFetched),
+)
 
-for (const [QueryName, Query] of Object.entries({ FarmingQuery, LiquidityPositionsQuery, PairsQuery })) {
+for (const [QueryName, Query] of Object.entries({
+  FarmingQuery,
+  LiquidityPositionsQuery,
+  PairsAndRewardTokenQuery,
+})) {
   Query.onError((param) => {
     console.error('query error', param)
-    $notify({ status: Status.Error, description: `Apollo error (${QueryName}): ${String(param)}` })
+    notify({ type: 'err', description: `Apollo error (${QueryName}): ${String(param)}` })
   })
 }
 
@@ -169,17 +208,17 @@ for (const [QueryName, Query] of Object.entries({ FarmingQuery, LiquidityPositio
 function updateStaked(poolId: Pool['id'], diff: BigNumber) {
   if (!FarmingQuery.result.value) return
 
-  const diffAsWei = asWei(new BigNumber(farmingToWei(diff.toString())))
+  const diffAsWei = farmingToWei(diff.toFixed() as WeiAsToken)
   const farmingQueryResultCloned = deepClone(FarmingQuery.result.value)
   const pool = farmingQueryResultCloned.farming.pools.find((pool) => pool.id === poolId)
   if (!pool) return
 
-  pool.totalTokensStaked = new BigNumber(pool.totalTokensStaked).plus(diffAsWei).toFixed(0)
+  pool.totalTokensStaked = new BigNumber(pool.totalTokensStaked).plus(diffAsWei.asBigNum).toFixed(0) as WeiRaw<string>
 
   const user = pool.users[0] ?? null
   if (!user) return
 
-  user.amount = new BigNumber(user.amount).plus(diffAsWei).toFixed(0)
+  user.amount = new BigNumber(user.amount).plus(diffAsWei.asBigNum).toFixed(0) as WeiRaw<string>
   FarmingQuery.result.value = farmingQueryResultCloned
 }
 

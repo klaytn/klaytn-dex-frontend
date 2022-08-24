@@ -5,12 +5,28 @@ name: Trade
 <script setup lang="ts">
 import { RouteName } from '@/types'
 import { storeToRefs } from 'pinia'
+import { KlayIconBackArrow, KlayIconRefresh } from '~klay-icons'
 
 const tokensStore = useTokensStore()
-const { isDataLoading: isLoading, doesDataExist } = $(storeToRefs(tokensStore))
+const { isBalancePending, isImportedPending } = storeToRefs(tokensStore)
+
+const removeStore = useLiquidityRmStore()
 
 const route = useRoute()
-const isOnLiquidityAdd = $computed(() => route.name === RouteName.LiquidityAdd)
+
+const liquiditySubSection = computed(() => {
+  if (route.name === RouteName.LiquidityAdd) {
+    return { kind: 'add', label: 'Add Liquidity' }
+  }
+  if (route.name === RouteName.LiquidityRemove) {
+    const symbols = removeStore.selectedTokensSymbols
+
+    return {
+      kind: 'remove',
+      label: `Remove ${symbols ? `${symbols.tokenA}-${symbols.tokenB}` : '...'} liquidity`,
+    }
+  }
+})
 
 const headLinks: {
   toName: RouteName
@@ -27,27 +43,28 @@ const headLinks: {
 ]
 
 function refresh() {
-  tokensStore.getImportedTokens()
-  tokensStore.getUserBalance()
+  tokensStore.touchUserBalance()
 }
 </script>
 
 <template>
   <div class="wrap mx-auto pb-5">
     <div class="flex items-center mb-4 space-x-4 pt-5 px-4">
-      <template v-if="isOnLiquidityAdd">
+      <template v-if="liquiditySubSection">
         <RouterLink :to="{ name: RouteName.Liquidity }">
           <KlayButton
             type="action"
             rounded
           >
             <template #icon>
-              <IconKlayBackArrow />
+              <KlayIconBackArrow />
             </template>
           </KlayButton>
         </RouterLink>
 
-        <h1>Add Liquidity</h1>
+        <h1>
+          {{ liquiditySubSection.label }}
+        </h1>
       </template>
 
       <template v-else>
@@ -67,33 +84,16 @@ function refresh() {
       <KlayButton
         type="action"
         rounded
-        :loading="isLoading"
+        :loading="isBalancePending || isImportedPending"
         @click="refresh"
       >
         <template #icon>
-          <IconKlayRefresh />
-        </template>
-      </KlayButton>
-
-      <KlayButton
-        type="action"
-        rounded
-        disabled
-      >
-        <template #icon>
-          <IconKlayFilters />
+          <KlayIconRefresh />
         </template>
       </KlayButton>
     </div>
 
-    <div
-      v-if="isLoading && !doesDataExist"
-      class="p-8 flex items-center justify-center"
-    >
-      <KlayLoader />
-    </div>
-
-    <RouterView v-else />
+    <RouterView />
   </div>
 </template>
 
@@ -134,8 +134,5 @@ h1 {
   align-items: center;
   justify-content: flex-start;
   margin-bottom: 18px;
-
-  &__btn {
-  }
 }
 </style>

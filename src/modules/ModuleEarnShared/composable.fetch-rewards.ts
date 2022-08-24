@@ -1,20 +1,18 @@
-import { Kaikas, Address, asWei } from '@/core/kaikas'
-import { useScope, useStaleIfErrorState, useTask, wheneverTaskSucceeds } from '@vue-kakuyaku/core'
-import { MULTICALL } from '@/core/kaikas/smartcontracts/abi'
-import { Multicall } from '@/types/typechain/farming/MultiCall.sol'
+import { Address, Wei, defaultAbiCoder } from '@/core'
+import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
-import { MULTICALL_CONTRACT_ADDRESS, REFETCH_REWARDS_INTERVAL } from './const'
+import { REFETCH_REWARDS_INTERVAL } from './const'
 import { PoolId, Rewards } from './types'
+import { CallStruct } from '@/core/entities/earn'
+import { PromiseOrValue } from '@/core/typechain-ethers/common'
 
 export interface GenericFetchRewardsProps<T extends PoolId | Address> {
-  kaikas: Kaikas
   poolIds: Ref<T[] | null>
   updateBlockNumber: (value: number) => void
-  prepareCalls: (ids: T[]) => [string, string][]
+  prepareCalls: (ids: T[]) => PromiseOrValue<CallStruct[]>
 }
 
 export function useFetchRewards<T extends PoolId | Address>({
-  kaikas,
   poolIds,
   updateBlockNumber,
   prepareCalls,
@@ -22,50 +20,54 @@ export function useFetchRewards<T extends PoolId | Address>({
   rewards: Ref<null | Rewards<T>>
   areRewardsFetched: Ref<boolean>
 } {
-  const MulticallContract = kaikas.cfg.createContract<Multicall>(MULTICALL_CONTRACT_ADDRESS, MULTICALL)
+  const dexStore = useDexStore()
 
-  const maybeStaleState = useScope(
-    computed(() => !!poolIds.value),
-    () => {
-      const task = useTask(async () => {
-        const ids = poolIds.value!
-        const calls = prepareCalls(ids)
-        const aggrResult = await MulticallContract.methods.aggregate(calls).call()
+  async function fetchRewards(ids: T[]): Promise<FetchRewardsResult> {
+    const calls = await prepareCalls(ids)
+    const dex = dexStore.anyDex.dex()
+    const aggrResult = await dex.earn.multicallAggregate(calls)
 
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        const rewards = {} as Rewards<T>
-        aggrResult.returnData.forEach((hex, idx) => {
-          rewards[ids[idx]] = asWei(kaikas.cfg.caver.klay.abi.decodeParameter('uint256', hex))
-        })
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    const rewards = {} as Rewards<T>
+    aggrResult.returnData.forEach((hex, idx) => {
+      const [decoded] = defaultAbiCoder.decode(['uint256'], hex)
+      rewards[ids[idx]] = new Wei(decoded)
+    })
 
-        return {
-          rewards,
-          blockNumber: Number(aggrResult.blockNumber),
-        }
-      })
+    return {
+      rewards,
+      blockNumber: Number(aggrResult.blockNumber),
+    }
+  }
 
-      function run() {
-        if (task.state.kind !== 'pending') task.run()
-      }
-      const runDebounced = useDebounceFn(run, REFETCH_REWARDS_INTERVAL)
+  interface FetchRewardsResult {
+    rewards: Rewards<T>
+    blockNumber: number
+  }
 
-      useTaskLog(task, 'fetch-rewards-generic')
-      watch(poolIds, run)
-      whenever(
-        () => task.state.kind === 'ok' || task.state.kind === 'err',
-        () => runDebounced(),
-      )
-      wheneverTaskSucceeds(task, (result) => updateBlockNumber(result.blockNumber))
+  const { state, set } = usePromise<FetchRewardsResult>() // use promise state
 
-      run()
+  function run() {
+    const ids = poolIds.value
+    invariant(ids)
+    if (!state.pending) {
+      set(fetchRewards(ids)) // set promise
+    }
+  }
+  const runDebounced = useDebounceFn(run, REFETCH_REWARDS_INTERVAL)
 
-      return useStaleIfErrorState(task)
-    },
-  )
-
-  const rewards = computed(() => {
-    return maybeStaleState.value?.setup.result?.some?.rewards ?? null
+  watch(poolIds, (val) => val && run(), { immediate: true })
+  wheneverDone(state, (result) => {
+    runDebounced()
+    if (result.fulfilled) {
+      updateBlockNumber(result.fulfilled.value.blockNumber)
+    }
   })
+  usePromiseLog(state, 'fetch-rewards-generic')
+
+  const fulfilled = toRef(useStaleState(state), 'fulfilled') // getting stale rewards data
+
+  const rewards = computed(() => fulfilled.value?.value?.rewards ?? null)
   const areRewardsFetched = computed(() => !!rewards.value)
 
   return { rewards, areRewardsFetched }

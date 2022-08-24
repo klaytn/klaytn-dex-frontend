@@ -1,24 +1,22 @@
-import { Address, Kaikas, ValueWei } from '@/core/kaikas'
+import { Address, DexPure, Wei } from '@/core'
 import { TokensPair, TokenType } from '@/utils/pair'
-import { useScope, useTask } from '@vue-kakuyaku/core'
-import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 import Debug from 'debug'
 
-const debug = Debug('swap-get-amount')
+const debug = Debug('swap-amounts')
 
 export interface GetAmountProps extends TokensPair<Address> {
   amountFor: TokenType
-  referenceValue: ValueWei<string>
+  referenceValue: Wei
 }
 
-async function getAmount(props: GetAmountProps & { kaikas: Kaikas }): Promise<ValueWei<string>> {
+async function getAmount(props: GetAmountProps & { dex: DexPure }): Promise<Wei> {
   const addrsPair = { addressA: props.tokenA, addressB: props.tokenB }
 
   const refValue = props.referenceValue
 
   if (props.amountFor === 'tokenB') {
-    const [, amountOut] = await props.kaikas.swap.getAmounts({
+    const [, amountOut] = await props.dex.swap.getAmounts({
       mode: 'out',
       amountIn: refValue,
       ...addrsPair,
@@ -26,7 +24,7 @@ async function getAmount(props: GetAmountProps & { kaikas: Kaikas }): Promise<Va
 
     return amountOut
   } else {
-    const [amountIn] = await props.kaikas.swap.getAmounts({
+    const [amountIn] = await props.dex.swap.getAmounts({
       mode: 'in',
       amountOut: refValue,
       ...addrsPair,
@@ -37,64 +35,53 @@ async function getAmount(props: GetAmountProps & { kaikas: Kaikas }): Promise<Va
 }
 
 export function useGetAmount(props: Ref<null | GetAmountProps>) {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
+  const { notify } = useNotify()
 
-  const computedKey = computed<string | null>(() => {
-    const val = props.value
-    if (!val) return null
-    return `${val.tokenA}-${val.tokenB}-for-${val.amountFor}-${val.referenceValue}`
-  })
-  const taskKey = ref<null | string>(computedKey.value)
-  function updateKey() {
-    taskKey.value = computedKey.value
-  }
-  const updateKeyDebounced = useDebounceFn(updateKey, 500)
-  function update(immediate = false) {
-    debug('update', { immediate })
-    immediate ? updateKey() : updateKeyDebounced()
-  }
-  watch(computedKey, (key) => {
-    debug('computed key updated:', key)
-    taskKey.value = null
-    update()
-  })
+  const scope = useParamScope(
+    computed(() => {
+      const anyDex = dexStore.anyDex
 
-  const taskScope = useScope(taskKey, () => {
-    const kaikas = kaikasStore.getKaikasAnyway()
-    const propsVal = props.value
-    invariant(propsVal)
-    debug('task scope setup. props:', propsVal)
+      const propsValue = props.value
+      return (
+        propsValue && {
+          key: `dex-${anyDex.key}-${propsValue.tokenA}-${propsValue.tokenB}-for-${propsValue.amountFor}-${propsValue.referenceValue}`,
+          payload: { props: propsValue, dex: anyDex.dex() },
+        }
+      )
+    }),
+    ({ props, dex }) => {
+      debug('setting amounts: %o', props)
 
-    const task = useTask(async () => {
-      const amount = await getAmount({
-        kaikas,
-        ...propsVal,
-      })
+      const { set, state } = usePromise<Wei>()
+      usePromiseLog(state, 'swap-get-amount')
+      useNotifyOnError(state, notify, 'Failed to compute amount')
 
-      return { amount }
-    })
+      function run() {
+        set(getAmount({ ...props, dex }))
+      }
 
-    task.run()
-    useTaskLog(task, `get-amounts`)
+      run()
 
-    return { task, props: propsVal }
+      return state
+    },
+  )
+
+  const gettingFor = computed<null | TokenType>(() => {
+    const x = scope.value
+    return x?.expose.pending ? x.payload.props.amountFor : null
   })
 
-  const gettingAmountFor = computed<null | TokenType>(() => {
-    if (taskScope.value?.setup.task.state.kind === 'pending') return taskScope.value.setup.props.amountFor
-    return null
-  })
+  const gotFor = computed(() => {
+    const x = scope.value
 
-  const gotAmountFor = computed<null | { type: TokenType; amount: ValueWei<string> }>(() => {
-    const setup = taskScope.value?.setup
-
-    return setup?.task.state.kind === 'ok'
+    return x?.expose.fulfilled
       ? {
-          amount: setup.task.state.data.amount,
-          type: setup.props.amountFor,
+          amount: x.expose.fulfilled.value,
+          props: x.payload.props,
         }
       : null
   })
 
-  return { gotAmountFor, gettingAmountFor, trigger: update }
+  return { gotAmountFor: gotFor, gettingAmountFor: gettingFor }
 }
