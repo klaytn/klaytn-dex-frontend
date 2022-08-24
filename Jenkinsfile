@@ -2,12 +2,13 @@
 
 def pipeline = new org.js.AppPipeline(
     steps: this,
-    test: false,
-    buildDockerImage: 'build-tools/node:14-alpine',
+    buildDockerImage: 'build-tools/node:16-pnpm7',
     dockerImageName: 'klaytn/klaytn-frontend',
     dockerRegistryCred: 'bot-klaytn-rw',
-    packageManager: 'npm',
-    buildCmds: ['npm run build'],
+    npmRegistries: [:],
+    packageManager: 'pnpm',
+    testCmds: ['pnpm format:check','pnpm lint','pnpm typecheck','pnpm test'],
+    buildCmds: ['pnpm build'],
     sonarProjectName: 'klaytn-frontend',
     sonarProjectKey: 'jp.co.soramitsu:klaytn-frontend',
     gitUpdateSubmodule: true)
