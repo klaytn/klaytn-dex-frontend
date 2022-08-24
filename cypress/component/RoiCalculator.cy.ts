@@ -61,7 +61,7 @@ after(() => {
 })
 
 describe('RoiCalculator', () => {
-  it.only('playground', () => {
+  it('playground', () => {
     mountFactory()
   })
 
