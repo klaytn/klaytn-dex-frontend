@@ -1,14 +1,25 @@
+<script lang="ts">
+export default {
+  inheritAttrs: false,
+}
+</script>
+
 <script setup lang="ts">
-const props = defineProps<{
-  modelValue?: string | number
-  noInputFilter?: boolean
-  inputDisabled?: boolean
-  inputLoading?: boolean
-  inputReadonly?: boolean
-  maxButton?: boolean
-  bottom?: boolean
-  right?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string | number
+    noInputFilter?: boolean
+    inputDisabled?: boolean
+    inputLoading?: boolean
+    inputReadonly?: boolean
+    maxButton?: boolean
+    bottom?: boolean
+    right?: boolean
+    containerClass?: any
+    size?: 'md' | 'lg'
+  }>(),
+  { size: 'md' },
+)
 
 const emit = defineEmits(['update:modelValue', 'click:max'])
 
@@ -27,8 +38,12 @@ defineExpose({ inputElem })
 </script>
 
 <template>
-  <div class="root space-y-3">
-    <div class="space-top flex items-center space-x-2">
+  <div
+    class="input-template px-4"
+    :class="[containerClass, { 'has-right-column': right }]"
+    :data-size="size"
+  >
+    <div class="space-top flex items-center space-x-2 place-self-stretch">
       <div class="flex-1">
         <input
           ref="input"
@@ -61,7 +76,7 @@ defineExpose({ inputElem })
 
     <div
       v-if="bottom"
-      class="space-bottom flex items-center"
+      class="space-bottom flex items-center w-full"
     >
       <slot name="bottom-left" />
 
@@ -82,12 +97,30 @@ defineExpose({ inputElem })
 <style scoped lang="scss">
 @import '@/styles/vars';
 
-.root {
+.input-template {
   background: $gray6;
-  padding: 16px 16px;
   border-radius: 8px;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr;
+  align-content: center;
+  column-gap: 16px;
+
+  &[data-size='md'] {
+    height: 72px;
+  }
+
+  &[data-size='lg'] {
+    height: 88px; // "Hug" in Figma
+    padding-top: 4px;
+
+    .space-bottom {
+      margin-top: 8px;
+    }
+  }
+
+  &.has-right-column {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
 }
 
 .space-top {
@@ -102,14 +135,14 @@ defineExpose({ inputElem })
 
 .space-right {
   grid-column: 2;
-  grid-row: 1 / 2;
+  grid-row: 1 / 3;
 }
 
 input {
   font-style: normal;
   font-weight: 600;
   font-size: 30px;
-  line-height: 130%;
+  line-height: 1.3rem;
   color: $dark2;
   background: transparent;
   border: none;

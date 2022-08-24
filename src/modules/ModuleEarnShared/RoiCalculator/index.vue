@@ -216,28 +216,36 @@ const detailsList = computed(() => {
           <hr class="klay-divider my-4">
           <span v-bem="'label'"> Amount staked </span>
 
-          <InputCurrencyTemplate
-            ref="input"
-            right
-            bottom
-            no-input-filter
-            :model-value="maskedInput"
-            data-testid="staked-input"
-            @update:model-value="(value: string) => updateMasked(value, true)"
-          >
-            <template #right>
-              <KlayIconSwitch
-                v-bem="'input-switch'"
-                @click="switchUnits"
-              />
-            </template>
+          <div>
+            <InputCurrencyTemplate
+              ref="input"
+              right
+              bottom
+              no-input-filter
+              :model-value="maskedInput"
+              data-testid="staked-input"
+              @update:model-value="(value: string) => updateMasked(value, true)"
+            >
+              <template #right>
+                <div class="flex items-center h-full">
+                  <KlayIconSwitch
+                    v-bem="'input-switch'"
+                    @click="switchUnits"
+                  />
+                </div>
+              </template>
 
-            <template #bottom-left>
-              <span v-bem="'input-another-units'">
-                {{ formattedStakeValueInAnotherUnits }}
-              </span>
-            </template>
-          </InputCurrencyTemplate>
+              <template #bottom-left>
+                <span
+                  v-bem="'input-another-units'"
+                  class="truncate"
+                  :title="formattedStakeValueInAnotherUnits"
+                >
+                  {{ formattedStakeValueInAnotherUnits }}
+                </span>
+              </template>
+            </InputCurrencyTemplate>
+          </div>
 
           <div v-bem="'amounts'">
             <KlayButton
@@ -259,17 +267,19 @@ const detailsList = computed(() => {
           </div>
           <span v-bem="'label'"> You will receive (APY = {{ apy.toFixed(2) }}%) </span>
 
-          <InputCurrencyTemplate
-            data-testid="receive-value"
-            input-readonly
-            :model-value="formattedReceiveValue"
-          >
-            <template #bottom-right>
-              <span v-bem="'input-another-units'">
-                {{ formattedReceiveValueInAnotherUnits }}
-              </span>
-            </template>
-          </InputCurrencyTemplate>
+          <div>
+            <InputCurrencyTemplate
+              data-testid="receive-value"
+              input-readonly
+              :model-value="formattedReceiveValue"
+            >
+              <template #bottom-right>
+                <span v-bem="'input-another-units'">
+                  {{ formattedReceiveValueInAnotherUnits }}
+                </span>
+              </template>
+            </InputCurrencyTemplate>
+          </div>
 
           <KlayCollapse v-bem="'details'">
             <template #head>
@@ -335,8 +345,6 @@ const detailsList = computed(() => {
     &-switch
       cursor: pointer
     &-another-units
-      overflow: hidden
-      white-space: nowrap
       font-size: 12px
       font-weight: 400
       color: $gray2

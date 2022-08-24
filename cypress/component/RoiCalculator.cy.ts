@@ -15,7 +15,7 @@ function mountFactory() {
           apr: new BigNumber('9.851711488040969147'),
           lpApr: new BigNumber(0),
           type: 'farming',
-          staked: new BigNumber(10),
+          staked: new BigNumber('10'),
           balance: new BigNumber('1754.807954103219468827'),
           stakeTokenPrice: new BigNumber(200),
           stakeTokenDecimals: 18,
@@ -61,7 +61,7 @@ after(() => {
 })
 
 describe('RoiCalculator', () => {
-  it('playground', () => {
+  it.only('playground', () => {
     mountFactory()
   })
 

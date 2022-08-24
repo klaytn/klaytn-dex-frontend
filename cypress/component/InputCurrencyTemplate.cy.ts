@@ -9,7 +9,7 @@ after(() => {
   VueTestUtils.config.global.components = {}
 })
 
-describe('InputTokenTemplate', () => {
+describe('InputCurrencyTemplate', () => {
   it('Typing 50.5', () => {
     cy.mount({
       setup() {
@@ -68,6 +68,10 @@ describe('InputTokenTemplate', () => {
     })
 
     cy.contains('Chu!')
+  })
+
+  it('whem "right" is not enabled, grid have the only one column', () => {
+    cy.mount({ template: `<InputCurrencyTemplate />` }).should('have.css', 'grid-template-columns', '1fr')
   })
 
   it('input numeric filtering is disabled when prop is set', () => {

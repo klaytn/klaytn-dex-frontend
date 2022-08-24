@@ -34,7 +34,7 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(swapStore.addr
         v-for="(type, i) in TOKEN_TYPES"
         :key="type"
       >
-        <InputCurrency
+        <InputToken
           v-model="models[type].input"
           v-model:token="models[type].addr"
           set-by-balance

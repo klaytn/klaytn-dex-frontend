@@ -85,6 +85,7 @@ function setToMax() {
     :input-disabled="isDisabled"
     :input-loading="isLoading"
     bottom
+    size="lg"
     :max-button="showMaxButton"
     @click:max="setToMax()"
   >

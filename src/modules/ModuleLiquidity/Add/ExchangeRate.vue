@@ -32,7 +32,7 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(addrs.value)))
         v-for="(type, i) in TOKEN_TYPES"
         :key="type"
       >
-        <InputCurrency
+        <InputToken
           v-model="models[type].input"
           v-model:token="models[type].addr"
           :is-loading="isQuotePendingFor === type"
