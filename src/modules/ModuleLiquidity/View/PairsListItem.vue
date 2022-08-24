@@ -45,6 +45,18 @@ function goToRemoveLiquidity() {
   rmLiquidityStore.setTokens(pairAddrs.value)
   router.push({ name: RouteName.LiquidityRemove })
 }
+
+const farmingStore = useFarmingStore()
+
+function goToFarms() {
+  farmingStore.setOpenPoolsFor({
+    tokenA: pair.token0.id,
+    tokenB: pair.token1.id,
+  })
+  router.push({
+    name: RouteName.Farms,
+  })
+}
 </script>
 
 <template>
