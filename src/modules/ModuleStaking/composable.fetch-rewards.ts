@@ -1,30 +1,12 @@
-import { Except } from 'type-fest'
-import { GenericFetchRewardsProps, useFetchRewards } from '../ModuleEarnShared/composable.fetch-rewards'
-import { AbiLoader, Address } from '@/core'
-import { Interface, JsonFragment } from '@ethersproject/abi'
+import type { Except } from 'type-fest'
+import { type GenericFetchRewardsProps, useFetchRewards } from '../ModuleEarnShared/composable.fetch-rewards'
+import type { Address } from '@/core'
 
-async function getEncoder(abi: AbiLoader): Promise<(address: Address) => string> {
-  const fragments = abi.get('staking') || (await abi.load('staking'))
-  const iface = new Interface(fragments as JsonFragment[])
-  return (addr) =>
-    // FIXME please describe why we use `pendingReward` here
-    iface.encodeFunctionData('pendingReward', [addr])
-}
-
-export function useFetchStakingRewards(props: Except<GenericFetchRewardsProps<Address>, 'prepareCalls'>) {
+export function useFetchStakingRewards(props: Except<GenericFetchRewardsProps<Address>, 'fetchFn'>) {
   const dexStore = useDexStore()
-  const encoderPromise = getEncoder(dexStore.abi())
 
   return useFetchRewards({
     ...props,
-    prepareCalls: async (ids) => {
-      const encode = await encoderPromise
-      const dex = dexStore.getNamedDexAnyway()
-
-      return ids.map((poolId) => ({
-        target: poolId,
-        callData: encode(dex.agent.address),
-      }))
-    },
+    fetchFn: (pools) => dexStore.getNamedDexAnyway().earn.staking.getRewards(pools),
   })
 }

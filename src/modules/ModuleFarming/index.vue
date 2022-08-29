@@ -96,7 +96,7 @@ const pools = computed<Pool[] | null>(() => {
     const id = pool.id
     const pair = pairs.value.find((pair) => pair.id === pool.pair) ?? null
 
-    const reward = rewards.value[pool.id]
+    const reward = rewards.value.get(pool.id)
     const earned = reward ? (new BigNumber(farmingFromWei(reward)) as WeiAsToken<BigNumber>) : null
 
     if (pair === null || earned === null) return

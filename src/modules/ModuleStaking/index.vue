@@ -88,7 +88,7 @@ const pools = computed<Pool[] | null>(() => {
 
     const id = pool.id
 
-    const reward = rewards.value[pool.id]
+    const reward = rewards.value.get(pool.id)
     const earned = reward ? (new BigNumber(reward.toToken(pool.rewardToken)) as WeiAsToken<BigNumber>) : null
 
     if (earned === null) return

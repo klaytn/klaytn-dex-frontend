@@ -1,57 +1,31 @@
-import { Address, Wei, defaultAbiCoder } from '@/core'
+import { type Address } from '@/core'
 import invariant from 'tiny-invariant'
-import { Ref } from 'vue'
+import { type Ref } from 'vue'
 import { REFETCH_REWARDS_INTERVAL } from './const'
-import { PoolId, Rewards } from './types'
-import { CallStruct } from '@/core/domain/earn'
-import { PromiseOrValue } from '@/core/typechain-ethers/common'
+import type { PoolId, Rewards } from './types'
+import type { RewardsWithBlockNumber } from '@/core/domain/earn'
 
-export interface GenericFetchRewardsProps<T extends PoolId | Address> {
-  poolIds: Ref<T[] | null>
+export interface GenericFetchRewardsProps<K extends PoolId | Address> {
+  poolIds: Ref<K[] | null>
+  fetchFn: (pools: K[]) => Promise<RewardsWithBlockNumber<K>>
   updateBlockNumber: (value: number) => void
-  prepareCalls: (ids: T[]) => PromiseOrValue<CallStruct[]>
 }
 
-export function useFetchRewards<T extends PoolId | Address>({
+export function useFetchRewards<K extends PoolId | Address>({
   poolIds,
   updateBlockNumber,
-  prepareCalls,
-}: GenericFetchRewardsProps<T>): {
-  rewards: Ref<null | Rewards<T>>
+  fetchFn,
+}: GenericFetchRewardsProps<K>): {
+  rewards: Ref<null | Rewards<K>>
   areRewardsFetched: Ref<boolean>
 } {
-  const dexStore = useDexStore()
-
-  async function fetchRewards(ids: T[]): Promise<FetchRewardsResult> {
-    const calls = await prepareCalls(ids)
-    const dex = dexStore.anyDex.dex()
-    const aggrResult = await dex.earn.multicallAggregate(calls)
-
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const rewards = {} as Rewards<T>
-    aggrResult.returnData.forEach((hex, idx) => {
-      const [decoded] = defaultAbiCoder.decode(['uint256'], hex)
-      rewards[ids[idx]] = new Wei(decoded)
-    })
-
-    return {
-      rewards,
-      blockNumber: Number(aggrResult.blockNumber),
-    }
-  }
-
-  interface FetchRewardsResult {
-    rewards: Rewards<T>
-    blockNumber: number
-  }
-
-  const { state, set } = usePromise<FetchRewardsResult>() // use promise state
+  const { state, set } = usePromise<RewardsWithBlockNumber<K>>() // use promise state
 
   function run() {
     const ids = poolIds.value
     invariant(ids)
     if (!state.pending) {
-      set(fetchRewards(ids)) // set promise
+      set(fetchFn(ids)) // set promise
     }
   }
   const runDebounced = useDebounceFn(run, REFETCH_REWARDS_INTERVAL)
