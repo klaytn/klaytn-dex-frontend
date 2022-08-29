@@ -1,8 +1,9 @@
 import invariant from 'tiny-invariant'
 import BigNumber from 'bignumber.js'
 import { BigNumberIsh } from '../types'
-import { ONE } from '../const'
 import { parseBigNumberIsh } from '../utils'
+
+export const ONE = 1
 
 export default class Fraction {
   public readonly numerator: BigNumber

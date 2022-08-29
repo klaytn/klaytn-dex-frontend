@@ -1,6 +1,8 @@
 import BigNumber from 'bignumber.js'
 import Fraction from './Fraction'
-import { ONE_HUNDRED_PERCENT } from '../const'
+
+export const ONE_HUNDRED = 100
+export const ONE_HUNDRED_PERCENT = new Fraction(ONE_HUNDRED)
 
 export default class Percent extends Fraction {
   public toFixed(decimals = 2, rounding: BigNumber.RoundingMode = BigNumber.ROUND_HALF_UP): string {

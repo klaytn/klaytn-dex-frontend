@@ -52,7 +52,6 @@ specifiers:
   markdown-it-link-attributes: ^4.0.0
   markdown-it-prism: ^2.2.4
   marked: ^4.0.18
-  node-dijkstra: ^2.5.0
   npm-run-all: ^4.1.5
   nprogress: ^0.2.0
   pinia: ^2.0.14
@@ -110,7 +109,6 @@ dependencies:
   graphql: 16.5.0
   graphql-tag: 2.12.6_graphql@16.5.0
   lodash: 4.17.21
-  node-dijkstra: 2.5.0
   nprogress: 0.2.0
   pinia: 2.0.14_vcmyupim4cga7k7f5hngmth5py
   prism-theme-vars: 0.2.3
@@ -7782,10 +7780,6 @@ packages:
 
   /node-addon-api/2.0.2:
     resolution: {integrity: sha512-Ntyt4AIXyaLIuMHF6IOoTakB3K+RWxwtsHNRxllEoA6vPwP9o4866g6YWDLUdnucilZhmkxiHwHr11gAENw+QA==}
-    dev: false
-
-  /node-dijkstra/2.5.0:
-    resolution: {integrity: sha512-2REYb1lo8yDRAY1gsdhjwQdGVSh47VI5Z5wS8sCqydO/P1OVAKOwLuV1fDxNLvbrtMspW7k2UZ2JKIKP06hl+A==}
     dev: false
 
   /node-fetch-native/0.1.4:

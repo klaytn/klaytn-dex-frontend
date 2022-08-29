@@ -70,7 +70,6 @@ export default class Swap {
 
   public async getAmounts(props: GetAmountsProps): Promise<[Wei, Wei]> {
     const path = props.route.path.map((token) => token.address)
-    console.log(path)
     const amounts = await (props.mode === 'in'
       ? this.routerMethods.getAmountsIn(props.amountOut.asStr, path)
       : this.routerMethods.getAmountsOut(props.amountIn.asStr, path)

@@ -6,14 +6,15 @@ import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
 import { useGetAmount, GetAmountProps } from '../composable.get-amount'
-import { usePairAddress, usePairBalance, useSimplifiedResult } from '../../ModuleTradeShared/composable.pair-by-tokens'
+import { useSwapRoute } from '../composable.swap-route'
+import { usePairAddress } from '../../ModuleTradeShared/composable.pair-by-tokens'
 import { useSwapValidation } from '../composable.validation'
 import { buildSwapProps, TokenAddrAndWeiInput } from '../util.swap-props'
 import { useExchangeRateInput, useInertExchangeRateInput } from '../../ModuleTradeShared/composable.exchange-rate-input'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
-import { usePriceImpact } from '@/modules/ModuleTradeShared/composable.price-impact'
-import { useTokenAmounts } from '@/modules/ModuleTradeShared/composable.token-amounts'
+import { usePriceImpact } from '@/modules/ModuleSwap/composable.price-impact'
+import { useTokenAmounts } from '@/modules/ModuleSwap/composable.token-amount'
 import { RouteName } from '@/types'
 import { usePairsQuery } from '../query.pairs'
 import { LP_TOKEN_DECIMALS } from '@/core/kaikas/const'
@@ -137,23 +138,23 @@ export const useSwapStore = defineStore('swap', () => {
 
   const inputToken = computed(() => (tokens.tokenA ? new Token(tokens.tokenA) : null))
   const outputToken = computed(() => (tokens.tokenB ? new Token(tokens.tokenB) : null))
-  const route = computed(() => {
-    if (!pairs.value || !inputToken.value || !outputToken.value) return null
-    return Route.shortestRoute(pairs.value, inputToken.value, outputToken.value)
+
+  const amountFor = computed(() => selectionInput.exchangeRateFor.value)
+
+  const swapRoute = useSwapRoute({
+    pairs,
+    inputToken,
+    outputToken,
+    amountInWei: computed(() => selection.inputNormalized.value?.wei ?? null),
+    amountFor,
   })
+  const route = computed(() => (swapRoute.value?.kind === 'exist' ? swapRoute.value.route : null))
 
   const { pair: pairAddrResult } = usePairAddress(addrsReadonly)
-  const { result: pairBalance } = usePairBalance(
-    addrsReadonly,
-    computed(() => pairAddrResult.value?.kind === 'exist'),
-  )
-  const poolShare = computed(() => pairBalance.value?.poolShare ?? null)
-  const formattedPoolShare = useFormattedPercent(poolShare, 7)
 
   const { gotAmountFor, gettingAmountFor } = useGetAmount(
     computed<GetAmountProps | null>(() => {
-      const amountFor = selectionInput.exchangeRateFor.value
-      if (!amountFor) return null
+      if (!amountFor.value) return null
 
       const referenceValue = selection.inputNormalized.value?.wei
       if (!referenceValue || referenceValue.asBigInt <= 0) return null
@@ -164,7 +165,7 @@ export const useSwapStore = defineStore('swap', () => {
 
       return {
         route: route.value,
-        amountFor,
+        amountFor: amountFor.value,
         referenceValue: referenceValue,
       }
     }),
@@ -237,7 +238,7 @@ export const useSwapStore = defineStore('swap', () => {
       return balance && token && input ? { ...token, balance, input } : null
     }),
     tokenB: computed(() => selection.tokens.tokenB),
-    pairAddr: useSimplifiedResult(pairAddrResult),
+    route: swapRoute,
   })
 
   const isValid = computed(() => swapValidation.value.kind === 'ok')
@@ -266,7 +267,6 @@ export const useSwapStore = defineStore('swap', () => {
     tokens,
     route,
     symbols,
-    formattedPoolShare,
     priceImpact,
 
     isValid,

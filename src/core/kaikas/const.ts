@@ -1,10 +1,6 @@
 import type { Token, Address } from './types'
 import { Wei, Fraction, Percent } from '@/core/kaikas/entities'
 
-export const ONE = 1
-export const ONE_HUNDRED = 100
-export const ONE_HUNDRED_PERCENT = new Fraction(ONE_HUNDRED)
-
 /**
  * Klay token address
  */
