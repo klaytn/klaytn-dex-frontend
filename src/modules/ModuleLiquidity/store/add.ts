@@ -73,9 +73,8 @@ function useQuoting(props: { pair: Ref<null | PairAddressResult>; input: Ref<nul
   return { pendingFor, exchangeRate, touch }
 }
 
-function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSupply: () => void }) {
+function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; whenSupplied: () => void }) {
   const dexStore = useDexStore()
-  const tokensStore = useTokensStore()
   const { notify } = useNotify()
 
   const [active, setActive] = useToggle(false)
@@ -123,8 +122,7 @@ function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSup
       useNotifyOnError(statePrepare, notify, 'Preparation failed')
       useNotifyOnError(stateSupply, notify, 'Liquidity addition failed')
       wheneverFulfilled(stateSupply, () => {
-        tokensStore.touchUserBalance()
-        props.onSupply()
+        props.whenSupplied()
         notify({ type: 'ok', description: 'Liquidity addition succeeded!' })
       })
 
@@ -231,16 +229,20 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     }),
   )
 
+  const tokensStore = useTokensStore()
+  const router = useRouter()
   const {
     prepare: prepareSupply,
     clear: clearSupply,
     scope: supplyScope,
   } = usePrepareSupply({
     tokens: weiNormalized,
-    onSupply() {
+    whenSupplied() {
       touchPairBalance()
       touchPairReserves()
       touchQuote()
+      tokensStore.touchUserBalance()
+      router.push({ name: RouteName.Liquidity })
     },
   })
   const isValid = computed(() => !!rates.value)
