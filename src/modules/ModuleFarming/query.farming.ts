@@ -1,4 +1,5 @@
 import { Address, ADDRESS_FARMING, WeiRaw } from '@/core'
+import { ApolloClientId } from '@/types'
 import { useQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
@@ -54,7 +55,7 @@ export function useFarmingQuery(userId: MaybeRef<Address | null>) {
       userId: unref(userId),
     }),
     () => ({
-      clientId: 'farming',
+      clientId: ApolloClientId.Farming,
       enabled: !!unref(userId),
       pollInterval: REFETCH_FARMING_INTERVAL,
     }),
