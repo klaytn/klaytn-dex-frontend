@@ -22,11 +22,11 @@ export default class TokenAmount extends CurrencyAmount {
 
   public plus(other: TokenAmount): TokenAmount {
     invariant(this.token.equals(other.token), 'TOKEN')
-    return new TokenAmount(this.token, this.raw.plus(other.raw), true)
+    return new TokenAmount(this.token, this.raw + other.raw, true)
   }
 
   public minus(other: TokenAmount): TokenAmount {
     invariant(this.token.equals(other.token), 'TOKEN')
-    return new TokenAmount(this.token, this.raw.minus(other.raw), true)
+    return new TokenAmount(this.token, this.raw - other.raw, true)
   }
 }

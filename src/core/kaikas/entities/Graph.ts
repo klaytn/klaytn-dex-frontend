@@ -1,7 +1,5 @@
 import { Opaque } from 'type-fest'
 import invariant from 'tiny-invariant'
-
-import Fraction from './Fraction'
 import BigNumber from 'bignumber.js'
 
 const INFINITY = new BigNumber(Infinity) as Weight

@@ -16,18 +16,18 @@ export default class CurrencyAmount extends Fraction {
     this.currency = currency
   }
 
-  public get raw(): BigNumber {
+  public get raw(): bigint {
     return this.numerator
   }
 
   public plus(other: CurrencyAmount): CurrencyAmount {
     invariant(this.currency.isEqualTo(other.currency), 'TOKEN')
-    return new CurrencyAmount(this.currency, this.raw.plus(other.raw))
+    return new CurrencyAmount(this.currency, this.raw + other.raw)
   }
 
   public minus(other: CurrencyAmount): CurrencyAmount {
     invariant(this.currency.isEqualTo(other.currency), 'TOKEN')
-    return new CurrencyAmount(this.currency, this.raw.minus(other.raw))
+    return new CurrencyAmount(this.currency, this.raw + other.raw)
   }
 
   public toFixed(decimals = 18, rounding?: BigNumber.RoundingMode): string {

@@ -4,6 +4,7 @@ import { MAGIC_GAS_PRICE, NATIVE_TOKEN } from './const'
 import Wei from './entities/Wei'
 import { shortenStringInTheMiddle } from '@/utils/common'
 import BigNumber from 'bignumber.js'
+import invariant from 'tiny-invariant'
 
 export function formatAddress(address: Address): string {
   return shortenStringInTheMiddle(address)
@@ -74,5 +75,14 @@ if (import.meta.vitest) {
 }
 
 export function parseBigNumberIsh(value: BigNumberIsh): BigNumber {
-  return value instanceof BigNumber ? value : new BigNumber(value)
+  if (typeof value === 'bigint') return new BigNumber(value.toString())
+  if (value instanceof BigNumber) return value
+  return new BigNumber(value)
+}
+
+export function parseBigIntIsh(value: BigNumberIsh): bigint {
+  if (typeof value === 'bigint') return value
+  const bigNumberValue = parseBigNumberIsh(value)
+  invariant(bigNumberValue.isInteger, 'value in not an integer')
+  return BigInt(bigNumberValue.toFixed(0))
 }

@@ -53,4 +53,4 @@ export type TokenSymbol = Opaque<string, 'TokenSymbol'>
  */
 export type Deadline = Opaque<number, 'Deadline'>
 
-export type BigNumberIsh = BigNumber | number | string
+export type BigNumberIsh = BigNumber | number | string | bigint
