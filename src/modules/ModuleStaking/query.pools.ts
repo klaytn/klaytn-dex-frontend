@@ -1,4 +1,5 @@
 import { Address, Token, WeiRaw } from '@/core'
+import { ApolloClientId } from '@/types'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { Except } from 'type-fest'
@@ -54,7 +55,7 @@ export function usePoolsQuery(userId: Ref<Address | null>) {
       userId: userId.value,
     }),
     {
-      clientId: 'staking',
+      clientId: ApolloClientId.Staking,
       pollInterval: REFETCH_POOLS_INTERVAL,
     },
   )

@@ -1,4 +1,5 @@
 import { Address } from '@/core'
+import { ApolloClientId } from '@/types'
 import { useQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
@@ -31,6 +32,6 @@ export function useLiquidityPositionsQuery(userId: MaybeRef<Address | null>) {
     () => ({
       userId: unref(userId),
     }),
-    () => ({ clientId: 'exchange', enabled: !!unref(userId) }),
+    () => ({ clientId: ApolloClientId.Exchange, enabled: !!unref(userId) }),
   )
 }
