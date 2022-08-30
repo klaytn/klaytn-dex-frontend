@@ -1,4 +1,5 @@
 import { Address, ADDRESS_REWARD_TOKEN } from '@/core'
+import { ApolloClientId } from '@/types'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
@@ -39,7 +40,7 @@ export function usePairsAndRewardTokenQuery(pairIds: MaybeRef<Address[]>) {
     `,
     () => ({ pairIds: unref(pairIds) }),
     {
-      clientId: 'exchange',
+      clientId: ApolloClientId.Exchange,
       pollInterval: REFETCH_FARMING_INTERVAL,
     },
   )

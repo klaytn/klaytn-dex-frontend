@@ -1,4 +1,5 @@
 import { Address, TokenSymbol, WeiAsToken } from '@/core'
+import { ApolloClientId } from '@/types'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 
@@ -75,7 +76,7 @@ export function useLiquidityPairsQuery() {
     }),
     () => ({
       enabled: !!dexStore.account,
-      clientId: 'exchange',
+      clientId: ApolloClientId.Exchange,
     }),
   )
 }
