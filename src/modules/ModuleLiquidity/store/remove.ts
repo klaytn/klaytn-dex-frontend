@@ -131,7 +131,7 @@ function useRemoveAmounts(
       if (!tokens.value || activeDex.kind !== 'named') return null
       const pairAddr = pair.value
       const lpTokenValue = liquidity.value
-      if (!pairAddr || !lpTokenValue) return null
+      if (!pairAddr || !lpTokenValue || !lpTokenValue.asBigInt) return null
 
       const key = `dex-${activeDex.wallet}-${pairAddr}-${lpTokenValue.asStr}`
 
