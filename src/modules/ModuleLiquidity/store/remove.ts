@@ -233,6 +233,8 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
   /**
    * liquidity value relative to pair balance of user
+   *
+   * **note**: works only when `pairUserBalance` is computed
    */
   const liquidityRelative = computed<number | null>({
     get: () => {
