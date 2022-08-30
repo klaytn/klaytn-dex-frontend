@@ -112,7 +112,7 @@ interface ConnectedProvider {
 
 export function useWeb3Provider(props: { network: AppNetwork }) {
   const { state: detectMetamaskState, run: detectMetamask } = useTask(
-    () => detectEthereumProvider({ mustBeMetaMask: true }) as Promise<null | ExtendedExternalProvider>,
+    () => detectEthereumProvider({ mustBeMetaMask: true, silent: true }) as Promise<null | ExtendedExternalProvider>,
     { immediate: true },
   )
   useErrorRetry(detectMetamaskState, detectMetamask, { count: Infinity, interval: 1_000 })
