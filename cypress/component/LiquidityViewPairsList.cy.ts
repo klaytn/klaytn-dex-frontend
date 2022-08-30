@@ -4,7 +4,7 @@ import { routerKey, routeLocationKey } from 'vue-router'
 import { install as installNotifications } from '@/plugins/notifications'
 import { LiquidityPairsPosition } from '@/modules/ModuleLiquidity/query.liquidity-pairs'
 import { deepClone } from '@/utils/common'
-import { WeiAsToken } from '@/core/kaikas'
+import { WeiAsToken } from '@/core'
 
 const TESTID_LIST_ITEM = '[data-testid=pair-list-item]'
 

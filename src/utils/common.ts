@@ -1,4 +1,4 @@
-import { Wei } from '@/core/kaikas'
+import { Wei } from '@/core'
 import { Tab } from '@/types'
 import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'

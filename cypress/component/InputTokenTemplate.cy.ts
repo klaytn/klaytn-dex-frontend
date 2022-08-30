@@ -1,4 +1,4 @@
-import InputTokenTemplate from '@/components/InputTokenTemplate.vue'
+import InputTokenTemplate from '@/components/common/InputTokenTemplate.vue'
 
 describe('InputTokenTemplate', () => {
   it('Typing 50.5', () => {

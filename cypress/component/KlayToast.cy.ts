@@ -1,4 +1,4 @@
-import KlayToast from '@/common/KlayToast.vue'
+import KlayToast from '@/components/common/KlayToast.vue'
 import { VueTestUtils } from 'cypress/vue'
 
 const testid = (id: string) => `[data-testid=${id}]`

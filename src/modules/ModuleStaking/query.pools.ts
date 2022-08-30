@@ -1,4 +1,4 @@
-import { Address, Token, WeiRaw } from '@/core/kaikas'
+import { Address, Token, WeiRaw } from '@/core'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { Except } from 'type-fest'

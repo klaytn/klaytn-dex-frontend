@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Wei } from '@/core/kaikas'
+import { Wei } from '@/core'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 

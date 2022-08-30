@@ -5,12 +5,9 @@ import Pages from 'vite-plugin-pages'
 import Layouts from 'vite-plugin-vue-layouts'
 import Components from 'unplugin-vue-components/vite'
 import AutoImport from 'unplugin-auto-import/vite'
-import Markdown from 'vite-plugin-md'
 import { VitePWA } from 'vite-plugin-pwa'
 import VueI18n from '@intlify/vite-plugin-vue-i18n'
 import Inspect from 'vite-plugin-inspect'
-import Prism from 'markdown-it-prism'
-import LinkAttributes from 'markdown-it-link-attributes'
 import SvgLoader from '@soramitsu-ui/vite-plugin-svg'
 import VueSetupExtend from 'vite-plugin-vue-setup-extend'
 import UnoCSS from 'unocss/vite'
@@ -18,8 +15,7 @@ import Icons from 'unplugin-icons/vite'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 import { RouteRecordRaw } from 'vue-router'
 import KlaytnIcons from './etc/vite-plugin-klaytn-icons'
-
-const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
+import AppAbi from './etc/vite-plugin-abi'
 
 export default defineConfig({
   resolve: {
@@ -54,6 +50,8 @@ export default defineConfig({
     }),
 
     KlaytnIcons(),
+
+    AppAbi(),
 
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({
@@ -118,31 +116,10 @@ export default defineConfig({
 
     // https://github.com/antfu/unplugin-vue-components
     Components({
-      dirs: ['src/common', 'src/components', 'src/modules'],
-      // allow auto load markdown components under `./src/components/`
-      extensions: ['vue', 'md'],
-      // allow auto import and register components used in markdown
-      include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
+      dirs: ['src/components/common', 'src/modules'],
+      include: [/\.vue$/, /\.vue\?vue/],
       dts: 'src/components.d.ts',
       directoryAsNamespace: true,
-    }),
-
-    // https://github.com/antfu/vite-plugin-md
-    // Don't need this? Try vitesse-lite: https://github.com/antfu/vitesse-lite
-    Markdown({
-      wrapperClasses: markdownWrapperClasses,
-      headEnabled: true,
-      markdownItSetup(md) {
-        // https://prismjs.com/
-        md.use(Prism)
-        md.use(LinkAttributes, {
-          matcher: (link: string) => /^https?:\/\//.test(link),
-          attrs: {
-            target: '_blank',
-            rel: 'noopener',
-          },
-        })
-      },
     }),
 
     // https://github.com/antfu/vite-plugin-pwa

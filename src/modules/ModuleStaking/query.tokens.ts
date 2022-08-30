@@ -1,4 +1,4 @@
-import { Address } from '@/core/kaikas'
+import { Address } from '@/core'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'

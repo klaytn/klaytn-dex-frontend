@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, Wei, WeiAsToken } from '@/core/kaikas'
+import { Address, Wei, WeiAsToken } from '@/core'
 import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
@@ -18,7 +18,7 @@ const debugModule = Debug('swap-store')
 type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { amountFor: TokenType }
 
 function useSwap(input: Ref<null | NormalizedWeiInput>) {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
   const tokensStore = useTokensStore()
   const { notify } = useNotify()
 
@@ -35,19 +35,25 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
   watch(swapKey, () => setActive(false))
 
   const scope = useParamScope(
-    computed(() => active.value && swapKey.value),
-    ({ tokenA, tokenB, amountFor }) => {
+    computed(
+      () =>
+        active.value &&
+        swapKey.value &&
+        dexStore.active.kind === 'named' && {
+          key: `${dexStore.active.wallet}-${swapKey.value.key}`,
+          payload: { props: swapKey.value.payload, dex: dexStore.active.dex() },
+        },
+    ),
+    ({ props: { tokenA, tokenB, amountFor }, dex }) => {
       const { state: prepareState, run: prepare } = useTask(
         async () => {
-          const kaikas = kaikasStore.getKaikasAnyway()
-
           // 1. Approve amount of the tokenA
-          await kaikas.cfg.approveAmount(tokenA.addr, tokenA.input)
+          await dex.agent.approveAmount(tokenA.addr, tokenA.input)
 
           // 2. Perform swap according to which token is "exact" and if
           // some of them is native
           const swapProps = buildSwapProps({ tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
-          const { send, fee } = await kaikas.swap.swap(swapProps)
+          const { send, fee } = await dex.swap.prepareSwap(swapProps)
 
           return { send, fee }
         },
@@ -55,6 +61,7 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
       )
 
       usePromiseLog(prepareState, 'prepare-swap')
+      useNotifyOnError(prepareState, notify, 'Swap preparation failed')
 
       const { state: swapState, run: swap } = useTask(async () => {
         invariant(prepareState.fulfilled)
