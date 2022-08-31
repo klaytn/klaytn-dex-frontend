@@ -1,4 +1,5 @@
-import { Address, DexPure, isEmptyAddress, Wei } from '@/core'
+import { Address, isEmptyAddress, Wei } from '@/core'
+import { ActiveDex, AnyDex } from '@/store/dex'
 import { TokensPair } from '@/utils/pair'
 import { MaybeRef } from '@vueuse/core'
 import { Except } from 'type-fest'
@@ -15,12 +16,29 @@ function nullableReactiveTokensToComposedKey(tokens: NullableReactiveTokens) {
   }
 }
 
-function dexAndTokensScopeParam(tokens: NullableReactiveTokens, anyDex: { key: string; dex: () => DexPure }) {
+function composeKeyWithAnyDex(tokens: NullableReactiveTokens, anyDex: AnyDex) {
   const actualTokens = nullableReactiveTokensToComposedKey(tokens)
   return (
     actualTokens && {
-      key: anyDex.key + actualTokens.key,
+      key: anyDex.key + ' ' + actualTokens.key,
       payload: { dex: anyDex.dex(), tokens: actualTokens.payload },
+    }
+  )
+}
+
+function composeKeyWithNamedDexAndExistingPair(
+  tokens: NullableReactiveTokens,
+  activeDex: ActiveDex,
+  pairExists: MaybeRef<boolean>,
+) {
+  const tokensKey = nullableReactiveTokensToComposedKey(tokens)
+
+  return (
+    unref(pairExists) &&
+    tokensKey &&
+    activeDex.kind === 'named' && {
+      key: `${activeDex.wallet}-${tokensKey.key}`,
+      payload: { dex: activeDex.dex(), tokens: tokensKey.payload },
     }
   )
 }
@@ -44,7 +62,7 @@ export function usePairAddress(tokens: NullableReactiveTokens): {
   const dexStore = useDexStore()
 
   const scope = useParamScope(
-    computed(() => dexAndTokensScopeParam(tokens, dexStore.anyDex)),
+    computed(() => composeKeyWithAnyDex(tokens, dexStore.anyDex)),
     ({ tokens, dex }) => {
       const { state, run } = useTask<Except<PairAddressResult, 'tokens'>>(
         async () => {
@@ -83,11 +101,11 @@ export function useSimplifiedResult(result: Ref<null | PairAddressResult>): Ref<
   return computed(() => result.value?.kind ?? null)
 }
 
-export function usePairReserves(tokens: NullableReactiveTokens) {
+export function usePairReserves(tokens: NullableReactiveTokens, pairExists: MaybeRef<boolean>) {
   const dexStore = useDexStore()
 
   const scope = useParamScope(
-    computed(() => dexAndTokensScopeParam(tokens, dexStore.anyDex)),
+    computed(() => composeKeyWithNamedDexAndExistingPair(tokens, dexStore.active, pairExists)),
     ({ tokens, dex }) => {
       const { state, run } = useTask(() => dex.tokens.getPairReserves(tokens), { immediate: true })
       usePromiseLog(state, 'pair-reserves')
@@ -119,19 +137,7 @@ export function usePairBalance(
   const dexStore = useDexStore()
 
   const scope = useParamScope(
-    computed(() => {
-      const { active } = dexStore
-      const tokensKey = nullableReactiveTokensToComposedKey(tokens)
-
-      return (
-        unref(pairExists) &&
-        tokensKey &&
-        active.kind === 'named' && {
-          key: `${active.wallet}-${tokensKey.key}`,
-          payload: { dex: active.dex(), tokens: tokensKey.payload },
-        }
-      )
-    }),
+    computed(() => composeKeyWithNamedDexAndExistingPair(tokens, dexStore.active, pairExists)),
     ({ tokens, dex }) => {
       const { state, run } = useTask(
         async () => {
