@@ -1,8 +1,8 @@
 import { Opaque } from 'type-fest'
 import invariant from 'tiny-invariant'
+import BigNumber from 'bignumber.js'
 
 import Fraction from './Fraction'
-import BigNumber from 'bignumber.js'
 
 const INFINITY = new Fraction(new BigNumber(10).pow(300)) as Weight
 const ONE = new Fraction(1) as Weight
@@ -106,12 +106,14 @@ export default class Graph<T extends keyof any = string | number> {
     const path: Node<T>[] = []
     let current: Node<T> | null = destination
 
-    while (current !== source && current !== null) {
+    while (current !== null) {
       path.unshift(current)
-      current = predecessors[current]
+
+      if (current === source) break
       if (new Set(path).size !== path.length) break
+
+      current = predecessors[current]
     }
-    path.unshift(source)
 
     return {
       path,

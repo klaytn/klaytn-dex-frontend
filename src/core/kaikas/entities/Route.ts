@@ -8,6 +8,7 @@ import Fraction from './Fraction'
 import TokenAmount from './TokenAmount'
 import Graph from './Graph'
 import { arrayEquals } from '@/utils/common'
+import { POOL_COMMISSION } from '../const'
 
 interface FromBestRateProps {
   pairs: Pair[]
@@ -20,15 +21,20 @@ export default class Route {
   public static fromBestRate({ pairs, inputToken, outputToken, amount }: FromBestRateProps): Route | null {
     const graph = new Graph<Address>()
     pairs.forEach((pair) => {
+      const commissionCoefficient = POOL_COMMISSION.plus(new Fraction(1))
+      const token0Price = pair.token0Price.raw.multipliedBy(commissionCoefficient)
+      const token1Price = pair.token1Price.raw.multipliedBy(commissionCoefficient)
       graph.addEdge({
         source: pair.token0.address,
         destination: pair.token1.address,
-        weight: new Fraction(pair.reserve1.raw, pair.reserve0.raw),
+        weight: token0Price.invert(),
+        // weight: new Fraction(pair.reserve1.raw, pair.reserve0.raw),
       })
       graph.addEdge({
         source: pair.token1.address,
         destination: pair.token0.address,
-        weight: new Fraction(pair.reserve0.raw, pair.reserve1.raw),
+        weight: token1Price.invert(),
+        // weight: new Fraction(pair.reserve0.raw, pair.reserve1.raw),
       })
     })
 

@@ -41,7 +41,7 @@ export function usePairAddress(tokens: NullableReactiveTokens): {
       const { state, run } = useTask<Except<PairAddressResult, 'tokens'>>(
         async () => {
           const addr = await kaikas.tokens.getPairAddress(actualTokens)
-          if (isEmptyAddress(addr)) return { kind: 'exist', addr }
+          if (isEmptyAddress(addr)) return { kind: 'empty', addr }
           return { kind: 'exist', addr }
         },
         { immediate: true },
