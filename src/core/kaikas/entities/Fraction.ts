@@ -52,12 +52,20 @@ export default class Fraction {
     return this.numerator * other.denominator < other.numerator * this.denominator
   }
 
+  public isLessOrEqualThan(other: Fraction): boolean {
+    return this.numerator * other.denominator <= other.numerator * this.denominator
+  }
+
   public isEqualTo(other: Fraction): boolean {
     return this.numerator * other.denominator === other.numerator * this.denominator
   }
 
   public isGreaterThan(other: Fraction): boolean {
     return this.numerator * other.denominator > other.numerator * this.denominator
+  }
+
+  public isGreaterOrEqualThan(other: Fraction): boolean {
+    return this.numerator * other.denominator >= other.numerator * this.denominator
   }
 
   public multipliedBy(other: Fraction): Fraction {

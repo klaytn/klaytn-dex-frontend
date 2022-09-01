@@ -17,13 +17,22 @@ interface FromBestRateProps {
   amount: TokenAmount
 }
 
+const ONE = new Fraction(1)
+
 export default class Route {
   public static fromBestRate({ pairs, inputToken, outputToken, amount }: FromBestRateProps): Route | null {
     const graph = new Graph<Address>()
     pairs.forEach((pair) => {
-      const commissionCoefficient = new Fraction(1).minus(POOL_COMMISSION)
-      const token0Price = pair.token0Price.raw.multipliedBy(commissionCoefficient)
-      const token1Price = pair.token1Price.raw.multipliedBy(commissionCoefficient)
+      const commissionCoefficient = POOL_COMMISSION.plus(ONE)
+      let token0Price = pair.token0Price.raw
+      let token1Price = pair.token1Price.raw
+      if (token0Price.isGreaterOrEqualThan(ONE)) {
+        token0Price = token0Price.multipliedBy(commissionCoefficient)
+        token1Price = token1Price.dividedBy(commissionCoefficient)
+      } else {
+        token0Price = token0Price.dividedBy(commissionCoefficient)
+        token1Price = token1Price.multipliedBy(commissionCoefficient)
+      }
       graph.addEdge({
         source: pair.token0.address,
         destination: pair.token1.address,
