@@ -64,7 +64,7 @@ export default class Graph<T extends keyof any = string | number> {
     return this
   }
 
-  // Method to return the smallest product of edges using bellman for
+  // Method to return the smallest product of edges using Bellman-Ford algorithm
   public shortestPath(props: ShortestPathProps<T>): ShortestPathReturn<T> | null {
     const source = props.source as Node<T>
     const destination = props.destination as Node<T>
@@ -90,7 +90,7 @@ export default class Graph<T extends keyof any = string | number> {
 
     distances[source] = ONE
 
-    // Bellman ford algorithm
+    // Bellman-Ford algorithm
     for (let i = 0; i < this.nodes.size - 1; i++) {
       this.edges.forEach((edge) => {
         const newWeight = distances[edge.source].multipliedBy(edge.weight) as Weight
