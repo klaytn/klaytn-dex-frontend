@@ -1,9 +1,9 @@
-import { TokenAmount, Token, Wei } from '@/core/kaikas/entities'
+import { TokenAmount, TokenImpl, Wei } from '@/core'
 import { MaybeRef } from '@vueuse/core'
 
 interface Props {
-  inputToken: MaybeRef<Token | null>
-  outputToken: MaybeRef<Token | null>
+  inputToken: MaybeRef<TokenImpl | null>
+  outputToken: MaybeRef<TokenImpl | null>
   inputAmountInWei: MaybeRef<Wei | null>
   outputAmountInWei: MaybeRef<Wei | null>
 }
@@ -17,8 +17,8 @@ export function useTokenAmounts(props: Props) {
     const outputAmountInWei = unref(props.outputAmountInWei)
     if (!inputToken || !outputToken || !inputAmountInWei || !outputAmountInWei) return null
     return {
-      inputAmount: TokenAmount.fromWei(inputToken, inputAmountInWei.asBigNum),
-      outputAmount: TokenAmount.fromWei(outputToken, outputAmountInWei.asBigNum),
+      inputAmount: TokenAmount.fromWei(inputToken, inputAmountInWei),
+      outputAmount: TokenAmount.fromWei(outputToken, outputAmountInWei),
     }
   })
 }

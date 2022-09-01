@@ -2,6 +2,7 @@ import NProgress from 'nprogress'
 import { type Plugin } from '@/types'
 
 export const install: Plugin = ({ router }) => {
+  // TODO setup nprogress styles
   router.beforeEach((to, from) => {
     if (to.path !== from.path) NProgress.start()
   })

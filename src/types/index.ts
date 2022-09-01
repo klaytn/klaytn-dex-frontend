@@ -45,3 +45,27 @@ export interface Tab {
   id: string
   label: string
 }
+
+/**
+ * TODO use everywhere instead of hardcode
+ */
+export const ApolloClientId = {
+  Exchange: 'exchange',
+  Farming: 'farming',
+  Staking: 'staking',
+  Snapshot: 'snapshot',
+} as const
+
+export type ApolloClientId = typeof ApolloClientId[keyof typeof ApolloClientId]
+
+export type AllExceptLast<T extends any[]> = T extends [maybe?: any]
+  ? []
+  : T extends [infer Head, ...infer Tail]
+  ? [Head, ...AllExceptLast<Tail>]
+  : never
+
+export type OnlyLast<T extends any[]> = T extends [maybe?: infer T]
+  ? T
+  : T extends [any, ...infer Tail]
+  ? OnlyLast<Tail>
+  : never

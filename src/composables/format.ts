@@ -1,4 +1,4 @@
-import { Wei } from '@/core/kaikas'
+import { Wei } from '@/core'
 import { MaybeRef } from '@vueuse/core'
 import { roundTo } from 'round-to'
 import { Ref } from 'vue'

@@ -1,5 +1,4 @@
-import { Address, Token, Wei, WeiAsToken } from '@/core/kaikas'
-import { LP_TOKEN_DECIMALS as LP_TOKEN_DECIMALS_VALUE } from '@/core/kaikas/const'
+import { Address, Token, Wei, WeiAsToken, LP_TOKEN_DECIMALS as LP_TOKEN_DECIMALS_VALUE } from '@/core'
 import {
   useNullablePairBalanceComponents,
   usePairAddress,
@@ -23,7 +22,7 @@ function usePrepareSupply(props: {
   liquidity: Ref<Wei | null>
   amounts: Ref<null | TokensPair<Wei>>
 }) {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
   const tokensStore = useTokensStore()
   const { notify } = useNotify()
 
@@ -34,15 +33,21 @@ function usePrepareSupply(props: {
     const pair = props.pairAddress.value
     const liquidity = props.liquidity.value
     const amounts = props.amounts.value
-    if (!(tokens && pair && liquidity && amounts)) return null
+    const activeDex = dexStore.active
 
-    return {
-      key:
-        // `pair` also represents both `tokenA` + `tokenB`
-        // `liquidity` also **should** strictly represent `amounts`
-        `${pair}-${liquidity}`,
-      payload: { tokens, pair, liquidity, amounts },
-    }
+    return (
+      tokens &&
+      pair &&
+      liquidity &&
+      amounts &&
+      activeDex.kind === 'named' && {
+        key:
+          // `pair` also represents both `tokenA` + `tokenB`
+          // `liquidity` also **should** strictly represent `amounts`
+          `dex-${activeDex.wallet}-${pair}-${liquidity}`,
+        payload: { tokens, pair, liquidity, amounts, dex: activeDex.dex() },
+      }
+    )
   })
   watch(scopeKey, () => setActive(false))
 
@@ -50,10 +55,10 @@ function usePrepareSupply(props: {
 
   const scope = useParamScope(
     computed(() => active.value && scopeKey.value),
-    ({ tokens, pair, liquidity: lpTokenValue, amounts }) => {
+    ({ tokens, pair, liquidity: lpTokenValue, amounts, dex }) => {
       const { state: prepareState, run: prepare } = useTask(
         () =>
-          kaikasStore.getKaikasAnyway().liquidity.prepareRmLiquidity({
+          dex.liquidity.prepareRmLiquidity({
             tokens,
             pair,
             lpTokenValue,
@@ -118,27 +123,27 @@ function useRemoveAmounts(
   amounts: Ref<null | TokensPair<Wei>>
   touch: () => void
 } {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
 
-  const taskScope = useParamScope(
+  const scope = useParamScope(
     computed(() => {
-      if (!kaikasStore.isConnected) return null
-      if (!tokens.value) return null
+      const activeDex = dexStore.active
+      if (!tokens.value || activeDex.kind !== 'named') return null
       const pairAddr = pair.value
       const lpTokenValue = liquidity.value
       if (!pairAddr || !lpTokenValue) return null
 
-      const key = `${pairAddr}-${lpTokenValue.asStr}`
+      const key = `dex-${activeDex.wallet}-${pairAddr}-${lpTokenValue.asStr}`
 
       return {
         key,
-        payload: { pair: pairAddr, lpTokenValue, tokens: tokens.value, kaikas: kaikasStore.getKaikasAnyway() },
+        payload: { pair: pairAddr, lpTokenValue, tokens: tokens.value, dex: activeDex.dex() },
       }
     }),
-    ({ pair, lpTokenValue, tokens, kaikas }) => {
+    ({ pair, lpTokenValue, tokens, dex }) => {
       const { state, run } = useTask(
         async () => {
-          const { amounts } = await kaikas.liquidity.computeRmLiquidityAmounts({
+          const { amounts } = await dex.liquidity.computeRmLiquidityAmounts({
             tokens,
             pair,
             lpTokenValue,
@@ -155,9 +160,9 @@ function useRemoveAmounts(
   )
 
   return {
-    pending: computed(() => taskScope.value?.expose.state.pending ?? false),
-    amounts: computed(() => taskScope.value?.expose.state.fulfilled ?? null),
-    touch: () => taskScope.value?.expose.run(),
+    pending: computed(() => scope.value?.expose.state.pending ?? false),
+    amounts: computed(() => scope.value?.expose.state.fulfilled ?? null),
+    touch: () => scope.value?.expose.run(),
   }
 }
 

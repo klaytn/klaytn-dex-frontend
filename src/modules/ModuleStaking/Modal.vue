@@ -2,14 +2,11 @@
 import { SModal } from '@soramitsu-ui/ui'
 import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
-import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
 import BigNumber from 'bignumber.js'
-import { STAKING } from '@/core/kaikas/smartcontracts/abi'
 import { or } from '@vueuse/core'
-import { Wei, WeiAsToken } from '@/core/kaikas'
+import { Wei, WeiAsToken } from '@/core'
 
-const kaikasStore = useKaikasStore()
-const kaikas = kaikasStore.getKaikasAnyway()
+const dexStore = useDexStore()
 const { notify } = useNotify()
 
 const vBem = useBemClass()
@@ -28,8 +25,6 @@ const emit = defineEmits<{
 }>()
 
 const model = useVModel(props, 'modelValue', emit, { passive: true })
-
-const PoolContract = kaikas.cfg.createContract<StakingInitializable>(pool.value.id, STAKING)
 
 const value = ref<WeiAsToken>('0' as WeiAsToken)
 
@@ -78,25 +73,13 @@ function setPercent(percent: number) {
 
 const { state: stakeState, run: stake } = useTask(async () => {
   const amount = value.value
-  const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
-  const deposit = PoolContract.methods.deposit(
-    Wei.fromToken(
+  await dexStore.getNamedDexAnyway().earn.staking.deposit({
+    amount: Wei.fromToken(
       // FIXME stake token or reward token?
       pool.value.stakeToken,
       amount,
-    ).asBN,
-  )
-  const estimateGas = await deposit.estimateGas({
-    from: kaikas.selfAddress,
-    gasPrice,
+    ),
   })
-  const receipt = await deposit.send({
-    from: kaikas.selfAddress,
-    gas: estimateGas,
-    gasPrice,
-  })
-  if (receipt.status === false) throw new Error('Transaction error')
-
   return { amount }
 })
 usePromiseLog(stakeState, 'stake')
@@ -112,18 +95,7 @@ wheneverDone(stakeState, (result) => {
 
 const { state: unstakeState, run: unstake } = useTask(async () => {
   const amount = value.value
-  const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
-  const withdraw = PoolContract.methods.withdraw(Wei.fromToken(pool.value.stakeToken, amount).asBN)
-  const estimateGas = await withdraw.estimateGas({
-    from: kaikas.selfAddress,
-    gasPrice,
-  })
-  await withdraw.send({
-    from: kaikas.selfAddress,
-    gas: estimateGas,
-    gasPrice,
-  })
-
+  await dexStore.getNamedDexAnyway().earn.staking.withdraw({ amount: Wei.fromToken(pool.value.stakeToken, amount) })
   return { amount }
 })
 usePromiseLog(unstakeState, 'stake')

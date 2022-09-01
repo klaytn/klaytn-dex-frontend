@@ -1,26 +1,14 @@
 <script setup lang="ts" name="ModuleFarmingStakeModal">
 import { SModal } from '@soramitsu-ui/ui'
 import { ModalOperation, Pool } from './types'
-import { FARMING_CONTRACT_ADDRESS, FORMATTED_BIG_INT_DECIMALS } from './const'
+import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import BigNumber from 'bignumber.js'
-import { Farming } from '@/types/typechain/farming'
-import { FARMING } from '@/core/kaikas/smartcontracts/abi'
-import invariant from 'tiny-invariant'
 import { farmingToWei } from './utils'
 import { or } from '@vueuse/core'
-import { WeiAsToken } from '@/core/kaikas'
+import { WeiAsToken } from '@/core'
 
-const kaikasStore = useKaikasStore()
+const dexStore = useDexStore()
 const { notify } = useNotify()
-
-const FarmingContract = computed(() =>
-  kaikasStore.kaikas?.cfg.createContract<Farming>(FARMING_CONTRACT_ADDRESS, FARMING),
-)
-const contractAnyway = () => {
-  const item = FarmingContract.value
-  invariant(item)
-  return item
-}
 
 const vBem = useBemClass()
 
@@ -85,22 +73,14 @@ function setMax() {
 }
 
 const { state: stakeState, run: stake } = useTask(async () => {
-  const kaikas = kaikasStore.getKaikasAnyway()
-  const FarmingContract = contractAnyway()
+  const dex = dexStore.getNamedDexAnyway()
 
   const amount = value.value
-  const gasPrice = await kaikas.cfg.getGasPrice()
-  const deposit = FarmingContract.methods.deposit(props.pool.id, farmingToWei(amount).asBN)
-  const estimateGas = await deposit.estimateGas({
-    from: kaikas.selfAddress,
-    gasPrice: gasPrice.asBN,
-  })
-  const receipt = await deposit.send({
-    from: kaikas.selfAddress,
-    gas: estimateGas,
-    gasPrice: gasPrice.asBN,
-  })
-  if (receipt.status === false) throw new Error('Transaction error')
+  await dex.earn.farming.deposit({ poolId: props.pool.id, amount: farmingToWei(amount) })
+
+  // FIXME is that assertion should exist?
+  // const receipt = await tx.send({ gas })
+  // if (receipt.status === false) throw new Error('Transaction error')
 
   return { amount }
 })
@@ -111,21 +91,10 @@ wheneverFulfilled(stakeState, ({ amount }) => {
 useNotifyOnError(stakeState, notify, 'Stake LP tokens error')
 
 const { state: unstakeState, run: unstake } = useTask(async () => {
-  const kaikas = kaikasStore.getKaikasAnyway()
-  const FarmingContract = contractAnyway()
+  const dex = dexStore.getNamedDexAnyway()
 
   const amount = value.value
-  const gasPrice = await kaikas.cfg.getGasPrice()
-  const withdraw = FarmingContract.methods.withdraw(props.pool.id, farmingToWei(amount).asBN)
-  const estimateGas = await withdraw.estimateGas({
-    from: kaikas.selfAddress,
-    gasPrice: gasPrice.asBN,
-  })
-  await withdraw.send({
-    from: kaikas.selfAddress,
-    gas: estimateGas,
-    gasPrice: gasPrice.asBN,
-  })
+  await dex.earn.farming.withdraw({ poolId: props.pool.id, amount: farmingToWei(amount) })
 
   return { amount }
 })

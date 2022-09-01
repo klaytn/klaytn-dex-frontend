@@ -1,57 +1,31 @@
-import { Kaikas, Address, Wei } from '@/core/kaikas'
-import { MULTICALL } from '@/core/kaikas/smartcontracts/abi'
-import { Multicall } from '@/types/typechain/farming/MultiCall.sol'
+import { type Address } from '@/core'
 import invariant from 'tiny-invariant'
-import { Ref } from 'vue'
-import { MULTICALL_CONTRACT_ADDRESS, REFETCH_REWARDS_INTERVAL } from './const'
-import { PoolId, Rewards } from './types'
+import { type Ref } from 'vue'
+import { REFETCH_REWARDS_INTERVAL } from './const'
+import type { PoolId, Rewards } from './types'
+import type { RewardsWithBlockNumber } from '@/core/domain/earn'
 
-export interface GenericFetchRewardsProps<T extends PoolId | Address> {
-  kaikas: Kaikas
-  poolIds: Ref<T[] | null>
+export interface GenericFetchRewardsProps<K extends PoolId | Address> {
+  poolIds: Ref<K[] | null>
+  fetchFn: (pools: K[]) => Promise<RewardsWithBlockNumber<K>>
   updateBlockNumber: (value: number) => void
-  prepareCalls: (ids: T[]) => [string, string][]
 }
 
-export function useFetchRewards<T extends PoolId | Address>({
-  kaikas,
+export function useFetchRewards<K extends PoolId | Address>({
   poolIds,
   updateBlockNumber,
-  prepareCalls,
-}: GenericFetchRewardsProps<T>): {
-  rewards: Ref<null | Rewards<T>>
+  fetchFn,
+}: GenericFetchRewardsProps<K>): {
+  rewards: Ref<null | Rewards<K>>
   areRewardsFetched: Ref<boolean>
 } {
-  const MulticallContract = kaikas.cfg.createContract<Multicall>(MULTICALL_CONTRACT_ADDRESS, MULTICALL)
-
-  async function fetchRewards(ids: T[]): Promise<FetchRewardsResult> {
-    const calls = prepareCalls(ids)
-    const aggrResult = await MulticallContract.methods.aggregate(calls).call()
-
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const rewards = {} as Rewards<T>
-    aggrResult.returnData.forEach((hex, idx) => {
-      rewards[ids[idx]] = new Wei(kaikas.cfg.caver.klay.abi.decodeParameter('uint256', hex))
-    })
-
-    return {
-      rewards,
-      blockNumber: Number(aggrResult.blockNumber),
-    }
-  }
-
-  interface FetchRewardsResult {
-    rewards: Rewards<T>
-    blockNumber: number
-  }
-
-  const { state, set } = usePromise<FetchRewardsResult>() // use promise state
+  const { state, set } = usePromise<RewardsWithBlockNumber<K>>() // use promise state
 
   function run() {
     const ids = poolIds.value
     invariant(ids)
     if (!state.pending) {
-      set(fetchRewards(ids)) // set promise
+      set(fetchFn(ids)) // set promise
     }
   }
   const runDebounced = useDebounceFn(run, REFETCH_REWARDS_INTERVAL)

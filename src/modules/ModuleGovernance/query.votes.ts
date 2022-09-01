@@ -1,8 +1,9 @@
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { Ref } from 'vue'
-import { Address } from '@/core/kaikas'
+import { Address } from '@/core'
 import { PAGE_SIZE } from './const'
+import { ApolloClientId } from '@/types'
 
 export interface VotesQueryResult {
   votes: {
@@ -37,7 +38,7 @@ export function useVotesQuery(props: Ref<{ skip: number; proposalId: string }>) 
       proposal: props.value.proposalId,
     }),
     {
-      clientId: 'snapshot',
+      clientId: ApolloClientId.Snapshot,
     },
   )
 }

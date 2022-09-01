@@ -1,8 +1,9 @@
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { Ref } from 'vue'
-import { Address } from '@/core/kaikas'
+import { Address } from '@/core'
 import { ProposalState } from './types'
+import { ApolloClientId } from '@/types'
 
 export interface ProposalQueryResult {
   proposal: {
@@ -43,7 +44,7 @@ export function useProposalQuery(id: Ref<string>) {
       id: id.value,
     }),
     {
-      clientId: 'snapshot',
+      clientId: ApolloClientId.Snapshot,
     },
   )
 }

@@ -51,7 +51,7 @@ const formattedPriceImpact = computed(() => {
           <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
             <span>Route</span>
             <span>
-              <ValueOrDash :value="route.asString" />
+              <ValueOrDash :value="route.toString()" />
             </span>
           </div>
         </div>

@@ -1,13 +1,13 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, TokenSymbol, WeiAsToken } from '@/core/kaikas'
-import { Wei, Route, Token, Pair, TokenAmount } from '@/core/kaikas/entities'
+import { Address, TokenSymbol, WeiAsToken } from '@/core'
+import { Wei, Route, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS } from '@/core'
 import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
 import { useGetAmount, GetAmountProps } from '../composable.get-amount'
 import { useSwapRoute } from '../composable.swap-route'
-import { usePairAddress } from '../../ModuleTradeShared/composable.pair-by-tokens'
+import { usePairAddress, usePairBalance } from '../../ModuleTradeShared/composable.pair-by-tokens'
 import { useSwapValidation } from '../composable.validation'
 import { buildSwapProps, TokenAddrAndWeiInput } from '../util.swap-props'
 import { useExchangeRateInput, useInertExchangeRateInput } from '../../ModuleTradeShared/composable.exchange-rate-input'
@@ -17,14 +17,13 @@ import { usePriceImpact } from '@/modules/ModuleSwap/composable.price-impact'
 import { useTokenAmounts } from '@/modules/ModuleSwap/composable.token-amount'
 import { RouteName } from '@/types'
 import { usePairsQuery } from '../query.pairs'
-import { LP_TOKEN_DECIMALS } from '@/core/kaikas/const'
 
 const debugModule = Debug('swap-store')
 
 type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { route: Route; amountFor: TokenType }
 
 function useSwap(input: Ref<null | NormalizedWeiInput>) {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
   const tokensStore = useTokensStore()
   const { notify } = useNotify()
 
@@ -41,19 +40,25 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
   watch(swapKey, () => setActive(false))
 
   const scope = useParamScope(
-    computed(() => active.value && swapKey.value),
-    ({ route, tokenA, tokenB, amountFor }) => {
+    computed(
+      () =>
+        active.value &&
+        swapKey.value &&
+        dexStore.active.kind === 'named' && {
+          key: `${dexStore.active.wallet}-${swapKey.value.key}`,
+          payload: { props: swapKey.value.payload, dex: dexStore.active.dex() },
+        },
+    ),
+    ({ props: { route, tokenA, tokenB, amountFor }, dex }) => {
       const { state: prepareState, run: prepare } = useTask(
         async () => {
-          const kaikas = kaikasStore.getKaikasAnyway()
-
           // 1. Approve amount of the tokenA
-          await kaikas.cfg.approveAmount(tokenA.addr, tokenA.input)
+          await dex.agent.approveAmount(tokenA.addr, tokenA.input)
 
           // 2. Perform swap according to which token is "exact" and if
           // some of them is native
           const swapProps = buildSwapProps({ route, tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
-          const { send, fee } = await kaikas.swap.swap(swapProps)
+          const { send, fee } = await dex.swap.prepareSwap(swapProps)
 
           return { send, fee }
         },
@@ -61,6 +66,7 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
       )
 
       usePromiseLog(prepareState, 'prepare-swap')
+      useNotifyOnError(prepareState, notify, 'Swap preparation failed')
 
       const { state: swapState, run: swap } = useTask(async () => {
         invariant(prepareState.fulfilled)
@@ -113,31 +119,35 @@ export const useSwapStore = defineStore('swap', () => {
   const pairs = computed(() => {
     return (
       PairsQuery.result.value?.pairs.map((pair) => {
-        const token0 = new Token({
+        const token0 = new TokenImpl({
+          name: pair.token0.name,
           address: pair.token0.id,
           decimals: Number(pair.token0.decimals),
           symbol: pair.token0.symbol,
         })
-        const token1 = new Token({
+        const token1 = new TokenImpl({
+          name: pair.token1.name,
           address: pair.token1.id,
           decimals: Number(pair.token1.decimals),
           symbol: pair.token1.symbol,
         })
         const pairSymbol = (token0.symbol + '-' + token1.symbol) as TokenSymbol
         return new Pair({
-          address: pair.id,
-          decimals: LP_TOKEN_DECIMALS,
-          symbol: pairSymbol,
-          name: pairSymbol,
-          token0Amount: new TokenAmount(token0, pair.reserve0),
-          token1Amount: new TokenAmount(token1, pair.reserve1),
+          liquidityToken: new TokenImpl({
+            address: pair.id,
+            decimals: LP_TOKEN_DECIMALS,
+            symbol: pairSymbol,
+            name: pairSymbol,
+          }),
+          token0Amount: TokenAmount.fromToken(token0, pair.reserve0),
+          token1Amount: TokenAmount.fromToken(token1, pair.reserve1),
         })
       }) ?? null
     )
   })
 
-  const inputToken = computed(() => (tokens.tokenA ? new Token(tokens.tokenA) : null))
-  const outputToken = computed(() => (tokens.tokenB ? new Token(tokens.tokenB) : null))
+  const inputToken = computed(() => (tokens.tokenA ? new TokenImpl(tokens.tokenA) : null))
+  const outputToken = computed(() => (tokens.tokenB ? new TokenImpl(tokens.tokenB) : null))
 
   const amountFor = computed(() => selectionInput.exchangeRateFor.value)
 
@@ -151,6 +161,12 @@ export const useSwapStore = defineStore('swap', () => {
   const route = computed(() => (swapRoute.value?.kind === 'exist' ? swapRoute.value.route : null))
 
   const { pair: pairAddrResult } = usePairAddress(addrsReadonly)
+  const { result: pairBalance } = usePairBalance(
+    addrsReadonly,
+    computed(() => pairAddrResult.value?.kind === 'exist'),
+  )
+  const poolShare = computed(() => pairBalance.value?.poolShare ?? null)
+  // const formattedPoolShare = useFormattedPercent(poolShare, 7)
 
   const { gotAmountFor, gettingAmountFor } = useGetAmount(
     computed<GetAmountProps | null>(() => {

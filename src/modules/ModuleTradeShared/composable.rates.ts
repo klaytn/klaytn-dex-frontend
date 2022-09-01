@@ -1,4 +1,4 @@
-import { Wei } from '@/core/kaikas'
+import { Wei } from '@/core'
 import { computeRates, roundRates } from '@/utils/common'
 import { TokensPair } from '@/utils/pair'
 import { MaybeRef } from '@vueuse/core'
