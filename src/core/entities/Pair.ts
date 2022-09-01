@@ -1,11 +1,10 @@
-import Token from './Token'
+import TokenImpl from './TokenImpl'
 import TokenAmount from './TokenAmount'
 import Price from './Price'
-import { Address } from '../types'
-import { TokenSymbol } from '@/core/kaikas'
+import { Address, TokenSymbol } from '../types'
 
 export default class Pair {
-  public readonly liquidityToken: Token
+  public readonly liquidityToken: TokenImpl
   private readonly tokenAmounts: [TokenAmount, TokenAmount]
 
   public constructor({
@@ -23,7 +22,7 @@ export default class Pair {
     token0Amount: TokenAmount
     token1Amount: TokenAmount
   }) {
-    this.liquidityToken = new Token({
+    this.liquidityToken = new TokenImpl({
       address,
       decimals,
       symbol,
@@ -50,11 +49,11 @@ export default class Pair {
     })
   }
 
-  public get token0(): Token {
+  public get token0(): TokenImpl {
     return this.tokenAmounts[0].token
   }
 
-  public get token1(): Token {
+  public get token1(): TokenImpl {
     return this.tokenAmounts[1].token
   }
 

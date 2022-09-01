@@ -1,9 +1,9 @@
 import invariant from 'tiny-invariant'
 
-import Token from './Token'
+import TokenImpl from './TokenImpl'
 import Pair from './Pair'
 import Price from './Price'
-import { Address } from '@/core/kaikas'
+import { Address } from '../types'
 import Fraction from './Fraction'
 import TokenAmount from './TokenAmount'
 import Graph from './Graph'
@@ -12,8 +12,8 @@ import { POOL_COMMISSION } from '../const'
 
 interface FromBestRateProps {
   pairs: Pair[]
-  inputToken: Token
-  outputToken: Token
+  inputToken: TokenImpl
+  outputToken: TokenImpl
   amount: TokenAmount
 }
 
@@ -113,13 +113,13 @@ export default class Route {
   }
 
   public readonly pairs: Pair[]
-  public readonly path: Token[]
-  public readonly input: Token
-  public readonly output: Token
+  public readonly path: TokenImpl[]
+  public readonly input: TokenImpl
+  public readonly output: TokenImpl
   public readonly midPrice: Price
 
-  public constructor(pairs: Pair[], input: Token, output?: Token) {
-    const path: Token[] = [input]
+  public constructor(pairs: Pair[], input: TokenImpl, output?: TokenImpl) {
+    const path: TokenImpl[] = [input]
     for (const [i, pair] of pairs.entries()) {
       const currentInput = path[i]
       invariant(currentInput.equals(pair.token0) || currentInput.equals(pair.token1), 'PATH')

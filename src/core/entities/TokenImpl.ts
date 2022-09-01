@@ -1,8 +1,8 @@
-import { Address, TokenSymbol } from '@/core/kaikas'
+import { Address, TokenSymbol } from '../types'
 import { parseAddress } from '../utils'
 import Currency from './Currency'
 
-export default class Token extends Currency {
+export default class TokenImpl extends Currency {
   public readonly address: Address
   public readonly projectLink?: string
 
@@ -24,7 +24,7 @@ export default class Token extends Currency {
     this.projectLink = projectLink
   }
 
-  public equals(other: Token): boolean {
+  public equals(other: TokenImpl): boolean {
     if (this === other) {
       return true
     }
@@ -33,11 +33,11 @@ export default class Token extends Currency {
 }
 
 export function currencyEquals(currencyA: Currency, currencyB: Currency): boolean {
-  if (currencyA instanceof Token && currencyB instanceof Token) {
+  if (currencyA instanceof TokenImpl && currencyB instanceof TokenImpl) {
     return currencyA.equals(currencyB)
-  } else if (currencyA instanceof Token) {
+  } else if (currencyA instanceof TokenImpl) {
     return false
-  } else if (currencyB instanceof Token) {
+  } else if (currencyB instanceof TokenImpl) {
     return false
   } else {
     return currencyA === currencyB

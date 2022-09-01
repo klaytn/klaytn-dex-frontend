@@ -1,4 +1,4 @@
-import { TokenSymbol } from '@/core/kaikas'
+import { TokenSymbol } from '../types'
 
 export default class Currency {
   public readonly decimals: number
