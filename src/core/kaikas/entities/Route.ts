@@ -21,7 +21,7 @@ export default class Route {
   public static fromBestRate({ pairs, inputToken, outputToken, amount }: FromBestRateProps): Route | null {
     const graph = new Graph<Address>()
     pairs.forEach((pair) => {
-      const commissionCoefficient = POOL_COMMISSION.plus(new Fraction(1))
+      const commissionCoefficient = new Fraction(1).minus(POOL_COMMISSION)
       const token0Price = pair.token0Price.raw.multipliedBy(commissionCoefficient)
       const token1Price = pair.token1Price.raw.multipliedBy(commissionCoefficient)
       graph.addEdge({
