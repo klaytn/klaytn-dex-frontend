@@ -1,12 +1,14 @@
 import { Opaque } from 'type-fest'
 import invariant from 'tiny-invariant'
+
+import Fraction from './Fraction'
 import BigNumber from 'bignumber.js'
 
-const INFINITY = new BigNumber(Infinity) as Weight
-const ONE = new BigNumber(1) as Weight
+const INFINITY = new Fraction(new BigNumber(10).pow(300)) as Weight
+const ONE = new Fraction(1) as Weight
 
 type Node<T extends keyof any> = Opaque<T, 'Node'>
-type Weight = Opaque<BigNumber, 'Weight'>
+type Weight = Opaque<Fraction, 'Weight'>
 interface Edge<T extends keyof any> {
   source: Node<T>
   destination: Node<T>
@@ -15,7 +17,7 @@ interface Edge<T extends keyof any> {
 interface EdgeTransparent<T extends keyof any> {
   source: T
   destination: T
-  weight?: BigNumber
+  weight?: Fraction
 }
 interface ShortestPathProps<T extends keyof any> {
   source: T

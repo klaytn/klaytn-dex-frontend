@@ -23,12 +23,12 @@ export default class Route {
       graph.addEdge({
         source: pair.token0.address,
         destination: pair.token1.address,
-        weight: new Fraction(pair.reserve1.raw, pair.reserve0.raw).quotient,
+        weight: new Fraction(pair.reserve1.raw, pair.reserve0.raw),
       })
       graph.addEdge({
         source: pair.token1.address,
         destination: pair.token0.address,
-        weight: new Fraction(pair.reserve0.raw, pair.reserve1.raw).quotient,
+        weight: new Fraction(pair.reserve0.raw, pair.reserve1.raw),
       })
     })
 
