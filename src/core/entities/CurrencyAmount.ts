@@ -26,12 +26,12 @@ export default class CurrencyAmount extends Fraction {
   }
 
   public plus(other: CurrencyAmount): CurrencyAmount {
-    invariant(this.currency.isEqualTo(other.currency), 'TOKEN')
+    invariant(this.currency.equals(other.currency), 'TOKEN')
     return new CurrencyAmount(this.currency, this.raw + other.raw)
   }
 
   public minus(other: CurrencyAmount): CurrencyAmount {
-    invariant(this.currency.isEqualTo(other.currency), 'TOKEN')
+    invariant(this.currency.equals(other.currency), 'TOKEN')
     return new CurrencyAmount(this.currency, this.raw + other.raw)
   }
 

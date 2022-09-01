@@ -92,7 +92,7 @@ export default class Fraction {
       .toFormat(decimals, rounding, format)
   }
 
-  public get asFraction(): Fraction {
+  public clone(): Fraction {
     return new Fraction(this.numerator, this.denominator)
   }
 }

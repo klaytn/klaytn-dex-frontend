@@ -1,6 +1,7 @@
 import invariant from 'tiny-invariant'
 import { BigNumberIsh } from '../types'
 import CurrencyAmount from './CurrencyAmount'
+import Fraction from './Fraction'
 import TokenImpl from './TokenImpl'
 import Wei, { WeiAsToken } from './Wei'
 
@@ -20,7 +21,7 @@ export default class TokenAmount extends CurrencyAmount {
     this.token = token
   }
 
-  public get asWei(): Wei {
+  public toWei(): Wei {
     return new Wei(this.numerator)
   }
 
@@ -32,5 +33,9 @@ export default class TokenAmount extends CurrencyAmount {
   public minus(other: TokenAmount): TokenAmount {
     invariant(this.token.equals(other.token), 'TOKEN')
     return new TokenAmount(this.token, this.raw - other.raw, true)
+  }
+
+  public toFraction(): Fraction {
+    return this.clone()
   }
 }

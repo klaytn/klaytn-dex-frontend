@@ -71,9 +71,10 @@ export function computePriceImpact(midPrice: Price, inputAmount: TokenAmount, ou
   const feeCoefficient = new Fraction(1).plus(POOL_COMMISSION)
   const exactQuote = TokenAmount.fromToken(
     outputAmount.token,
-    midPrice.raw
+    midPrice
+      .toFraction()
       .dividedBy(feeCoefficient)
-      .multipliedBy(inputAmount.asFraction)
+      .multipliedBy(inputAmount.toFraction())
       .toFixed(outputAmount.currency.decimals) as WeiAsToken,
   )
   const slippage = exactQuote.minus(outputAmount).dividedBy(exactQuote)

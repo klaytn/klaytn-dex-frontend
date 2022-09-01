@@ -1,27 +1,15 @@
-import { Address, TokenSymbol } from '../types'
+import { Address, Token, TokenSymbol } from '../types'
 import { parseAddress } from '../utils'
 import Currency from './Currency'
 
-export default class TokenImpl extends Currency {
+export default class TokenImpl extends Currency implements Token {
   public readonly address: Address
-  public readonly projectLink?: string
 
-  public constructor({
-    address,
-    decimals,
-    symbol,
-    name,
-    projectLink,
-  }: {
-    address: Address
-    decimals: number
-    symbol?: TokenSymbol
-    name?: string
-    projectLink?: string
-  }) {
+  public constructor({ address, decimals, symbol, name }: Token) {
     super(decimals, symbol, name)
-    this.address = parseAddress(address)
-    this.projectLink = projectLink
+    this.address =
+      // FIXME
+      address.toLowerCase() as Address
   }
 
   public equals(other: TokenImpl): boolean {

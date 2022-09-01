@@ -24,8 +24,8 @@ export default class Route {
     const graph = new Graph<Address>()
     pairs.forEach((pair) => {
       const commissionCoefficient = POOL_COMMISSION.plus(ONE)
-      let token0Price = pair.token0Price.raw
-      let token1Price = pair.token1Price.raw
+      let token0Price = pair.token0Price.toFraction()
+      let token1Price = pair.token1Price.toFraction()
       if (token0Price.isGreaterOrEqualThan(ONE)) {
         token0Price = token0Price.multipliedBy(commissionCoefficient)
         token1Price = token1Price.dividedBy(commissionCoefficient)
@@ -83,7 +83,7 @@ export default class Route {
 
         const processedPath = [...possiblePath.path]
         const processedPairs = [...possiblePath.pairs]
-        if (amount.token.isEqualTo(outputToken)) {
+        if (amount.token.equals(outputToken)) {
           processedPath.reverse()
           processedPairs.reverse()
         }
@@ -91,9 +91,9 @@ export default class Route {
         let enoughLiquidity = true
 
         for (const [i, pair] of processedPairs.entries()) {
-          const inputTokenAddress = processedPath[amount.token.isEqualTo(outputToken) ? i + 1 : 1]
+          const inputTokenAddress = processedPath[amount.token.equals(outputToken) ? i + 1 : 1]
           const inputTokenReserve = pair.token0.address === inputTokenAddress ? pair.reserve0 : pair.reserve1
-          const outputTokenAddress = processedPath[amount.token.isEqualTo(outputToken) ? i : i + 1]
+          const outputTokenAddress = processedPath[amount.token.equals(outputToken) ? i : i + 1]
           const outputTokenReserve = pair.token0.address === outputTokenAddress ? pair.reserve0 : pair.reserve1
           if (currentAmount.isGreaterThan(outputTokenReserve)) {
             enoughLiquidity = false
@@ -109,7 +109,7 @@ export default class Route {
         if (enoughLiquidity) path = possiblePath
       }
 
-      if (amount.token.isEqualTo(inputToken)) path = bestPossiblePath
+      if (amount.token.equals(inputToken)) path = bestPossiblePath
 
       return path
     }
@@ -143,7 +143,7 @@ export default class Route {
     this.output = output ?? path[path.length - 1]
   }
 
-  public get asString(): string {
+  public toString(): string {
     return this.path.map((token) => token.symbol).join(' > ')
   }
 }

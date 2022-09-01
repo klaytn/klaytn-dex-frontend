@@ -49,12 +49,8 @@ export default class Price extends Fraction {
     this.quoteCurrency = quoteCurrency
   }
 
-  public get raw(): Fraction {
-    return new Fraction(this.numerator, this.denominator)
-  }
-
   public multipliedBy(other: Price): Price {
-    invariant(this.quoteCurrency.isEqualTo(other.baseCurrency), 'TOKEN')
+    invariant(this.quoteCurrency.equals(other.baseCurrency), 'TOKEN')
     const fraction = super.multipliedBy(other)
     return new Price({
       baseCurrency: this.baseCurrency,
@@ -74,10 +70,14 @@ export default class Price extends Fraction {
   }
 
   public toFixed(decimals: number, rounding: BigNumber.RoundingMode): string {
-    return this.raw.toFixed(decimals, rounding)
+    return super.toFixed(decimals, rounding)
   }
 
   public toFormat(decimals = 2, rounding?: BigNumber.RoundingMode, format?: object): string {
-    return this.raw.toFormat(decimals, rounding, format)
+    return super.toFormat(decimals, rounding, format)
+  }
+
+  public toFraction(): Fraction {
+    return this.clone()
   }
 }

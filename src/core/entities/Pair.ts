@@ -1,33 +1,21 @@
 import TokenImpl from './TokenImpl'
 import TokenAmount from './TokenAmount'
 import Price from './Price'
-import { Address, TokenSymbol } from '../types'
 
 export default class Pair {
   public readonly liquidityToken: TokenImpl
   private readonly tokenAmounts: [TokenAmount, TokenAmount]
 
   public constructor({
-    address,
-    decimals,
-    symbol,
-    name,
+    liquidityToken,
     token0Amount,
     token1Amount,
   }: {
-    address: Address
-    decimals: number
-    symbol?: TokenSymbol
-    name?: string
+    liquidityToken: TokenImpl
     token0Amount: TokenAmount
     token1Amount: TokenAmount
   }) {
-    this.liquidityToken = new TokenImpl({
-      address,
-      decimals,
-      symbol,
-      name,
-    })
+    this.liquidityToken = liquidityToken
     this.tokenAmounts = [token0Amount, token1Amount]
   }
 

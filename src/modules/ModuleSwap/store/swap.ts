@@ -120,21 +120,25 @@ export const useSwapStore = defineStore('swap', () => {
     return (
       PairsQuery.result.value?.pairs.map((pair) => {
         const token0 = new TokenImpl({
+          name: pair.token0.name,
           address: pair.token0.id,
           decimals: Number(pair.token0.decimals),
           symbol: pair.token0.symbol,
         })
         const token1 = new TokenImpl({
+          name: pair.token1.name,
           address: pair.token1.id,
           decimals: Number(pair.token1.decimals),
           symbol: pair.token1.symbol,
         })
         const pairSymbol = (token0.symbol + '-' + token1.symbol) as TokenSymbol
         return new Pair({
-          address: pair.id,
-          decimals: LP_TOKEN_DECIMALS,
-          symbol: pairSymbol,
-          name: pairSymbol,
+          liquidityToken: new TokenImpl({
+            address: pair.id,
+            decimals: LP_TOKEN_DECIMALS,
+            symbol: pairSymbol,
+            name: pairSymbol,
+          }),
           token0Amount: TokenAmount.fromToken(token0, pair.reserve0),
           token1Amount: TokenAmount.fromToken(token1, pair.reserve1),
         })
