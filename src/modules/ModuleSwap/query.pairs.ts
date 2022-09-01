@@ -1,4 +1,4 @@
-import { Address, TokenSymbol, WeiAsToken } from '@/core/kaikas'
+import { Address, TokenSymbol, WeiAsToken } from '@/core'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { REFETCH_PAIRS_INTERVAL } from './const'

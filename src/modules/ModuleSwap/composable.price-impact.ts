@@ -1,4 +1,4 @@
-import { TokenAmount, Route } from '@/core/kaikas/entities'
+import { TokenAmount, Route } from '@/core'
 import { computePriceImpact } from '@/utils/common'
 import { MaybeRef } from '@vueuse/core'
 

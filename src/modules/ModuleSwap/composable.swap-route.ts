@@ -1,12 +1,12 @@
-import { Token, TokenAmount, Route, Pair, Wei } from '@/core/kaikas/entities'
+import { TokenImpl, TokenAmount, Route, Pair, Wei } from '@/core'
 import { TokenType } from '@/utils/pair'
 import { MaybeRef } from '@vueuse/core'
 import { ComputedRef } from 'vue'
 
 interface SwapRouteProps {
   pairs: MaybeRef<Pair[] | null>
-  inputToken: MaybeRef<Token | null>
-  outputToken: MaybeRef<Token | null>
+  inputToken: MaybeRef<TokenImpl | null>
+  outputToken: MaybeRef<TokenImpl | null>
   amountInWei: MaybeRef<Wei | null>
   amountFor: MaybeRef<TokenType | null>
 }
@@ -30,7 +30,7 @@ export function useSwapRoute(props: SwapRouteProps): ComputedRef<SwapRouteResult
 
     if (!pairs || !inputToken || !outputToken || !amountInWei || !amountFor) return null
 
-    const amount = TokenAmount.fromWei(amountFor === 'tokenB' ? inputToken : outputToken, amountInWei.asBigNum)
+    const amount = TokenAmount.fromWei(amountFor === 'tokenB' ? inputToken : outputToken, amountInWei)
 
     const route = Route.fromBestRate({
       pairs: pairs,

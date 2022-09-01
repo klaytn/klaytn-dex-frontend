@@ -9,10 +9,15 @@ import Currency from './Currency'
 export default class CurrencyAmount extends Fraction {
   public readonly currency: Currency
 
-  public constructor(currency: Currency, amount: BigNumberIsh, raw = false) {
+  /**
+   * @param currency
+   * @param amount
+   * @param withDecimals if not, `amount` will be transformed with the `currency`'s decimals
+   */
+  protected constructor(currency: Currency, amount: BigNumberIsh, withDecimals = true) {
     const parsedAmount = parseBigNumberIsh(amount)
     const denominator = new BigNumber(10).pow(currency.decimals)
-    super(raw ? parsedAmount : parsedAmount.multipliedBy(denominator), denominator)
+    super(withDecimals ? parsedAmount : parsedAmount.multipliedBy(denominator), denominator)
     this.currency = currency
   }
 

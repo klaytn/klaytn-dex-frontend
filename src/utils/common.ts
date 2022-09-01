@@ -1,5 +1,5 @@
-import { POOL_COMMISSION, Wei } from '@/core'
-import { Price, TokenAmount, Percent, Fraction } from '@/core/kaikas/entities'
+import { POOL_COMMISSION, Wei, WeiAsToken } from '@/core'
+import { Price, TokenAmount, Percent, Fraction } from '@/core'
 import { Tab } from '@/types'
 import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'
@@ -69,9 +69,12 @@ export function roundRates({ a_per_b, b_per_a }: Rates): RatesRounded {
 
 export function computePriceImpact(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
   const feeCoefficient = new Fraction(1).plus(POOL_COMMISSION)
-  const exactQuote = new TokenAmount(
+  const exactQuote = TokenAmount.fromToken(
     outputAmount.token,
-    midPrice.raw.dividedBy(feeCoefficient).multipliedBy(inputAmount.asFraction).toFixed(outputAmount.currency.decimals),
+    midPrice.raw
+      .dividedBy(feeCoefficient)
+      .multipliedBy(inputAmount.asFraction)
+      .toFixed(outputAmount.currency.decimals) as WeiAsToken,
   )
   const slippage = exactQuote.minus(outputAmount).dividedBy(exactQuote)
   return new Percent(slippage.numerator, slippage.denominator)

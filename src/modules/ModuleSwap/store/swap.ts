@@ -1,13 +1,13 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Address, TokenSymbol, WeiAsToken } from '@/core'
-import { Wei, Route, Token, Pair, TokenAmount } from '@/core/kaikas/entities'
+import { Wei, Route, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS } from '@/core'
 import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
 import { useGetAmount, GetAmountProps } from '../composable.get-amount'
 import { useSwapRoute } from '../composable.swap-route'
-import { usePairAddress } from '../../ModuleTradeShared/composable.pair-by-tokens'
+import { usePairAddress, usePairBalance } from '../../ModuleTradeShared/composable.pair-by-tokens'
 import { useSwapValidation } from '../composable.validation'
 import { buildSwapProps, TokenAddrAndWeiInput } from '../util.swap-props'
 import { useExchangeRateInput, useInertExchangeRateInput } from '../../ModuleTradeShared/composable.exchange-rate-input'
@@ -17,7 +17,6 @@ import { usePriceImpact } from '@/modules/ModuleSwap/composable.price-impact'
 import { useTokenAmounts } from '@/modules/ModuleSwap/composable.token-amount'
 import { RouteName } from '@/types'
 import { usePairsQuery } from '../query.pairs'
-import { LP_TOKEN_DECIMALS } from '@/core/kaikas/const'
 
 const debugModule = Debug('swap-store')
 
@@ -120,12 +119,12 @@ export const useSwapStore = defineStore('swap', () => {
   const pairs = computed(() => {
     return (
       PairsQuery.result.value?.pairs.map((pair) => {
-        const token0 = new Token({
+        const token0 = new TokenImpl({
           address: pair.token0.id,
           decimals: Number(pair.token0.decimals),
           symbol: pair.token0.symbol,
         })
-        const token1 = new Token({
+        const token1 = new TokenImpl({
           address: pair.token1.id,
           decimals: Number(pair.token1.decimals),
           symbol: pair.token1.symbol,
@@ -136,15 +135,15 @@ export const useSwapStore = defineStore('swap', () => {
           decimals: LP_TOKEN_DECIMALS,
           symbol: pairSymbol,
           name: pairSymbol,
-          token0Amount: new TokenAmount(token0, pair.reserve0),
-          token1Amount: new TokenAmount(token1, pair.reserve1),
+          token0Amount: TokenAmount.fromToken(token0, pair.reserve0),
+          token1Amount: TokenAmount.fromToken(token1, pair.reserve1),
         })
       }) ?? null
     )
   })
 
-  const inputToken = computed(() => (tokens.tokenA ? new Token(tokens.tokenA) : null))
-  const outputToken = computed(() => (tokens.tokenB ? new Token(tokens.tokenB) : null))
+  const inputToken = computed(() => (tokens.tokenA ? new TokenImpl(tokens.tokenA) : null))
+  const outputToken = computed(() => (tokens.tokenB ? new TokenImpl(tokens.tokenB) : null))
 
   const amountFor = computed(() => selectionInput.exchangeRateFor.value)
 
@@ -163,7 +162,7 @@ export const useSwapStore = defineStore('swap', () => {
     computed(() => pairAddrResult.value?.kind === 'exist'),
   )
   const poolShare = computed(() => pairBalance.value?.poolShare ?? null)
-  const formattedPoolShare = useFormattedPercent(poolShare, 7)
+  // const formattedPoolShare = useFormattedPercent(poolShare, 7)
 
   const { gotAmountFor, gettingAmountFor } = useGetAmount(
     computed<GetAmountProps | null>(() => {

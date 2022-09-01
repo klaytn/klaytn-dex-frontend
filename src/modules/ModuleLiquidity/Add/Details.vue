@@ -2,9 +2,8 @@
 import { storeToRefs } from 'pinia'
 import { roundTo } from 'round-to'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
-import { POOL_COMMISSION } from '@/core/kaikas/const'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
-import { NATIVE_TOKEN_DECIMALS, Wei } from '@/core'
+import { NATIVE_TOKEN_DECIMALS, Wei, POOL_COMMISSION } from '@/core'
 import { Ref } from 'vue'
 import { KlayIconImportant } from '~klay-icons'
 

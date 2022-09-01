@@ -1,3 +1,4 @@
+import { Percent } from './entities'
 import type { Token, Address, TokenSymbol, Network } from './types'
 
 /**

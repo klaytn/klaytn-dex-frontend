@@ -1,16 +1,15 @@
-import type { Address, Deadline } from '../types'
+import type { Deadline } from '../types'
 import { computeTransactionFee, deadlineFiveMinutesFromNow } from '../utils'
-import { Wei } from '../entities'
+import { Route, Wei } from '../entities'
 import CommonContracts from './CommonContracts'
 import { Agent } from './agent'
 import { TransactionObject, IsomorphicOverrides } from '../isomorphic-contract'
 
-export interface AddrsPair {
-  addressA: Address
-  addressB: Address
+interface HasRoute {
+  route: Route
 }
 
-export interface SwapPropsBase extends AddrsPair {
+export interface SwapPropsBase extends HasRoute {
   /**
    * By default it is 5 minutes from now.
    */
@@ -43,12 +42,12 @@ export interface SwapResult {
   send: () => Promise<unknown>
 }
 
-interface GetAmountsInProps extends AddrsPair {
+interface GetAmountsInProps extends HasRoute {
   mode: 'in'
   amountOut: Wei
 }
 
-interface GetAmountsOutProps extends AddrsPair {
+interface GetAmountsOutProps extends HasRoute {
   mode: 'out'
   amountIn: Wei
 }
@@ -69,7 +68,7 @@ export class SwapPure {
   public async getAmounts(props: GetAmountsProps): Promise<[Wei, Wei]> {
     const router = this.#contracts.get('router') || (await this.#contracts.init('router'))
 
-    const path = [props.addressA, props.addressB]
+    const path = props.route.path.map((x) => x.address)
     const [amount0, amount1] = await (props.mode === 'in'
       ? router.getAmountsIn([props.amountOut.asStr, path]).call()
       : router.getAmountsOut([props.amountIn.asStr, path]).call())
@@ -90,6 +89,7 @@ export class Swap extends SwapPure {
 
     const { deadline = deadlineFiveMinutesFromNow() } = props
     const { address } = this.#agent
+    const path = props.route.path.map((x) => x.address)
 
     const gasPrice = await this.#agent.getGasPrice()
     const baseOverrides: IsomorphicOverrides = {
@@ -102,7 +102,7 @@ export class Swap extends SwapPure {
     switch (props.mode) {
       case 'exact-tokens-for-tokens': {
         tx = router.swapExactTokensForTokens(
-          [props.amountIn.asStr, props.amountOutMin.asStr, [props.addressA, props.addressB], address, deadline],
+          [props.amountIn.asStr, props.amountOutMin.asStr, path, address, deadline],
           baseOverrides,
         )
 
@@ -110,7 +110,7 @@ export class Swap extends SwapPure {
       }
       case 'tokens-for-exact-tokens': {
         tx = router.swapTokensForExactTokens(
-          [props.amountInMax.asStr, props.amountOut.asStr, [props.addressA, props.addressB], address, deadline],
+          [props.amountInMax.asStr, props.amountOut.asStr, path, address, deadline],
           baseOverrides,
         )
 
@@ -118,31 +118,31 @@ export class Swap extends SwapPure {
       }
       case 'exact-tokens-for-eth': {
         tx = router.swapExactTokensForETH(
-          [props.amountIn.asStr, props.amountOutMin.asStr, [props.addressA, props.addressB], address, deadline],
+          [props.amountIn.asStr, props.amountOutMin.asStr, path, address, deadline],
           baseOverrides,
         )
 
         break
       }
       case 'exact-eth-for-tokens': {
-        tx = router.swapExactETHForTokens(
-          [props.amountOutMin.asStr, [props.addressA, props.addressB], address, deadline],
-          { ...baseOverrides, value: props.amountIn },
-        )
+        tx = router.swapExactETHForTokens([props.amountOutMin.asStr, path, address, deadline], {
+          ...baseOverrides,
+          value: props.amountIn,
+        })
 
         break
       }
       case 'eth-for-exact-tokens': {
-        tx = router.swapETHForExactTokens(
-          [props.amountOut.asStr, [props.addressA, props.addressB], address, deadline],
-          { ...baseOverrides, value: props.amountInMax },
-        )
+        tx = router.swapETHForExactTokens([props.amountOut.asStr, path, address, deadline], {
+          ...baseOverrides,
+          value: props.amountInMax,
+        })
 
         break
       }
       case 'tokens-for-exact-eth': {
         tx = router.swapTokensForExactETH(
-          [props.amountOut.asStr, props.amountInMax.asStr, [props.addressA, props.addressB], address, deadline],
+          [props.amountOut.asStr, props.amountInMax.asStr, path, address, deadline],
           baseOverrides,
         )
 

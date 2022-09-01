@@ -1,5 +1,5 @@
 import { Wei, Address, isNativeToken } from '@/core'
-import { Route } from '@/core/kaikas/entities'
+import { Route } from '@/core'
 import { SwapProps, SwapExactAForB, SwapAForExactB } from '@/core/domain/swap'
 import { TokenType } from '@/utils/pair'
 import invariant from 'tiny-invariant'

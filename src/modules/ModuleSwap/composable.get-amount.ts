@@ -1,8 +1,7 @@
-import { Address, DexPure, Wei } from '@/core'
-import { TokensPair, TokenType } from '@/utils/pair'
+import { TokenType } from '@/utils/pair'
 import { Ref } from 'vue'
 import Debug from 'debug'
-import { Route } from '@/core/kaikas/entities'
+import { Route, DexPure, Wei } from '@/core'
 
 const debug = Debug('swap-amounts')
 

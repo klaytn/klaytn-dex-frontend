@@ -1,18 +1,22 @@
 import invariant from 'tiny-invariant'
+import { BigNumberIsh } from '../types'
 import CurrencyAmount from './CurrencyAmount'
 import TokenImpl from './TokenImpl'
-import Wei from './Wei'
-import { BigNumberIsh } from '../types'
+import Wei, { WeiAsToken } from './Wei'
 
 export default class TokenAmount extends CurrencyAmount {
-  public static fromWei(token: TokenImpl, amount: BigNumberIsh): TokenAmount {
-    return new TokenAmount(token, amount, true)
+  public static fromWei(token: TokenImpl, amount: Wei): TokenAmount {
+    return new TokenAmount(token, amount.asBigInt, true)
+  }
+
+  public static fromToken(token: TokenImpl, amount: WeiAsToken): TokenAmount {
+    return new TokenAmount(token, amount, false)
   }
 
   public readonly token: TokenImpl
 
-  public constructor(token: TokenImpl, amount: BigNumberIsh, wei = false) {
-    super(token, amount, wei)
+  private constructor(token: TokenImpl, amount: BigNumberIsh, withDecimals = true) {
+    super(token, amount, withDecimals)
     this.token = token
   }
 

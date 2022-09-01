@@ -1,6 +1,8 @@
 import { isAddress as ethersIsAddress } from '@ethersproject/address'
-import type { Address, Deadline } from './types'
+import type { Address, BigNumberIsh, Deadline } from './types'
 import { Wei } from './entities'
+import BigNumber from 'bignumber.js'
+import invariant from 'tiny-invariant'
 
 export const isAddress = ethersIsAddress as (raw: string) => raw is Address
 
