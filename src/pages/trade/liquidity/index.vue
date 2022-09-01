@@ -4,22 +4,10 @@ name: Liquidity
 
 <script lang="ts" setup>
 import { RouteName } from '@/types'
-
-const kaikasStore = useKaikasStore()
 </script>
 
 <template>
-  <p
-    v-if="!kaikasStore.isConnected"
-    class="pt-5 px-4"
-  >
-    Connect to Kaikas first
-  </p>
-
-  <div
-    v-else
-    class="space-y-4"
-  >
+  <div class="space-y-4">
     <h3 class="title px-4">
       Add liquidity to receive LP tokens
     </h3>

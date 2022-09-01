@@ -10,7 +10,7 @@ const isNotActive = not(isPairLoaded)
 const relativeTo100 = computed({
   get: () => (relativeTo1.value ?? 0) * 100,
   set: (num) => {
-    relativeTo1.value = num / 100
+    relativeTo1.value = num * 0.01
   },
 })
 
@@ -21,7 +21,7 @@ watch(relativeTo100, (val) => {
 watchDebounced(
   pickerValueDebounced,
   (value) => {
-    relativeTo100.value = value
+    if (!Number.isNaN(value)) relativeTo100.value = value
   },
   { debounce: 500 },
 )

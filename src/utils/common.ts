@@ -1,6 +1,5 @@
-import { Wei } from '@/core/kaikas'
-import { POOL_COMMISSION } from '@/core/kaikas/const'
-import { TokenAmount, Percent, Price, Fraction } from '@/core/kaikas/entities'
+import { POOL_COMMISSION, Wei } from '@/core'
+import { Price, TokenAmount, Percent, Fraction } from '@/core/kaikas/entities'
 import { Tab } from '@/types'
 import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'

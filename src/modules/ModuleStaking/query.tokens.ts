@@ -1,4 +1,5 @@
-import { Address } from '@/core/kaikas'
+import { Address } from '@/core'
+import { ApolloClientId } from '@/types'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
@@ -25,7 +26,7 @@ export function useTokensQuery(tokenIds: MaybeRef<Address[]>) {
       tokenIds: unref(tokenIds),
     }),
     {
-      clientId: 'exchange',
+      clientId: ApolloClientId.Exchange,
       pollInterval: REFETCH_TOKENS_INTERVAL,
     },
   )

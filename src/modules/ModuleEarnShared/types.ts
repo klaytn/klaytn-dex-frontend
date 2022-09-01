@@ -1,13 +1,9 @@
 import BigNumber from 'bignumber.js'
-import { Opaque } from 'type-fest'
-import { Address, Wei } from '@/core/kaikas'
+import type { Opaque } from 'type-fest'
+import type { PoolId } from '@/core'
+import type { Rewards } from '@/core/domain/earn'
 
-/**
- * Stringified number
- */
-export type PoolId = Opaque<string, 'PoolId'>
-
-export type Rewards<T extends Address | PoolId> = Record<T, Wei | undefined>
+export { PoolId, Rewards }
 
 export const ModalOperation = {
   Stake: 'stake',

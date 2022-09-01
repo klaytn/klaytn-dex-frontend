@@ -1,9 +1,10 @@
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { Ref } from 'vue'
-import { Address } from '@/core/kaikas'
+import { Address } from '@/core'
 import { PAGE_SIZE } from './const'
 import { ProposalState } from './types'
+import { ApolloClientId } from '@/types'
 
 export interface ProposalsQueryResult {
   proposals: {
@@ -53,7 +54,7 @@ export function useProposalsQuery(props: Ref<{ onlyActive: boolean; skip: number
       state: state.value,
     }),
     {
-      clientId: 'snapshot',
+      clientId: ApolloClientId.Snapshot,
     },
   )
 }

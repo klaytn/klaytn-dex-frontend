@@ -1,4 +1,4 @@
-import { Address, Wei, WeiAsToken } from '@/core/kaikas'
+import { Address, Wei, WeiAsToken } from '@/core'
 import { describe, test, expect } from 'vitest'
 import { buildSwapProps } from './util.swap-props'
 

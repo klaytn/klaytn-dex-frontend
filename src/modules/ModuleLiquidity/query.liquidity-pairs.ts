@@ -1,4 +1,5 @@
-import { Address, TokenSymbol, WeiAsToken } from '@/core/kaikas'
+import { Address, TokenSymbol, WeiAsToken } from '@/core'
+import { ApolloClientId } from '@/types'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 
@@ -35,7 +36,7 @@ interface Token {
 }
 
 export function useLiquidityPairsQuery() {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
 
   return useQuery<LiquidityPairsResult>(
     gql`
@@ -71,11 +72,11 @@ export function useLiquidityPairsQuery() {
       }
     `,
     () => ({
-      id: kaikasStore.address,
+      id: dexStore.account,
     }),
     () => ({
-      enabled: !!kaikasStore.address,
-      clientId: 'exchange',
+      enabled: !!dexStore.account,
+      clientId: ApolloClientId.Exchange,
     }),
   )
 }

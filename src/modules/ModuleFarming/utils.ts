@@ -1,4 +1,4 @@
-import { Wei, WeiAsToken } from '@/core/kaikas'
+import { Wei, WeiAsToken } from '@/core'
 
 export const CONSTANT_FARMING_DECIMALS = Object.freeze({ decimals: 18 })
 

@@ -35,7 +35,7 @@ const show = computed({
         <ModuleLiquidityAddDetails in-modal />
 
         <KlayButton
-          type="button"
+          type="primary"
           size="lg"
           class="w-full"
           :loading="supplyScope?.supplyState.pending"

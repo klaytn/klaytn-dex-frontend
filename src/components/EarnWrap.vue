@@ -7,7 +7,6 @@ import { KlayIconSearch } from '~klay-icons'
 const { t } = useI18n()
 const vBem = useBemClass()
 
-const kaikasStore = useKaikasStore()
 const farmingStore = useFarmingStore()
 const stakingStore = useStakingStore()
 
@@ -105,14 +104,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
       </KlayTextField>
     </div>
 
-    <slot v-if="kaikasStore.isConnected" />
-
-    <div
-      v-else
-      class="text-2xl font-bold flex-1 w-full flex items-center justify-center"
-    >
-      Connect kaikas first
-    </div>
+    <slot />
   </div>
 </template>
 

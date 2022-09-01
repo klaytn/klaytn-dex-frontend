@@ -4,9 +4,8 @@ import { roundTo } from 'round-to'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
 import { POOL_COMMISSION } from '@/core/kaikas/const'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
-import { NATIVE_TOKEN_DECIMALS } from '@/core/kaikas/const'
+import { NATIVE_TOKEN_DECIMALS, Wei } from '@/core'
 import { Ref } from 'vue'
-import { Wei } from '@/core/kaikas'
 import { KlayIconImportant } from '~klay-icons'
 
 const props = defineProps<{
