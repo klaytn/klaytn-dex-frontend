@@ -1,6 +1,6 @@
 import { Period } from './types'
 
-export const periodDays = {
+export const PERIOD_DAYS = {
   [Period.d1]: 1,
   [Period.d7]: 7,
   [Period.d14]: 14,

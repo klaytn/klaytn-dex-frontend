@@ -4,7 +4,7 @@ import { KlayIconSwitch } from '~klay-icons'
 import { SModal } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
 import { RoiType } from '@/types'
-import { periodDays } from './const'
+import { PERIOD_DAYS } from './const'
 import { formatNumberWithCommas, makeTabsArray } from '@/utils/common'
 import { StakeTabs, CompoundingTabs, StakeUnits } from './types'
 import { useBigNumberInput } from '@/utils/composable.input-bignumber'
@@ -99,7 +99,7 @@ const totalApr = computed(() => {
 })
 
 const compoundsPerYear = computed(() => {
-  return Math.floor(365 / periodDays[compoundingEvery.value])
+  return Math.floor(365 / PERIOD_DAYS[compoundingEvery.value])
 })
 
 const apy = computed(() => {
@@ -130,7 +130,7 @@ const receiveValue = computed(() => {
   return apy.value
     .div(100)
     .times(parsedStakeValue.value)
-    .times(periodDays[stakeFor.value] / 365)
+    .times(PERIOD_DAYS[stakeFor.value] / 365)
 })
 
 const formattedReceiveValue = computed(() => {
@@ -142,7 +142,7 @@ const receiveValueInAnotherUnits = computed(() => {
   return apy.value
     .div(100)
     .times(stakeValueInAnotherUnits.value)
-    .times(periodDays[stakeFor.value] / 365)
+    .times(PERIOD_DAYS[stakeFor.value] / 365)
 })
 
 const formattedReceiveValueInAnotherUnits = computed(() => {
