@@ -146,6 +146,7 @@ export function usePairBalance(
         },
         { immediate: true },
       )
+      usePromiseLog(state, 'pair-balance')
 
       return { state, run }
     },

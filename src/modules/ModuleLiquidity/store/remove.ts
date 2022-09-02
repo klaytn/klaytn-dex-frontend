@@ -21,9 +21,9 @@ function usePrepareSupply(props: {
   pairAddress: Ref<null | Address>
   liquidity: Ref<Wei | null>
   amounts: Ref<null | TokensPair<Wei>>
+  whenSupplied: () => void
 }) {
   const dexStore = useDexStore()
-  const tokensStore = useTokensStore()
   const { notify } = useNotify()
 
   const [active, setActive] = useToggle(false)
@@ -79,9 +79,7 @@ function usePrepareSupply(props: {
 
       usePromiseLog(supplyState, 'liquidity-remove-supply')
       useNotifyOnError(supplyState, notify, 'Supply failed')
-      wheneverFulfilled(supplyState, () => {
-        tokensStore.touchUserBalance()
-      })
+      wheneverFulfilled(supplyState, props.whenSupplied)
 
       const fee = computed(() => prepareState.fulfilled?.value?.fee)
 
@@ -131,7 +129,7 @@ function useRemoveAmounts(
       if (!tokens.value || activeDex.kind !== 'named') return null
       const pairAddr = pair.value
       const lpTokenValue = liquidity.value
-      if (!pairAddr || !lpTokenValue) return null
+      if (!pairAddr || !lpTokenValue || !lpTokenValue.asBigInt) return null
 
       const key = `dex-${activeDex.wallet}-${pairAddr}-${lpTokenValue.asStr}`
 
@@ -174,6 +172,14 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     serializer: JSON_SERIALIZER as Serializer<any>,
   })
   const selectedFiltered = computed(() => (isActiveRoute.value ? unref(selectedRaw) : null))
+
+  const router = useRouter()
+  function navigateToLiquidity() {
+    router.push({ name: RouteName.Liquidity })
+  }
+
+  // there is no point to stay here if there is no selection
+  whenever(() => isActiveRoute.value && !selectedRaw.value, navigateToLiquidity)
 
   const tokensStore = useTokensStore()
   const selectedTokensData = computed(() => {
@@ -233,6 +239,8 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
   /**
    * liquidity value relative to pair balance of user
+   *
+   * **note**: works only when `pairUserBalance` is computed
    */
   const liquidityRelative = computed<number | null>({
     get: () => {
@@ -286,6 +294,10 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     pairAddress: computed(() => existingPair.value?.addr ?? null),
     liquidity,
     amounts,
+    whenSupplied: () => {
+      tokensStore.touchUserBalance()
+      navigateToLiquidity()
+    },
   })
 
   function closeSupply() {

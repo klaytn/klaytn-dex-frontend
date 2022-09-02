@@ -4,11 +4,10 @@ name: Trade
 
 <script setup lang="ts">
 import { RouteName } from '@/types'
-import { storeToRefs } from 'pinia'
-import { KlayIconBackArrow, KlayIconRefresh } from '~klay-icons'
+import { KlayIconBackArrow } from '~klay-icons'
 
-const tokensStore = useTokensStore()
-const { isBalancePending, isImportedPending } = storeToRefs(tokensStore)
+// const tokensStore = useTokensStore()
+// const { isBalancePending, isImportedPending } = storeToRefs(tokensStore)
 
 const removeStore = useLiquidityRmStore()
 
@@ -42,9 +41,9 @@ const headLinks: {
   },
 ]
 
-function refresh() {
-  tokensStore.touchUserBalance()
-}
+// function refresh() {
+//   tokensStore.touchUserBalance()
+// }
 </script>
 
 <template>
@@ -81,7 +80,7 @@ function refresh() {
 
       <div class="flex-1" />
 
-      <KlayButton
+      <!-- <KlayButton
         type="action"
         rounded
         :loading="isBalancePending || isImportedPending"
@@ -90,7 +89,7 @@ function refresh() {
         <template #icon>
           <KlayIconRefresh />
         </template>
-      </KlayButton>
+      </KlayButton> -->
     </div>
 
     <RouterView />
