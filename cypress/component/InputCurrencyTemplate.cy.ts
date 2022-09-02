@@ -70,10 +70,6 @@ describe('InputCurrencyTemplate', () => {
     cy.contains('Chu!')
   })
 
-  it.skip('whem "right" is not enabled, grid have the only one column', () => {
-    cy.mount({ template: `<InputCurrencyTemplate />` }).should('have.css', 'grid-template-columns', '1fr')
-  })
-
   it('input numeric filtering is disabled when prop is set', () => {
     cy.mount({
       setup() {
