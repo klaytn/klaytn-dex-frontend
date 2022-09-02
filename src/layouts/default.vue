@@ -1,9 +1,12 @@
 <script setup lang="ts" name="DefaultLayout">
-import { formatAddress } from '@/core/kaikas'
 import { type HeaderMenuItem, RouteName } from '@/types'
-import { storeToRefs } from 'pinia'
-import { KlayIconDexLogo, KlayIconWallet } from '~klay-icons'
+import { KlayIconDexLogo } from '~klay-icons'
 import { SToastsDisplay } from '@soramitsu-ui/ui'
+import HeaderMenu from '@/components/HeaderMenu.vue'
+
+// Good for tree-shaking
+const TheWalletConnect = defineAsyncComponent(() => import('@/components/TheWalletConnect.vue'))
+const DexInitGuard = defineAsyncComponent(() => import('@/components/DexInitGuard.vue'))
 
 const { t } = useI18n()
 
@@ -33,57 +36,38 @@ const menu = computed<HeaderMenuItem[]>(() => {
     },
   ]
 })
-
-const kaikasStore = useKaikasStore()
-const { address, isNotInstalled } = storeToRefs(kaikasStore)
-
-const formattedAddress = computed(() => {
-  if (!address.value) return ''
-  return formatAddress(address.value)
-})
-
-onMounted(() => kaikasStore.connect())
 </script>
 
 <template>
-  <main class="layout">
-    <header class="relative">
-      <div class="col">
-        <a href="#">
-          <KlayIconDexLogo />
-        </a>
-      </div>
-      <div class="col col-center">
-        <HeaderMenu :items="menu" />
-      </div>
-
-      <div class="col col-right">
-        <div v-if="isNotInstalled || !address">
-          Connect Wallet
+  <DexInitGuard>
+    <main class="layout">
+      <header class="relative">
+        <div class="col">
+          <a href="#">
+            <KlayIconDexLogo />
+          </a>
         </div>
-        <div
-          v-if="address"
-          class="address"
-        >
-          <KlayIconWallet />
-          <span>
-            {{ formattedAddress }}
-          </span>
+        <div class="col col-center">
+          <HeaderMenu :items="menu" />
         </div>
-      </div>
 
-      <div class="toasts-mount absolute right-0 bottom-0 w-full">
-        <SToastsDisplay
-          :to="(null as any)"
-          absolute
-          vertical="top"
-          horizontal="right"
-        />
-      </div>
-    </header>
+        <div class="col col-right">
+          <TheWalletConnect />
+        </div>
 
-    <RouterView />
-  </main>
+        <div class="toasts-mount absolute right-0 bottom-0 w-full">
+          <SToastsDisplay
+            :to="(null as any)"
+            absolute
+            vertical="top"
+            horizontal="right"
+          />
+        </div>
+      </header>
+
+      <RouterView />
+    </main>
+  </DexInitGuard>
 </template>
 
 <style scoped lang="scss">

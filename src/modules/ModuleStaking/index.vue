@@ -8,11 +8,10 @@ import { PAGE_SIZE, BLOCKS_PER_YEAR } from './const'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { TokenPriceInUSD, AmountInUSD, PercentageRate } from '../ModuleEarnShared/types'
 import { useFetchStakingRewards } from './composable.fetch-rewards'
-import { Wei, WeiAsToken, WeiRaw, Address } from '@/core/kaikas'
+import { Wei, WeiAsToken, WeiRaw, Address } from '@/core'
 import { deepClone } from '@/utils/common'
 
-const kaikasStore = useKaikasStore()
-const kaikas = kaikasStore.getKaikasAnyway()
+const dexStore = useDexStore()
 
 const vBem = useBemClass()
 
@@ -21,9 +20,9 @@ const { stakedOnly, searchQuery, sorting } = toRefs(stakingStore)
 
 const page = ref(1)
 
-const blockNumber = useBlockNumber(kaikas)
+const blockNumber = useBlockNumber(computed(() => dexStore.anyDex.dex().agent))
 
-const PoolsQuery = usePoolsQuery(computed(() => kaikas.selfAddress))
+const PoolsQuery = usePoolsQuery(toRef(dexStore, 'account'))
 const rawPools = computed(() => {
   return PoolsQuery.result.value?.pools ?? null
 })
@@ -35,11 +34,15 @@ const rawPoolIds = computed(() => {
 
 const stakeAndRewardTokenIds = computed(() => {
   if (!rawPools.value) return null
-  return Array.from(new Set(rawPools.value.reduce((accumulator, pool) => {
-    accumulator.push(pool.stakeToken.id)
-    accumulator.push(pool.rewardToken.id)
-    return accumulator
-  }, [] as Address[])))
+  return Array.from(
+    new Set(
+      rawPools.value.reduce((accumulator, pool) => {
+        accumulator.push(pool.stakeToken.id)
+        accumulator.push(pool.rewardToken.id)
+        return accumulator
+      }, [] as Address[]),
+    ),
+  )
 })
 
 const TokensQuery = useTokensQuery(computed(() => stakeAndRewardTokenIds.value || []))
@@ -50,18 +53,15 @@ const tokens = computed(() => {
 function handlePoolsQueryResult() {
   TokensQuery.load()
 
-  if (TokensQuery.result)
-    TokensQuery.refetch()
+  if (TokensQuery.result) TokensQuery.refetch()
 }
 PoolsQuery.onResult(() => {
   handlePoolsQueryResult()
 })
 // Workaround for cached results: https://github.com/vuejs/apollo/issues/1154
-if (PoolsQuery.result.value)
-  handlePoolsQueryResult()
+if (PoolsQuery.result.value) handlePoolsQueryResult()
 
 const { rewards, areRewardsFetched } = useFetchStakingRewards({
-  kaikas,
   poolIds: rawPoolIds,
   updateBlockNumber: (v) => {
     blockNumber.value = v
@@ -84,16 +84,12 @@ const pools = computed<Pool[] | null>(() => {
   let pools = [] as Pool[]
 
   rawPools.value.forEach((pool) => {
-    if (!rawPools.value ||!blockNumber.value || !rewards.value || !tokens.value) return
+    if (!rawPools.value || !blockNumber.value || !rewards.value || !tokens.value) return
 
     const id = pool.id
 
-    const reward = rewards.value[pool.id]
-    const earned = reward
-      ? new BigNumber(
-          reward.toToken(pool.rewardToken)
-        ) as WeiAsToken<BigNumber>
-      : null
+    const reward = rewards.value.get(pool.id)
+    const earned = reward ? (new BigNumber(reward.toToken(pool.rewardToken)) as WeiAsToken<BigNumber>) : null
 
     if (earned === null) return
 
@@ -110,22 +106,24 @@ const pools = computed<Pool[] | null>(() => {
       new Wei(pool.users[0]?.amount ?? '0').toToken(pool.stakeToken),
     ) as WeiAsToken<BigNumber>
 
-    const stakeTokenFromTokensQuery = tokens.value.find(token => token.id === pool.stakeToken.id)
-    const rewardTokenFromTokensQuery = tokens.value.find(token => token.id === pool.rewardToken.id)
+    const stakeTokenFromTokensQuery = tokens.value.find((token) => token.id === pool.stakeToken.id)
+    const rewardTokenFromTokensQuery = tokens.value.find((token) => token.id === pool.rewardToken.id)
 
     if (!stakeTokenFromTokensQuery || !rewardTokenFromTokensQuery) return
-    
+
     const stakeTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
     const rewardTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
 
     const totalTokensStaked = new BigNumber(
-      new Wei(pool.totalTokensStaked).toToken(stakeToken)
+      new Wei(pool.totalTokensStaked).toToken(stakeToken),
     ) as WeiAsToken<BigNumber>
     const totalStaked = stakeTokenPrice.times(totalTokensStaked) as AmountInUSD
 
     const rewardRate = new BigNumber(pool.rewardRate)
     const totalRewardPricePerYear = rewardRate.times(BLOCKS_PER_YEAR).times(rewardTokenPrice)
-    const annualPercentageRate = (!totalStaked.isZero() ? totalRewardPricePerYear.div(totalStaked).times(100) : new BigNumber(0)) as PercentageRate
+    const annualPercentageRate = (
+      !totalStaked.isZero() ? totalRewardPricePerYear.div(totalStaked).times(100) : new BigNumber(0)
+    ) as PercentageRate
 
     const createdAtBlock = Number(pool.createdAtBlock)
 
@@ -204,10 +202,7 @@ function updateStaked(poolId: Pool['id'], diff: BigNumber) {
   const pool = clonedQueryResult.pools.find((pool) => pool.id === poolId)
   if (!pool) return
 
-  const diffInWei = Wei.fromToken(
-    pool.stakeToken,
-    diff.toFixed() as WeiAsToken,
-  )
+  const diffInWei = Wei.fromToken(pool.stakeToken, diff.toFixed() as WeiAsToken)
 
   pool.totalTokensStaked = new BigNumber(pool.totalTokensStaked).plus(diffInWei.asBigNum).toFixed(0) as WeiRaw<string>
 

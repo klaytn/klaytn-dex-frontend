@@ -1,8 +1,9 @@
-import { Address } from '@/core/kaikas'
+import { Address, ADDRESS_REWARD_TOKEN } from '@/core'
+import { ApolloClientId } from '@/types'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
-import { REFETCH_FARMING_INTERVAL, REWARD_TOKEN_ADDRESS } from './const'
+import { REFETCH_FARMING_INTERVAL } from './const'
 
 export interface PairsAndRewardTokenQueryResult {
   pairs: {
@@ -13,7 +14,7 @@ export interface PairsAndRewardTokenQueryResult {
     dayData: {
       volumeUSD: string
     }[]
-  }[],
+  }[]
   token: {
     derivedUSD: string
   }
@@ -32,14 +33,14 @@ export function usePairsAndRewardTokenQuery(pairIds: MaybeRef<Address[]>) {
             volumeUSD
           }
         },
-        token(id: "${REWARD_TOKEN_ADDRESS}") {
+        token(id: "${ADDRESS_REWARD_TOKEN}") {
           derivedUSD
         }
       }
     `,
     () => ({ pairIds: unref(pairIds) }),
     {
-      clientId: 'exchange',
+      clientId: ApolloClientId.Exchange,
       pollInterval: REFETCH_FARMING_INTERVAL,
     },
   )

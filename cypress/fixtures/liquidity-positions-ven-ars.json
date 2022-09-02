@@ -1,0 +1,32 @@
+[
+  {
+    "liquidityTokenBalance": "700",
+    "pair": {
+      "id": "0xf318d8ab59e3f6bca4849be9619642028ad4cde4",
+      "name": "VEN-ARS",
+      "reserve0": "1000",
+      "reserve1": "1000",
+      "token0": {
+        "id": "0x1cdcd477994e86a11e21c27ca907bea266ea3a0a",
+        "name": "Venus",
+        "symbol": "VEN",
+        "decimals": "18",
+        "__typename": "Token"
+      },
+      "token1": {
+        "id": "0xafea7569b745eae7ab22cf17c3b237c3350407a1",
+        "name": "Mars",
+        "symbol": "ARS",
+        "decimals": "18",
+        "__typename": "Token"
+      },
+      "reserveKLAY": "50263.46445339067810651885579475099",
+      "reserveUSD": "14581.17972060636876531058747177829",
+      "token1Price": "1",
+      "totalSupply": "1000",
+      "volumeUSD": "0",
+      "__typename": "Pair"
+    },
+    "__typename": "LiquidityPosition"
+  }
+]

@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { Wei } from '@/core/kaikas'
-import { WHITELIST_TOKENS } from '@/core/kaikas/const'
+import { Wei, WHITELIST_TOKENS } from '@/core'
 import { useSwapValidation } from './composable.validation'
 
 const getTwoTokens = () => WHITELIST_TOKENS.slice(2, 4)

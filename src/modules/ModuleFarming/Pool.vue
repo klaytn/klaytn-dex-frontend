@@ -1,18 +1,15 @@
 <script setup lang="ts" name="ModuleFarmingPool">
 import { RouteName, RoiType } from '@/types'
-import { FARMING } from '@/core/kaikas/smartcontracts/abi'
 import { ModalOperation, Pool } from './types'
-import { FORMATTED_BIG_INT_DECIMALS, FARMING_CONTRACT_ADDRESS } from './const'
-import { Farming } from '@/types/typechain/farming'
+import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 import { CONSTANT_FARMING_DECIMALS } from './utils'
+import { Wei, ADDRESS_FARMING } from '@/core'
 
-const kaikasStore = useKaikasStore()
+const dexStore = useDexStore()
 const { notify } = useNotify()
-const kaikas = kaikasStore.getKaikasAnyway()
-const FarmingContract = kaikas.cfg.createContract<Farming>(FARMING_CONTRACT_ADDRESS, FARMING)
 
 const vBem = useBemClass()
 const router = useRouter()
@@ -84,8 +81,8 @@ const {
   enable,
   enabled,
 } = useEnableState({
-  addr: eagerComputed(() => pool.value.pairId),
-  contractAddr: FARMING_CONTRACT_ADDRESS,
+  contract: eagerComputed(() => pool.value.pairId),
+  spender: ADDRESS_FARMING,
   active: expanded,
 })
 
@@ -103,18 +100,10 @@ function unstake() {
 }
 
 const { state: withdrawState, run: withdraw } = useTask(async () => {
+  const dex = dexStore.getNamedDexAnyway()
+
   const earned = pool.value.earned
-  const gasPrice = await kaikas.cfg.getGasPrice()
-  const withdraw = FarmingContract.methods.withdraw(props.pool.id, 0)
-  const estimateGas = await withdraw.estimateGas({
-    from: kaikas.selfAddress,
-    gasPrice: gasPrice.asBN,
-  })
-  await withdraw.send({
-    from: kaikas.selfAddress,
-    gas: estimateGas,
-    gasPrice: gasPrice.asBN,
-  })
+  await dex.earn.farming.withdraw({ poolId: props.pool.id, amount: new Wei(0) })
 
   return { earned }
 })
@@ -256,7 +245,7 @@ function openRoiCalculator(event: Event, pool: Pool) {
         <a
           v-bem="'link'"
           target="_blank"
-          :href="`https://baobab.klaytnfinder.io/account/${FARMING_CONTRACT_ADDRESS}`"
+          :href="`https://baobab.klaytnfinder.io/account/${ADDRESS_FARMING}`"
         >
           View Contract
           <KlayIconLink v-bem="'link-icon'" />

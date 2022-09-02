@@ -15,6 +15,7 @@ declare module '~klay-icons' {
   export const KlayIconEth: DefineComponent<{}, {}, any>
   export const KlayIconFilters: DefineComponent<{}, {}, any>
   export const KlayIconImportant: DefineComponent<{}, {}, any>
+  export const KlayIconKaikas: DefineComponent<{}, {}, any>
   export const KlayIconKlay: DefineComponent<{}, {}, any>
   export const KlayIconLink: DefineComponent<{}, {}, any>
   export const KlayIconPlus: DefineComponent<{}, {}, any>

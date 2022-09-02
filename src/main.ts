@@ -20,8 +20,7 @@ const app = createApp(App)
 const routes = setupLayouts(generatedRoutes)
 const router = createRouter({ history: createWebHistory(), routes })
 app.use(router)
-
-;(Object.values(import.meta.globEager('./plugins/*.ts')) as { install?: Plugin }[]).forEach((i) =>
+;(Object.values(import.meta.glob('./plugins/*.ts', { eager: true })) as { install?: Plugin }[]).forEach((i) =>
   i.install?.({ app, router, routes }),
 )
 

@@ -1,19 +1,12 @@
-import { Except } from 'type-fest'
-import { GenericFetchRewardsProps, useFetchRewards } from '../ModuleEarnShared/composable.fetch-rewards'
-import { STAKING } from '@/core/kaikas/smartcontracts/abi'
-import invariant from 'tiny-invariant'
-import { Address } from '@/core/kaikas'
+import type { Except } from 'type-fest'
+import { type GenericFetchRewardsProps, useFetchRewards } from '../ModuleEarnShared/composable.fetch-rewards'
+import type { Address } from '@/core'
 
-export function useFetchStakingRewards(props: Except<GenericFetchRewardsProps<Address>, 'prepareCalls'>) {
-  const abiItem = STAKING.find((item) => item.name === 'pendingReward')
-  invariant(abiItem)
+export function useFetchStakingRewards(props: Except<GenericFetchRewardsProps<Address>, 'fetchFn'>) {
+  const dexStore = useDexStore()
 
   return useFetchRewards({
     ...props,
-    prepareCalls: (ids) => {
-      return ids.map((poolId) => {
-        return [poolId, props.kaikas.cfg.caver.klay.abi.encodeFunctionCall(abiItem, [props.kaikas.selfAddress])]
-      })
-    },
+    fetchFn: (pools) => dexStore.getNamedDexAnyway().earn.staking.getRewards(pools),
   })
 }

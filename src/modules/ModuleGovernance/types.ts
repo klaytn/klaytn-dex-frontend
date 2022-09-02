@@ -1,4 +1,4 @@
-import { Address } from '@/core/kaikas'
+import { Address } from '@/core'
 import { ProposalQueryResult } from './query.proposal'
 
 export const Sorting = {
@@ -10,7 +10,7 @@ export type Sorting = typeof Sorting[keyof typeof Sorting]
 
 export const ProposalState = {
   Active: 'active',
-  Closed: 'closed'
+  Closed: 'closed',
 } as const
 
 export type ProposalState = typeof ProposalState[keyof typeof ProposalState]
@@ -19,7 +19,7 @@ export const ProposalStatus = {
   Active: 'active',
   Executed: 'executed',
   Defeated: 'defeated',
-  Finished: 'finished'
+  Finished: 'finished',
 } as const
 
 export type ProposalStatus = typeof ProposalStatus[keyof typeof ProposalStatus]
@@ -41,9 +41,9 @@ export interface Proposal {
   end: number
   status: ProposalStatus
   choices: string[]
-  scores: number[],
-  scoresTotal: number,
-  body: string,
+  scores: number[]
+  scoresTotal: number
+  body: string
   author: Address
   snapshot: number
 }

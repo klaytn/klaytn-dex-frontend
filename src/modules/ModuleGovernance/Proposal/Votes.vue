@@ -1,5 +1,5 @@
 <script setup lang="ts" name="ModuleGovernanceProposalVotes">
-import { formatAddress } from '@/core/kaikas'
+import { formatAddress } from '@/core'
 import { PAGE_SIZE } from '../const'
 import { useVotesQuery } from '../query.votes'
 import { Proposal } from '../types'
@@ -20,10 +20,12 @@ const skip = computed(() => {
 const expanded = ref(true)
 const showViewMore = ref(true)
 
-const VotesQuery = useVotesQuery(computed(() => ({
-  skip: 0,
-  proposalId: proposal.value.id
-})))
+const VotesQuery = useVotesQuery(
+  computed(() => ({
+    skip: 0,
+    proposalId: proposal.value.id,
+  })),
+)
 const votes = computed(() => {
   return VotesQuery.result.value?.votes ?? null
 })
@@ -46,7 +48,7 @@ function viewMore() {
     // New variables
     variables: {
       skip: skip.value,
-      proposalId: proposal.value.id
+      proposalId: proposal.value.id,
     },
     // Transform the previous result with new data
     updateQuery: (previousResult, { fetchMoreResult }) => {

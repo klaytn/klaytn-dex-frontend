@@ -1,16 +1,13 @@
 <script setup lang="ts" name="ModuleStakingPool">
-import { Status } from '@soramitsu-ui/ui'
-import { or } from '@vueuse/core'
 import { KlayIconCalculator, KlayIconClock, KlayIconLink } from '~klay-icons'
 import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
-import { StakingInitializable } from '@/types/typechain/farming/StakingFactoryPool.sol'
 import { RouteName, RoiType } from '@/types'
 import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
-import { STAKING } from '@/core/kaikas/smartcontracts/abi'
+import { Wei } from '@/core'
 
-const kaikas = useKaikasStore().getKaikasAnyway()
+const dexStore = useDexStore()
 const { notify } = useNotify()
 
 const vBem = useBemClass()
@@ -29,10 +26,6 @@ const emit = defineEmits<{
   (e: 'withdrawn'): void
 }>()
 
-const PoolContract = kaikas.cfg.createContract<StakingInitializable>(pool.value.id, STAKING)
-
-const stakingStore = useStakingStore()
-
 const expanded = ref(false)
 const modalOperation = ref<ModalOperation | null>(null)
 
@@ -45,19 +38,31 @@ const modalOpen = computed({
   },
 })
 
-const balanceScope = useParamScope(or(modalOpen, showRoiCalculator), () => {
-  const { state } = useTask(
-    async () => {
-      const token = pool.value.stakeToken
-      const balance = await kaikas.tokens.getTokenBalanceOfUser(token.id)
-      return new BigNumber(balance.toToken(token))
-    },
-    { immediate: true },
-  )
-  usePromiseLog(state, 'get-balance')
+const balanceScope = useParamScope(
+  computed(() => {
+    const activeDex = dexStore.active
+    return (
+      activeDex.kind === 'named' &&
+      (unref(modalOpen) || unref(showRoiCalculator)) && {
+        key: `dex-${activeDex.wallet}`,
+        payload: activeDex.dex(),
+      }
+    )
+  }),
+  (dex) => {
+    const { state } = useTask(
+      async () => {
+        const token = pool.value.stakeToken
+        const balance = await dex.tokens.getTokenBalanceOfUser(token.id)
+        return new BigNumber(balance.toToken(token))
+      },
+      { immediate: true },
+    )
+    usePromiseLog(state, 'get-balance')
 
-  return state
-})
+    return state
+  },
+)
 const balance = computed(() => {
   return balanceScope.value?.expose?.fulfilled?.value ?? null
 })
@@ -99,8 +104,8 @@ const {
   enable,
   enabled,
 } = useEnableState({
-  addr: eagerComputed(() => pool.value.stakeToken.id),
-  contractAddr: eagerComputed(() => pool.value.id),
+  contract: eagerComputed(() => pool.value.stakeToken.id),
+  spender: eagerComputed(() => pool.value.id),
   active: expanded,
 })
 
@@ -113,7 +118,7 @@ function unstake() {
 }
 
 function addToKaikas(pool: Pool) {
-  stakingStore.addTokenToKaikas({
+  dexStore.getNamedDexAnyway().agent.watchAsset({
     address: pool.rewardToken.id,
     symbol: pool.rewardToken.symbol,
     decimals: pool.rewardToken.decimals,
@@ -133,18 +138,7 @@ function goToSwapPage() {
 
 const { state: withdrawState, run: withdraw } = useTask(async () => {
   const earned = pool.value.earned
-  const gasPrice = await kaikas.cfg.caver.klay.getGasPrice()
-  const withdraw = PoolContract.methods.withdraw(0)
-  const estimateGas = await withdraw.estimateGas({
-    from: kaikas.selfAddress,
-    gasPrice,
-  })
-  await withdraw.send({
-    from: kaikas.selfAddress,
-    gas: estimateGas,
-    gasPrice,
-  })
-
+  await dexStore.getNamedDexAnyway().earn.staking.withdraw({ amount: new Wei(0) })
   return { earned }
 })
 usePromiseLog(withdrawState, 'staking-pool-withdraw')

@@ -21,6 +21,7 @@ module.exports = {
     'spaced-comment': ['error', 'always', { markers: ['/'] }],
 
     'no-unused-vars': 'warn',
+    'no-duplicate-imports': 'off',
   },
   overrides: [
     {

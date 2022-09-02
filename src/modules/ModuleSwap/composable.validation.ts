@@ -1,4 +1,4 @@
-import { Wei, Token } from '@/core/kaikas'
+import { Wei, Token } from '@/core'
 import { Ref } from 'vue'
 import { PairAddressResultSimplified } from '../ModuleTradeShared/composable.pair-by-tokens'
 
