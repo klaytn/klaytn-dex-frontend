@@ -1,24 +1,12 @@
 import { TokenAmount, TokenImpl, Wei } from '@/core'
-import { MaybeRef } from '@vueuse/core'
+import { buildPair, TokensPair } from '@/utils/pair'
+import { Ref } from 'vue'
 
-interface Props {
-  inputToken: MaybeRef<TokenImpl | null>
-  outputToken: MaybeRef<TokenImpl | null>
-  inputAmountInWei: MaybeRef<Wei | null>
-  outputAmountInWei: MaybeRef<Wei | null>
-}
-
-export function useTokenAmounts(props: Props) {
+export function useTokenAmounts(
+  props: TokensPair<{ token: TokenImpl; amount: Wei } | null>,
+): Ref<TokensPair<TokenAmount> | null> {
   return computed(() => {
-    // unrefProps() ?
-    const inputToken = unref(props.inputToken)
-    const outputToken = unref(props.outputToken)
-    const inputAmountInWei = unref(props.inputAmountInWei)
-    const outputAmountInWei = unref(props.outputAmountInWei)
-    if (!inputToken || !outputToken || !inputAmountInWei || !outputAmountInWei) return null
-    return {
-      inputAmount: TokenAmount.fromWei(inputToken, inputAmountInWei),
-      outputAmount: TokenAmount.fromWei(outputToken, outputAmountInWei),
-    }
+    if (!props.tokenA || !props.tokenB) return null
+    return buildPair((type) => TokenAmount.fromWei(props[type]!.token, props[type]!.amount))
   })
 }

@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia'
 import cssRows from '../ModuleTradeShared/rows.module.scss'
 
 const store = useSwapStore()
-const { rates, symbols, route, priceImpact } = storeToRefs(store)
+const { finalRates: rates, symbols, route, priceImpact } = storeToRefs(store)
 
 const bothSymbols = computed(() => {
   const { tokenA, tokenB } = symbols.value || {}

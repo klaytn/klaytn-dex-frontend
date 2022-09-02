@@ -35,7 +35,7 @@ const router = useRouter()
 const addLiquidityStore = useLiquidityAddStore()
 
 function goToAddLiquidity() {
-  addLiquidityStore.setBoth(pairAddrs.value)
+  addLiquidityStore.setBothAddresses(pairAddrs.value)
   router.push({ name: RouteName.LiquidityAdd })
 }
 

@@ -16,7 +16,14 @@ const cssRowClassForBottomLines = computed(() => {
 })
 
 const store = useLiquidityAddStore()
-const { rates, symbols, tokens, formattedPoolShare, pairReserves: reserves, supplyScope } = storeToRefs(store)
+const {
+  finalRates: rates,
+  symbols,
+  tokens,
+  formattedPoolShare,
+  pairReserves: reserves,
+  supplyScope,
+} = storeToRefs(store)
 
 const formattedReserves = reactive(
   buildPair((type) => {
