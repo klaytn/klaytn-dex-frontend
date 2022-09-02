@@ -19,7 +19,7 @@ const roundedTokenRelativeAmount = computed(() => {
 </script>
 
 <template>
-  <InputTokenTemplate
+  <InputCurrencyTemplate
     :model-value="roundedTokenRelativeAmount?.toString()"
     input-readonly
     :input-loading="isLoading"
@@ -33,7 +33,7 @@ const roundedTokenRelativeAmount = computed(() => {
         <span class="token-symbol">{{ token.symbol }}</span>
       </div>
     </template>
-  </InputTokenTemplate>
+  </InputCurrencyTemplate>
 </template>
 
 <style lang="scss">
