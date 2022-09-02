@@ -39,6 +39,7 @@ const show = computed({
           size="lg"
           class="w-full"
           :loading="supplyScope?.supplyState.pending"
+          data-testid="add-liquidity-modal-confirm"
           @click="supply()"
         >
           Confirm Supply
