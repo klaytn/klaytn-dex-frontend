@@ -1,14 +1,15 @@
 import { TokenImpl, TokenAmount, Route, Pair, Wei } from '@/core'
-import { TokenType } from '@/utils/pair'
+import { TokensPair, TokenType } from '@/utils/pair'
 import { MaybeRef } from '@vueuse/core'
 import { ComputedRef } from 'vue'
 
 interface SwapRouteProps {
+  tokens: TokensPair<TokenImpl | null>
   pairs: MaybeRef<Pair[] | null>
-  inputToken: MaybeRef<TokenImpl | null>
-  outputToken: MaybeRef<TokenImpl | null>
-  amountInWei: MaybeRef<Wei | null>
-  amountFor: MaybeRef<TokenType | null>
+  amount: MaybeRef<{
+    from: TokenType
+    wei: Wei
+  } | null>
 }
 
 export type SwapRouteResult =
@@ -23,14 +24,12 @@ export type SwapRouteResult =
 export function useSwapRoute(props: SwapRouteProps): ComputedRef<SwapRouteResult | null> {
   return computed(() => {
     const pairs = unref(props.pairs)
-    const inputToken = unref(props.inputToken)
-    const outputToken = unref(props.outputToken)
-    const amountInWei = unref(props.amountInWei)
-    const amountFor = unref(props.amountFor)
+    const { tokenA: inputToken, tokenB: outputToken } = props.tokens
+    const { from: amountFrom, wei: amountInWei } = unref(props.amount) ?? {}
 
-    if (!pairs || !inputToken || !outputToken || !amountInWei || !amountFor) return null
+    if (!pairs || !inputToken || !outputToken || !amountInWei || !amountFrom) return null
 
-    const amount = TokenAmount.fromWei(amountFor === 'tokenB' ? inputToken : outputToken, amountInWei)
+    const amount = TokenAmount.fromWei(amountFrom === 'tokenA' ? inputToken : outputToken, amountInWei)
 
     const route = Route.fromBestRate({
       pairs: pairs,

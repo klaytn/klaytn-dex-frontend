@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, TokenSymbol, WeiAsToken } from '@/core'
+import { Address, Token, TokenSymbol, WeiAsToken } from '@/core'
 import { Wei, Route, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS } from '@/core'
 import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
@@ -107,6 +107,15 @@ export const useSwapStore = defineStore('swap', () => {
   const { tokens, resetInput, tokenValues } = selection
   const addrsReadonly = readonly(selection.addrs)
 
+  const tokenImpls = reactive(
+    buildPair((type) =>
+      computed(() => {
+        const token = tokens[type]
+        return token && new TokenImpl(token)
+      }),
+    ),
+  )
+
   const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
 
   function setTokenAddress(type: TokenType, addr: Address | null) {
@@ -117,6 +126,8 @@ export const useSwapStore = defineStore('swap', () => {
     selection.setBothAddrs(pair)
     selection.resetInput()
   }
+
+  const { estimatedFor, setEstimated, setMainToken } = useEstimatedLayer(selection)
 
   // #endregion
 
@@ -154,20 +165,6 @@ export const useSwapStore = defineStore('swap', () => {
     )
   })
 
-  const inputToken = computed(() => (tokens.tokenA ? new TokenImpl(tokens.tokenA) : null))
-  const outputToken = computed(() => (tokens.tokenB ? new TokenImpl(tokens.tokenB) : null))
-
-  const amountFor = computed(() => selectionInput.exchangeRateFor.value)
-
-  const swapRoute = useSwapRoute({
-    pairs,
-    inputToken,
-    outputToken,
-    amountInWei: computed(() => selection.inputNormalized.value?.wei ?? null),
-    amountFor,
-  })
-  const route = computed(() => (swapRoute.value?.kind === 'exist' ? swapRoute.value.route : null))
-
   const { pair: pairAddrResult } = usePairAddress(addrsReadonly)
   const { result: pairBalance } = usePairBalance(
     addrsReadonly,
@@ -178,31 +175,44 @@ export const useSwapStore = defineStore('swap', () => {
 
   // #endregion
 
-  // #region estimated
+  // #region Route & Amounts
 
-  const { estimatedFor, setEstimated, setMainToken } = useEstimatedLayer(selection)
+  const inputAmount = computed(() => {
+    const amountFor = estimatedFor.value
+    if (!amountFor) return null
 
-  // #endregion
+    const amountFrom = mirrorTokenType(amountFor)
+    const referenceValue = selection.weiFromTokens[amountFrom]
+    if (!referenceValue?.asBigInt) return null
 
-  // #region Amounts
+    return {
+      for: amountFor,
+      from: amountFrom,
+      wei: referenceValue,
+    }
+  })
+
+  const swapRouteResult = useSwapRoute({
+    pairs,
+    amount: inputAmount,
+    tokens: tokenImpls,
+  })
+
+  const swapRoute = computed(() => (swapRouteResult.value?.kind === 'exist' ? swapRouteResult.value.route : null))
 
   const { gotAmountFor, gettingAmountFor } = useGetAmount(
     computed<GetAmountProps | null>(() => {
-      const amountFor = estimatedFor.value
-      if (!amountFor) return null
+      const input = inputAmount.value
+      if (!input) return null
+      const { for: amountFor, wei: referenceValue } = input
 
-      const amountFrom = mirrorTokenType(amountFor)
-      const referenceValue = selection.weiFromTokens[amountFrom]
-      if (!referenceValue?.asBigInt) return null
-
-      if (!route.value) return null
-
-      if (pairAddrResult.value?.kind !== 'exist') return null
+      const route = swapRoute.value
+      if (!route) return null
 
       return {
-        route: route.value,
-        amountFor: amountFor.value,
-        referenceValue: referenceValue,
+        route,
+        amountFor,
+        referenceValue,
       }
     }),
   )
@@ -230,10 +240,6 @@ export const useSwapStore = defineStore('swap', () => {
     return gotAmountFor.value?.props.amountFor ?? null
   })
 
-  // #endregion
-
-  // #region Action
-
   const normalizedWeiInputs = computed<NormalizedWeiInput | null>(() => {
     if (gotAmountFor.value) {
       const {
@@ -252,6 +258,22 @@ export const useSwapStore = defineStore('swap', () => {
     return null
   })
 
+  const tokenAmounts = useTokenAmounts(
+    reactive(
+      buildPair((type) =>
+        computed<{ token: TokenImpl; amount: Wei } | null>(() => {
+          const amount = normalizedWeiInputs.value?.[type].input
+          if (!amount) return null
+
+          const token = tokenImpls[type]
+          invariant(token)
+
+          return { token, amount }
+        }),
+      ),
+    ),
+  )
+
   const finalRates = useRates(
     computed(() => {
       const wei = normalizedWeiInputs.value
@@ -260,23 +282,19 @@ export const useSwapStore = defineStore('swap', () => {
     }),
   )
 
+  // #endregion
+
+  // #region Action
+
   const { prepare, prepareState, swapState, swapFee, swap, clear: clearSwap } = useSwap(normalizedWeiInputs)
 
   // #endregion
 
   // #region validation
 
-  const tokenAmounts = useTokenAmounts({
-    inputToken,
-    outputToken,
-    inputAmountInWei: computed(() => normalizedWeiInputs.value?.tokenA.input ?? null),
-    outputAmountInWei: computed(() => normalizedWeiInputs.value?.tokenB.input ?? null),
-  })
-
   const priceImpact = usePriceImpact({
-    route,
-    inputAmount: computed(() => tokenAmounts.value?.inputAmount ?? null),
-    outputAmount: computed(() => tokenAmounts.value?.outputAmount ?? null),
+    route: swapRoute,
+    amounts: tokenAmounts,
   })
 
   const swapValidation = useSwapValidation({
@@ -288,7 +306,7 @@ export const useSwapStore = defineStore('swap', () => {
       return balance && token && input ? { ...token, balance, input } : null
     }),
     tokenB: computed(() => selection.tokens.tokenB),
-    route: swapRoute,
+    route: swapRouteResult,
   })
 
   const isValid = computed(() => swapValidation.value.kind === 'ok')
@@ -302,7 +320,7 @@ export const useSwapStore = defineStore('swap', () => {
     addrs: addrsReadonly,
     normalizedWeiInputs,
     tokens,
-    route,
+    route: swapRoute,
     symbols,
     priceImpact,
 
