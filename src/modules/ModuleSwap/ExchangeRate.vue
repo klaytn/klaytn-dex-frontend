@@ -5,19 +5,19 @@ import { KlayIconArrowDown } from '~klay-icons'
 import { nonNullSet } from '@/utils/common'
 
 const swapStore = useSwapStore()
-const { gettingAmountFor, inputRates } = $(storeToRefs(swapStore))
+const { gettingAmountFor, tokenValues, estimatedFor } = $(storeToRefs(swapStore))
 
 const models = reactive(
   buildPair((type) => {
     return {
       input: computed({
-        get: () => inputRates[type]?.value,
-        set: (v) => v && swapStore.setTokenValue(type, v),
+        get: () => tokenValues[type],
+        set: (v) => v && swapStore.setToken(type, v),
       }),
       addr: computed({
         get: () => swapStore.addrs[type],
         set: (addr) => {
-          swapStore.setToken(type, addr)
+          swapStore.setTokenAddress(type, addr)
         },
       }),
     }
@@ -36,10 +36,10 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(swapStore.addr
       >
         <InputToken
           v-model="models[type].input"
-          v-model:token="models[type].addr"
+          v-model:address="models[type].addr"
           set-by-balance
           :is-loading="gettingAmountFor === type"
-          :estimated="inputRates[type]?.type === 'estimated'"
+          :estimated="estimatedFor === type"
           :selected="allSelectedTokens"
           :data-testid="`swap-input-${type}`"
         />

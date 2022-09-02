@@ -5,18 +5,18 @@ import { storeToRefs } from 'pinia'
 import { KlayIconPlus, KlayIconImportant } from '~klay-icons'
 
 const liquidityStore = useLiquidityAddStore()
-const { isQuotePendingFor, inputRates, addrs } = storeToRefs(liquidityStore)
+const { isQuotePendingFor, tokenValues, addrs, estimatedFor, isValuesDebounceWelcome } = storeToRefs(liquidityStore)
 
 const models = reactive(
   buildPair((type) => {
     return {
       input: computed({
-        get: () => inputRates.value[type]?.value,
-        set: (v) => v && liquidityStore.input(type, v),
+        get: () => tokenValues.value[type],
+        set: (v) => v && liquidityStore.setToken(type, v),
       }),
       addr: computed({
         get: () => addrs.value[type],
-        set: (addr) => addr && liquidityStore.setToken(type, addr),
+        set: (addr) => addr && liquidityStore.setTokenAddress(type, addr),
       }),
     }
   }),
@@ -34,10 +34,11 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(addrs.value)))
       >
         <InputToken
           v-model="models[type].input"
-          v-model:token="models[type].addr"
+          v-model:address="models[type].addr"
           :is-loading="isQuotePendingFor === type"
-          :estimated="inputRates[type]?.type === 'estimated'"
+          :estimated="estimatedFor === type"
           :selected="allSelectedTokens"
+          :value-debounce="isValuesDebounceWelcome ? 500 : 0"
         />
         <div
           v-if="i === 0"
@@ -53,7 +54,7 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(addrs.value)))
       class="warning-text"
     >
       <KlayIconImportant />
-      <span>Pair not exist</span>
+      <span>Pair doesn't exist</span>
     </div>
   </div>
 </template>

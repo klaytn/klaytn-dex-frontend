@@ -37,7 +37,7 @@ const formattedBalance = computed(() => {
 </script>
 
 <template>
-  <InputTokenTemplate
+  <InputCurrencyTemplate
     v-model="modelDebounced"
     max-button
     bottom
@@ -60,7 +60,7 @@ const formattedBalance = computed(() => {
     <template #bottom-right>
       <span class="balance"> Balance: <ValueOrDash :value="formattedBalance" /> </span>
     </template>
-  </InputTokenTemplate>
+  </InputCurrencyTemplate>
 </template>
 
 <style lang="scss" scoped>

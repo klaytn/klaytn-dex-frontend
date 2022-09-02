@@ -10,12 +10,17 @@ import { useSwapRoute } from '../composable.swap-route'
 import { usePairAddress, usePairBalance } from '../../ModuleTradeShared/composable.pair-by-tokens'
 import { useSwapValidation } from '../composable.validation'
 import { buildSwapProps, TokenAddrAndWeiInput } from '../util.swap-props'
-import { useExchangeRateInput, useInertExchangeRateInput } from '../../ModuleTradeShared/composable.exchange-rate-input'
+import {
+  usePairInput,
+  useEstimatedLayer,
+  useLocalStorageAddrsOrigin,
+} from '../../ModuleTradeShared/composable.pair-input'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import { usePriceImpact } from '@/modules/ModuleSwap/composable.price-impact'
 import { useTokenAmounts } from '@/modules/ModuleSwap/composable.token-amount'
 import { RouteName } from '@/types'
+import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { usePairsQuery } from '../query.pairs'
 
 const debugModule = Debug('swap-store')
@@ -27,68 +32,58 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
   const tokensStore = useTokensStore()
   const { notify } = useNotify()
 
-  const [active, setActive] = useToggle(false)
-
   const swapKey = computed(() => {
     if (!input.value) return null
     const { route, tokenA, tokenB, amountFor } = input.value
+    return (
+      dexStore.active.kind === 'named' && {
+        key: `${tokenA.addr}-${tokenA.input}-${tokenB.addr}-${tokenB.input}-${amountFor}`,
+        payload: { props: { route, tokenA, tokenB, amountFor }, dex: dexStore.active.dex() },
+      }
+    )
+  })
+
+  const { filteredKey, setActive } = useControlledComposedKey(swapKey)
+
+  const scope = useParamScope(filteredKey, ({ props: { route, tokenA, tokenB, amountFor }, dex }) => {
+    const { state: prepareState, run: prepare } = useTask(
+      async () => {
+        // 1. Approve amount of the tokenA
+        await dex.agent.approveAmount(tokenA.addr, tokenA.input)
+
+        // 2. Perform swap according to which token is "exact" and if
+        // some of them is native
+        const swapProps = buildSwapProps({ route, tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
+        const { send, fee } = await dex.swap.prepareSwap(swapProps)
+
+        return { send, fee }
+      },
+      { immediate: true },
+    )
+
+    usePromiseLog(prepareState, 'prepare-swap')
+    useNotifyOnError(prepareState, notify, 'Swap preparation failed')
+
+    const { state: swapState, run: swap } = useTask(async () => {
+      invariant(prepareState.fulfilled)
+      const { send } = prepareState.fulfilled.value
+      await send()
+    })
+
+    usePromiseLog(swapState, 'swap')
+    wheneverFulfilled(swapState, () => {
+      tokensStore.touchUserBalance()
+    })
+    useNotifyOnError(swapState, notify, 'Swap failed')
+
     return {
-      key: `${tokenA.addr}-${tokenA.input}-${tokenB.addr}-${tokenB.input}-${amountFor}`,
-      payload: { route, tokenA, tokenB, amountFor },
+      prepare,
+      swap,
+      fee: computed(() => prepareState.fulfilled?.value.fee ?? null),
+      prepareState: promiseStateToFlags(prepareState),
+      swapState: promiseStateToFlags(swapState),
     }
   })
-  watch(swapKey, () => setActive(false))
-
-  const scope = useParamScope(
-    computed(
-      () =>
-        active.value &&
-        swapKey.value &&
-        dexStore.active.kind === 'named' && {
-          key: `${dexStore.active.wallet}-${swapKey.value.key}`,
-          payload: { props: swapKey.value.payload, dex: dexStore.active.dex() },
-        },
-    ),
-    ({ props: { route, tokenA, tokenB, amountFor }, dex }) => {
-      const { state: prepareState, run: prepare } = useTask(
-        async () => {
-          // 1. Approve amount of the tokenA
-          await dex.agent.approveAmount(tokenA.addr, tokenA.input)
-
-          // 2. Perform swap according to which token is "exact" and if
-          // some of them is native
-          const swapProps = buildSwapProps({ route, tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
-          const { send, fee } = await dex.swap.prepareSwap(swapProps)
-
-          return { send, fee }
-        },
-        { immediate: true },
-      )
-
-      usePromiseLog(prepareState, 'prepare-swap')
-      useNotifyOnError(prepareState, notify, 'Swap preparation failed')
-
-      const { state: swapState, run: swap } = useTask(async () => {
-        invariant(prepareState.fulfilled)
-        const { send } = prepareState.fulfilled.value
-        await send()
-      })
-
-      usePromiseLog(swapState, 'swap')
-      wheneverFulfilled(swapState, () => {
-        tokensStore.touchUserBalance()
-      })
-      useNotifyOnError(swapState, notify, 'Swap failed')
-
-      return {
-        prepare,
-        swap,
-        fee: computed(() => prepareState.fulfilled?.value.fee ?? null),
-        prepareState: promiseStateToFlags(prepareState),
-        swapState: promiseStateToFlags(swapState),
-      }
-    },
-  )
 
   return {
     prepare: () => {
@@ -106,13 +101,26 @@ export const useSwapStore = defineStore('swap', () => {
   const pageRoute = useRoute()
   const isActiveRoute = computed(() => pageRoute.name === RouteName.Swap)
 
-  const selection = useExchangeRateInput({ localStorageKey: 'swap-selection', isActive: isActiveRoute })
-  const selectionInput = useInertExchangeRateInput({ input: selection.input })
-  const { rates: inputRates } = selectionInput
-  const { tokens, resetInput } = selection
+  // #region selection
+
+  const selection = usePairInput({ addrsOrigin: useLocalStorageAddrsOrigin('swap-selection', isActiveRoute) })
+  const { tokens, resetInput, tokenValues } = selection
   const addrsReadonly = readonly(selection.addrs)
 
   const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
+
+  function setTokenAddress(type: TokenType, addr: Address | null) {
+    selection.addrs[type] = addr
+  }
+
+  function setBothTokens(pair: TokensPair<Address>) {
+    selection.setBothAddrs(pair)
+    selection.resetInput()
+  }
+
+  // #endregion
+
+  // #region Pair data
 
   const PairsQuery = usePairsQuery()
 
@@ -168,12 +176,24 @@ export const useSwapStore = defineStore('swap', () => {
   const poolShare = computed(() => pairBalance.value?.poolShare ?? null)
   // const formattedPoolShare = useFormattedPercent(poolShare, 7)
 
+  // #endregion
+
+  // #region estimated
+
+  const { estimatedFor, setEstimated, setMainToken } = useEstimatedLayer(selection)
+
+  // #endregion
+
+  // #region Amounts
+
   const { gotAmountFor, gettingAmountFor } = useGetAmount(
     computed<GetAmountProps | null>(() => {
-      if (!amountFor.value) return null
+      const amountFor = estimatedFor.value
+      if (!amountFor) return null
 
-      const referenceValue = selection.inputNormalized.value?.wei
-      if (!referenceValue || referenceValue.asBigInt <= 0) return null
+      const amountFrom = mirrorTokenType(amountFor)
+      const referenceValue = selection.weiFromTokens[amountFrom]
+      if (!referenceValue?.asBigInt) return null
 
       if (!route.value) return null
 
@@ -199,12 +219,20 @@ export const useSwapStore = defineStore('swap', () => {
         if (tokenData) {
           debugModule('Setting computed amount %o for %o', amount, amountFor)
           const raw = amount.toToken(tokenData)
-          selectionInput.setEstimated(new BigNumber(raw).toFixed(5) as WeiAsToken)
+          setEstimated(new BigNumber(raw).toFixed(5) as WeiAsToken)
         }
       }
     },
     { deep: true },
   )
+
+  const estimatedForAfterAmountsComputation = computed<null | TokenType>(() => {
+    return gotAmountFor.value?.props.amountFor ?? null
+  })
+
+  // #endregion
+
+  // #region Action
 
   const normalizedWeiInputs = computed<NormalizedWeiInput | null>(() => {
     if (gotAmountFor.value) {
@@ -224,13 +252,19 @@ export const useSwapStore = defineStore('swap', () => {
     return null
   })
 
-  const rates = useRates(
+  const finalRates = useRates(
     computed(() => {
       const wei = normalizedWeiInputs.value
       if (!wei) return null
       return buildPair((type) => wei[type].input)
     }),
   )
+
+  const { prepare, prepareState, swapState, swapFee, swap, clear: clearSwap } = useSwap(normalizedWeiInputs)
+
+  // #endregion
+
+  // #region validation
 
   const tokenAmounts = useTokenAmounts({
     inputToken,
@@ -260,24 +294,11 @@ export const useSwapStore = defineStore('swap', () => {
   const isValid = computed(() => swapValidation.value.kind === 'ok')
   const validationMessage = computed(() => (swapValidation.value.kind === 'err' ? swapValidation.value.message : null))
 
-  const { prepare, prepareState, swapState, swapFee, swap, clear: clearSwap } = useSwap(normalizedWeiInputs)
-
-  function setToken(type: TokenType, addr: Address | null) {
-    selection.addrs[type] = addr
-  }
-
-  function setBothTokens(pair: TokensPair<Address>) {
-    selection.setAddrs(pair)
-    selection.input.value = null
-  }
-
-  function setTokenValue(type: TokenType, value: WeiAsToken) {
-    selectionInput.set(type, value)
-  }
+  // #endregion
 
   return {
-    inputRates,
-    rates,
+    tokenValues: readonly(tokenValues),
+    finalRates,
     addrs: addrsReadonly,
     normalizedWeiInputs,
     tokens,
@@ -296,9 +317,10 @@ export const useSwapStore = defineStore('swap', () => {
     gettingAmountFor,
     gotAmountFor,
     clearSwap,
+    estimatedFor: estimatedForAfterAmountsComputation,
 
-    setToken,
-    setTokenValue,
+    setTokenAddress,
+    setToken: setMainToken,
     setBothTokens,
     resetInput,
   }

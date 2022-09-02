@@ -15,6 +15,10 @@ export function buildPair<T>(fn: (type: TokenType) => T): TokensPair<T> {
   }
 }
 
+export function emptyPair(): TokensPair<null> {
+  return buildPair(() => null)
+}
+
 export async function buildPairAsync<T>(fn: (type: TokenType) => Promise<T>): Promise<TokensPair<T>> {
   const [tokenA, tokenB] = await Promise.all([fn('tokenA'), fn('tokenB')])
   return { tokenA, tokenB }

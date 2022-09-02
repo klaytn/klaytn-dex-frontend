@@ -81,6 +81,9 @@ export function computePriceImpact(midPrice: Price, inputAmount: TokenAmount, ou
   return new Percent(slippage.numerator, slippage.denominator)
 }
 
+/**
+ * Serializer for {@link @vueuse/core#useLocalStorage()}
+ */
 export const JSON_SERIALIZER: Serializer<JsonValue> = {
   read: (raw) => JSON.parse(raw),
   write: (parsed) => JSON.stringify(parsed),
@@ -94,30 +97,6 @@ export function nonNullSet<T>(values: (null | undefined | T)[]): Set<T> {
   return set
 }
 
-if (import.meta.vitest) {
-  const { test, expect, describe } = import.meta.vitest
-
-  describe('format rate', () => {
-    test('case 1', () => {
-      expect(formatRate('423', '20')).toMatchInlineSnapshot('"21.15000"')
-    })
-
-    test('case 2', () => {
-      expect(formatRate('1000', '3.5')).toMatchInlineSnapshot('"285.71429"')
-    })
-  })
-
-  describe('format percent', () => {
-    test('case 1', () => {
-      expect(formatPercent('423', '20')).toMatchInlineSnapshot('"5.00%"')
-    })
-
-    test('case 2', () => {
-      expect(formatPercent('1000', '3.5')).toMatchInlineSnapshot('"0.35%"')
-    })
-  })
-}
-
 export function shortenStringInTheMiddle(string: string) {
   const stringLength = string.length
   return `${string.slice(2, 6)}...${string.slice(stringLength - 6, stringLength - 2)}`
@@ -128,4 +107,8 @@ export function makeTabsArray(data: string[]): Tab[] {
     id: item,
     label: item,
   }))
+}
+
+export function formatNumberWithCommas(value: string | number | BigNumber): string {
+  return value.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ',')
 }
