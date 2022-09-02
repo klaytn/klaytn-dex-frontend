@@ -5,13 +5,11 @@ import '@vue/runtime-core'
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
-    BignumberInput: typeof import('./components/BignumberInput.vue')['default']
-    BigNumberInput: typeof import('./components/BigNumberInput.vue')['default']
     EarnWrap: typeof import('./components/EarnWrap.vue')['default']
     HeaderMenu: typeof import('./components/HeaderMenu.vue')['default']
+    InputCurrencyTemplate: typeof import('./components/InputCurrencyTemplate.vue')['default']
     InputToken: typeof import('./components/InputToken.vue')['default']
     InputTokenLp: typeof import('./components/InputTokenLp.vue')['default']
-    InputTokenTemplate: typeof import('./components/InputTokenTemplate.vue')['default']
     KlayAccordionItem: typeof import('./common/KlayAccordionItem.vue')['default']
     KlayButton: typeof import('./common/KlayButton.vue')['default']
     KlayCharAvatar: typeof import('./common/KlayCharAvatar.vue')['default']
@@ -28,7 +26,7 @@ declare module '@vue/runtime-core' {
     KlayTabs: typeof import('./common/KlayTabs.vue')['default']
     KlayTextField: typeof import('./common/KlayTextField.vue')['default']
     KlayToast: typeof import('./common/KlayToast.vue')['default']
-    ModuleEarnSharedRoiCalculator: typeof import('./modules/ModuleEarnShared/RoiCalculator.vue')['default']
+    ModuleEarnSharedRoiCalculator: typeof import('./modules/ModuleEarnShared/RoiCalculator/index.vue')['default']
     ModuleFarming: typeof import('./modules/ModuleFarming/index.vue')['default']
     ModuleFarmingModal: typeof import('./modules/ModuleFarming/Modal.vue')['default']
     ModuleFarmingPool: typeof import('./modules/ModuleFarming/Pool.vue')['default']
@@ -69,7 +67,6 @@ declare module '@vue/runtime-core' {
     ModuleSwapModalConfirmDetails: typeof import('./modules/ModuleSwap/ModalConfirmDetails.vue')['default']
     ModuleSwapModalConfirmTokens: typeof import('./modules/ModuleSwap/ModalConfirmTokens.vue')['default']
     'ModuleTradeSharedSlippage.todo': typeof import('./modules/ModuleTradeShared/Slippage.todo.vue')['default']
-    NumberInput: typeof import('./components/BignumberInput.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     RowsRates: typeof import('./components/RowsRates.vue')['default']
