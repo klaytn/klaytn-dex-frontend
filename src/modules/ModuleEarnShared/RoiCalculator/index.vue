@@ -1,5 +1,5 @@
 <script setup lang="ts" name="ModuleEarnSharedRoiCalculator">
-import { WeiAsToken } from '@/core/kaikas'
+import { WeiAsToken } from '@/core'
 import { KlayIconSwitch } from '~klay-icons'
 import { SModal } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
