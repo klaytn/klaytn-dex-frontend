@@ -1,6 +1,6 @@
 import { isAddress as ethersIsAddress } from '@ethersproject/address'
 import type { Address, BigNumberIsh, Deadline } from './types'
-import { Wei } from './entities'
+import Wei from './entities/Wei'
 import BigNumber from 'bignumber.js'
 import invariant from 'tiny-invariant'
 
