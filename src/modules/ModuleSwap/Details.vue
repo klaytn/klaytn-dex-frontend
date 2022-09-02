@@ -3,7 +3,7 @@ import { storeToRefs } from 'pinia'
 import cssRows from '../ModuleTradeShared/rows.module.scss'
 
 const store = useSwapStore()
-const { rates, symbols } = storeToRefs(store)
+const { finalRates: rates, symbols } = storeToRefs(store)
 
 const bothSymbols = computed(() => {
   const { tokenA, tokenB } = symbols.value || {}

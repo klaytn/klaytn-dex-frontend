@@ -62,6 +62,9 @@ export function roundRates({ a_per_b, b_per_a }: Rates): RatesRounded {
   }
 }
 
+/**
+ * Serializer for {@link @vueuse/core#useLocalStorage()}
+ */
 export const JSON_SERIALIZER: Serializer<JsonValue> = {
   read: (raw) => JSON.parse(raw),
   write: (parsed) => JSON.stringify(parsed),
