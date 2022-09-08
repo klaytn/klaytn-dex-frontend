@@ -6,6 +6,7 @@ import { ComputedRef } from 'vue'
 
 interface UseTradeProps {
   tokens: TokensPair<TokenImpl | null>
+  disableMultiHops: MaybeRef<boolean>
   pairs: MaybeRef<Pair[] | null>
   amount: MaybeRef<{
     for: TokenType
@@ -22,10 +23,6 @@ export type UseTradeResult =
       trade: Trade
     }
 
-const MAX_HOPS = 4
-
-const MAX_NUM_RESULTS = 5
-
 export function useTrade(props: UseTradeProps): ComputedRef<UseTradeResult | null> {
   return computed(() => {
     const pairs = unref(props.pairs)
@@ -34,7 +31,7 @@ export function useTrade(props: UseTradeProps): ComputedRef<UseTradeResult | nul
 
     if (!pairs || !inputToken || !outputToken || !amountWei || !amountFor) return null
 
-    const baseProps: BestTradePropsBase = { pairs, maxHops: MAX_HOPS, maxNumResults: MAX_NUM_RESULTS }
+    const baseProps: BestTradePropsBase = { pairs, disableMultiHops: unref(props.disableMultiHops) }
 
     try {
       const trades =

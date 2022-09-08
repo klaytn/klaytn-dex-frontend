@@ -99,6 +99,9 @@ export const useSwapStore = defineStore('swap', () => {
   const pageRoute = useRoute()
   const isActiveRoute = computed(() => pageRoute.name === RouteName.Swap)
 
+  const multihops = useLocalStorage<boolean>('swap-multi-hops', true)
+  const disableMultiHops = logicNot(multihops)
+
   // #region selection
 
   const selection = usePairInput({ addrsOrigin: useLocalStorageAddrsOrigin('swap-selection', isActiveRoute) })
@@ -194,6 +197,7 @@ export const useSwapStore = defineStore('swap', () => {
     pairs,
     amount: inputAmount,
     tokens: tokenImpls,
+    disableMultiHops,
   })
 
   const trade = computed(() => (tradeResult.value?.kind === 'exist' ? tradeResult.value.trade : null))
