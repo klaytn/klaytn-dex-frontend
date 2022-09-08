@@ -9,43 +9,48 @@ import { UniTrade, UniTradeType, UniToken } from './uni-entities'
 
 export type TradeType = 'exact-in' | 'exact-out'
 
-const TRADE_CONST_PROPS = {
-  maxHops: 3,
-  maxNumResults: 1,
-} as const
+export interface BestTradePropsBase {
+  maxHops: number
+  maxNumResults: number
+  pairs: Pair[]
+}
+
+interface BestTradePropsIn extends BestTradePropsBase {
+  tradeType: 'exact-in'
+  amountIn: TokenAmount
+  tokenOut: TokenImpl
+}
+
+interface BestTradePropsOut extends BestTradePropsBase {
+  tradeType: 'exact-out'
+  tokenIn: TokenImpl
+  amountOut: TokenAmount
+}
+
+type BestTradeProps = BestTradePropsOut | BestTradePropsIn
 
 export default class Trade {
-  public static bestTradeExactIn(pairs: Pair[], amountIn: TokenAmount, tokenOut: TokenImpl): null | Trade {
-    const trade = UniTrade.bestTradeExactIn(
-      pairs.map((x) => x.toUni()),
-      amountIn.toUni(),
-      tokenOut.toUni(),
-      TRADE_CONST_PROPS,
-    ).at(0)
+  public static bestTrade(props: BestTradeProps): Trade[] {
+    const { maxHops, pairs, maxNumResults } = props
+    const options = { maxHops, maxNumResults }
+    const pairsUni = pairs.map((x) => x.toUni())
 
-    return trade ? Trade.fromUniTrade(trade) : null
-  }
+    const trades =
+      props.tradeType === 'exact-in'
+        ? UniTrade.bestTradeExactIn(pairsUni, props.amountIn.toUni(), props.tokenOut.toUni(), options)
+        : UniTrade.bestTradeExactOut(pairsUni, props.tokenIn.toUni(), props.amountOut.toUni(), options)
 
-  public static bestTradeExactOut(pairs: Pair[], tokenIn: TokenImpl, amountOut: TokenAmount): null | Trade {
-    const trade = UniTrade.bestTradeExactOut(
-      pairs.map((x) => x.toUni()),
-      tokenIn.toUni(),
-      amountOut.toUni(),
-      TRADE_CONST_PROPS,
-    ).at(0)
-
-    return trade ? Trade.fromUniTrade(trade) : null
-  }
-
-  private static fromUniTrade(trade: UniTrade<UniToken, UniToken, any>): Trade {
-    return new Trade({
-      route: Route.fromUniRoute(trade.route),
-      tradeType: trade.tradeType === UniTradeType.EXACT_INPUT ? 'exact-in' : 'exact-out',
-      inputAmount: TokenAmount.fromUni(trade.inputAmount),
-      outputAmount: TokenAmount.fromUni(trade.outputAmount),
-      executionPrice: Price.fromUni(trade.executionPrice),
-      priceImpact: new Percent(trade.priceImpact.numerator.toString(), trade.priceImpact.denominator.toString()),
-    })
+    return trades.map(
+      (trade) =>
+        new Trade({
+          route: Route.fromUniRoute(trade.route),
+          tradeType: trade.tradeType === UniTradeType.EXACT_INPUT ? 'exact-in' : 'exact-out',
+          inputAmount: TokenAmount.fromUni(trade.inputAmount),
+          outputAmount: TokenAmount.fromUni(trade.outputAmount),
+          executionPrice: Price.fromUni(trade.executionPrice),
+          priceImpact: new Percent(trade.priceImpact.numerator.toString(), trade.priceImpact.denominator.toString()),
+        }),
+    )
   }
 
   public readonly route!: Route

@@ -1,4 +1,5 @@
 import { TokenImpl, TokenAmount, Trade, Pair, Wei } from '@/core'
+import { BestTradePropsBase } from '@/core/entities/Trade'
 import { TokensPair, TokenType } from '@/utils/pair'
 import { MaybeRef } from '@vueuse/core'
 import { ComputedRef } from 'vue'
@@ -21,6 +22,10 @@ export type UseTradeResult =
       trade: Trade
     }
 
+const MAX_HOPS = 4
+
+const MAX_NUM_RESULTS = 5
+
 export function useTrade(props: UseTradeProps): ComputedRef<UseTradeResult | null> {
   return computed(() => {
     const pairs = unref(props.pairs)
@@ -29,12 +34,25 @@ export function useTrade(props: UseTradeProps): ComputedRef<UseTradeResult | nul
 
     if (!pairs || !inputToken || !outputToken || !amountWei || !amountFor) return null
 
+    const baseProps: BestTradePropsBase = { pairs, maxHops: MAX_HOPS, maxNumResults: MAX_NUM_RESULTS }
+
     try {
-      // FIXME it usually takes 60-70ms. Move to Worker?
-      const trade =
+      const trades =
         amountFor === 'tokenB'
-          ? Trade.bestTradeExactIn(pairs, TokenAmount.fromWei(inputToken, amountWei), outputToken)
-          : Trade.bestTradeExactOut(pairs, inputToken, TokenAmount.fromWei(outputToken, amountWei))
+          ? Trade.bestTrade({
+              tradeType: 'exact-in',
+              amountIn: TokenAmount.fromWei(inputToken, amountWei),
+              tokenOut: outputToken,
+              ...baseProps,
+            })
+          : Trade.bestTrade({
+              tradeType: 'exact-out',
+              amountOut: TokenAmount.fromWei(outputToken, amountWei),
+              tokenIn: inputToken,
+              ...baseProps,
+            })
+
+      const trade = trades.at(0)
 
       if (!trade) return { kind: 'empty' }
 
