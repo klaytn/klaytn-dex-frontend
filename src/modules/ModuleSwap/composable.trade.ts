@@ -30,6 +30,7 @@ export function useTrade(props: UseTradeProps): ComputedRef<UseTradeResult | nul
     if (!pairs || !inputToken || !outputToken || !amountWei || !amountFor) return null
 
     try {
+      // FIXME it usually takes 60-70ms. Move to Worker?
       const trade =
         amountFor === 'tokenB'
           ? Trade.bestTradeExactIn(pairs, TokenAmount.fromWei(inputToken, amountWei), outputToken)

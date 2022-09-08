@@ -4,6 +4,7 @@ import Price from './Price'
 import { TokensPair } from '@/utils/pair'
 
 import { UniPair } from './uni-entities'
+import { Writable } from 'type-fest'
 
 export default class Pair {
   public static fromUni(pair: UniPair): Pair {
@@ -66,7 +67,7 @@ export default class Pair {
 
   public toUni(): UniPair {
     const pair = new UniPair(this.reserve0.toUni(), this.reserve1.toUni())
-    pair.liquidityToken = this.#liquidityToken.toUni()
+    ;(pair as Writable<UniPair, 'liquidityToken'>).liquidityToken = this.#liquidityToken.toUni()
     return pair
   }
 }

@@ -17,8 +17,6 @@ import {
 } from '../../ModuleTradeShared/composable.pair-input'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
-// import { usePriceImpact } from '@/modules/ModuleSwap/composable.price-impact'
-import { useTokenAmounts } from '@/modules/ModuleSwap/composable.token-amount'
 import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { usePairsQuery } from '../query.pairs'
@@ -258,22 +256,6 @@ export const useSwapStore = defineStore('swap', () => {
     }
     return null
   })
-
-  // const tokenAmounts = useTokenAmounts(
-  //   reactive(
-  //     buildPair((type) =>
-  //       computed<{ token: TokenImpl; amount: Wei } | null>(() => {
-  //         const amount = normalizedWeiInputs.value?.[type].input
-  //         if (!amount) return null
-
-  //         const token = tokenImpls[type]
-  //         invariant(token)
-
-  //         return { token, amount }
-  //       }),
-  //     ),
-  //   ),
-  // )
 
   const finalRates = useRates(
     computed(() => {

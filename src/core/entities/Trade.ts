@@ -10,7 +10,7 @@ import { UniTrade, UniTradeType, UniToken } from './uni-entities'
 export type TradeType = 'exact-in' | 'exact-out'
 
 const TRADE_CONST_PROPS = {
-  maxHops: 4,
+  maxHops: 3,
   maxNumResults: 1,
 } as const
 
