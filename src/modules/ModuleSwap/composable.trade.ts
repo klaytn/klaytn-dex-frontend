@@ -1,8 +1,11 @@
 import { TokenImpl, TokenAmount, Trade, Pair, Wei } from '@/core'
-import { BestTradePropsBase } from '@/core/entities/Trade'
+import { BestTradePropsBase, BestTradeProps } from '@/core/entities/Trade'
 import { TokensPair, TokenType } from '@/utils/pair'
 import { MaybeRef } from '@vueuse/core'
 import { ComputedRef } from 'vue'
+import Debug from 'debug'
+
+const debug = Debug('swap-trade')
 
 interface UseTradeProps {
   tokens: TokensPair<TokenImpl | null>
@@ -32,23 +35,27 @@ export function useTrade(props: UseTradeProps): ComputedRef<UseTradeResult | nul
     if (!pairs || !inputToken || !outputToken || !amountWei || !amountFor) return null
 
     const baseProps: BestTradePropsBase = { pairs, disableMultiHops: unref(props.disableMultiHops) }
+    const tradeProps: BestTradeProps =
+      amountFor === 'tokenB'
+        ? {
+            tradeType: 'exact-in',
+            amountIn: TokenAmount.fromWei(inputToken, amountWei),
+            tokenOut: outputToken,
+            ...baseProps,
+          }
+        : {
+            tradeType: 'exact-out',
+            amountOut: TokenAmount.fromWei(outputToken, amountWei),
+            tokenIn: inputToken,
+            ...baseProps,
+          }
+
+    debug('computing trade with props: %o', tradeProps)
 
     try {
       // TODO move to worker?
-      const trade =
-        amountFor === 'tokenB'
-          ? Trade.bestTrade({
-              tradeType: 'exact-in',
-              amountIn: TokenAmount.fromWei(inputToken, amountWei),
-              tokenOut: outputToken,
-              ...baseProps,
-            })
-          : Trade.bestTrade({
-              tradeType: 'exact-out',
-              amountOut: TokenAmount.fromWei(outputToken, amountWei),
-              tokenIn: inputToken,
-              ...baseProps,
-            })
+      const trade = Trade.bestTrade(tradeProps)
+      debug('computed trade: %o', trade)
 
       if (!trade) return { kind: 'empty' }
 

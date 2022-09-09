@@ -45,7 +45,7 @@ export const TRADE_MAX_HOPS = 3
 
 export const TRADE_MAX_NUM_RESULTS = 3
 
-export const TRADE_MAX_PRICE_IMPACT = new Percent(10)
+export const TRADE_MAX_PRICE_IMPACT = new Percent(1, 10)
 
 export const WHITELIST_TOKENS = Object.freeze([
   {

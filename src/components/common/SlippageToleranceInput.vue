@@ -122,7 +122,7 @@ input {
 .slippage-tolerance-input-header-value-transition {
   &-enter-active,
   &-leave-active {
-    transition: opacity 0.2s ease;
+    transition: opacity 0.1s ease;
   }
   &-enter-from,
   &-leave-to {

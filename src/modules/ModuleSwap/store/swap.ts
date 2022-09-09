@@ -7,7 +7,7 @@ import Debug from 'debug'
 import { useSwapAmounts, GetAmountsProps } from '../composable.get-amounts'
 import { useTrade } from '../composable.trade'
 import { usePairAddress, usePairBalance } from '../../ModuleTradeShared/composable.pair-by-tokens'
-import { useSwapValidation } from '../composable.validation'
+import { useSwapValidation, ValidationError } from '../composable.validation'
 import { buildSwapProps, TokenAddrAndWeiInput } from '../util.swap-props'
 import {
   usePairInput,
@@ -95,11 +95,18 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
 }
 
 export const useSwapStore = defineStore('swap', () => {
+  const dexStore = useDexStore()
+
   const pageRoute = useRoute()
   const isActiveRoute = computed(() => pageRoute.name === RouteName.Swap)
 
   const multihops = useLocalStorage<boolean>('swap-multi-hops', true)
-  const disableMultiHops = logicNot(multihops)
+  const disableMultiHops = computed({
+    get: () => !multihops.value,
+    set: (v) => {
+      multihops.value = !v
+    },
+  })
 
   const slippageTolerance = ref(0)
 
@@ -281,19 +288,16 @@ export const useSwapStore = defineStore('swap', () => {
   // #region validation
 
   const swapValidation = useSwapValidation({
-    tokenA: computed(() => {
-      const balance = selection.balance.tokenA as Wei | null
-      const token = selection.tokens.tokenA
-      const input = normalizedWeiInputs.value?.tokenA?.input
-
-      return balance && token && input ? { ...token, balance, input } : null
-    }),
-    tokenB: computed(() => selection.tokens.tokenB),
-    trade: tradeResult,
+    selected: reactive(buildPair((type) => computed(() => !!selection.addrs[type]))),
+    tokenABalance: computed(() => selection.balance.tokenA as Wei | null),
+    tokenAInput: computed(() => selection.weiFromTokens.tokenA),
+    trade: computed(() => tradeResult.value?.kind ?? 'pending'),
+    wallet: computed(() => (dexStore.isWalletConnected ? 'connected' : 'anonymous')),
   })
 
   const isValid = computed(() => swapValidation.value.kind === 'ok')
-  const validationMessage = computed(() => (swapValidation.value.kind === 'err' ? swapValidation.value.message : null))
+  const isValidationPending = computed(() => swapValidation.value.kind === 'pending')
+  const validationError = computed(() => (swapValidation.value.kind === 'err' ? swapValidation.value.err : null))
 
   // #endregion
 
@@ -308,7 +312,8 @@ export const useSwapStore = defineStore('swap', () => {
     priceImpact,
 
     isValid,
-    validationMessage,
+    isValidationPending,
+    validationError,
 
     swap,
     swapState,

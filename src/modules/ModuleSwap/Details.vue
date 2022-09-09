@@ -54,36 +54,6 @@ const formattedPriceImpact = computed(() => {
               {{ trade.route.toString() }}
             </span>
           </div>
-
-          <hr class="klay-divider">
-
-          <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
-            <span>Trade type</span>
-            <span>
-              {{ trade.tradeType }}
-            </span>
-          </div>
-
-          <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
-            <span>In</span>
-            <span>
-              {{ trade.inputAmount.toFixed() }}
-            </span>
-          </div>
-
-          <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
-            <span>Out</span>
-            <span>
-              {{ trade.outputAmount.toFixed() }}
-            </span>
-          </div>
-
-          <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
-            <span>Execution price?</span>
-            <span>
-              {{ trade.executionPrice.toFixed() }}
-            </span>
-          </div>
         </div>
       </template>
     </KlayCollapse>

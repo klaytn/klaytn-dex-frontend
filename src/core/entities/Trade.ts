@@ -35,14 +35,15 @@ interface BestTradePropsOut extends BestTradePropsBase {
   amountOut: TokenAmount
 }
 
-type BestTradeProps = BestTradePropsOut | BestTradePropsIn
+export type BestTradeProps = BestTradePropsOut | BestTradePropsIn
 
 export default class Trade {
   public static bestTrade(props: BestTradeProps): null | Trade {
     const { pairs, disableMultiHops } = props
-    const options: UniBestTradeOptions = disableMultiHops
-      ? {}
-      : { maxHops: TRADE_MAX_HOPS, maxNumResults: TRADE_MAX_NUM_RESULTS }
+    const options: UniBestTradeOptions = {
+      maxHops: disableMultiHops ? 1 : TRADE_MAX_HOPS,
+      maxNumResults: TRADE_MAX_NUM_RESULTS,
+    }
     const pairsUni = pairs.map((x) => x.toUni())
 
     const trades: UniTradeWithUniTokens[] =

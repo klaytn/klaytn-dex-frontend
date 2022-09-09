@@ -26,8 +26,8 @@ describe('Trade', () => {
       tradeType: 'exact-in',
       pairs: [
         new Pair({
-          token0: TokenAmount.fromToken(TokenA, '100' as WeiAsToken),
-          token1: TokenAmount.fromToken(TokenB, '100' as WeiAsToken),
+          token0: TokenAmount.fromToken(TokenA, '100000000' as WeiAsToken),
+          token1: TokenAmount.fromToken(TokenB, '100000000' as WeiAsToken),
           liquidityToken: new TokenImpl({
             address: parseAddress('0x1CDcD477994e86A11E21C27ca907bEA266EA3A0a'),
             decimals: 18,
@@ -42,6 +42,6 @@ describe('Trade', () => {
 
     expect(trade).not.toBeNull()
     expect(trade!.route.toString()).toMatchInlineSnapshot('"MER > VEN"')
-    expect(trade!.priceImpact.toFormat()).toMatchInlineSnapshot('"33.47 %"')
+    expect(trade!.priceImpact.toFormat()).toMatchInlineSnapshot('"0.30 %"')
   })
 })

@@ -4,7 +4,7 @@ name: Trade
 
 <script setup lang="ts">
 import { RouteName } from '@/types'
-import { KlayIconBackArrow } from '~klay-icons'
+import { KlayIconBackArrow, KlayIconFilters } from '~klay-icons'
 
 // const tokensStore = useTokensStore()
 // const { isBalancePending, isImportedPending } = storeToRefs(tokensStore)
@@ -79,6 +79,18 @@ const headLinks: {
       </template>
 
       <div class="flex-1" />
+
+      <ModuleSwapModalPreferences v-slot="{ open }">
+        <KlayButton
+          type="action"
+          rounded
+          @click="open()"
+        >
+          <template #icon>
+            <KlayIconFilters />
+          </template>
+        </KlayButton>
+      </ModuleSwapModalPreferences>
 
       <!-- <KlayButton
         type="action"
