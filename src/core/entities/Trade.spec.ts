@@ -22,19 +22,26 @@ describe('Trade', () => {
       name: 'Venus',
     })
 
-    const trade = Trade.bestTradeExactIn(
-      [
-        new Pair(
-          TokenAmount.fromToken(TokenA, '100' as WeiAsToken),
-          TokenAmount.fromToken(TokenB, '100' as WeiAsToken),
-        ),
+    const trade = Trade.bestTrade({
+      tradeType: 'exact-in',
+      pairs: [
+        new Pair({
+          token0: TokenAmount.fromToken(TokenA, '100' as WeiAsToken),
+          token1: TokenAmount.fromToken(TokenB, '100' as WeiAsToken),
+          liquidityToken: new TokenImpl({
+            address: parseAddress('0x1CDcD477994e86A11E21C27ca907bEA266EA3A0a'),
+            decimals: 18,
+            symbol: 'VEN-MER' as TokenSymbol,
+            name: '?',
+          }),
+        }),
       ],
-      TokenAmount.fromToken(TokenA, '50' as WeiAsToken),
-      TokenB,
-    )
+      amountIn: TokenAmount.fromToken(TokenA, '50' as WeiAsToken),
+      tokenOut: TokenB,
+    })
 
     expect(trade).not.toBeNull()
     expect(trade!.route.toString()).toMatchInlineSnapshot('"MER > VEN"')
-    expect(trade!.priceImpact.toFormat()).toMatchInlineSnapshot('"34.00 %"')
+    expect(trade!.priceImpact.toFormat()).toMatchInlineSnapshot('"33.47 %"')
   })
 })

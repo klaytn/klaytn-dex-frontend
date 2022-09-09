@@ -9,7 +9,7 @@ export function useSwapValidation({
 }: {
   tokenA: Ref<(Token & { balance: Wei; input: Wei }) | null>
   tokenB: Ref<Token | null>
-  trade: Ref<UseTradeResult | null>
+  trade: Ref<Pick<UseTradeResult, 'kind'> | null>
 }): Ref<{ kind: 'ok' } | { kind: 'err'; message: string }> {
   const err = (message: string) => ({ kind: 'err' as const, message })
 

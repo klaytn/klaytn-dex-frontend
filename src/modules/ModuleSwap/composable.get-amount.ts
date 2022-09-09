@@ -1,25 +1,25 @@
 import { TokenType } from '@/utils/pair'
 import { Ref } from 'vue'
 import Debug from 'debug'
-import { Route, DexPure, Wei } from '@/core'
+import { Trade, DexPure, Wei } from '@/core'
 
 const debug = Debug('swap-amounts')
 
 export interface GetAmountProps {
   amountFor: TokenType
   referenceValue: Wei
-  route: Route
+  trade: Trade
 }
 
 async function getAmount(props: GetAmountProps & { dex: DexPure }): Promise<Wei> {
-  const route = props.route
+  const { trade } = props
   const refValue = props.referenceValue
 
   if (props.amountFor === 'tokenB') {
     const [, amountOut] = await props.dex.swap.getAmounts({
       mode: 'out',
       amountIn: refValue,
-      route,
+      trade,
     })
 
     return amountOut
@@ -27,7 +27,7 @@ async function getAmount(props: GetAmountProps & { dex: DexPure }): Promise<Wei>
     const [amountIn] = await props.dex.swap.getAmounts({
       mode: 'in',
       amountOut: refValue,
-      route,
+      trade,
     })
 
     return amountIn
@@ -45,7 +45,7 @@ export function useGetAmount(props: Ref<null | GetAmountProps>) {
       const propsValue = props.value
       return (
         propsValue && {
-          key: `dex-${anyDex.key}-${propsValue.route.input.symbol}-${propsValue.route.output.symbol}-for-${propsValue.amountFor}-${propsValue.referenceValue}`,
+          key: `dex-${anyDex.key}-${propsValue.trade.route.input.symbol}-${propsValue.trade.route.output.symbol}-for-${propsValue.amountFor}-${propsValue.referenceValue}`,
           payload: { props: propsValue, dex: anyDex.dex() },
         }
       )

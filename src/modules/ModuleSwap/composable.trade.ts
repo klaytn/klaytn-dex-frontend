@@ -34,7 +34,8 @@ export function useTrade(props: UseTradeProps): ComputedRef<UseTradeResult | nul
     const baseProps: BestTradePropsBase = { pairs, disableMultiHops: unref(props.disableMultiHops) }
 
     try {
-      const trades =
+      // TODO move to worker?
+      const trade =
         amountFor === 'tokenB'
           ? Trade.bestTrade({
               tradeType: 'exact-in',
@@ -48,8 +49,6 @@ export function useTrade(props: UseTradeProps): ComputedRef<UseTradeResult | nul
               tokenIn: inputToken,
               ...baseProps,
             })
-
-      const trade = trades.at(0)
 
       if (!trade) return { kind: 'empty' }
 

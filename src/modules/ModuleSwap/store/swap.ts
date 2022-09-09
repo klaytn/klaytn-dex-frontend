@@ -1,7 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, Token, TokenSymbol, WeiAsToken } from '@/core'
-import { Wei, Route, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS } from '@/core'
+import { Address, TokenSymbol, Trade, WeiAsToken, Wei, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS } from '@/core'
 import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
@@ -23,7 +22,7 @@ import { usePairsQuery } from '../query.pairs'
 
 const debugModule = Debug('swap-store')
 
-type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { route: Route; amountFor: TokenType }
+type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { trade: Trade; amountFor: TokenType }
 
 function useSwap(input: Ref<null | NormalizedWeiInput>) {
   const dexStore = useDexStore()
@@ -32,18 +31,18 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
 
   const swapKey = computed(() => {
     if (!input.value) return null
-    const { route, tokenA, tokenB, amountFor } = input.value
+    const { tokenA, tokenB, amountFor, trade } = input.value
     return (
       dexStore.active.kind === 'named' && {
         key: `${tokenA.addr}-${tokenA.input}-${tokenB.addr}-${tokenB.input}-${amountFor}`,
-        payload: { props: { route, tokenA, tokenB, amountFor }, dex: dexStore.active.dex() },
+        payload: { props: { trade, tokenA, tokenB, amountFor }, dex: dexStore.active.dex() },
       }
     )
   })
 
   const { filteredKey, setActive } = useControlledComposedKey(swapKey)
 
-  const scope = useParamScope(filteredKey, ({ props: { route, tokenA, tokenB, amountFor }, dex }) => {
+  const scope = useParamScope(filteredKey, ({ props: { trade, tokenA, tokenB, amountFor }, dex }) => {
     const { state: prepareState, run: prepare } = useTask(
       async () => {
         // 1. Approve amount of the tokenA
@@ -51,7 +50,7 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
 
         // 2. Perform swap according to which token is "exact" and if
         // some of them is native
-        const swapProps = buildSwapProps({ route, tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
+        const swapProps = buildSwapProps({ trade, tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
         const { send, fee } = await dex.swap.prepareSwap(swapProps)
 
         return { send, fee }
@@ -101,6 +100,8 @@ export const useSwapStore = defineStore('swap', () => {
 
   const multihops = useLocalStorage<boolean>('swap-multi-hops', true)
   const disableMultiHops = logicNot(multihops)
+
+  const slippageTolerance = ref(0)
 
   // #region selection
 
@@ -213,7 +214,7 @@ export const useSwapStore = defineStore('swap', () => {
       if (!tradeVal) return null
 
       return {
-        route: tradeVal.route,
+        trade: tradeVal,
         amountFor,
         referenceValue,
       }
@@ -247,14 +248,14 @@ export const useSwapStore = defineStore('swap', () => {
     if (gotAmountFor.value) {
       const {
         amount,
-        props: { amountFor, referenceValue, route },
+        props: { amountFor, referenceValue, trade },
       } = gotAmountFor.value
       return {
         ...buildPair((type) => ({
-          addr: type === 'tokenA' ? route.input.address : route.output.address,
+          addr: type === 'tokenA' ? trade.route.input.address : trade.route.output.address,
           input: amountFor === type ? amount : referenceValue,
         })),
-        route,
+        trade,
         amountFor,
       }
     }
