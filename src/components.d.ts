@@ -70,6 +70,7 @@ declare module '@vue/runtime-core' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     RowsRates: typeof import('./components/common/RowsRates.vue')['default']
+    SlippageToleranceInput: typeof import('./components/common/SlippageToleranceInput.vue')['default']
     TagName: typeof import('./components/common/TagName.vue')['default']
     TokenSelect: typeof import('./components/common/TokenSelect/index.vue')['default']
     TokenSelectModal: typeof import('./components/common/TokenSelect/Modal.vue')['default']

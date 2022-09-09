@@ -24,6 +24,8 @@ onUnmounted(() => swapStore.resetInput())
   <div class="space-y-4 pt-5 px-4">
     <ModuleSwapExchangeRate />
 
+    <SlippageToleranceInput v-model="swapStore.slippageTolerance" />
+
     <KlayButton
       class="w-full"
       size="lg"

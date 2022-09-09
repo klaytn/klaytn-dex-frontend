@@ -4,7 +4,7 @@ import { Address, TokenSymbol, Trade, WeiAsToken, Wei, TokenImpl, Pair, TokenAmo
 import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
-import { useGetAmount, GetAmountProps } from '../composable.get-amount'
+import { useSwapAmounts, GetAmountsProps } from '../composable.get-amounts'
 import { useTrade } from '../composable.trade'
 import { usePairAddress, usePairBalance } from '../../ModuleTradeShared/composable.pair-by-tokens'
 import { useSwapValidation } from '../composable.validation'
@@ -204,8 +204,8 @@ export const useSwapStore = defineStore('swap', () => {
   const trade = computed(() => (tradeResult.value?.kind === 'exist' ? tradeResult.value.trade : null))
   const priceImpact = computed(() => trade.value?.priceImpact ?? null)
 
-  const { gotAmountFor, gettingAmountFor } = useGetAmount(
-    computed<GetAmountProps | null>(() => {
+  const { gotAmountFor, gettingAmountFor } = useSwapAmounts(
+    computed<GetAmountsProps | null>(() => {
       const input = inputAmount.value
       if (!input) return null
       const { for: amountFor, wei: referenceValue } = input
@@ -324,6 +324,9 @@ export const useSwapStore = defineStore('swap', () => {
     setToken: setMainToken,
     setBothTokens,
     resetInput,
+
+    slippageTolerance,
+    disableMultiHops,
   }
 })
 

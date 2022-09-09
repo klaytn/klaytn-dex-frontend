@@ -1,7 +1,6 @@
 import KlayToast from '@/components/common/KlayToast.vue'
 import { VueTestUtils } from 'cypress/vue'
-
-const testid = (id: string) => `[data-testid=${id}]`
+import { testid } from './common'
 
 before(() => {
   VueTestUtils.config.global.components = { KlayToast }

@@ -5,13 +5,13 @@ import { Trade, DexPure, Wei } from '@/core'
 
 const debug = Debug('swap-amounts')
 
-export interface GetAmountProps {
+export interface GetAmountsProps {
   amountFor: TokenType
   referenceValue: Wei
   trade: Trade
 }
 
-async function getAmount(props: GetAmountProps & { dex: DexPure }): Promise<Wei> {
+async function getAmounts(props: GetAmountsProps & { dex: DexPure }): Promise<Wei> {
   const { trade } = props
   const refValue = props.referenceValue
 
@@ -34,7 +34,7 @@ async function getAmount(props: GetAmountProps & { dex: DexPure }): Promise<Wei>
   }
 }
 
-export function useGetAmount(props: Ref<null | GetAmountProps>) {
+export function useSwapAmounts(props: Ref<null | GetAmountsProps>) {
   const dexStore = useDexStore()
   const { notify } = useNotify()
 
@@ -45,7 +45,9 @@ export function useGetAmount(props: Ref<null | GetAmountProps>) {
       const propsValue = props.value
       return (
         propsValue && {
-          key: `dex-${anyDex.key}-${propsValue.trade.route.input.symbol}-${propsValue.trade.route.output.symbol}-for-${propsValue.amountFor}-${propsValue.referenceValue}`,
+          key:
+            `dex-${anyDex.key}-${propsValue.trade.route.toString()}` +
+            `-for-${propsValue.amountFor}-${propsValue.referenceValue}`,
           payload: { props: propsValue, dex: anyDex.dex() },
         }
       )
@@ -58,7 +60,7 @@ export function useGetAmount(props: Ref<null | GetAmountProps>) {
       useNotifyOnError(state, notify, 'Failed to compute amount')
 
       function run() {
-        set(getAmount({ ...props, dex }))
+        set(getAmounts({ ...props, dex }))
       }
 
       run()
