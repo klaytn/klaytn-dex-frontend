@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    CurrencyInput: typeof import('./components/common/CurrencyInput.vue')['default']
     InputCurrencyTemplate: typeof import('./components/common/InputCurrencyTemplate.vue')['default']
     InputToken: typeof import('./components/common/InputToken.vue')['default']
     InputTokenLp: typeof import('./components/common/InputTokenLp.vue')['default']

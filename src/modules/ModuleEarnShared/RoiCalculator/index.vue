@@ -7,7 +7,7 @@ import { RoiType } from '@/types'
 import { PERIOD_DAYS } from './const'
 import { makeTabsArray } from '@/utils/common'
 import { StakeTabs, CompoundingTabs, StakeUnits } from './types'
-import { useCurrencyInput, useFormattedCurrency, MaskSymbol } from '@/utils/composable.currency-input'
+import { useFormattedCurrency, MaskSymbol } from '@/utils/composable.currency-input'
 import { Ref } from 'vue'
 import { MaybeRef } from '@vueuse/core'
 
@@ -70,11 +70,7 @@ const rewardTokenSymbolAsMask = computed<MaskSymbol>(() => ({ str: rewardTokenSy
 
 // #region Input & Mask
 
-const { inputRef } = useCurrencyInput({
-  writableModel: parsedStakeValue,
-  symbol: useMaskSymbolOrUSD(stakeTokenSymbolAsMask),
-  decimals: stakeTokenDecimals,
-})
+const inputCurrencySymbol = useMaskSymbolOrUSD(stakeTokenSymbolAsMask)
 
 // #endregion
 
@@ -214,6 +210,13 @@ const detailsList = computed(() => {
               data-testid="staked-input"
             >
               <template #input>
+                <CurrencyInput
+                  v-model="parsedStakeValue"
+                  :decimals="stakeTokenDecimals"
+                  :symbol="inputCurrencySymbol.str"
+                  :symbol-position="inputCurrencySymbol.position"
+                  :symbol-delimiter="inputCurrencySymbol.delimiter"
+                />
                 <input
                   ref="inputRef"
                   data-testid="staked-input"

@@ -32,18 +32,17 @@ function composeSymbol(sym: MaybeRef<MaskSymbol>): Except<MaskSymbol, 'delimiter
   return { position, str: position === 'left' ? str + delimiter : delimiter + str }
 }
 
-export function useFormattedCurrency({
-  amount,
-  symbol,
-}: {
+function formatCurrency({ amount, symbol }: { amount: BigNumber; symbol: MaskSymbol }) {
+  const num = formatNumberWithCommas(amount)
+  const sym = composeSymbol(symbol)
+  return sym.position === 'left' ? sym.str + num : num + sym.str
+}
+
+export function useFormattedCurrency(props: {
   amount: MaybeRef<BigNumber>
   symbol: MaybeRef<MaskSymbol>
 }): Ref<string> {
-  return computed(() => {
-    const num = formatNumberWithCommas(unref(amount))
-    const sym = composeSymbol(unref(symbol))
-    return sym.position === 'left' ? sym.str + num : num + sym.str
-  })
+  return computed(() => formatCurrency({ amount: unref(props.amount), symbol: unref(props.symbol) }))
 }
 
 function trimLeadingZeros(input: string): string {
