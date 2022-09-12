@@ -58,7 +58,7 @@ export default defineConfig({
       extensions: ['vue', 'md'],
       extendRoute(route: RouteRecordRaw): null | undefined | RouteRecordRaw {
         // making them root-level
-        if (route.path.match(/^(farms|pools|swap|liquidity)/)) {
+        if (route.path.match(/^(farms|pools|swap|liquidity|assets|transactions)/)) {
           return { ...route, path: '/' + route.path }
         }
       },

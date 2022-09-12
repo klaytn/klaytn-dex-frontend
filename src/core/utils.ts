@@ -4,8 +4,8 @@ import { Wei } from './entities'
 
 export const isAddress = ethersIsAddress as (raw: string) => raw is Address
 
-export function formatAddress(address: Address): string {
-  return `${address.slice(2, 6)}....${address.slice(-4)}`
+export function formatAddress(address: Address, length = 4): string {
+  return `${address.slice(2, 2 + length)}....${address.slice(-length)}`
 }
 
 export function isEmptyAddress(address: Address): boolean {
