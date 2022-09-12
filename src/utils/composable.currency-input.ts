@@ -31,12 +31,54 @@ function composeSymbol(sym: MaybeRef<MaskSymbol>): Except<MaskSymbol, 'delimiter
   return { position, str: position === 'left' ? str + delimiter : delimiter + str }
 }
 
+export function useFormattedCurrency({
+  amount,
+  symbol,
+}: {
+  amount: MaybeRef<BigNumber>
+  symbol: MaybeRef<MaskSymbol>
+}): Ref<string> {
+  return computed(() => {
+    const num = formatNumberWithCommas(unref(amount))
+    const sym = composeSymbol(unref(symbol))
+    return sym.position === 'left' ? sym.str + num : num + sym.str
+  })
+}
+
+function trimLeadingZeros(input: string): string {
+  return input.replace(/^0*([^0])/, '$1')
+}
+
 class FocusedState {
   public readonly el: HTMLInputElement
-  public lastFineInput = ''
+
+  #lastInput = ''
+  #amount: BigNumber | null = null
 
   public constructor(el: HTMLInputElement) {
     this.el = el
+  }
+
+  public get lastInput() {
+    return this.#lastInput
+  }
+
+  public get amount() {
+    invariant(this.#amount)
+    return this.#amount
+  }
+
+  public update(amount: BigNumber, input: string) {
+    this.#lastInput = this.el.value = input
+    this.#amount = amount
+  }
+
+  public updateIfAmountDiffers(amount: BigNumber, input: string) {
+    if (!this.#amount?.eq(amount)) this.update(amount, input)
+  }
+
+  public restoreInputValue() {
+    this.el.value = this.#lastInput
   }
 }
 
@@ -59,20 +101,23 @@ export function useCurrencyInput(props: UseCurrencyInputProps): UseCurrencyInput
     }
   })
 
-  const currencyFormatted = computed(() => {
-    const num = formatNumberWithCommas(model.value)
-    const sym = composeSymbol(props.symbol)
-    return sym.position === 'left' ? sym.str + num : num + sym.str
-  })
+  const currencyFormatted = useFormattedCurrency({ amount: model, symbol: props.symbol })
+  const currencyFixed = computed(() => model.value.decimalPlaces(unref(props.decimals)))
+  const currencyFixedStr = computed(() => currencyFixed.value.toFixed())
 
-  const currencyValue = computed(() => model.value.toFixed())
+  whenever(
+    () => !currencyFixed.value.eq(model.value),
+    () => {
+      model.value = currencyFixed.value
+    },
+    { immediate: true },
+  )
 
   watch(
-    [focused, inputRef, currencyValue, currencyFormatted],
-    ([focus, el, currVal, currFmt]) => {
+    [focused, inputRef, currencyFixed, currencyFixedStr, currencyFormatted],
+    ([focus, el, currAmount, currStr, currFmt]) => {
       if (focus) {
-        invariant(el)
-        el.value = focus.lastFineInput = currVal
+        focus.updateIfAmountDiffers(currAmount, currStr)
       } else if (el) {
         el.value = currFmt
       }
@@ -97,19 +142,16 @@ export function useCurrencyInput(props: UseCurrencyInputProps): UseCurrencyInput
     const inputValueParsed = new BigNumber(inputValue)
 
     if (inputValueParsed.isNaN()) {
-      // set input value to last fine value
-      input.value = focusState.lastFineInput
+      focusState.restoreInputValue()
     } else {
-      // update value & last fine value
-      // do not touch input value
-
       // workaround unnecessary effects
-      if (!model.value.eq(inputValueParsed)) {
+      const inputValueParsedFixed = inputValueParsed.decimalPlaces(unref(props.decimals))
+      if (!model.value.eq(inputValueParsed) && inputValueParsed.eq(inputValueParsedFixed)) {
         model.value = inputValueParsed
       }
 
-      const inputValueProcessed = inputValue.replace(/^0*([^0])/, '$1')
-      focusState.lastFineInput = input.value = inputValueProcessed
+      const inputValueProcessed = trimLeadingZeros(inputValue)
+      focusState.update(model.value, inputValueProcessed)
     }
   })
 
