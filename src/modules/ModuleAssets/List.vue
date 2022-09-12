@@ -30,7 +30,13 @@ const totalPrice = 0
           :key="token.address"
           :token="token"
         />
+        <hr class="klay-divider my-4">
       </template>
+      <div>
+        <KlayButton type="primary">
+          Add token
+        </KlayButton>
+      </div>
     </div>
   </div>
 </template>
