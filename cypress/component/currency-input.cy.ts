@@ -38,7 +38,7 @@ const actualShouldBe = (strBigNumber: string) => cy.contains(`Actual: ${strBigNu
 
 const getInput = () => cy.get('input')
 
-describe('useBigNumberInput()', () => {
+describe('useCurrencyInput()', () => {
   it('playground', () => {
     mountFactory()
   })

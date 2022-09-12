@@ -11,6 +11,7 @@ export interface UseCurrencyInputProps {
   writableModel: Ref<BigNumber>
   symbol: MaybeRef<MaskSymbol>
   decimals: MaybeRef<number>
+  input?: HTMLInputElement | Ref<null | HTMLInputElement>
 }
 
 export interface MaskSymbol {
@@ -90,16 +91,22 @@ class FocusedState {
 export function useCurrencyInput(props: UseCurrencyInputProps): UseCurrencyInputReturn {
   const model = props.writableModel
 
-  const inputRef = shallowRef<null | HTMLInputElement>(null)
+  const inputRef =
+    props.input && isRef(props.input) ? props.input : shallowRef<null | HTMLInputElement>(props.input ?? null)
+
   const focused = shallowRef<FocusedState | null>(null)
 
-  watch(inputRef, (el) => {
-    if (el) {
-      focused.value = document.activeElement === el ? new FocusedState(el) : null
-    } else {
-      focused.value = null
-    }
-  })
+  watch(
+    inputRef,
+    (el) => {
+      if (el) {
+        focused.value = document.activeElement === el ? new FocusedState(el) : null
+      } else {
+        focused.value = null
+      }
+    },
+    { immediate: true },
+  )
 
   const currencyFormatted = useFormattedCurrency({ amount: model, symbol: props.symbol })
   const currencyFixed = computed(() => model.value.decimalPlaces(unref(props.decimals)))

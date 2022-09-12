@@ -5,10 +5,11 @@ import { SModal } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
 import { RoiType } from '@/types'
 import { PERIOD_DAYS } from './const'
-import { formatNumberWithCommas, makeTabsArray } from '@/utils/common'
+import { makeTabsArray } from '@/utils/common'
 import { StakeTabs, CompoundingTabs, StakeUnits } from './types'
-import { useBigNumberInput } from '@/utils/composable.input-bignumber'
+import { useCurrencyInput, useFormattedCurrency, MaskSymbol } from '@/utils/composable.currency-input'
 import { Ref } from 'vue'
+import { MaybeRef } from '@vueuse/core'
 
 const { t } = useI18n()
 const vBem = useBemClass()
@@ -45,53 +46,48 @@ const showModel = useVModel(props, 'show', emit)
 const stakeTabs = readonly(makeTabsArray(Object.values(StakeTabs)))
 const compoundingTabs = readonly(makeTabsArray(Object.values(CompoundingTabs)))
 
-const stakeFor = ref(StakeTabs.y1)
+const stakeFor = ref<StakeTabs>(StakeTabs.y1)
 const compoundingEnabled = ref(true)
 const compoundingEvery = ref(CompoundingTabs.d1)
 const parsedStakeValue = shallowRef(new BigNumber(0))
 const stakeUnits = ref<StakeUnits>(StakeUnits.USD)
 
-const inputElemComponent = templateRef('input')
-const inputElem = computed(() => {
-  const component = unref(inputElemComponent) as { inputElem: Ref<HTMLInputElement | null> } | null
-  return unref(component?.inputElem) ?? null
-})
+// #region Symbols
 
-const inputSymbol = computed<{ symbol: string; position: 'right' | 'left' }>(() => {
-  return stakeUnits.value === StakeUnits.USD
-    ? {
-        symbol: '$',
-        position: 'left',
-      }
-    : {
-        symbol: ' ' + stakeTokenSymbol.value,
-        position: 'right',
-      }
-})
+const MASK_SYMBOL_USD: MaskSymbol = { str: '$', position: 'left', delimiter: '' }
 
-const { masked: maskedInput, update: updateMasked } = useBigNumberInput({
-  modelValue: parsedStakeValue,
-  updateModelValue: (value) => {
-    parsedStakeValue.value = value
-  },
-  inputElem,
-  symbol: computed(() => inputSymbol.value.symbol),
-  symbolPosition: computed(() => inputSymbol.value.position),
+const useMaskSymbolOrUSD = (symbol: MaybeRef<MaskSymbol>, reverse = false): Ref<MaskSymbol> =>
+  computed(() => {
+    const isUSD = stakeUnits.value === StakeUnits.USD
+    return (!reverse && isUSD) || (reverse && !isUSD) ? unref(symbol) : MASK_SYMBOL_USD
+  })
+
+const stakeTokenSymbolAsMask = computed<MaskSymbol>(() => ({ str: stakeTokenSymbol.value, position: 'right' }))
+
+const rewardTokenSymbolAsMask = computed<MaskSymbol>(() => ({ str: rewardTokenSymbol.value, position: 'right' }))
+
+// #endregion
+
+// #region Input & Mask
+
+const { inputRef } = useCurrencyInput({
+  writableModel: parsedStakeValue,
+  symbol: useMaskSymbolOrUSD(stakeTokenSymbolAsMask),
   decimals: stakeTokenDecimals,
 })
 
+// #endregion
+
 function setStakeValueInUSD(amount: BigNumber | number) {
-  if (stakeUnits.value === StakeUnits.USD) updateMasked(amount.toFixed(stakeTokenDecimals.value))
-  else
-    updateMasked(
-      new BigNumber(new BigNumber(amount).div(stakeTokenPrice.value).toFixed(stakeTokenDecimals.value)).toString(),
-    )
+  if (stakeUnits.value === StakeUnits.USD)
+    parsedStakeValue.value = new BigNumber(amount).decimalPlaces(stakeTokenDecimals.value)
+  else parsedStakeValue.value = new BigNumber(amount).div(stakeTokenPrice.value).decimalPlaces(stakeTokenDecimals.value)
 }
 
 function setStakeValueWithBalance() {
   if (stakeUnits.value === StakeUnits.USD)
-    updateMasked(new BigNumber(balance.value.times(stakeTokenPrice.value).toFixed(2)).toString())
-  else updateMasked(balance.value.toString())
+    parsedStakeValue.value = balance.value.times(stakeTokenPrice.value).decimalPlaces(2)
+  else parsedStakeValue.value = balance.value
 }
 
 const totalApr = computed(() => {
@@ -107,56 +103,50 @@ const apy = computed(() => {
   return totalApr.value.div(100).div(compoundsPerYear.value).plus(1).pow(compoundsPerYear.value).minus(1).times(100)
 })
 
-function formatUSD(amount: BigNumber) {
-  return '$' + formatNumberWithCommas(new BigNumber(amount.toFixed(2)))
-}
-
-function formatTokens(amount: BigNumber, decimals: number, symbol: string) {
-  return new BigNumber(amount.toFixed(decimals)).toString() + ' ' + symbol
-}
+// #region Different values
 
 const stakeValueInAnotherUnits = computed(() => {
   if (stakeUnits.value === StakeUnits.USD) return parsedStakeValue.value.div(stakeTokenPrice.value)
   else return parsedStakeValue.value.times(stakeTokenPrice.value)
 })
 
-const formattedStakeValueInAnotherUnits = computed(() => {
-  if (stakeUnits.value === StakeUnits.USD)
-    return formatTokens(stakeValueInAnotherUnits.value, stakeTokenDecimals.value, stakeTokenSymbol.value)
-  else return formatUSD(stakeValueInAnotherUnits.value)
+const formattedStakeValueInAnotherUnits = useFormattedCurrency({
+  amount: stakeValueInAnotherUnits,
+  symbol: useMaskSymbolOrUSD(stakeTokenSymbolAsMask, true),
+  // decimals: stakeTokenDecimals
 })
 
-const receiveValue = computed(() => {
-  return apy.value
-    .div(100)
-    .times(parsedStakeValue.value)
-    .times(PERIOD_DAYS[stakeFor.value] / 365)
+const useReceiveValue = (stake: Ref<BigNumber>) =>
+  computed(() =>
+    apy.value
+      .div(100)
+      .times(stake.value)
+      .times(PERIOD_DAYS[stakeFor.value] / 365),
+  )
+
+const receiveValue = useReceiveValue(parsedStakeValue)
+
+const formattedReceiveValue = useFormattedCurrency({
+  amount: receiveValue,
+  symbol: useMaskSymbolOrUSD(rewardTokenSymbolAsMask),
+  // decimals: rewardTokenDecimals
 })
 
-const formattedReceiveValue = computed(() => {
-  if (stakeUnits.value === StakeUnits.USD) return formatUSD(receiveValue.value)
-  else return formatTokens(receiveValue.value, rewardTokenDecimals.value, rewardTokenSymbol.value)
+const receiveValueInAnotherUnits = useReceiveValue(stakeValueInAnotherUnits)
+
+const formattedReceiveValueInAnotherUnits = useFormattedCurrency({
+  amount: receiveValueInAnotherUnits,
+  symbol: useMaskSymbolOrUSD(rewardTokenSymbolAsMask, true),
+  // decimals: rewardTokenDecimals
 })
 
-const receiveValueInAnotherUnits = computed(() => {
-  return apy.value
-    .div(100)
-    .times(stakeValueInAnotherUnits.value)
-    .times(PERIOD_DAYS[stakeFor.value] / 365)
-})
-
-const formattedReceiveValueInAnotherUnits = computed(() => {
-  if (stakeUnits.value === StakeUnits.USD)
-    return formatTokens(receiveValueInAnotherUnits.value, rewardTokenDecimals.value, rewardTokenSymbol.value)
-  else return formatUSD(receiveValueInAnotherUnits.value)
-})
+// #endregion
 
 function switchUnits() {
-  const newStakeValue = stakeValueInAnotherUnits.value.toFixed(
+  parsedStakeValue.value = stakeValueInAnotherUnits.value.decimalPlaces(
     stakeUnits.value === StakeUnits.USD ? stakeTokenDecimals.value : 2,
   )
   stakeUnits.value = stakeUnits.value === StakeUnits.USD ? StakeUnits.tokens : StakeUnits.USD
-  updateMasked(newStakeValue)
 }
 
 watch(
@@ -218,14 +208,18 @@ const detailsList = computed(() => {
 
           <div>
             <InputCurrencyTemplate
-              ref="input"
               right
               bottom
               no-input-filter
-              :model-value="maskedInput"
               data-testid="staked-input"
-              @update:model-value="(value: string) => updateMasked(value, true)"
             >
+              <template #input>
+                <input
+                  ref="inputRef"
+                  data-testid="staked-input"
+                >
+              </template>
+
               <template #right>
                 <div class="flex items-center h-full">
                   <KlayIconSwitch
