@@ -58,6 +58,12 @@ describe('useCurrencyInput()', () => {
     actualShouldBe('4444')
   })
 
+  it('when period is typed after 0, input value is "0."', () => {
+    mountFactory()
+
+    getInput().focus().should('have.value', '0').type('.').should('have.value', '0.')
+  })
+
   it('when value is typed, but symbol position is left, then it should be "TST 4,444"', () => {
     mountFactory({ symbol: { position: 'left', str: 'TST' } })
 
@@ -153,10 +159,10 @@ describe('useCurrencyInput()', () => {
   })
 
   describe('Decimals', () => {
-    it('when decimal is set to 5, new decimals are ignored, but not deleted', () => {
+    it('when decimal is set to 5, it is impossible to exceed it', () => {
       mountFactory({ decimals: 5 })
 
-      getInput().type('10.111119009').should('have.value', '10.111119009').blur().should('have.value', '10.11111 TST')
+      getInput().type('10.111119009').should('have.value', '10.11111').blur().should('have.value', '10.11111 TST')
       actualShouldBe('10.11111')
     })
 
@@ -169,7 +175,7 @@ describe('useCurrencyInput()', () => {
 
     it(
       'when decimals are updated to a smaller value and input is focused and its ' +
-        'decimals are greater than new value, the input value is not updated',
+        'decimals are greater than new value, the input value is updated',
       () => {
         const decimals = ref(5)
         mountFactory({ decimals, writableModel: shallowRef(new BigNumber(1.12)) })
@@ -178,7 +184,7 @@ describe('useCurrencyInput()', () => {
         actualShouldBe('1.12345').then(() => {
           decimals.value = 2
         })
-        getInput().should('have.value', '1.12345')
+        getInput().should('have.value', '1.12')
         actualShouldBe('1.12')
       },
     )
@@ -194,5 +200,48 @@ describe('useCurrencyInput()', () => {
         })
       getInput().should('have.value', '1.12 TST')
     })
+
+    it(
+      'when decimals limit is reached and new decimal digits are inserted in the middle, ' +
+        'then last digits are removed and cursor is preserved',
+      () => {
+        mountFactory({ decimals: 5 })
+
+        getInput()
+          .type('0.12345{leftArrow}{leftArrow}8')
+          .should('have.value', '0.12384')
+          // we want to ensure that "9" will be typed **after** "8", so cursor is preserved
+          .type('9')
+          .should('have.value', '0.12389')
+      },
+    )
+
+    it(
+      'when model value is updated externally to a value with exceeding decimals, ' +
+        'then input value & formatted value are correct',
+      () => {
+        const model = shallowRef(new BigNumber(5.12))
+        mountFactory({ writableModel: model, decimals: 2 })
+
+        getInput()
+          .should('have.value', '5.12 TST')
+          .then(() => {
+            model.value = new BigNumber(5.12333)
+          })
+          .should('have.value', '5.12 TST')
+          .focus()
+          .should('have.value', '5.12')
+          .then(() => {
+            model.value = new BigNumber(5.12333)
+          })
+          .should('have.value', '5.12')
+      },
+    )
+  })
+
+  it('when there is no symbol, format is ok', () => {
+    mountFactory({ symbol: ref(null), writableModel: shallowRef(new BigNumber(1_234_567)) })
+
+    getInput().should('have.value', '1,234,567')
   })
 })
