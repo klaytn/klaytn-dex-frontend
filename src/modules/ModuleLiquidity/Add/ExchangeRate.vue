@@ -1,6 +1,8 @@
 <script lang="ts" setup>
+import { WeiAsToken } from '@/core'
 import { nonNullSet } from '@/utils/common'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
+import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import { KlayIconPlus, KlayIconImportant } from '~klay-icons'
 
@@ -10,9 +12,12 @@ const { isQuotePendingFor, tokenValues, addrs, estimatedFor, isValuesDebounceWel
 const models = reactive(
   buildPair((type) => {
     return {
-      input: computed({
-        get: () => tokenValues.value[type],
-        set: (v) => v && liquidityStore.setToken(type, v),
+      input: computed<WeiAsToken<BigNumber>>({
+        get: () => {
+          const val = tokenValues.value[type]
+          return new BigNumber(val ?? '0') as WeiAsToken<BigNumber>
+        },
+        set: (v) => v && liquidityStore.setToken(type, v.toFixed() as WeiAsToken),
       }),
       addr: computed({
         get: () => addrs.value[type],

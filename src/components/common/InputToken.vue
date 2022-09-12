@@ -11,7 +11,7 @@ const props = withDefaults(
   defineProps<{
     address?: Address
     selected?: Set<Address>
-    modelValue?: WeiAsToken<BigNumber>
+    modelValue?: WeiAsToken<BigNumber> | null
     valueDebounce?: number
     isLoading?: boolean
     setByBalance?: boolean
@@ -19,6 +19,7 @@ const props = withDefaults(
     estimated?: boolean
   }>(),
   {
+    modelValue: null,
     isLoading: false,
     setByBalance: false,
     estimated: false,
@@ -30,18 +31,18 @@ const emit = defineEmits(['update:modelValue', 'update:address'])
 
 // #region  Model
 
-const model = useVModel(props, 'modelValue', emit) as Ref<BigNumber>
+const model = useVModel(props, 'modelValue', emit) as Ref<BigNumber | null>
 
-const modelDebounced = shallowRef<BigNumber>(model.value)
+const modelDebounced = shallowRef<BigNumber | null>(model.value)
 
 watch(model, (value) => {
-  if (!value.eq(modelDebounced.value)) modelDebounced.value = value
+  if (!value || (modelDebounced.value && !value.eq(modelDebounced.value))) modelDebounced.value = value
 })
 
 watchDebounced(
   modelDebounced,
   (value) => {
-    if (!value.eq(model.value)) model.value = value
+    if (!value || (model.value && !value.eq(model.value))) model.value = value
   },
   { debounce: toRef(props, 'valueDebounce') },
 )
@@ -68,7 +69,9 @@ const balanceFormatted = computed(() => balanceAsToken.value && formatNumberWith
 
 // #endregion
 
-const showMaxButton = $computed(() => props.setByBalance && balance.value && !model.value.eq(balance.value.asBigNum))
+const showMaxButton = $computed(
+  () => props.setByBalance && balance.value && model.value && !model.value.eq(balance.value.asBigNum),
+)
 
 const addressModel = useVModel(props, 'address', emit)
 
@@ -81,7 +84,7 @@ function setToMax() {
 <template>
   <InputCurrencyTemplate
     :class="{ 'pointer-events-none': isLoading }"
-    :input-loading="isLoading"
+    :loading="isLoading"
     bottom
     size="lg"
     :max-button="showMaxButton"
@@ -89,10 +92,9 @@ function setToMax() {
   >
     <template #input>
       <CurrencyInput
-        v-if="tokenData"
+        v-if="tokenData && modelDebounced"
         v-model="modelDebounced"
         :decimals="tokenData.decimals"
-        :symbol="tokenData.symbol"
         :disabled="isLoading"
       />
     </template>

@@ -3,6 +3,8 @@ import { storeToRefs } from 'pinia'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { KlayIconArrowDown } from '~klay-icons'
 import { nonNullSet } from '@/utils/common'
+import BigNumber from 'bignumber.js'
+import { WeiAsToken } from '@/core'
 
 const swapStore = useSwapStore()
 const { gettingAmountFor, tokenValues, estimatedFor } = $(storeToRefs(swapStore))
@@ -10,9 +12,12 @@ const { gettingAmountFor, tokenValues, estimatedFor } = $(storeToRefs(swapStore)
 const models = reactive(
   buildPair((type) => {
     return {
-      input: computed({
-        get: () => tokenValues[type],
-        set: (v) => v && swapStore.setToken(type, v),
+      input: computed<BigNumber>({
+        get: () => {
+          const val = tokenValues[type]
+          return new BigNumber(val ?? '0')
+        },
+        set: (v) => swapStore.setToken(type, v.toFixed() as WeiAsToken),
       }),
       addr: computed({
         get: () => swapStore.addrs[type],

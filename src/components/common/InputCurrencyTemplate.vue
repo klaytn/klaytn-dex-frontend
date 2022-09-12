@@ -7,11 +7,8 @@ export default {
 <script setup lang="ts">
 const props = withDefaults(
   defineProps<{
-    modelValue?: string | number
-    inputDisabled?: boolean
-    inputLoading?: boolean
-    inputReadonly?: boolean
     maxButton?: boolean
+    loading?: boolean
     bottom?: boolean
     right?: boolean
     containerClass?: any
@@ -21,15 +18,6 @@ const props = withDefaults(
 )
 
 const emit = defineEmits(['update:modelValue', 'click:max'])
-
-function onInput(e: Event) {
-  const value = (e.target as HTMLInputElement).value
-  const num = Number(value)
-  if (!Number.isNaN(num)) emit('update:modelValue', String(num))
-}
-
-const input = templateRef('input')
-defineExpose({ input })
 </script>
 
 <template>
@@ -40,21 +28,11 @@ defineExpose({ input })
   >
     <div class="space-top flex items-center space-x-2 place-self-stretch">
       <div class="input-wrapper flex-1">
-        <slot name="input">
-          <input
-            ref="input"
-            v-bind="$attrs"
-            :value="modelValue"
-            :disabled="inputDisabled || inputLoading"
-            :readonly="inputReadonly"
-            placeholder="0"
-            @input="onInput"
-          >
-        </slot>
+        <slot name="input" />
       </div>
 
       <KlayLoader
-        v-if="inputLoading"
+        v-if="loading"
         color="gray"
         size="24"
       />

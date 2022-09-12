@@ -6,7 +6,7 @@ import { Ref } from 'vue'
 const props = withDefaults(
   defineProps<{
     modelValue: BigNumber
-    symbol: string
+    symbol?: string
     symbolPosition?: 'left' | 'right'
     symbolDelimiter?: string
     decimals: number
@@ -19,11 +19,15 @@ const model = useVModel(props, 'modelValue', emit) as Ref<BigNumber>
 
 const { inputRef } = useCurrencyInput({
   writableModel: model,
-  symbol: computed(() => ({
-    str: props.symbol,
-    position: props.symbolPosition,
-    delimiter: props.symbolDelimiter,
-  })),
+  symbol: computed(() =>
+    props.symbol
+      ? {
+          str: props.symbol,
+          position: props.symbolPosition,
+          delimiter: props.symbolDelimiter,
+        }
+      : null,
+  ),
   decimals: toRef(props, 'decimals'),
 })
 </script>
