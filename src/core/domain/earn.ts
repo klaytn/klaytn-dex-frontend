@@ -143,8 +143,8 @@ export class Staking {
     const encode = this.#rewardsEncoder || (await this.initEncoder())
 
     const calls = pools.map((poolId) => ({
-      target: ADDRESS_FARMING,
-      callData: encode(poolId),
+      target: poolId,
+      callData: encode(this.#agent.address),
     }))
     const { blockNumber, returnData } = await this.#earn.multicallAggregate(calls)
     const rewards = makeRewardsMap(pools, returnData)
