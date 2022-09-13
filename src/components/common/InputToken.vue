@@ -5,7 +5,7 @@ import invariant from 'tiny-invariant'
 import { KlayIconImportant } from '~klay-icons'
 import BigNumber from 'bignumber.js'
 import { Ref } from 'vue'
-import { formatNumberWithCommas } from '@/utils/common'
+import { formatCurrency } from '@/utils/composable.currency-input'
 
 const props = withDefaults(
   defineProps<{
@@ -65,7 +65,7 @@ const balanceAsToken = computed(
   () => balance.value && tokenData.value && new BigNumber(balance.value.toToken(tokenData.value)),
 )
 
-const balanceFormatted = computed(() => balanceAsToken.value && formatNumberWithCommas(balanceAsToken.value))
+const balanceFormatted = computed(() => balanceAsToken.value && formatCurrency({ amount: balanceAsToken.value }))
 
 // #endregion
 
@@ -116,10 +116,10 @@ function setToMax() {
 
     <template #bottom-right>
       <div
-        :title="balance?.asStr"
+        :title="balanceFormatted ?? ''"
         class="balance flex items-center space-x-2"
       >
-        <span>
+        <span class="truncate max-w-40">
           <template v-if="isWalletConnected">
             Balance:
             <ValueOrDash :value="balanceFormatted" />

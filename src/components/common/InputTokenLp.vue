@@ -1,23 +1,33 @@
 <script setup lang="ts">
 import { Token, Wei, WeiAsToken, LP_TOKEN_DECIMALS } from '@/core'
+import { formatCurrency } from '@/utils/composable.currency-input'
 import { TokensPair } from '@/utils/pair'
-import { roundTo } from 'round-to'
+import BigNumber from 'bignumber.js'
+import { Ref } from 'vue'
 
 const props = defineProps<{
-  liquidityRaw?: WeiAsToken
+  modelValue: WeiAsToken<BigNumber>
   balance?: null | Wei
   tokens?: null | TokensPair<Token | null>
 }>()
 
-const emit = defineEmits(['update:liquidityRaw', 'click:max'])
+const emit = defineEmits(['update:modelValue', 'click:max'])
 
-const model = useVModel(props, 'liquidityRaw', emit)
-const modelDebounced = ref(model.value)
-syncRef(model, modelDebounced, { direction: 'ltr' })
+const model = useVModel(props, 'modelValue', emit) as Ref<WeiAsToken<BigNumber>>
+const modelDebounced = shallowRef(model.value)
+
+watch(
+  model,
+  (value) => {
+    if (!value.eq(modelDebounced.value)) modelDebounced.value = value
+  },
+  { immediate: true },
+)
+
 watchDebounced(
   modelDebounced,
   (value) => {
-    model.value = value
+    if (!value.eq(model.value)) model.value = value
   },
   { debounce: 500 },
 )
@@ -28,12 +38,7 @@ const tokensNormalized = computed(() => {
   return tokens as TokensPair<Token>
 })
 
-const formattedBalance = computed(() => {
-  const value = props.balance
-  if (!value) return null
-  const num = Number(value.toToken({ decimals: LP_TOKEN_DECIMALS }))
-  return roundTo(num, 7)
-})
+const balanceFormatted = computed(() => props.balance && formatCurrency({ amount: props.balance.asBigNum }))
 </script>
 
 <template>
@@ -43,6 +48,13 @@ const formattedBalance = computed(() => {
     bottom
     @click:max="emit('click:max')"
   >
+    <template #input>
+      <CurrencyInput
+        v-model="modelDebounced"
+        :decimals="LP_TOKEN_DECIMALS"
+      />
+    </template>
+
     <template #top-right>
       <div
         v-if="tokensNormalized"
@@ -58,7 +70,12 @@ const formattedBalance = computed(() => {
     </template>
 
     <template #bottom-right>
-      <span class="balance"> Balance: <ValueOrDash :value="formattedBalance" /> </span>
+      <span
+        class="balance max-w-40 truncate"
+        :title="balanceFormatted ?? ''"
+      >
+        Balance: <ValueOrDash :value="balanceFormatted" />
+      </span>
     </template>
   </InputCurrencyTemplate>
 </template>

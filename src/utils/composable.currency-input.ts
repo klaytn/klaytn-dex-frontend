@@ -90,7 +90,7 @@ function composeSymbol(sym: MaybeRef<MaskSymbol>): Except<MaskSymbol, 'delimiter
   return { position, str: position === 'left' ? str + delimiter : delimiter + str }
 }
 
-function formatCurrency({ amount, symbol }: { amount: BigNumber; symbol: MaskSymbol | null }) {
+export function formatCurrency({ amount, symbol }: { amount: BigNumber; symbol?: MaskSymbol | null }) {
   const num = formatNumberWithCommas(amount)
   if (symbol) {
     const sym = composeSymbol(symbol)
