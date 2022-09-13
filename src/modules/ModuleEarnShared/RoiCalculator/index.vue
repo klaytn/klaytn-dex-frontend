@@ -216,11 +216,8 @@ const detailsList = computed(() => {
                   :symbol="inputCurrencySymbol.str"
                   :symbol-position="inputCurrencySymbol.position"
                   :symbol-delimiter="inputCurrencySymbol.delimiter"
-                />
-                <input
-                  ref="inputRef"
                   data-testid="staked-input"
-                >
+                />
               </template>
 
               <template #right>
@@ -265,11 +262,15 @@ const detailsList = computed(() => {
           <span v-bem="'label'"> You will receive (APY = {{ apy.toFixed(2) }}%) </span>
 
           <div>
-            <InputCurrencyTemplate
-              data-testid="receive-value"
-              input-readonly
-              :model-value="formattedReceiveValue"
-            >
+            <InputCurrencyTemplate>
+              <template #input>
+                <input
+                  data-testid="receive-value"
+                  readonly
+                  :value="formattedReceiveValue"
+                >
+              </template>
+
               <template #bottom-right>
                 <span v-bem="'input-another-units'">
                   {{ formattedReceiveValueInAnotherUnits }}
