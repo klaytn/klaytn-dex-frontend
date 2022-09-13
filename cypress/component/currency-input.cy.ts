@@ -96,10 +96,17 @@ describe('useCurrencyInput()', () => {
     getInput().type('441ffasd012').should('have.value', '441012').blur().should('have.value', '441,012 TST')
   })
 
-  it('when last digit is removed, 0 is set', () => {
+  it('when last digit is removed, 0 is set and cursor is in the end', () => {
     mountFactory({ writableModel: shallowRef(new BigNumber(4)) })
 
-    getInput().focus().should('have.value', '4').type('{moveToEnd}{backspace}').should('have.value', '0')
+    getInput()
+      .focus()
+      .should('have.value', '4')
+      .type('{moveToEnd}{backspace}')
+      .should('have.value', '0')
+      // check that cursor not in the start, but in the end
+      .type('1')
+      .should('have.value', '1') // "10" if cursor is at start
   })
 
   it('when input with some number is focused and incorrect character is typed, value does not change anyhow', () => {

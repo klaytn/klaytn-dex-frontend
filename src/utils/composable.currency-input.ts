@@ -110,7 +110,8 @@ class FocusedState {
     const cursor = this.el.selectionStart
     this.#lastInput = this.el.value = input
     this.#amount = amount
-    this.el.setSelectionRange(cursor, cursor)
+    if (cursor === 0) this.el.setSelectionRange(input.length, input.length)
+    else this.el.setSelectionRange(cursor, cursor)
   }
 
   public updateIfAmountDiffers(amount: BigNumber, input: string) {
