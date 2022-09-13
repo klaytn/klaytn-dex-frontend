@@ -51,47 +51,22 @@ function parseInputValue(input: string, decimals: number): { kind: 'NaN' } | { k
   }
 }
 
-if (import.meta.vitest) {
-  const { describe, test, expect } = import.meta.vitest
-
-  describe('parseInputValue()', () => {
-    test('empty input', () => {
-      expect(parseInputValue('', 5)).toEqual({ kind: 'ok', num: '0' })
-    })
-
-    test('0.', () => {
-      expect(parseInputValue('0.', 5)).toEqual({ kind: 'ok', num: '0.' })
-    })
-
-    test('41234fffa1 is NaN', () => {
-      expect(parseInputValue('41234fffa1', 5)).toEqual({ kind: 'NaN' })
-    })
-
-    test('00001 -> 1', () => {
-      expect(parseInputValue('00001', 5)).toEqual({ kind: 'ok', num: '1' })
-    })
-
-    test('1.144000 without changes', () => {
-      expect(parseInputValue('1.144000', 10)).toEqual({ kind: 'ok', num: '1.144000' })
-    })
-
-    test('1.144000 with decimals 3 -> 1.144', () => {
-      expect(parseInputValue('1.144000', 3)).toEqual({ kind: 'ok', num: '1.144' })
-    })
-
-    test('00. -> 0.', () => {
-      expect(parseInputValue('00.', 3)).toEqual({ kind: 'ok', num: '0.' })
-    })
-  })
-}
-
 function composeSymbol(sym: MaybeRef<MaskSymbol>): Except<MaskSymbol, 'delimiter'> {
   const { str, position, delimiter = ' ' } = unref(sym)
   return { position, str: position === 'left' ? str + delimiter : delimiter + str }
 }
 
-export function formatCurrency({ amount, symbol }: { amount: BigNumber; symbol?: MaskSymbol | null }) {
-  const num = formatNumberWithCommas(amount)
+export function formatCurrency({
+  amount,
+  symbol,
+  decimals,
+}: {
+  amount: BigNumber | string | number
+  symbol?: MaskSymbol | null
+  decimals?: number
+}) {
+  const rounded = typeof decimals === 'number' ? new BigNumber(amount).decimalPlaces(decimals) : amount
+  const num = formatNumberWithCommas(rounded)
   if (symbol) {
     const sym = composeSymbol(symbol)
     return sym.position === 'left' ? sym.str + num : num + sym.str
@@ -99,10 +74,17 @@ export function formatCurrency({ amount, symbol }: { amount: BigNumber; symbol?:
 }
 
 export function useFormattedCurrency(props: {
-  amount: MaybeRef<BigNumber>
-  symbol: MaybeRef<MaskSymbol | null | undefined>
+  amount: MaybeRef<BigNumber | number | string>
+  symbol?: MaybeRef<MaskSymbol | null | undefined>
+  decimals?: MaybeRef<number>
 }): Ref<string> {
-  return computed(() => formatCurrency({ amount: unref(props.amount), symbol: unref(props.symbol) ?? null }))
+  return computed(() =>
+    formatCurrency({
+      amount: unref(props.amount),
+      symbol: unref(props.symbol) ?? null,
+      decimals: unref(props.decimals),
+    }),
+  )
 }
 
 class FocusedState {
@@ -228,4 +210,33 @@ export function useCurrencyInput(props: UseCurrencyInputProps): UseCurrencyInput
   return {
     inputRef,
   }
+}
+
+if (import.meta.vitest) {
+  const { describe, test, expect } = import.meta.vitest
+
+  describe('parseInputValue()', () => {
+    test.each([
+      ['', 5, { kind: 'ok', num: '0' }],
+      ['0.', 5, { kind: 'ok', num: '0.' }],
+      ['41234fffa1', 5, { kind: 'NaN' }],
+      ['00001', 5, { kind: 'ok', num: '1' }],
+      ['1.144000', 10, { kind: 'ok', num: '1.144000' }],
+      ['1.144000', 3, { kind: 'ok', num: '1.144' }],
+      ['00.', 3, { kind: 'ok', num: '0.' }],
+    ])('Parses %o with decimals %o into %o', (input, decimals, result) => {
+      expect(parseInputValue(input, decimals)).toEqual(result)
+    })
+  })
+
+  describe('formatCurrency()', () => {
+    test.each([
+      [{ amount: '1234432' }, '1,234,432'],
+      [{ amount: 1_555_222.4123 }, '1,555,222.4123'],
+      [{ amount: 1.444000111, decimals: 7 }, '1.4440001'],
+      [{ amount: 1.444000199, decimals: 7 }, '1.4440002'],
+    ])('Formats %o into %o', (input, output) => {
+      expect(formatCurrency(input)).toEqual(output)
+    })
+  })
 }

@@ -12,10 +12,10 @@ const { gettingAmountFor, tokenValues, estimatedFor } = $(storeToRefs(swapStore)
 const models = reactive(
   buildPair((type) => {
     return {
-      input: computed<BigNumber>({
+      input: computed<WeiAsToken<BigNumber>>({
         get: () => {
           const val = tokenValues[type]
-          return new BigNumber(val ?? '0')
+          return new BigNumber(val ?? '0') as WeiAsToken<BigNumber>
         },
         set: (v) => swapStore.setToken(type, v.toFixed() as WeiAsToken),
       }),
