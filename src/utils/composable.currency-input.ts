@@ -23,6 +23,8 @@ export interface MaskSymbol {
   delimiter?: string
 }
 
+export const SYMBOL_USD: MaskSymbol = Object.freeze({ str: '$', position: 'left', delimiter: '' })
+
 export interface UseCurrencyInputReturn {
   inputRef: Ref<null | HTMLInputElement>
 }

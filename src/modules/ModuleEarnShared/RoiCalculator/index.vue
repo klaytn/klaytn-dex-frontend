@@ -7,7 +7,7 @@ import { RoiType } from '@/types'
 import { PERIOD_DAYS } from './const'
 import { makeTabsArray } from '@/utils/common'
 import { StakeTabs, CompoundingTabs, StakeUnits } from './types'
-import { useFormattedCurrency, MaskSymbol } from '@/utils/composable.currency-input'
+import { useFormattedCurrency, MaskSymbol, SYMBOL_USD as MASK_SYMBOL_USD } from '@/utils/composable.currency-input'
 import { Ref } from 'vue'
 import { MaybeRef } from '@vueuse/core'
 
@@ -53,8 +53,6 @@ const parsedStakeValue = shallowRef(new BigNumber(0))
 const stakeUnits = ref<StakeUnits>(StakeUnits.USD)
 
 // #region Symbols
-
-const MASK_SYMBOL_USD: MaskSymbol = { str: '$', position: 'left', delimiter: '' }
 
 const useMaskSymbolOrUSD = (symbol: MaybeRef<MaskSymbol>, reverse = false): Ref<MaskSymbol> =>
   computed(() => {
