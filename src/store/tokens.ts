@@ -1,7 +1,6 @@
 import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
-import { Address, DexPure, Dex, Token, Wei, isNativeToken } from '@/core'
+import { Address, DexPure, Dex, Token, Wei, isNativeToken, NATIVE_TOKEN } from '@/core'
 import { WHITELIST_TOKENS } from '@/core'
-import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 
 export interface TokenWithOptionBalance extends Token {
@@ -21,25 +20,29 @@ function listItemsFromMapOrNull<K, V>(keys: K[], map: Map<K, V>): null | V[] {
 }
 
 async function loadTokens(dex: DexPure, addrs: Address[]): Promise<Map<Address, Token>> {
-  const pairs = await Promise.all(
-    addrs.map(async (addr) => {
-      const token = await dex.tokens.getToken(addr)
-      return [addr, token] as [Address, Token]
-    }),
-  )
-
-  return new Map(pairs)
+  return new Map((await dex.tokens.getTokensBunch(addrs)).map((token) => [token.address, token]))
 }
 
 async function loadBalances(dex: Dex, tokens: Address[]): Promise<Map<Address, Wei>> {
-  const entries = await Promise.all(
-    tokens.map(async (addr) => {
-      const balance = await (isNativeToken(addr) ? dex.tokens.getKlayBalance() : dex.tokens.getTokenBalanceOfUser(addr))
-      return [addr, balance] as [Address, Wei]
-    }),
+  const { withoutKlay: tokensWithoutKlay, klay } = tokens.reduce(
+    (acc, a) => {
+      if (isNativeToken(a)) acc.klay = true
+      else acc.withoutKlay.push(a)
+      return acc
+    },
+    { withoutKlay: new Array<Address>(), klay: false },
   )
 
-  return new Map(entries)
+  const [balancesAll, balanceKlay] = await Promise.all([
+    dex.tokens
+      .getBalancesBunch(tokensWithoutKlay.map((a) => ({ address: a, balanceOf: dex.agent.address })))
+      .then((balances) => {
+        return balances.map<[Address, Wei]>((wei, i) => [tokens[i], wei])
+      }),
+    klay ? dex.tokens.getKlayBalance().then((x) => [[NATIVE_TOKEN, x] as const]) : [],
+  ])
+
+  return new Map([...balanceKlay, ...balancesAll])
 }
 
 function useImportedTokens() {
