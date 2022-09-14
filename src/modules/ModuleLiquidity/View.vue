@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { useLiquidityPairsQuery } from './query.liquidity-pairs'
 
-const { loading: isLoading, result } = useLiquidityPairsQuery()
+const { loading: isLoading, result, refetch } = useLiquidityPairsQuery()
+
+// Refetch if cached
+if (result.value && !isLoading.value) refetch()
 
 const isLoaded = computed(() => !!result.value)
 const isUserEmpty = computed(() => result.value && !result.value.user)

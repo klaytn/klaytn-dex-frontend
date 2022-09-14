@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { RouteName } from '@/types'
 import { storeToRefs } from 'pinia'
 import { Tab } from './const'
 
@@ -7,13 +6,6 @@ const active = useLocalStorage<Tab>('liquidity-remove-active-tab', 'amount')
 
 const store = useLiquidityRmStore()
 const { prepareSupplyState, isReadyToPrepareSupply } = storeToRefs(store)
-
-const router = useRouter()
-
-if (!store.selected) {
-  // there is no point to stay here if there is no selection
-  router.push({ name: RouteName.Liquidity })
-}
 
 onUnmounted(() => store.clear())
 </script>

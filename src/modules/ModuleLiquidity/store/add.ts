@@ -11,15 +11,22 @@ import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import {
-  InputWei,
-  useExchangeRateInput,
-  useInertExchangeRateInput,
-} from '@/modules/ModuleTradeShared/composable.exchange-rate-input'
+  usePairInput,
+  useEstimatedLayer,
+  useLocalStorageAddrsOrigin,
+} from '@/modules/ModuleTradeShared/composable.pair-input'
 import { RouteName } from '@/types'
+import { TokenAddressAndDesiredValue } from '@/core/domain/liquidity'
+import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 
-type NormalizedWeiInput = TokensPair<{ addr: Address; input: Wei }>
+type SupplyTokens = TokensPair<TokenAddressAndDesiredValue>
 
-function useQuoting(props: { pair: Ref<null | PairAddressResult>; input: Ref<null | InputWei> }) {
+interface MainInput {
+  type: TokenType
+  wei: Wei
+}
+
+function useQuoting(props: { pair: Ref<null | PairAddressResult>; mainInput: Ref<null | MainInput> }) {
   const dexStore = useDexStore()
 
   const scope = useParamScope(
@@ -27,7 +34,7 @@ function useQuoting(props: { pair: Ref<null | PairAddressResult>; input: Ref<nul
       if (props.pair.value?.kind !== 'exist') return null
       const { tokens, addr: pair } = props.pair.value
 
-      const { type: quoteFrom, wei: value } = props.input.value ?? {}
+      const { type: quoteFrom, wei: value } = props.mainInput.value ?? {}
       if (!quoteFrom || !value) return null
       const quoteFor = mirrorTokenType(quoteFrom)
 
@@ -73,12 +80,9 @@ function useQuoting(props: { pair: Ref<null | PairAddressResult>; input: Ref<nul
   return { pendingFor, exchangeRate, touch }
 }
 
-function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSupply: () => void }) {
+function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null>; whenSupplied: () => void }) {
   const dexStore = useDexStore()
-  const tokensStore = useTokensStore()
   const { notify } = useNotify()
-
-  const [active, setActive] = useToggle(false)
 
   const scopeKey = computed(() => {
     const activeDex = dexStore.active
@@ -88,59 +92,56 @@ function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSup
       tokenA &&
       tokenB &&
       activeDex.kind === 'named' && {
-        key: `dex-${activeDex.wallet}-${tokenA.addr}-${tokenA.input}-${tokenB.addr}-${tokenB.input}`,
+        key: `dex-${activeDex.wallet}-${tokenA.addr}-${tokenA.desired}-${tokenB.addr}-${tokenB.desired}`,
         payload: { tokens: { tokenA, tokenB }, dex: activeDex.dex() },
       }
     )
   })
-  watch(scopeKey, () => setActive(false))
 
-  const scope = useParamScope(
-    computed(() => active.value && scopeKey.value),
-    ({ tokens, dex }) => {
-      const { state: statePrepare, run: runPrepare } = useTask(
-        async () => {
-          const { send, fee } = await dex.liquidity.prepareAddLiquidity({
-            tokens: buildPair((type) => ({ addr: tokens[type].addr, desired: tokens[type].input })),
-            deadline: deadlineFiveMinutesFromNow(),
-          })
-          return { send, fee }
-        },
-        { immediate: true },
-      )
+  const { filteredKey, setActive } = useControlledComposedKey(scopeKey)
 
-      function prepare() {
-        !statePrepare.pending && runPrepare()
-      }
+  const scope = useParamScope(filteredKey, ({ tokens, dex }) => {
+    const { state: statePrepare, run: runPrepare } = useTask(
+      async () => {
+        const { send, fee } = await dex.liquidity.prepareAddLiquidity({
+          tokens,
+          deadline: deadlineFiveMinutesFromNow(),
+        })
+        return { send, fee }
+      },
+      { immediate: true },
+    )
 
-      const { state: stateSupply, run: supply } = useTask(async () => {
-        invariant(statePrepare.fulfilled)
-        await statePrepare.fulfilled.value.send()
-      })
+    function prepare() {
+      !statePrepare.pending && runPrepare()
+    }
 
-      usePromiseLog(statePrepare, 'add-liquidity-prepare')
-      usePromiseLog(stateSupply, 'add-liquidity-supply')
-      useNotifyOnError(statePrepare, notify, 'Preparation failed')
-      useNotifyOnError(stateSupply, notify, 'Liquidity addition failed')
-      wheneverFulfilled(stateSupply, () => {
-        tokensStore.touchUserBalance()
-        props.onSupply()
-        notify({ type: 'ok', description: 'Liquidity addition succeeded!' })
-      })
+    const { state: stateSupply, run: supply } = useTask(async () => {
+      invariant(statePrepare.fulfilled)
+      await statePrepare.fulfilled.value.send()
+    })
 
-      const fee = computed(() => statePrepare.fulfilled?.value.fee ?? null)
-      const statePrepareFlags = promiseStateToFlags(statePrepare)
-      const stateSupplyFlags = promiseStateToFlags(stateSupply)
+    usePromiseLog(statePrepare, 'add-liquidity-prepare')
+    usePromiseLog(stateSupply, 'add-liquidity-supply')
+    useNotifyOnError(statePrepare, notify, 'Preparation failed')
+    useNotifyOnError(stateSupply, notify, 'Liquidity addition failed')
+    wheneverFulfilled(stateSupply, () => {
+      props.whenSupplied()
+      notify({ type: 'ok', description: 'Liquidity addition succeeded!' })
+    })
 
-      return readonly({
-        prepare,
-        fee,
-        prepareState: statePrepareFlags,
-        supplyState: stateSupplyFlags,
-        supply,
-      })
-    },
-  )
+    const fee = computed(() => statePrepare.fulfilled?.value.fee ?? null)
+    const statePrepareFlags = promiseStateToFlags(statePrepare)
+    const stateSupplyFlags = promiseStateToFlags(stateSupply)
+
+    return readonly({
+      prepare,
+      fee,
+      prepareState: statePrepareFlags,
+      supplyState: stateSupplyFlags,
+      supply,
+    })
+  })
 
   return {
     prepare: () => {
@@ -157,22 +158,42 @@ function usePrepareSupply(props: { tokens: Ref<NormalizedWeiInput | null>; onSup
 
 export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const route = useRoute()
+  const tokensStore = useTokensStore()
+  const router = useRouter()
+
   const isActiveRoute = computed(() => route.name === RouteName.LiquidityAdd)
 
-  const selection = useExchangeRateInput({ localStorageKey: 'liquidity-add-selection', isActive: isActiveRoute })
-  const selectionInput = useInertExchangeRateInput({ input: selection.input })
-  const { rates: inputRates } = selectionInput
-  const { tokens, resetInput } = selection
+  // #region Selection
+
+  const selection = usePairInput({ addrsOrigin: useLocalStorageAddrsOrigin('liquidity-add-selection', isActiveRoute) })
+  const { tokens, resetInput, tokenValues } = selection
   const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
   const addrsReadonly = readonly(selection.addrs)
 
+  function setTokenAddress(type: TokenType, address: Address) {
+    selection.addrs[type] = address
+  }
+
+  function setBothAddresses(tokens: TokensPair<Address>) {
+    selection.setBothAddrs(tokens)
+    resetInput()
+  }
+
+  // #endregion
+
+  // #region Pair address
+
   const { pair: gotPair } = usePairAddress(addrsReadonly)
   const isEmptyPair = computed(() => gotPair.value?.kind === 'empty')
-  const { result: pairBalance, touch: touchPairBalance } = usePairBalance(
-    addrsReadonly,
-    computed(() => gotPair.value?.kind === 'exist'),
-  )
-  const { result: pairReserves, touch: touchPairReserves } = usePairReserves(addrsReadonly)
+  const doesPairExist = computed(() => gotPair.value?.kind === 'exist')
+
+  // #endregion
+
+  // #region Pair balance & reserves
+
+  const { result: pairBalance, touch: touchPairBalance } = usePairBalance(addrsReadonly, doesPairExist)
+  const { result: pairReserves, touch: touchPairReserves } = usePairReserves(addrsReadonly, doesPairExist)
+
   const {
     userBalance: pairUserBalance,
     totalSupply: pairTotalSupply,
@@ -185,7 +206,35 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
       }),
     ),
   )
+
   const formattedPoolShare = useFormattedPercent(poolShare, 7)
+
+  // #endregion
+
+  // #region Estimated layer
+
+  const { setMainToken, setEstimated, estimatedFor } = useEstimatedLayer(selection)
+
+  const isValuesDebounceWelcome = eagerComputed<boolean>(() => {
+    return doesPairExist.value
+  })
+
+  // #endregion
+
+  // #region Quoting
+
+  const quotingMainInput = computed<null | MainInput>(() => {
+    if (isEmptyPair.value) return null
+
+    const quoteFor = estimatedFor.value
+    if (!quoteFor) return null
+
+    const quoteFrom = mirrorTokenType(quoteFor)
+    const wei = selection.weiFromTokens[quoteFrom]
+    if (!wei) return null
+
+    return { type: quoteFrom, wei }
+  })
 
   const {
     pendingFor: isQuotePendingFor,
@@ -193,7 +242,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     touch: touchQuote,
   } = useQuoting({
     pair: gotPair,
-    input: selection.inputNormalized,
+    mainInput: quotingMainInput,
   })
 
   watch(
@@ -201,33 +250,52 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     ([rate, tokens]) => {
       if (rate && tokens[rate.props.quoteFor]) {
         const token = rate.value.toToken(tokens[rate.props.quoteFor]!)
-        selectionInput.setEstimated(token)
+        setEstimated(token)
       }
     },
     { immediate: true, deep: true },
   )
 
-  const weiNormalized = computed<null | NormalizedWeiInput>(() => {
+  const supplyTokensFromQuoting = computed<null | SupplyTokens>(() => {
     if (quoteExchangeRate.value) {
       const {
         value: amount,
         props: { quoteFor, value: referenceValue, tokens },
       } = quoteExchangeRate.value
-      return {
-        ...buildPair((type) => ({ addr: tokens[type], input: quoteFor === type ? amount : referenceValue })),
-      }
+      return buildPair((type) => ({ addr: tokens[type], desired: quoteFor === type ? amount : referenceValue }))
     }
     return null
   })
 
-  const rates = useRates(
+  const estimatedForAfterQuoting = computed<null | TokenType>(() => {
+    return quoteExchangeRate.value?.props.quoteFor ?? null
+  })
+
+  // #endregion
+
+  // #region Supply
+
+  const supplyTokens = computed((): null | SupplyTokens => {
+    const pair = gotPair.value
+
+    if (pair) {
+      if (pair.kind === 'empty') {
+        // get amounts from inputs
+        const input = selection.completeWeiPair.value
+        return input && buildPair((type) => ({ addr: input[type].address, desired: input[type].wei }))
+      } else {
+        // get amounts from quoting
+        return supplyTokensFromQuoting.value
+      }
+    }
+
+    return null
+  })
+
+  const finalRates = useRates(
     computed(() => {
-      if (!weiNormalized.value) return null
-      if (!quoteExchangeRate.value) return null
-      return buildPair((type) => {
-        const wei = weiNormalized.value![type].input
-        return wei
-      })
+      const supply = supplyTokens.value
+      return supply && buildPair((type) => supply[type].desired)
     }),
   )
 
@@ -236,30 +304,27 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     clear: clearSupply,
     scope: supplyScope,
   } = usePrepareSupply({
-    tokens: weiNormalized,
-    onSupply() {
+    tokens: supplyTokens,
+    whenSupplied() {
       touchPairBalance()
       touchPairReserves()
       touchQuote()
+      tokensStore.touchUserBalance()
+      router.push({ name: RouteName.Liquidity })
     },
   })
-  const isValid = computed(() => !!rates.value)
 
-  function input(token: TokenType, raw: WeiAsToken) {
-    selectionInput.set(token, raw)
-  }
+  // #endregion
 
-  function setToken(token: TokenType, addr: Address) {
-    selection.addrs[token] = addr
-  }
+  // #region etc
 
-  function setBoth(tokens: TokensPair<Address>) {
-    selection.setAddrs(tokens)
-    selection.input.value = null
-  }
+  const isValid = computed(() => !!finalRates.value)
+
+  // #endregion
 
   return {
-    inputRates,
+    tokenValues: readonly(tokenValues),
+    estimatedFor: estimatedForAfterQuoting,
     addrs: addrsReadonly,
     symbols,
     tokens,
@@ -271,16 +336,16 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     formattedPoolShare,
     pairReserves,
 
-    rates,
-
     isQuotePendingFor,
     quoteExchangeRate,
 
-    input,
-    setToken,
-    setBoth,
+    isValuesDebounceWelcome,
+    setToken: setMainToken,
+    setTokenAddress,
+    setBothAddresses,
     resetInput,
 
+    finalRates,
     prepareSupply,
     clearSupply,
     supplyScope,

@@ -7,7 +7,7 @@ import { KlayIconImportant } from '~klay-icons'
 
 const props = withDefaults(
   defineProps<{
-    token?: Address
+    address?: Address
     selected?: Set<Address>
     modelValue?: WeiAsToken
     valueDebounce?: number
@@ -26,7 +26,7 @@ const props = withDefaults(
   },
 )
 
-const emit = defineEmits(['update:modelValue', 'update:token'])
+const emit = defineEmits(['update:modelValue', 'update:address'])
 
 const model = useVModel(props, 'modelValue', emit)
 
@@ -54,9 +54,9 @@ const { isWalletConnected } = storeToRefs(dexStore)
 const tokensStore = useTokensStore()
 const { isBalancePending } = storeToRefs(tokensStore)
 
-const tokenData = $computed<null | Token>(() => (props.token && tokensStore.findTokenData(props.token)) ?? null)
+const tokenData = $computed<null | Token>(() => (props.address && tokensStore.findTokenData(props.address)) ?? null)
 
-const balance = $computed<null | Wei>(() => (props.token && tokensStore.lookupUserBalance(props.token)) ?? null)
+const balance = $computed<null | Wei>(() => (props.address && tokensStore.lookupUserBalance(props.address)) ?? null)
 const balanceRaw = $computed(() => {
   if (!balance || !tokenData) return null
   return balance.toToken(tokenData)
@@ -70,7 +70,7 @@ const showMaxButton = $computed(() => {
   return props.setByBalance && balance && props.modelValue !== balanceRaw
 })
 
-const tokenModel = useVModel(props, 'token', emit)
+const tokenModel = useVModel(props, 'address', emit)
 
 function setToMax() {
   invariant(balance)
@@ -79,12 +79,13 @@ function setToMax() {
 </script>
 
 <template>
-  <InputTokenTemplate
+  <InputCurrencyTemplate
     v-model="modelDebounced"
     :class="{ 'pointer-events-none': isLoading }"
     :input-disabled="isDisabled"
     :input-loading="isLoading"
     bottom
+    size="lg"
     :max-button="showMaxButton"
     @click:max="setToMax()"
   >
@@ -123,7 +124,7 @@ function setToMax() {
         <KlayIconImportant />
       </div>
     </template>
-  </InputTokenTemplate>
+  </InputCurrencyTemplate>
 </template>
 
 <style scoped lang="scss">

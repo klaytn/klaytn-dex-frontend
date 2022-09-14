@@ -7,9 +7,9 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    InputCurrencyTemplate: typeof import('./components/common/InputCurrencyTemplate.vue')['default']
     InputToken: typeof import('./components/common/InputToken.vue')['default']
     InputTokenLp: typeof import('./components/common/InputTokenLp.vue')['default']
-    InputTokenTemplate: typeof import('./components/common/InputTokenTemplate.vue')['default']
     KlayAccordionItem: typeof import('./components/common/KlayAccordionItem.vue')['default']
     KlayButton: typeof import('./components/common/KlayButton.vue')['default']
     KlayCharAvatar: typeof import('./components/common/KlayCharAvatar.vue')['default']
@@ -30,7 +30,7 @@ declare module '@vue/runtime-core' {
     ModuleAssetsListItem: typeof import('./modules/ModuleAssets/ListItem.vue')['default']
     ModuleAssetsModalQRCode: typeof import('./modules/ModuleAssets/ModalQRCode.vue')['default']
     ModuleAssetsTransactions: typeof import('./modules/ModuleAssets/Transactions.vue')['default']
-    ModuleEarnSharedRoiCalculator: typeof import('./modules/ModuleEarnShared/RoiCalculator.vue')['default']
+    ModuleEarnSharedRoiCalculator: typeof import('./modules/ModuleEarnShared/RoiCalculator/index.vue')['default']
     ModuleFarming: typeof import('./modules/ModuleFarming/index.vue')['default']
     ModuleFarmingModal: typeof import('./modules/ModuleFarming/Modal.vue')['default']
     ModuleFarmingPool: typeof import('./modules/ModuleFarming/Pool.vue')['default']
