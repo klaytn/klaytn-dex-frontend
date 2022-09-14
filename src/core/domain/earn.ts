@@ -1,11 +1,12 @@
-import { Agent, AgentPure } from './agent'
+import { Agent } from './agent'
 import { IsomorphicContract } from '../isomorphic-contract'
-import { ADDRESS_FARMING, ADDRESS_MULTICALL } from '../const'
+import { ADDRESS_FARMING } from '../const'
 import { Wei } from '../entities'
 import { Opaque } from 'type-fest'
 import { Address } from '../types'
 import { Interface, JsonFragment } from '@ethersproject/abi'
 import { defaultAbiCoder } from '@/core'
+import MulticallPure from './MulticallPure'
 
 /**
  * Stringified number
@@ -27,47 +28,13 @@ interface PropsFarming extends PropsStaking {
   poolId: PoolId
 }
 
-export interface CallStruct {
-  target: Address
-  callData: string | number[]
-}
-
-export class EarnPure {
-  #agent: AgentPure
-  #contract: IsomorphicContract<'multicall'> | null = null
-
-  public constructor(props: { agent: AgentPure }) {
-    this.#agent = props.agent
-  }
-
-  public async multicallAggregate(calls: CallStruct[]) {
-    const contract = this.#contract || (await this.initContract())
-
-    const { blockNumber, returnData } = await contract
-      .aggregate({
-        argsEthers: () => [calls],
-        argsWeb3: () => [calls.map((x) => [x.target, x.callData])],
-      })
-      .call()
-
-    return { blockNumber: Number(blockNumber), returnData }
-  }
-
-  private async initContract() {
-    this.#contract = await this.#agent.createContract(ADDRESS_MULTICALL, 'multicall')
-    return this.#contract
-  }
-}
-
-export class Earn extends EarnPure {
+export class Earn {
   public readonly farming: Farming
   public readonly staking: Staking
 
-  public constructor(props: { agent: Agent }) {
-    super(props)
-    const withEarn = { agent: props.agent, earn: this }
-    this.farming = new Farming(withEarn)
-    this.staking = new Staking(withEarn)
+  public constructor(props: { agent: Agent; multicall: MulticallPure }) {
+    this.farming = new Farming(props)
+    this.staking = new Staking(props)
   }
 }
 
@@ -75,11 +42,11 @@ export class Farming {
   #agent: Agent
   #contract: IsomorphicContract<'farming'> | null = null
   #rewardsEncoder: null | ((poolId: PoolId, address: Address) => string) = null
-  #earn: EarnPure
+  #multicall: MulticallPure
 
-  public constructor(props: { agent: Agent; earn: EarnPure }) {
+  public constructor(props: { agent: Agent; multicall: MulticallPure }) {
     this.#agent = props.agent
-    this.#earn = props.earn
+    this.#multicall = props.multicall
   }
 
   public async getRewards(pools: PoolId[]): Promise<RewardsWithBlockNumber<PoolId>> {
@@ -89,7 +56,7 @@ export class Farming {
       target: ADDRESS_FARMING,
       callData: encode(poolId, this.#agent.address),
     }))
-    const { blockNumber, returnData } = await this.#earn.multicallAggregate(calls)
+    const { blockNumber, returnData } = await this.#multicall.aggregate(calls)
     const rewards = makeRewardsMap(pools, returnData)
 
     return { rewards, blockNumber }
@@ -132,11 +99,11 @@ export class Staking {
   #agent: Agent
   #contract: IsomorphicContract<'staking'> | null = null
   #rewardsEncoder: null | ((poolAddress: Address) => string) = null
-  #earn: EarnPure
+  #multicall: MulticallPure
 
-  public constructor(props: { agent: Agent; earn: EarnPure }) {
+  public constructor(props: { agent: Agent; multicall: MulticallPure }) {
     this.#agent = props.agent
-    this.#earn = props.earn
+    this.#multicall = props.multicall
   }
 
   public async getRewards(pools: Address[]): Promise<RewardsWithBlockNumber<Address>> {
@@ -146,7 +113,7 @@ export class Staking {
       target: poolId,
       callData: encode(this.#agent.address),
     }))
-    const { blockNumber, returnData } = await this.#earn.multicallAggregate(calls)
+    const { blockNumber, returnData } = await this.#multicall.aggregate(calls)
     const rewards = makeRewardsMap(pools, returnData)
 
     return { rewards, blockNumber }
