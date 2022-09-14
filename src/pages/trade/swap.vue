@@ -1,5 +1,6 @@
 <route lang="yaml">
 name: Swap
+path: ''
 </route>
 
 <script lang="ts" setup>

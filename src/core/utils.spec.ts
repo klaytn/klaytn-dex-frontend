@@ -4,10 +4,13 @@ import { formatAddress, parseAddress, isEmptyAddress, computeTransactionFee } fr
 import { Wei } from './entities'
 
 describe('Formatting address', () => {
-  test('some token formatted', () => {
-    expect(formatAddress(parseAddress('0xae3a8a1D877a446b22249D8676AFeB16F056B44e'))).toMatchInlineSnapshot(
-      '"ae3a....B44e"',
-    )
+  const ADDRESS = parseAddress('0xae3a8a1D877a446b22249D8676AFeB16F056B44e')
+
+  test.each([
+    [4, 'ae3a....B44e'],
+    [7, 'ae3a8a1....056B44e'],
+  ])('with length %o formats to %o', (len, result) => {
+    expect(formatAddress(ADDRESS, len)).toEqual(result)
   })
 })
 

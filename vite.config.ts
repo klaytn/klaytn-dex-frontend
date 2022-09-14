@@ -56,12 +56,6 @@ export default defineConfig({
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({
       extensions: ['vue', 'md'],
-      extendRoute(route: RouteRecordRaw): null | undefined | RouteRecordRaw {
-        // making them root-level
-        if (route.path.match(/^(farms|pools|swap|liquidity|assets|transactions)/)) {
-          return { ...route, path: '/' + route.path }
-        }
-      },
       onRoutesGenerated(routes: RouteRecordRaw[]) {
         // default route
         routes.push({

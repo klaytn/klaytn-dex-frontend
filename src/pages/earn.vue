@@ -1,5 +1,6 @@
 <route lang="yaml">
 name: Earn
+path: /farms
 </route>
 
 <script setup lang="ts" name="Earn">
@@ -8,6 +9,6 @@ import EarnWrap from '@/components/EarnWrap.vue'
 
 <template>
   <EarnWrap>
-    <router-view />
+    <RouterView />
   </EarnWrap>
 </template>

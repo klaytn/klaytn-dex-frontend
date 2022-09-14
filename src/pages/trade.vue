@@ -1,5 +1,6 @@
 <route lang="yaml">
 name: Trade
+path: /swap
 </route>
 
 <script setup lang="ts">
@@ -72,7 +73,7 @@ const headLinks: {
           :key="item.toName"
           :to="{ name: item.toName }"
           class="link"
-          active-class="link--active"
+          exact-active-class="link--active"
         >
           {{ item.label }}
         </RouterLink>
