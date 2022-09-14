@@ -125,7 +125,7 @@ const addressFormatted = computed(() => account.value && formatAddress(account.v
     </template>
   </div>
 
-  <ModuleAssetsModalQRCode v-model="isQRCodeModalOpen" />
+  <ModuleAssetsModalQRCode v-model:show="isQRCodeModalOpen" />
 </template>
 
 <style lang="scss" scoped>

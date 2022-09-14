@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    FormatAddress: typeof import('./components/common/FormatAddress.vue')['default']
     InputCurrencyTemplate: typeof import('./components/common/InputCurrencyTemplate.vue')['default']
     InputToken: typeof import('./components/common/InputToken.vue')['default']
     InputTokenLp: typeof import('./components/common/InputTokenLp.vue')['default']
@@ -26,6 +27,7 @@ declare module '@vue/runtime-core' {
     KlayTabs: typeof import('./components/common/KlayTabs.vue')['default']
     KlayTextField: typeof import('./components/common/KlayTextField.vue')['default']
     KlayToast: typeof import('./components/common/KlayToast.vue')['default']
+    ModalAddressQRCode: typeof import('./components/common/ModalAddressQRCode.vue')['default']
     ModuleAssetsAssetsList: typeof import('./modules/ModuleAssets/AssetsList.vue')['default']
     ModuleAssetsAssetsListItem: typeof import('./modules/ModuleAssets/AssetsListItem.vue')['default']
     ModuleAssetsAssetsListItemMenuItem: typeof import('./modules/ModuleAssets/AssetsListItemMenuItem.vue')['default']
