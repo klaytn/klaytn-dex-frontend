@@ -28,3 +28,8 @@ export function doForPair(fn: (type: TokenType) => void): void {
   fn('tokenA')
   fn('tokenB')
 }
+
+export function nonNullPair<T>(pair: TokensPair<null | undefined | T>): null | TokensPair<T> {
+  if (pair.tokenA && pair.tokenB) return pair as TokensPair<T>
+  return null
+}

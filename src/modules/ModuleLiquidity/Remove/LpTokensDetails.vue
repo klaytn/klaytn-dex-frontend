@@ -2,7 +2,7 @@
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 import { LP_TOKEN_DECIMALS } from '@/core'
-import { roundTo } from 'round-to'
+import { formatCurrency } from '@/utils/composable.currency-input'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
 
 const store = useLiquidityRmStore()
@@ -21,16 +21,14 @@ const formattedReserves = computed(() => {
   return buildPair((type) => {
     const wei = reserves[type === 'tokenA' ? 'reserve0' : 'reserve1']
     const data = tokensData[type]!
-    const value = wei.toToken(data)
-    return roundTo(Number(value), 7)
+    return formatCurrency({ amount: wei.decimals(data) })
   })
 })
 
 const formattedPoolTokens = computed(() => {
   const wei = unref(pairUserBalance)
   if (!wei) return null
-  const value = wei.toToken({ decimals: LP_TOKEN_DECIMALS })
-  return roundTo(Number(value), 7)
+  return formatCurrency({ amount: wei.decimals({ decimals: LP_TOKEN_DECIMALS }) })
 })
 </script>
 
@@ -50,26 +48,21 @@ const formattedPoolTokens = computed(() => {
         >
           <span>Pooled {{ symbols[token] }}</span>
           <span>
-            <template v-if="formattedReserves">
-              {{ formattedReserves[token] }}
-            </template>
-            <template v-else> &mdash; </template>
+            <ValueOrDash :value="formattedReserves?.[token]" />
           </span>
         </div>
 
         <div :class="cssRows.rowMd">
           <span>Your pool tokens:</span>
           <span>
-            <template v-if="formattedPoolTokens">{{ formattedPoolTokens }}</template>
-            <template v-else> &mdash; </template>
+            <ValueOrDash :value="formattedPoolTokens" />
           </span>
         </div>
 
         <div :class="cssRows.rowMd">
           <span>Your pool share:</span>
           <span>
-            <template v-if="formattedPoolShare">{{ formattedPoolShare }}</template>
-            <template v-else> &mdash; </template>
+            <ValueOrDash :value="formattedPoolShare" />
           </span>
         </div>
       </div>

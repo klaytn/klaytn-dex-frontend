@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
-import { roundTo } from 'round-to'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
 import { KlayIconImportant } from '~klay-icons'
 
@@ -14,12 +13,11 @@ const {
   isAmountsPending,
 } = storeToRefs(store)
 
-const formattedAmounts = computed(() => {
-  if (!amounts.value || !tokens.value) return null
-  return buildPair((type) => {
-    const data = tokens.value![type]
-    return roundTo(Number(amounts.value![type].toToken(data)), 7)
-  })
+const amountsAsTokens = computed(() => {
+  const amountsVal = amounts.value
+  const tokensVal = tokens.value
+  if (!amountsVal || !tokensVal) return null
+  return buildPair((type) => amountsVal[type].decimals(tokensVal[type]))
 })
 </script>
 
@@ -49,7 +47,10 @@ const formattedAmounts = computed(() => {
           </span>
         </div>
         <div>
-          <ValueOrDash :value="formattedAmounts?.[token]" />
+          <CurrencyFormat
+            :amount="amountsAsTokens?.[token]"
+            :decimals="7"
+          />
         </div>
       </div>
     </div>

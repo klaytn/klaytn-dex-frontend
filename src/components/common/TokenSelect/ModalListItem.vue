@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Token, Wei } from '@/core'
-import { roundTo } from 'round-to'
 
 const props = defineProps<{
   token: Token
@@ -11,10 +10,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['click:import'])
 
-const balanceFormatted = computed(() => {
-  if (!props.balance) return null
-  return String(roundTo(Number(props.balance.toToken(props.token)), 7))
-})
+const balanceAsToken = computed(() => props.balance?.decimals(props.token) ?? null)
 </script>
 
 <template>
@@ -32,7 +28,10 @@ const balanceFormatted = computed(() => {
           v-if="!forImport"
           class="balance"
         >
-          <ValueOrDash :value="balanceFormatted" />
+          <CurrencyFormat
+            :amount="balanceAsToken"
+            :decimals="7"
+          />
         </span>
       </div>
       <span class="token-name">{{ token.name }}</span>

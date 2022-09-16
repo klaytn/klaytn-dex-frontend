@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { TOKEN_TYPES } from '@/utils/pair'
-import { roundTo } from 'round-to'
 import IconIcRoundPlus from '~icons/ic/round-plus'
 
 const { selectedTokensData: tokens, amounts } = $(storeToRefs(useLiquidityRmStore()))
@@ -9,8 +8,8 @@ const { selectedTokensData: tokens, amounts } = $(storeToRefs(useLiquidityRmStor
 const rows = computed(() => {
   if (!amounts || !tokens) return null
   return TOKEN_TYPES.map((type) => {
-    const relative = amounts[type].toToken(tokens[type])
-    return { symbol: tokens[type].symbol, value: roundTo(Number(relative), 7) }
+    const token = amounts[type].decimals(tokens[type])
+    return { symbol: tokens[type].symbol, token }
   })
 })
 </script>
@@ -36,10 +35,17 @@ const rows = computed(() => {
           class="symbol"
           :data-i="i"
         >{{ row.symbol }}</span>
-        <span
-          class="amount"
-          :data-i="i"
-        >{{ row.value }}</span>
+
+        <CurrencyFormat
+          v-slot="{ formatted }"
+          :amount="row.token"
+        >
+          <span
+            class="amount truncate max-w-60"
+            :data-i="i"
+            :title="formatted!"
+          >{{ formatted }}</span>
+        </CurrencyFormat>
 
         <div
           v-if="i === 0"
