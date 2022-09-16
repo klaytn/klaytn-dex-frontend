@@ -67,19 +67,19 @@ export function roundRates({ a_per_b, b_per_a }: Rates): RatesRounded {
   }
 }
 
-export function computePriceImpact(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
-  const feeCoefficient = new Fraction(1).plus(POOL_COMMISSION)
-  const exactQuote = TokenAmount.fromToken(
-    outputAmount.token,
-    midPrice
-      .toFraction()
-      .dividedBy(feeCoefficient)
-      .multipliedBy(inputAmount.toFraction())
-      .toFixed(outputAmount.currency.decimals) as WeiAsToken,
-  )
-  const slippage = exactQuote.minus(outputAmount).dividedBy(exactQuote)
-  return new Percent(slippage.numerator, slippage.denominator)
-}
+// export function computePriceImpact(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
+//   const feeCoefficient = new Fraction(1).plus(POOL_COMMISSION)
+//   const exactQuote = TokenAmount.fromToken(
+//     outputAmount.token,
+//     midPrice
+//       .toFraction()
+//       .dividedBy(feeCoefficient)
+//       .multipliedBy(inputAmount.toFraction())
+//       .toFixed(outputAmount.currency.decimals) as WeiAsToken,
+//   )
+//   const slippage = exactQuote.minus(outputAmount).dividedBy(exactQuote)
+//   return new Percent(slippage.numerator, slippage.denominator)
+// }
 
 /**
  * Serializer for {@link @vueuse/core#useLocalStorage()}

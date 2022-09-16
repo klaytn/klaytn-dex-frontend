@@ -3,8 +3,6 @@ import BigNumber from 'bignumber.js'
 import { BigNumberIsh } from '../types'
 import { parseBigIntIsh, parseBigNumberIsh } from '../utils'
 
-export const ONE = 1
-
 export default class Fraction {
   public static fromBigNumber(value: BigNumberIsh, decimals = 0) {
     const denominator = new BigNumber(10).pow(decimals)
@@ -15,7 +13,7 @@ export default class Fraction {
   public readonly numerator: bigint
   public readonly denominator: bigint
 
-  public constructor(numerator: BigNumberIsh, denominator: BigNumberIsh = ONE) {
+  public constructor(numerator: BigNumberIsh, denominator: BigNumberIsh = 1) {
     this.numerator = parseBigIntIsh(numerator)
     this.denominator = parseBigIntIsh(denominator)
   }

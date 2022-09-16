@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia'
 import cssRows from '../ModuleTradeShared/rows.module.scss'
 
 const store = useSwapStore()
-const { finalRates: rates, symbols, route, priceImpact } = storeToRefs(store)
+const { finalRates: rates, symbols, trade, priceImpact } = storeToRefs(store)
 
 const bothSymbols = computed(() => {
   const { tokenA, tokenB } = symbols.value || {}
@@ -18,7 +18,7 @@ const formattedPriceImpact = computed(() => {
 </script>
 
 <template>
-  <div v-if="route && bothSymbols && formattedPriceImpact">
+  <div v-if="trade && bothSymbols && formattedPriceImpact">
     <KlayCollapse>
       <template #head>
         <h3 class="py-2">
@@ -51,7 +51,7 @@ const formattedPriceImpact = computed(() => {
           <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
             <span>Route</span>
             <span>
-              <ValueOrDash :value="route.toString()" />
+              {{ trade.route.toString() }}
             </span>
           </div>
         </div>

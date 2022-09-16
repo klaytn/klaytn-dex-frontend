@@ -1,14 +1,13 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, Token, TokenSymbol, WeiAsToken } from '@/core'
-import { Wei, Route, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS } from '@/core'
+import { Address, TokenSymbol, Trade, WeiAsToken, Wei, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS } from '@/core'
 import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
-import { useGetAmount, GetAmountProps } from '../composable.get-amount'
-import { useSwapRoute } from '../composable.swap-route'
+import { useSwapAmounts, GetAmountsProps } from '../composable.get-amounts'
+import { useTrade } from '../composable.trade'
 import { usePairAddress, usePairBalance } from '../../ModuleTradeShared/composable.pair-by-tokens'
-import { useSwapValidation } from '../composable.validation'
+import { useSwapValidation, ValidationError } from '../composable.validation'
 import { buildSwapProps, TokenAddrAndWeiInput } from '../util.swap-props'
 import {
   usePairInput,
@@ -17,15 +16,13 @@ import {
 } from '../../ModuleTradeShared/composable.pair-input'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
-import { usePriceImpact } from '@/modules/ModuleSwap/composable.price-impact'
-import { useTokenAmounts } from '@/modules/ModuleSwap/composable.token-amount'
 import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { usePairsQuery } from '../query.pairs'
 
 const debugModule = Debug('swap-store')
 
-type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { route: Route; amountFor: TokenType }
+type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { trade: Trade; amountFor: TokenType }
 
 function useSwap(input: Ref<null | NormalizedWeiInput>) {
   const dexStore = useDexStore()
@@ -34,18 +31,18 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
 
   const swapKey = computed(() => {
     if (!input.value) return null
-    const { route, tokenA, tokenB, amountFor } = input.value
+    const { tokenA, tokenB, amountFor, trade } = input.value
     return (
       dexStore.active.kind === 'named' && {
         key: `${tokenA.addr}-${tokenA.input}-${tokenB.addr}-${tokenB.input}-${amountFor}`,
-        payload: { props: { route, tokenA, tokenB, amountFor }, dex: dexStore.active.dex() },
+        payload: { props: { trade, tokenA, tokenB, amountFor }, dex: dexStore.active.dex() },
       }
     )
   })
 
   const { filteredKey, setActive } = useControlledComposedKey(swapKey)
 
-  const scope = useParamScope(filteredKey, ({ props: { route, tokenA, tokenB, amountFor }, dex }) => {
+  const scope = useParamScope(filteredKey, ({ props: { trade, tokenA, tokenB, amountFor }, dex }) => {
     const { state: prepareState, run: prepare } = useTask(
       async () => {
         // 1. Approve amount of the tokenA
@@ -53,7 +50,7 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
 
         // 2. Perform swap according to which token is "exact" and if
         // some of them is native
-        const swapProps = buildSwapProps({ route, tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
+        const swapProps = buildSwapProps({ trade, tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
         const { send, fee } = await dex.swap.prepareSwap(swapProps)
 
         return { send, fee }
@@ -98,8 +95,20 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
 }
 
 export const useSwapStore = defineStore('swap', () => {
+  const dexStore = useDexStore()
+
   const pageRoute = useRoute()
   const isActiveRoute = computed(() => pageRoute.name === RouteName.Swap)
+
+  const multihops = useLocalStorage<boolean>('swap-multi-hops', true)
+  const disableMultiHops = computed({
+    get: () => !multihops.value,
+    set: (v) => {
+      multihops.value = !v
+    },
+  })
+
+  const slippageTolerance = ref(0)
 
   // #region selection
 
@@ -158,8 +167,8 @@ export const useSwapStore = defineStore('swap', () => {
             symbol: pairSymbol,
             name: pairSymbol,
           }),
-          token0Amount: TokenAmount.fromToken(token0, pair.reserve0),
-          token1Amount: TokenAmount.fromToken(token1, pair.reserve1),
+          token0: TokenAmount.fromToken(token0, pair.reserve0),
+          token1: TokenAmount.fromToken(token1, pair.reserve1),
         })
       }) ?? null
     )
@@ -192,25 +201,27 @@ export const useSwapStore = defineStore('swap', () => {
     }
   })
 
-  const swapRouteResult = useSwapRoute({
+  const tradeResult = useTrade({
     pairs,
     amount: inputAmount,
     tokens: tokenImpls,
+    disableMultiHops,
   })
 
-  const swapRoute = computed(() => (swapRouteResult.value?.kind === 'exist' ? swapRouteResult.value.route : null))
+  const trade = computed(() => (tradeResult.value?.kind === 'exist' ? tradeResult.value.trade : null))
+  const priceImpact = computed(() => trade.value?.priceImpact ?? null)
 
-  const { gotAmountFor, gettingAmountFor } = useGetAmount(
-    computed<GetAmountProps | null>(() => {
+  const { gotAmountFor, gettingAmountFor } = useSwapAmounts(
+    computed<GetAmountsProps | null>(() => {
       const input = inputAmount.value
       if (!input) return null
       const { for: amountFor, wei: referenceValue } = input
 
-      const route = swapRoute.value
-      if (!route) return null
+      const tradeVal = trade.value
+      if (!tradeVal) return null
 
       return {
-        route,
+        trade: tradeVal,
         amountFor,
         referenceValue,
       }
@@ -244,35 +255,19 @@ export const useSwapStore = defineStore('swap', () => {
     if (gotAmountFor.value) {
       const {
         amount,
-        props: { amountFor, referenceValue, route },
+        props: { amountFor, referenceValue, trade },
       } = gotAmountFor.value
       return {
         ...buildPair((type) => ({
-          addr: type === 'tokenA' ? route.input.address : route.output.address,
+          addr: type === 'tokenA' ? trade.route.input.address : trade.route.output.address,
           input: amountFor === type ? amount : referenceValue,
         })),
-        route,
+        trade,
         amountFor,
       }
     }
     return null
   })
-
-  const tokenAmounts = useTokenAmounts(
-    reactive(
-      buildPair((type) =>
-        computed<{ token: TokenImpl; amount: Wei } | null>(() => {
-          const amount = normalizedWeiInputs.value?.[type].input
-          if (!amount) return null
-
-          const token = tokenImpls[type]
-          invariant(token)
-
-          return { token, amount }
-        }),
-      ),
-    ),
-  )
 
   const finalRates = useRates(
     computed(() => {
@@ -292,25 +287,17 @@ export const useSwapStore = defineStore('swap', () => {
 
   // #region validation
 
-  const priceImpact = usePriceImpact({
-    route: swapRoute,
-    amounts: tokenAmounts,
-  })
-
   const swapValidation = useSwapValidation({
-    tokenA: computed(() => {
-      const balance = selection.balance.tokenA as Wei | null
-      const token = selection.tokens.tokenA
-      const input = normalizedWeiInputs.value?.tokenA?.input
-
-      return balance && token && input ? { ...token, balance, input } : null
-    }),
-    tokenB: computed(() => selection.tokens.tokenB),
-    route: swapRouteResult,
+    selected: reactive(buildPair((type) => computed(() => !!selection.addrs[type]))),
+    tokenABalance: computed(() => selection.balance.tokenA as Wei | null),
+    tokenAInput: computed(() => selection.weiFromTokens.tokenA),
+    trade: computed(() => tradeResult.value?.kind ?? 'pending'),
+    wallet: computed(() => (dexStore.isWalletConnected ? 'connected' : 'anonymous')),
   })
 
   const isValid = computed(() => swapValidation.value.kind === 'ok')
-  const validationMessage = computed(() => (swapValidation.value.kind === 'err' ? swapValidation.value.message : null))
+  const isValidationPending = computed(() => swapValidation.value.kind === 'pending')
+  const validationError = computed(() => (swapValidation.value.kind === 'err' ? swapValidation.value.err : null))
 
   // #endregion
 
@@ -320,12 +307,13 @@ export const useSwapStore = defineStore('swap', () => {
     addrs: addrsReadonly,
     normalizedWeiInputs,
     tokens,
-    route: swapRoute,
+    trade,
     symbols,
     priceImpact,
 
     isValid,
-    validationMessage,
+    isValidationPending,
+    validationError,
 
     swap,
     swapState,
@@ -341,6 +329,9 @@ export const useSwapStore = defineStore('swap', () => {
     setToken: setMainToken,
     setBothTokens,
     resetInput,
+
+    slippageTolerance,
+    disableMultiHops,
   }
 })
 

@@ -20,6 +20,8 @@ specifiers:
   '@types/nprogress': ^0.2.0
   '@typescript-eslint/eslint-plugin': ^5.34.0
   '@typescript-eslint/parser': ^5.34.0
+  '@uniswap/sdk-core': 3.0.2
+  '@uniswap/v2-sdk': 3.0.1
   '@vitejs/plugin-vue': 3.0.3
   '@vue-kakuyaku/core': ^0.2.0
   '@vue/apollo-composable': 4.0.0-alpha.19
@@ -44,6 +46,7 @@ specifiers:
   github-markdown-css: ^5.1.0
   graphql: ^16.6.0
   graphql-tag: ^2.12.6
+  jsbi: 3.2.5
   jsdom: ^20.0.0
   lodash: ^4.17.21
   marked: ^4.0.18
@@ -83,6 +86,8 @@ dependencies:
   '@metamask/detect-provider': 1.2.0
   '@soramitsu-ui/icons': 0.1.0
   '@soramitsu-ui/ui': 0.6.1
+  '@uniswap/sdk-core': 3.0.2
+  '@uniswap/v2-sdk': 3.0.1
   '@vue-kakuyaku/core': 0.2.0
   '@vue/apollo-composable': 4.0.0-alpha.19_p3gti3prznyki4yt3habg7ocpe
   '@vueuse/core': 8.6.0_vue@3.2.37
@@ -97,6 +102,7 @@ dependencies:
   github-markdown-css: 5.1.0
   graphql: 16.6.0
   graphql-tag: 2.12.6_graphql@16.6.0
+  jsbi: 3.2.5
   lodash: 4.17.21
   nprogress: 0.2.0
   pinia: 2.0.21_j6bzmzd4ujpabbp5objtwxyjp4
@@ -2819,6 +2825,29 @@ packages:
       eslint-visitor-keys: 3.3.0
     dev: true
 
+  /@uniswap/sdk-core/3.0.2:
+    resolution: {integrity: sha512-G879GHNMgpan8/+H+J6UfX/PYiQgCM5XF9JnyhIaqp5VkZVvIn1TvQm7etb6QBbuHjnfgAoSaZyt52K3jDGnMw==}
+    engines: {node: '>=10'}
+    dependencies:
+      '@ethersproject/address': 5.7.0
+      big.js: 5.2.2
+      decimal.js-light: 2.5.1
+      jsbi: 3.2.5
+      tiny-invariant: 1.2.0
+      toformat: 2.0.0
+    dev: false
+
+  /@uniswap/v2-sdk/3.0.1:
+    resolution: {integrity: sha512-eSpm2gjo2CZh9FACH5fq42str/oSNyWcDxB27o5k44bEew4sxb+pld4gGIf/byJndLBvArR9PtH8c0n/goNOTw==}
+    engines: {node: '>=10'}
+    dependencies:
+      '@ethersproject/address': 5.7.0
+      '@ethersproject/solidity': 5.7.0
+      '@uniswap/sdk-core': 3.0.2
+      tiny-invariant: 1.2.0
+      tiny-warning: 1.0.3
+    dev: false
+
   /@unocss/astro/0.45.13_vite@3.0.9:
     resolution: {integrity: sha512-XoJeBwMiQAfF6XpfoE26MOFfHaeszQ9goWIZcTs/3oaLoBZI36jGFVOTumG7ls4X3Pl4tDS/SB7jn078aWBOhQ==}
     dependencies:
@@ -3590,6 +3619,10 @@ packages:
 
   /bech32/1.1.4:
     resolution: {integrity: sha512-s0IrSOzLlbvX7yp4WBfPITzpAU8sqQcpsmwXDiKwrG4r491vwCO/XpejasRNl0piBMe/DvP4Tz0mIS/X1DPJBQ==}
+
+  /big.js/5.2.2:
+    resolution: {integrity: sha512-vyL2OymJxmarO8gxMr0mhChsO9QGwhynfuu4+MHTAW6czfq9humCB7rKpUjDd9YUiDPU4mzpyupFSvOClAwbmQ==}
+    dev: false
 
   /bignumber.js/8.0.2:
     resolution: {integrity: sha512-EiuvFrnbv0jFixEQ9f58jo7X0qI2lNGIr/MxntmVzQc5JUweDSh8y8hbTCAomFtqwUPIOWcLXP0VEOSZTG7FFw==}
@@ -4544,6 +4577,10 @@ packages:
     resolution: {integrity: sha512-z2S+W9X73hAUUki+N+9Za2lBlun89zigOyGrsax+KUQ6wKW4ZoWpEYBkGhQjwAjjDCkWxhY0VKEhk8wzY7F5cA==}
     engines: {node: '>=0.10.0'}
     dev: true
+
+  /decimal.js-light/2.5.1:
+    resolution: {integrity: sha512-qIMFpTMZmny+MMIitAB6D7iVPEorVw6YQRWkvarTkT4tBeSLLiHzcwj6q0MmYSFCiVpiqPJTJEYIrpcPzVEIvg==}
+    dev: false
 
   /decimal.js/10.3.1:
     resolution: {integrity: sha512-V0pfhfr8suzyPGOx3nmq4aHqabehUZn6Ch9kyFpV79TGDTWFmHqUqXdabR7QHqxzrYolF4+tVmJhUG4OURg5dQ==}
@@ -6975,6 +7012,10 @@ packages:
     dependencies:
       argparse: 2.0.1
     dev: true
+
+  /jsbi/3.2.5:
+    resolution: {integrity: sha512-aBE4n43IPvjaddScbvWRA2YlTzKEynHzu7MqOyTipdHucf/VxS63ViCjxYRg86M8Rxwbt/GfzHl1kKERkt45fQ==}
+    dev: false
 
   /jsbn/0.1.1:
     resolution: {integrity: sha512-UVU9dibq2JcFWxQPA6KCqj5O42VOmAY3zQUfEKxU0KpTGXwNoCjkX1e13eHNvw/xPynt6pU0rZ1htjWTNTSXsg==}
@@ -9447,6 +9488,10 @@ packages:
     resolution: {integrity: sha512-1Uhn/aqw5C6RI4KejVeTg6mIS7IqxnLJ8Mv2tV5rTc0qWobay7pDUz6Wi392Cnc8ak1H0F2cjoRzb2/AW4+Fvg==}
     dev: false
 
+  /tiny-warning/1.0.3:
+    resolution: {integrity: sha512-lBN9zLN/oAf68o3zNXYrdCt1kP8WsiGW8Oo2ka41b2IM5JL/S1CTyX1rW0mb/zSuJun0ZUrDxx4sqvYS2FWzPA==}
+    dev: false
+
   /tinypool/0.2.4:
     resolution: {integrity: sha512-Vs3rhkUH6Qq1t5bqtb816oT+HeJTXfwt2cbPH17sWHIYKTotQIFPk3tf2fgqRrVyMDVOc1EnPgzIxfIulXVzwQ==}
     engines: {node: '>=14.0.0'}
@@ -9474,6 +9519,10 @@ packages:
     dependencies:
       is-number: 7.0.0
     dev: true
+
+  /toformat/2.0.0:
+    resolution: {integrity: sha512-03SWBVop6nU8bpyZCx7SodpYznbZF5R4ljwNLBcTQzKOD9xuihRo/psX58llS1BMFhhAI08H3luot5GoXJz2pQ==}
+    dev: false
 
   /toidentifier/1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
