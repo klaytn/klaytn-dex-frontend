@@ -6,6 +6,9 @@ import invariant from 'tiny-invariant'
 import type { TokensPair, TokenType } from '@/utils/pair'
 import { AgentPure, Agent } from './agent'
 import { IsomorphicContract } from '../isomorphic-contract'
+import MulticallPure, { CallStruct } from './MulticallPure'
+import { defaultAbiCoder, Interface, JsonFragment } from '@ethersproject/abi'
+import { BigNumber as EthersBigNumber } from '@ethersproject/bignumber'
 
 export interface GetTokenQuoteProps extends TokensPair<Address> {
   value: Wei
@@ -44,10 +47,20 @@ function sortReservesForQuote({
 export class TokensPure {
   #agent: AgentPure
   #contracts: CommonContracts
+  #multicall: MulticallPure
 
-  public constructor(props: { agent: AgentPure; contracts: CommonContracts }) {
+  /** For multicall */
+  #kip7FunctionData: {
+    name: string
+    symbol: string
+    decimals: string
+    balanceOf: (address: Address) => string
+  } | null = null
+
+  public constructor(props: { agent: AgentPure; contracts: CommonContracts; multicall: MulticallPure }) {
     this.#agent = props.agent
     this.#contracts = props.contracts
+    this.#multicall = props.multicall
   }
 
   public async getTokenQuote({ tokenA, tokenB, value, quoteFor }: GetTokenQuoteProps): Promise<Wei> {
@@ -82,6 +95,28 @@ export class TokensPure {
     return addr
   }
 
+  public async getTokensBunch(addresses: Address[]): Promise<Token[]> {
+    const fns = this.#kip7FunctionData || (await this.initKip7FunctionData())
+
+    const calls = addresses.flatMap<CallStruct>((a) => [
+      { target: a, callData: fns.name },
+      { target: a, callData: fns.symbol },
+      { target: a, callData: fns.decimals },
+    ])
+
+    const { returnData } = await this.#multicall.aggregate(calls)
+
+    const tokens = addresses.map<Token>((a, i) => {
+      const [nameRaw, symbolRaw, decimalsRaw] = returnData.slice(i * 3, i * 3 + 3)
+      const [name] = defaultAbiCoder.decode(['string'], nameRaw) as [string]
+      const [symbol] = defaultAbiCoder.decode(['string'], symbolRaw) as [TokenSymbol]
+      const [decimals] = defaultAbiCoder.decode(['uint'], decimalsRaw) as [EthersBigNumber]
+      return { address: a, name, symbol, decimals: decimals.toNumber() }
+    })
+
+    return tokens
+  }
+
   public async getToken(address: Address): Promise<Token> {
     const contract = await this.#agent.createContract(address, 'kip7')
     const [name, symbol, decimals] = await Promise.all([
@@ -95,6 +130,21 @@ export class TokensPure {
     return { address, name, symbol, decimals }
   }
 
+  public async getBalancesBunch(calls: { address: Address; balanceOf: Address }[]): Promise<Wei[]> {
+    const fns = this.#kip7FunctionData || (await this.initKip7FunctionData())
+
+    const { returnData } = await this.#multicall.aggregate(
+      calls.map((x) => ({ target: x.address, callData: fns.balanceOf(x.balanceOf) })),
+    )
+
+    const mapped = returnData.map((hex) => {
+      const [decoded] = defaultAbiCoder.decode(['uint256'], hex) as [EthersBigNumber]
+      return new Wei(decoded)
+    })
+
+    return mapped
+  }
+
   public async getTokenBalanceOfAddr(token: Address, balanceOf: Address): Promise<Wei> {
     const contract = await this.#agent.createContract(token, 'kip7')
     const balance = await contract.balanceOf([balanceOf]).call()
@@ -106,12 +156,24 @@ export class TokensPure {
     invariant(!isEmptyAddress(pairAddr), 'Empty address')
     return this.#agent.createContract(pairAddr, 'pair')
   }
+
+  private async initKip7FunctionData() {
+    const fragments = this.#agent.abi.get('kip7') || (await this.#agent.abi.load('kip7'))
+    const iface = new Interface(fragments as JsonFragment[])
+    this.#kip7FunctionData = {
+      name: iface.encodeFunctionData('name', []),
+      symbol: iface.encodeFunctionData('symbol', []),
+      decimals: iface.encodeFunctionData('decimals', []),
+      balanceOf: (a) => iface.encodeFunctionData('balanceOf', [a]),
+    }
+    return this.#kip7FunctionData
+  }
 }
 
 export class Tokens extends TokensPure {
   #agent: Agent
 
-  public constructor(props: { agent: Agent; contracts: CommonContracts }) {
+  public constructor(props: { agent: Agent; contracts: CommonContracts; multicall: MulticallPure }) {
     super(props)
     this.#agent = props.agent
   }

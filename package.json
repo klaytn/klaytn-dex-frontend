@@ -16,7 +16,10 @@
   },
   "dependencies": {
     "@apollo/client": "^3.6.9",
+    "@ethersproject/abi": "5.7.0",
+    "@ethersproject/address": "5.7.0",
     "@ethersproject/bignumber": "5.7.0",
+    "@ethersproject/providers": "5.7.0",
     "@metamask/detect-provider": "^1.2.0",
     "@soramitsu-ui/icons": "^0.1.0",
     "@soramitsu-ui/ui": "^0.6.1",

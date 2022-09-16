@@ -2,7 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { roundTo } from 'round-to'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
-import { buildPair, TOKEN_TYPES } from '@/utils/pair'
+import { buildPair, TOKEN_TYPES, nonNullPair } from '@/utils/pair'
 import { NATIVE_TOKEN_DECIMALS, Wei, POOL_COMMISSION } from '@/core'
 import { Ref } from 'vue'
 import { KlayIconImportant } from '~klay-icons'
@@ -25,22 +25,24 @@ const {
   supplyScope,
 } = storeToRefs(store)
 
-const formattedReserves = reactive(
-  buildPair((type) => {
-    return computed(() => {
-      if (reserves.value && tokens.value) {
-        const token = tokens.value[type]!
-        const reserve = reserves.value[type === 'tokenA' ? 'reserve0' : 'reserve1']
-        const num = reserve.toToken(token)
-        return String(roundTo(Number(num), 7))
-      }
-      return null
-    })
-  }),
-)
+const reservesAsTokens = computed(() => {
+  const bothTokens = nonNullPair(tokens.value)
+  const res = reserves.value
+  if (!bothTokens || !res) return null
 
-const fee = computed(() => supplyScope.value?.fee ?? null)
-const formattedFee = useFormattedToken(fee as Ref<null | Wei>, { decimals: NATIVE_TOKEN_DECIMALS }, 7)
+  return buildPair((type) => {
+    const reserve = res[type === 'tokenA' ? 'reserve0' : 'reserve1']
+    const num = reserve.decimals(bothTokens[type])
+    return num
+  })
+})
+
+const feeKlay = computed(() => {
+  const wei = supplyScope.value?.fee
+  if (!wei) return null
+  return wei.decimals({ decimals: NATIVE_TOKEN_DECIMALS })
+})
+
 const formattedCommission = POOL_COMMISSION.toFormat()
 </script>
 
@@ -52,14 +54,19 @@ const formattedCommission = POOL_COMMISSION.toFormat()
     <h3>Prices and pool share</h3>
 
     <div class="space-y-4">
-      <template v-if="inModal && formattedReserves.tokenA && formattedReserves.tokenB">
+      <template v-if="inModal && reservesAsTokens">
         <div
           v-for="token in TOKEN_TYPES"
           :key="token"
           :class="cssRows.rowSm"
         >
           <span>{{ symbols[token] }} Deposited</span>
-          <span>{{ formattedReserves[token] }}</span>
+          <span>
+            <CurrencyFormat
+              :amount="reservesAsTokens[token]"
+              :decimals="7"
+            />
+          </span>
         </div>
       </template>
 
@@ -85,11 +92,19 @@ const formattedCommission = POOL_COMMISSION.toFormat()
       </div>
 
       <div
-        v-if="inModal && fee !== null"
+        v-if="inModal && feeKlay"
         :class="cssRowClassForBottomLines"
       >
         <span>Transaction fee</span>
-        <span>{{ formattedFee }} KLAY</span>
+        <CurrencyFormat
+          v-slot="{ formatted }"
+          :amount="feeKlay"
+          symbol="KLAY"
+        >
+          <span :title="formatted!">
+            {{ formatted }}
+          </span>
+        </CurrencyFormat>
       </div>
     </div>
   </div>

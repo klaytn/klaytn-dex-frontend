@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { roundTo } from 'round-to'
 import { toRefs } from '@vueuse/core'
 import { LiquidityPairsPosition } from '../query.liquidity-pairs'
 import BigNumber from 'bignumber.js'
 import { RouteName } from '@/types'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
-import { WeiAsToken } from '@/core'
 
 const cssRowMd = cssRows.rowMd
 
@@ -21,10 +19,6 @@ const pairAddrs = computed(() => ({
   tokenA: token0.id,
   tokenB: token1.id,
 }))
-
-function formatValueRaw(value: WeiAsToken) {
-  return roundTo(Number(value), 5)
-}
 
 const formattedPoolShare = useFormattedPercent(
   computed(() => new BigNumber(liquidityTokenBalance).dividedBy(totalSupply).toNumber()),
@@ -56,8 +50,19 @@ function goToRemoveLiquidity() {
           :token-b="token1.symbol"
         />
         <span>{{ name }}</span>
-        <span>{{ formatValueRaw(reserveUSD) }}</span>
-        <span class="reserve-usd">(${{ formatValueRaw(reserveUSD) }})</span>
+        <span>
+          <CurrencyFormat
+            :amount="reserveKLAY"
+            :decimals="3"
+          />
+        </span>
+        <span class="reserve-usd">(<CurrencyFormat
+          :amount="reserveUSD"
+          :decimals="2"
+          symbol="$"
+          symbol-delimiter=""
+          symbol-position="left"
+        />)</span>
       </div>
     </template>
 
@@ -66,19 +71,28 @@ function goToRemoveLiquidity() {
         <div :class="cssRowMd">
           <span>Pooled {{ token0.name }}</span>
           <span>
-            {{ formatValueRaw(reserve0) }}
+            <CurrencyFormat
+              :amount="reserve0"
+              :decimals="5"
+            />
           </span>
         </div>
         <div :class="cssRowMd">
           <span>Pooled {{ token1.name }}</span>
           <span>
-            {{ formatValueRaw(reserve1) }}
+            <CurrencyFormat
+              :amount="reserve1"
+              :decimals="5"
+            />
           </span>
         </div>
         <div :class="cssRowMd">
           <span>Your pool tokens:</span>
           <span>
-            {{ formatValueRaw(liquidityTokenBalance) }}
+            <CurrencyFormat
+              :amount="liquidityTokenBalance"
+              :decimals="5"
+            />
           </span>
         </div>
         <div :class="cssRowMd">

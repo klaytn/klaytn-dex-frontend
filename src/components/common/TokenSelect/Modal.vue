@@ -98,7 +98,7 @@ function doImport() {
       style="width: 344px"
       no-padding
       title="Select a token"
-      class="flex flex-col min-h-0 h-90vh overflow-hidden"
+      class="flex flex-col min-h-0 max-h-90vh overflow-hidden"
     >
       <template #body>
         <div class="flex-1 min-h-0 flex flex-col">

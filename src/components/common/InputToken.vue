@@ -2,24 +2,25 @@
 import { Token, Address, Wei, WeiAsToken } from '@/core'
 import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
-import { roundTo } from 'round-to'
 import { KlayIconImportant } from '~klay-icons'
+import BigNumber from 'bignumber.js'
+import { Ref } from 'vue'
+import { formatCurrency } from '@/utils/composable.currency-input'
 
 const props = withDefaults(
   defineProps<{
     address?: Address
     selected?: Set<Address>
-    modelValue?: WeiAsToken
+    modelValue?: WeiAsToken<BigNumber> | null
     valueDebounce?: number
     isLoading?: boolean
-    isDisabled?: boolean
     setByBalance?: boolean
     // FIXME not by design
     estimated?: boolean
   }>(),
   {
+    modelValue: null,
     isLoading: false,
-    isDisabled: false,
     setByBalance: false,
     estimated: false,
     valueDebounce: 500,
@@ -28,25 +29,27 @@ const props = withDefaults(
 
 const emit = defineEmits(['update:modelValue', 'update:address'])
 
-const model = useVModel(props, 'modelValue', emit)
+// #region  Model
 
-const modelDebounced = ref(model.value)
+const model = useVModel(props, 'modelValue', emit) as Ref<BigNumber | null>
+
+const modelDebounced = shallowRef<BigNumber | null>(model.value)
+
 watch(model, (value) => {
-  modelDebounced.value = value
+  if (!value || (modelDebounced.value && !value.eq(modelDebounced.value))) modelDebounced.value = value
 })
+
 watchDebounced(
   modelDebounced,
   (value) => {
-    if (value !== model.value) {
-      model.value = value
-    }
+    if (!value || (model.value && !value.eq(model.value))) model.value = value
   },
   { debounce: toRef(props, 'valueDebounce') },
 )
 
-// const addrFormatted = $computed(() => {
-//   return props.token && formatAddress(props.token)
-// })
+// #endregion
+
+// #region Stores
 
 const dexStore = useDexStore()
 const { isWalletConnected } = storeToRefs(dexStore)
@@ -54,44 +57,51 @@ const { isWalletConnected } = storeToRefs(dexStore)
 const tokensStore = useTokensStore()
 const { isBalancePending } = storeToRefs(tokensStore)
 
-const tokenData = $computed<null | Token>(() => (props.address && tokensStore.findTokenData(props.address)) ?? null)
+const tokenData = computed<null | Token>(() => (props.address && tokensStore.findTokenData(props.address)) ?? null)
 
-const balance = $computed<null | Wei>(() => (props.address && tokensStore.lookupUserBalance(props.address)) ?? null)
-const balanceRaw = $computed(() => {
-  if (!balance || !tokenData) return null
-  return balance.toToken(tokenData)
-})
-const balanceFormatted = $computed(() => {
-  if (!balanceRaw) return null
-  return roundTo(Number(balanceRaw), 5)
-})
+const balance = computed<null | Wei>(() => (props.address && tokensStore.lookupUserBalance(props.address)) ?? null)
 
-const showMaxButton = $computed(() => {
-  return props.setByBalance && balance && props.modelValue !== balanceRaw
-})
+const balanceAsToken = computed(
+  () => balance.value && tokenData.value && new BigNumber(balance.value.toToken(tokenData.value)),
+)
 
-const tokenModel = useVModel(props, 'address', emit)
+const balanceFormatted = computed(() => balanceAsToken.value && formatCurrency({ amount: balanceAsToken.value }))
+
+// #endregion
+
+const showMaxButton = $computed(
+  () => props.setByBalance && balance.value && model.value && !model.value.eq(balance.value.asBigNum),
+)
+
+const addressModel = useVModel(props, 'address', emit)
 
 function setToMax() {
   invariant(balance)
-  emit('update:modelValue', balanceRaw)
+  emit('update:modelValue', balanceAsToken)
 }
 </script>
 
 <template>
   <InputCurrencyTemplate
-    v-model="modelDebounced"
     :class="{ 'pointer-events-none': isLoading }"
-    :input-disabled="isDisabled"
-    :input-loading="isLoading"
+    :loading="isLoading"
     bottom
     size="lg"
     :max-button="showMaxButton"
     @click:max="setToMax()"
   >
+    <template #input>
+      <CurrencyInput
+        v-if="tokenData && modelDebounced"
+        v-model="modelDebounced"
+        :decimals="tokenData.decimals"
+        :disabled="isLoading"
+      />
+    </template>
+
     <template #top-right>
       <TokenSelect
-        v-model:token="tokenModel"
+        v-model:token="addressModel"
         v-bind="{ selected }"
         data-testid="token-select"
       />
@@ -106,10 +116,10 @@ function setToMax() {
 
     <template #bottom-right>
       <div
-        :title="balance?.asStr"
+        :title="balanceFormatted ?? ''"
         class="balance flex items-center space-x-2"
       >
-        <span>
+        <span class="truncate max-w-40">
           <template v-if="isWalletConnected">
             Balance:
             <ValueOrDash :value="balanceFormatted" />

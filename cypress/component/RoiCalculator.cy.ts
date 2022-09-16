@@ -68,8 +68,8 @@ describe('RoiCalculator', () => {
   it('typing value', () => {
     mountFactory()
 
-    getInput().type('123').should('have.value', '$10,123')
-    getReceive().should('have.value', '$1,047.92')
+    getInput().type('123').blur().should('have.value', '10,123 VEN-ARS')
+    getReceive().should('have.value', '1,047.91900973590953494249 DEX')
   })
 
   it('assert "switch unit" behaviour')
