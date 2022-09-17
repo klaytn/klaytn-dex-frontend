@@ -15,8 +15,6 @@ import { Serializer } from '@vueuse/core'
 import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 
-const LP_TOKENS_DECIMALS = Object.freeze({ decimals: LP_TOKEN_DECIMALS_VALUE })
-
 function usePrepareSupply(props: {
   tokens: Ref<null | TokensPair<Address>>
   pairAddress: Ref<null | Address>
@@ -237,19 +235,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
   // #region Liquidity input
 
-  const liquidityRaw = ref('' as WeiAsToken)
-  const liquidity = computed<Wei | null>({
-    get: () => {
-      const raw = liquidityRaw.value
-      if (!raw) return null
-      return Wei.fromToken(LP_TOKENS_DECIMALS, raw)
-    },
-    set: (wei) => {
-      if (wei) {
-        liquidityRaw.value = wei.toToken(LP_TOKENS_DECIMALS)
-      }
-    },
-  })
+  const liquidity = shallowRef<null | Wei>(null)
 
   /**
    * liquidity value relative to pair balance of user
@@ -276,7 +262,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   }
 
   function clear() {
-    liquidityRaw.value = '' as WeiAsToken
+    liquidity.value = null
   }
 
   // #endregion
@@ -346,7 +332,6 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     isPairLoaded: doesPairExist,
 
     liquidity,
-    liquidityRaw,
     liquidityRelative,
     amounts,
     rates,

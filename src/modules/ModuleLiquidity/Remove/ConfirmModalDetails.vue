@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { NATIVE_TOKEN_DECIMALS, Wei } from '@/core'
-import BigNumber from 'bignumber.js'
+import { NATIVE_TOKEN_DECIMALS } from '@/core'
 import { storeToRefs } from 'pinia'
-import { Ref } from 'vue'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
 
 const store = useLiquidityRmStore()
-const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidityRaw, fee } = storeToRefs(store)
+const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidity, fee } = storeToRefs(store)
 
-const formattedFee = useFormattedToken(fee as Ref<null | Wei>, { decimals: NATIVE_TOKEN_DECIMALS }, 7)
-const formattedLiquidity = computed(() => new BigNumber(liquidityRaw.value).toFixed(7))
+const feeKlay = computed(() => fee.value?.decimals({ decimals: NATIVE_TOKEN_DECIMALS }) ?? null)
+const liquidityKlay = computed(() => liquidity.value?.decimals({ decimals: NATIVE_TOKEN_DECIMALS }) ?? null)
 </script>
 
 <template>
@@ -19,7 +17,12 @@ const formattedLiquidity = computed(() => new BigNumber(liquidityRaw.value).toFi
     <div class="space-y-4 mt-6">
       <div :class="cssRows.rowSm">
         <span>LP {{ symbols?.tokenA }}-{{ symbols?.tokenB }} </span>
-        <span>{{ formattedLiquidity }}</span>
+        <span>
+          <CurrencyFormat
+            :amount="liquidityKlay"
+            :decimals="7"
+          />
+        </span>
       </div>
 
       <div :class="cssRows.rowSm">
@@ -35,7 +38,13 @@ const formattedLiquidity = computed(() => new BigNumber(liquidityRaw.value).toFi
 
       <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
         <span>Transaction Fee</span>
-        <span>{{ formattedFee }} KLAY</span>
+        <span>
+          <CurrencyFormat
+            :amount="feeKlay"
+            :decimals="7"
+            symbol="KLAY"
+          />
+        </span>
       </div>
     </div>
 

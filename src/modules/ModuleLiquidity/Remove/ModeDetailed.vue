@@ -3,23 +3,37 @@ import { TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
 import { KlayIconArrowDown, KlayIconPlus } from '~klay-icons'
+import { LP_TOKEN_DECIMALS, Wei, WeiAsToken } from '@/core'
+import BigNumber from 'bignumber.js'
 
 const store = useLiquidityRmStore()
 const {
   rates,
   selectedTokensSymbols: symbols,
-  liquidityRaw,
+  liquidity,
   selectedTokensData: tokens,
   amounts,
   pairUserBalance,
   isAmountsPending,
 } = storeToRefs(store)
+
+const LP_TOKEN_ONLY_DECIMALS = { decimals: LP_TOKEN_DECIMALS }
+
+const liquidityAsBigNum = computed<WeiAsToken<BigNumber>>({
+  get: () => {
+    const token = liquidity.value?.toToken(LP_TOKEN_ONLY_DECIMALS)
+    return new BigNumber(token ?? '0') as WeiAsToken<BigNumber>
+  },
+  set: (v) => {
+    liquidity.value = v && Wei.fromToken(LP_TOKEN_ONLY_DECIMALS, v)
+  },
+})
 </script>
 
 <template>
   <div v-if="tokens && symbols">
     <InputTokenLp
-      v-model:liquidity-raw="liquidityRaw"
+      v-model="liquidityAsBigNum"
       :tokens="tokens"
       :balance="pairUserBalance"
       @click:max="store.setLiquidityToMax()"

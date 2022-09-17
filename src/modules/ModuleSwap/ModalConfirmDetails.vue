@@ -27,7 +27,7 @@ import cssRows from '../ModuleTradeShared/rows.module.scss'
 
     <p class="px-4 note">
       Output is estimated. You will receive at least <i>... XXX</i>
-      or the transacction will revert
+      or the transaction will revert
     </p>
   </div>
 </template>

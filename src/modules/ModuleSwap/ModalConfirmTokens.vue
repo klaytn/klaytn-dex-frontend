@@ -1,25 +1,30 @@
 <script setup lang="ts">
-import { Wei } from '@/core'
-import { buildPair, TOKEN_TYPES } from '@/utils/pair'
+import { buildPair, nonNullPair, TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 
 const store = useSwapStore()
 const { normalizedWeiInputs, tokens, symbols } = storeToRefs(store)
 
-const formatted = reactive(
-  buildPair((type) =>
-    useFormattedToken(
-      computed(() => normalizedWeiInputs.value?.[type].input as Wei | undefined),
-      computed(() => tokens.value[type]),
-      7,
-    ),
-  ),
-)
+const bothSymbols = computed(() => nonNullPair(symbols.value))
+
+const amountsAsTokens = computed(() => {
+  const tokensVal = nonNullPair(tokens.value)
+  const amounts = normalizedWeiInputs.value
+  return (
+    amounts &&
+    tokensVal &&
+    buildPair((type) => {
+      const wei = amounts[type]
+      const token = tokensVal[type]
+      return wei.input.decimals(token)
+    })
+  )
+})
 </script>
 
 <template>
   <div
-    v-if="symbols.tokenA && symbols.tokenB && formatted.tokenA && formatted.tokenB"
+    v-if="bothSymbols && amountsAsTokens"
     class="container"
   >
     <template
@@ -28,17 +33,23 @@ const formatted = reactive(
     >
       <KlayCharAvatar
         class="avatar"
-        :symbol="symbols[type]!"
+        :symbol="bothSymbols[type]"
         :data-i="i"
       />
       <span
         class="symbol"
         :data-i="i"
-      >{{ symbols[type]! }}</span>
-      <span
-        class="amount"
-        :data-i="i"
-      >{{ formatted[type]! }}</span>
+      >{{ bothSymbols[type] }}</span>
+      <CurrencyFormat
+        v-slot="{ formatted }"
+        :amount="amountsAsTokens[type]"
+      >
+        <span
+          class="amount max-w-60 truncate"
+          :data-i="i"
+          :title="formatted!"
+        >{{ formatted }}</span>
+      </CurrencyFormat>
 
       <div
         v-if="i === 0"

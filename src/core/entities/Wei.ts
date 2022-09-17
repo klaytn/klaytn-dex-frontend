@@ -82,11 +82,9 @@ function setRepr(map: RepresentationMapNullable, value: WeiInputValue): void {
     // it may be a number in a form like `0x4123`, so let BigInt parse it
     map.bigint = BigInt(value)
   } else if (value instanceof BigNumber) {
-    const bn = value
-      // `BigNumber` could have decimal places, but `Wei` cannot
-      .decimalPlaces(0)
-    invariant(!bn.isNaN(), 'NaN')
-    map.BigNumber = bn
+    invariant(!value.isNaN(), 'NaN')
+    invariant(value.decimalPlaces(0).eq(value), () => `BigNumber has decimals, but Wei cannot: ${value.toString()}`)
+    map.BigNumber = value
   } else if (value instanceof EthersBigNumber) {
     map.bigint = value.toBigInt()
   } else if (value instanceof BN) {
@@ -105,7 +103,7 @@ const WeiTag = Symbol('Wei')
 type TokenDecimals = Pick<Token, 'decimals'>
 
 export default class Wei {
-  public static fromToken({ decimals }: TokenDecimals, token: WeiAsToken): Wei {
+  public static fromToken({ decimals }: TokenDecimals, token: WeiAsToken<string | BigNumber>): Wei {
     const num = new BigNumber(token).multipliedBy(new BigNumber(10).pow(decimals))
     return new Wei(num)
   }
@@ -139,9 +137,16 @@ export default class Wei {
     return getAndWriteRepr(this.#reprs, 'bigint')
   }
 
-  public toToken({ decimals }: TokenDecimals): WeiAsToken {
-    const num = this.asBigNum.dividedBy(new BigNumber(10).pow(decimals))
-    return num.toFixed() as WeiAsToken
+  /**
+   * @deprecated
+   */
+  public toToken(props: TokenDecimals): WeiAsToken {
+    return this.decimals(props).toFixed() as WeiAsToken
+  }
+
+  public decimals({ decimals }: TokenDecimals): WeiAsToken<BigNumber> {
+    const num = this.asBigNum.div(new BigNumber(10).pow(decimals))
+    return num as WeiAsToken<BigNumber>
   }
 
   public toString(): string {

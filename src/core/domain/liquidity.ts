@@ -99,7 +99,11 @@ export class LiquidityPure {
     totalSupply: Wei
   }): Promise<Wei> {
     const balance = await this.#tokens.getTokenBalanceOfAddr(props.token, props.pair)
-    const amount = props.lpToken.asBigNum.multipliedBy(balance.asBigNum).dividedBy(props.totalSupply.asBigNum).minus(1)
+    const amount = props.lpToken.asBigNum
+      .multipliedBy(balance.asBigNum)
+      .dividedBy(props.totalSupply.asBigNum)
+      .minus(1)
+      .decimalPlaces(0)
     return new Wei(amount)
   }
 }

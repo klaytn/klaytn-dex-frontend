@@ -7,12 +7,8 @@ export default {
 <script setup lang="ts">
 const props = withDefaults(
   defineProps<{
-    modelValue?: string | number
-    noInputFilter?: boolean
-    inputDisabled?: boolean
-    inputLoading?: boolean
-    inputReadonly?: boolean
     maxButton?: boolean
+    loading?: boolean
     bottom?: boolean
     right?: boolean
     containerClass?: any
@@ -22,19 +18,6 @@ const props = withDefaults(
 )
 
 const emit = defineEmits(['update:modelValue', 'click:max'])
-
-function onInput(e: Event) {
-  const value = (e.target as HTMLInputElement).value
-  if (props.noInputFilter) {
-    emit('update:modelValue', value)
-  } else {
-    const num = Number(value)
-    if (!Number.isNaN(num)) emit('update:modelValue', String(num))
-  }
-}
-
-const inputElem = templateRef('input')
-defineExpose({ inputElem })
 </script>
 
 <template>
@@ -44,20 +27,12 @@ defineExpose({ inputElem })
     :data-size="size"
   >
     <div class="space-top flex items-center space-x-2 place-self-stretch">
-      <div class="flex-1">
-        <input
-          ref="input"
-          v-bind="$attrs"
-          :value="modelValue"
-          :disabled="inputDisabled || inputLoading"
-          :readonly="inputReadonly"
-          placeholder="0"
-          @input="onInput"
-        >
+      <div class="input-wrapper flex-1">
+        <slot name="input" />
       </div>
 
       <KlayLoader
-        v-if="inputLoading"
+        v-if="loading"
         color="gray"
         size="24"
       />
@@ -138,7 +113,7 @@ defineExpose({ inputElem })
   grid-row: 1 / 3;
 }
 
-input {
+.input-wrapper :deep(input) {
   font-style: normal;
   font-weight: 600;
   font-size: 30px;

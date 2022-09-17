@@ -7,6 +7,8 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    CurrencyFormat: typeof import('./components/common/CurrencyFormat.vue')['default']
+    CurrencyInput: typeof import('./components/common/CurrencyInput.vue')['default']
     FormatAddress: typeof import('./components/common/FormatAddress.vue')['default']
     InputCurrencyTemplate: typeof import('./components/common/InputCurrencyTemplate.vue')['default']
     InputToken: typeof import('./components/common/InputToken.vue')['default']
@@ -31,8 +33,6 @@ declare module '@vue/runtime-core' {
     ModuleAssetsAssetsList: typeof import('./modules/ModuleAssets/AssetsList.vue')['default']
     ModuleAssetsAssetsListItem: typeof import('./modules/ModuleAssets/AssetsListItem.vue')['default']
     ModuleAssetsAssetsListItemMenuItem: typeof import('./modules/ModuleAssets/AssetsListItemMenuItem.vue')['default']
-    ModuleAssetsList: typeof import('./modules/ModuleAssets/List.vue')['default']
-    ModuleAssetsListItem: typeof import('./modules/ModuleAssets/ListItem.vue')['default']
     ModuleAssetsModalQRCode: typeof import('./modules/ModuleAssets/ModalQRCode.vue')['default']
     ModuleAssetsTransactions: typeof import('./modules/ModuleAssets/Transactions.vue')['default']
     ModuleEarnSharedRoiCalculator: typeof import('./modules/ModuleEarnShared/RoiCalculator/index.vue')['default']
