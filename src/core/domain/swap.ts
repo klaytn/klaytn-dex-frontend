@@ -81,12 +81,15 @@ function applySlippage(props: SwapPropsAmounts & Pick<SwapPropsBase, 'allowedSli
   if (isSwapExactInput(props)) {
     amountIn = props.amountIn
 
-    const adjusted = ONE.plus(slippage).invert().multipliedBy(new Fraction(props.amountOutMin.asBigInt)).quotient
+    const adjusted = ONE.plus(slippage)
+      .invert()
+      .multipliedBy(new Fraction(props.amountOutMin.asBigInt))
+      .quotient.decimalPlaces(0)
     amountOut = new Wei(adjusted)
   } else {
     amountOut = props.amountOut
 
-    const adjusted = ONE.plus(slippage).multipliedBy(new Fraction(props.amountInMax.asBigInt)).quotient
+    const adjusted = ONE.plus(slippage).multipliedBy(new Fraction(props.amountInMax.asBigInt)).quotient.decimalPlaces(0)
     amountIn = new Wei(adjusted)
   }
 
