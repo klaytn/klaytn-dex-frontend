@@ -248,5 +248,21 @@ if (import.meta.vitest) {
         }
       `)
     })
+
+    test('2% slippage, exact output', () => {
+      expect(
+        applySlippage({
+          mode: 'eth-for-exact-tokens',
+          amountInMax: new Wei(1n),
+          amountOut: new Wei(1n),
+          allowedSlippage: new Percent(2, 100),
+        }),
+      ).toMatchInlineSnapshot(`
+        {
+          "amountIn": "1",
+          "amountOut": "1",
+        }
+      `)
+    })
   })
 }
