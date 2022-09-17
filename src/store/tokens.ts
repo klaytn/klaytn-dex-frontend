@@ -2,6 +2,11 @@ import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
 import { Address, DexPure, Dex, Token, Wei, isNativeToken, NATIVE_TOKEN } from '@/core'
 import { WHITELIST_TOKENS } from '@/core'
 import { Ref } from 'vue'
+import { TokensQueryResult, useTokensQuery } from '@/query/tokens-derived-usd'
+import BigNumber from 'bignumber.js'
+import Debug from 'debug'
+
+const debug = Debug('store-tokens')
 
 export interface TokenWithOptionBalance extends Token {
   balance: null | Wei
@@ -129,6 +134,21 @@ function useUserBalance(tokens: Ref<null | Address[]>) {
   return { isPending, isLoaded, lookup, touch }
 }
 
+function useDerivedUsdIndex(result: Ref<null | undefined | TokensQueryResult>): {
+  lookup: (address: Address) => null | BigNumber
+} {
+  const map = computed<null | Map<string, BigNumber>>(() => {
+    const items = result.value?.tokens ?? null
+    const map = items && new Map(items.map((x) => [x.id.toLowerCase(), new BigNumber(x.derivedUSD)]))
+    debug('computed derived usd map: %o', map, result.value)
+    return map
+  })
+
+  return {
+    lookup: (a) => map.value?.get(a.toLowerCase()) ?? null,
+  }
+}
+
 function useTokensIndex(tokens: Ref<null | readonly Token[]>) {
   /**
    * All addresses are written in lower-case
@@ -183,6 +203,30 @@ export const useTokensStore = defineStore('tokens', () => {
     )
   })
 
+  function* tokenIdsForQuery() {
+    for (const x of importedFetched.value ?? []) {
+      yield x.address
+    }
+    for (const x of WHITELIST_TOKENS) {
+      yield x.address
+    }
+  }
+
+  const Query = useTokensQuery(
+    computed(() => [...tokenIdsForQuery()]),
+    { pollInterval: 10_000 },
+  )
+  whenever(
+    () => !!importedFetched.value,
+    () => Query.load(),
+  )
+
+  watchEffect(() => {
+    console.log('Query:', Query.result.value, Query.loading.value, Query.variables.value)
+  })
+
+  const { lookup: lookupDerivedUSD } = useDerivedUsdIndex(Query.result)
+
   return {
     isBalancePending,
     isImportedPending,
@@ -194,6 +238,7 @@ export const useTokensStore = defineStore('tokens', () => {
     findTokenData,
     lookupUserBalance,
     touchUserBalance,
+    lookupDerivedUSD,
   }
 })
 

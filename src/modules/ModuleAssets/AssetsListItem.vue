@@ -1,4 +1,4 @@
-<script setup lang="ts" name="ModuleStakingPool">
+<script setup lang="ts">
 import { Token, Wei } from '@/core'
 import BigNumber from 'bignumber.js'
 import { SPopover } from '@soramitsu-ui/ui'
@@ -8,11 +8,17 @@ import IconDotsVertical from '~icons/mdi/dots-vertical'
 
 const props = defineProps<{
   token: Token
-  usdPerToken: BigNumber
-  balance: Wei
+  derivedUsd?: BigNumber | null
+  balance?: Wei | null
 }>()
 
-const { token } = toRefs(props)
+const emit = defineEmits(['goto-swap', 'open-details', 'hide'])
+
+const balanceInUsd = computed(() => {
+  const { balance, derivedUsd: usd } = props
+  if (!balance || !usd) return null
+  return usd.times(balance.toToken(props.token))
+})
 </script>
 
 <template>
@@ -25,20 +31,20 @@ const { token } = toRefs(props)
 
     <div class="two-line flex-1">
       <span> {{ token.symbol }} </span>
-      <span>
+      <span class="max-w-20 truncate">
         <!-- TODO format -->
-        ${{ usdPerToken.toString() }}
+        <ValueOrDash :value="derivedUsd?.toString()" />
       </span>
     </div>
 
     <div class="two-line">
-      <span>
+      <span class="max-w-40 truncate">
         <!-- TODO format -->
-        {{ balance.asBigInt }}
+        <ValueOrDash :value="balance?.toString()" />
       </span>
-      <span>
+      <span class="text-right max-w-20 truncate">
         <!-- TODO format -->
-        $?
+        <ValueOrDash :value="balanceInUsd?.toString()" />
       </span>
     </div>
 
@@ -55,10 +61,15 @@ const { token } = toRefs(props)
             v-if="show"
             class="rounded-lg bg-white shadow-lg py-2"
           >
-            <ModuleAssetsAssetsListItemMenuItem> Swap </ModuleAssetsAssetsListItemMenuItem>
-            <ModuleAssetsAssetsListItemMenuItem> Receive </ModuleAssetsAssetsListItemMenuItem>
-            <ModuleAssetsAssetsListItemMenuItem> Details </ModuleAssetsAssetsListItemMenuItem>
-            <ModuleAssetsAssetsListItemMenuItem> Delete </ModuleAssetsAssetsListItemMenuItem>
+            <ModuleAssetsAssetsListItemMenuItem @click="emit('goto-swap')">
+              Swap
+            </ModuleAssetsAssetsListItemMenuItem>
+            <ModuleAssetsAssetsListItemMenuItem @click="emit('open-details')">
+              Details
+            </ModuleAssetsAssetsListItemMenuItem>
+            <ModuleAssetsAssetsListItemMenuItem @click="emit('hide')">
+              Hide
+            </ModuleAssetsAssetsListItemMenuItem>
           </div>
         </template>
       </SPopover>

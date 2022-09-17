@@ -10,9 +10,14 @@ export function useLocalStorageAddrsOrigin(key: string, isActive?: Ref<boolean>)
     serializer: JSON_SERIALIZER as Serializer<any>,
   })
 
-  const offable = computed(() => {
-    if (isActive?.value ?? true) return raw.value
-    return emptyPair()
+  const offable = computed({
+    get: () => {
+      if (isActive?.value ?? true) return raw.value
+      return emptyPair()
+    },
+    set: (v) => {
+      raw.value = v
+    },
   })
 
   return offable
@@ -27,7 +32,8 @@ export function usePairInput(options?: { addrsOrigin?: Ref<TokensPair<Address | 
   const tokenValuesRef = ref<TokensPair<null | WeiAsToken>>(emptyPair())
   const tokenValues = toReactive(tokenValuesRef)
 
-  function setBothAddrs(value: TokensPair<Address>) {
+  function setBothAddrs(value: TokensPair<Address | null>) {
+    console.log('wtf', value)
     addrsRaw.value = value
   }
 

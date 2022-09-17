@@ -3,7 +3,6 @@ import { ApolloClientId } from '@/types'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
-import { REFETCH_TOKENS_INTERVAL } from './const'
 
 export interface TokensQueryResult {
   tokens: {
@@ -12,7 +11,12 @@ export interface TokensQueryResult {
   }[]
 }
 
-export function useTokensQuery(tokenIds: MaybeRef<Address[]>) {
+export function useTokensQuery(
+  tokenIds: MaybeRef<Address[]>,
+  options: {
+    pollInterval: number
+  },
+) {
   return useLazyQuery<TokensQueryResult>(
     gql`
       query TokensQuery($tokenIds: [String]!) {
@@ -23,11 +27,11 @@ export function useTokensQuery(tokenIds: MaybeRef<Address[]>) {
       }
     `,
     () => ({
-      tokenIds: unref(tokenIds),
+      tokenIds: unref(tokenIds).map((x) => x.toLowerCase()),
     }),
     {
       clientId: ApolloClientId.Exchange,
-      pollInterval: REFETCH_TOKENS_INTERVAL,
+      pollInterval: options.pollInterval,
     },
   )
 }

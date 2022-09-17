@@ -101,6 +101,7 @@ export default defineConfig({
         'src/modules/ModuleGovernance/store',
         'src/modules/ModuleSwap/store',
         'src/modules/ModuleLiquidity/store',
+        'src/modules/ModuleAssets/store',
       ],
       vueTemplate: true,
       eslintrc: {

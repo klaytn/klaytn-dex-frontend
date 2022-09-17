@@ -1,18 +1,43 @@
 <script setup lang="ts">
-import { WHITELIST_TOKENS, Wei } from '@/core'
-import BigNumber from 'bignumber.js'
+import { Address } from '@/core'
+import { RouteName } from '@/types'
+import { storeToRefs } from 'pinia'
 
-const empty = computed(() => {
-  return !tokens.length
-})
+const assetsStore = useAssetsStore()
+const tokensStore = useTokensStore()
+const swapStore = useSwapStore()
+const router = useRouter()
 
-const tokens = WHITELIST_TOKENS
+const { tokensFilteredByHidden: tokens } = storeToRefs(assetsStore)
+
+const isEmpty = computed(() => !tokens.value.length)
+
+function getDerivedUSD(a: Address) {
+  return tokensStore.lookupDerivedUSD(a)
+}
+
+function getBalance(a: Address) {
+  return tokensStore.lookupUserBalance(a)
+}
+
+function gotoSwap(a: Address) {
+  swapStore.setBothTokens({ tokenA: a, tokenB: null })
+  router.push({ name: RouteName.Swap })
+}
+
+function hideAsset(a: Address) {
+  assetsStore.toggleHidden(a, true)
+}
+
+function openDetails(a: Address) {
+  // todo
+}
 </script>
 
 <template>
   <div class="overflow-y-scroll">
     <div
-      v-if="empty"
+      v-if="isEmpty"
       class="p-4 text-center no-results"
     >
       There are no added assets
@@ -30,8 +55,11 @@ const tokens = WHITELIST_TOKENS
 
         <ModuleAssetsAssetsListItem
           :token="token"
-          :usd-per-token="new BigNumber(1.2)"
-          :balance="new Wei(0)"
+          :derived-usd="getDerivedUSD(token.address)"
+          :balance="getBalance(token.address)"
+          @goto-swap="gotoSwap(token.address)"
+          @open-details="openDetails(token.address)"
+          @hide="hideAsset(token.address)"
         />
       </template>
     </template>
