@@ -12,8 +12,6 @@ const AssetsTabs = {
 
 type AssetsTabs = typeof AssetsTabs[keyof typeof AssetsTabs]
 
-const { notify } = useNotify()
-
 const store = useDexStore()
 const { account } = storeToRefs(store)
 
@@ -49,17 +47,7 @@ const tab = computed<AssetsTabs>({
 
 const isQRCodeModalOpen = ref(false)
 
-const { copy } = useClipboard()
-
-async function copyAddress() {
-  invariant(account.value)
-  await copy(account.value)
-  notify({ type: 'ok', title: 'Your address was successfully copied' })
-}
-
 function refresh() {}
-
-const addressFormatted = computed(() => account.value && formatAddress(account.value, 7))
 </script>
 
 <template>
@@ -73,19 +61,11 @@ const addressFormatted = computed(() => account.value && formatAddress(account.v
 
     <template v-else>
       <div class="flex items-center space-x-4 px-4 pt-4">
-        <h1 class="flex-1">
+        <h1 class="flex-1 text-lg font-bold">
           Assets
         </h1>
 
-        <span class="flex space-x-3">
-          <span>
-            {{ addressFormatted }}
-          </span>
-          <KlayIconCopy
-            class="cursor-pointer"
-            @click="copyAddress"
-          />
-        </span>
+        <ModuleAssetsTitleAddressCopy />
 
         <div class="flex-1 flex justify-end">
           <KlayButton

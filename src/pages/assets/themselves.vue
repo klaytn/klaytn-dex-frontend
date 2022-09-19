@@ -4,9 +4,8 @@ path: ''
 </route>
 
 <script setup lang="ts">
-import BigNumber from 'bignumber.js'
-
-const totalUSD = new BigNumber(29972.42)
+const assetsStore = useAssetsStore()
+const totalUsd = toRef(assetsStore, 'totalUsd')
 </script>
 
 <template>
@@ -14,8 +13,11 @@ const totalUSD = new BigNumber(29972.42)
     <div class="title-total flex pb-6 pt-4 px-4">
       <span class="flex-1">Total</span>
       <span>
-        <!-- TODO format -->
-        ${{ totalUSD.toString() }}
+        <CurrencyFormat
+          :amount="totalUsd"
+          usd
+          decimals="2"
+        />
       </span>
     </div>
 

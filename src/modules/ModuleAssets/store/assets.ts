@@ -1,5 +1,6 @@
 import { Address } from '@/core'
 import { isAddress } from '@ethersproject/address'
+import BigNumber from 'bignumber.js'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useAssetsStore = defineStore('assets', () => {
@@ -25,9 +26,24 @@ export const useAssetsStore = defineStore('assets', () => {
     return items.filter((x) => !hiddenAssets.value.has(x.address))
   })
 
+  const totalUsd = computed<BigNumber | null>(() => {
+    let sum = new BigNumber(0)
+    for (const token of tokensFilteredByHidden.value) {
+      const balance = tokensStore.lookupUserBalance(token.address)
+      const usd = tokensStore.lookupDerivedUSD(token.address)
+      if (!balance || !usd)
+        // return null
+        continue
+      sum = sum.plus(balance.decimals(token).times(usd))
+    }
+    return sum
+  })
+
   return {
-    toggleHidden,
+    totalUsd,
     tokensFilteredByHidden,
+
+    toggleHidden,
   }
 })
 

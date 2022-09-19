@@ -34,6 +34,7 @@ declare module '@vue/runtime-core' {
     ModuleAssetsAssetsListItem: typeof import('./modules/ModuleAssets/AssetsListItem.vue')['default']
     ModuleAssetsAssetsListItemMenuItem: typeof import('./modules/ModuleAssets/AssetsListItemMenuItem.vue')['default']
     ModuleAssetsModalQRCode: typeof import('./modules/ModuleAssets/ModalQRCode.vue')['default']
+    ModuleAssetsTitleAddressCopy: typeof import('./modules/ModuleAssets/TitleAddressCopy.vue')['default']
     ModuleAssetsTransactions: typeof import('./modules/ModuleAssets/Transactions.vue')['default']
     ModuleEarnSharedRoiCalculator: typeof import('./modules/ModuleEarnShared/RoiCalculator/index.vue')['default']
     ModuleFarming: typeof import('./modules/ModuleFarming/index.vue')['default']

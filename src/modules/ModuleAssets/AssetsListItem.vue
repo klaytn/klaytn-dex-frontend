@@ -17,8 +17,10 @@ const emit = defineEmits(['goto-swap', 'open-details', 'hide'])
 const balanceInUsd = computed(() => {
   const { balance, derivedUsd: usd } = props
   if (!balance || !usd) return null
-  return usd.times(balance.toToken(props.token))
+  return usd.times(balance.decimals(props.token))
 })
+
+const balanceWithDecimals = computed(() => props.balance?.decimals(props.token))
 </script>
 
 <template>
@@ -32,19 +34,34 @@ const balanceInUsd = computed(() => {
     <div class="two-line flex-1">
       <span> {{ token.symbol }} </span>
       <span class="max-w-20 truncate">
-        <!-- TODO format -->
-        <ValueOrDash :value="derivedUsd?.toString()" />
+        <CurrencyFormat
+          :amount="derivedUsd"
+          decimals="2"
+          usd
+        />
       </span>
     </div>
 
     <div class="two-line">
-      <span class="max-w-40 truncate">
-        <!-- TODO format -->
-        <ValueOrDash :value="balance?.toString()" />
-      </span>
-      <span class="text-right max-w-20 truncate">
-        <!-- TODO format -->
-        <ValueOrDash :value="balanceInUsd?.toString()" />
+      <CurrencyFormat
+        v-slot="{ formatted }"
+        :amount="balanceWithDecimals"
+        :symbol="token.symbol"
+      >
+        <span
+          class="max-w-40 truncate"
+          :title="formatted ?? ''"
+        >
+          <ValueOrDash :value="formatted" />
+        </span>
+      </CurrencyFormat>
+
+      <span class="self-end max-w-30 truncate">
+        <CurrencyFormat
+          :amount="balanceInUsd"
+          decimals="2"
+          usd
+        />
       </span>
     </div>
 

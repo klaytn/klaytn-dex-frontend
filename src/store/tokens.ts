@@ -221,6 +221,8 @@ export const useTokensStore = defineStore('tokens', () => {
     () => Query.load(),
   )
 
+  const isDerivedUSDPending = Query.loading
+
   watchEffect(() => {
     console.log('Query:', Query.result.value, Query.loading.value, Query.variables.value)
   })
@@ -233,6 +235,7 @@ export const useTokensStore = defineStore('tokens', () => {
     isImportedLoaded,
     tokensLoaded,
     tokensWithBalance,
+    isDerivedUSDPending,
 
     importToken,
     findTokenData,
