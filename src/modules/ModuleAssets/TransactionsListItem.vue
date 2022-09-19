@@ -65,12 +65,12 @@ const detailsParsed = computed(() => {
     <div class="font-semibold text-sm flex items-center space-x-2">
       <span :class="$style.kind">{{ kindFormatted }}</span>
       <div
-        class="flex items-center space-x-1"
+        class="flex items-center"
         @click.stop
       >
         <template v-if="detailsParsed.kind === 'swap'">
           <CurrencyFormatTruncate v-bind="detailsParsed.tokenA" />
-          <span> for </span>
+          <span class="whitespace-pre"> for </span>
           <CurrencyFormatTruncate v-bind="detailsParsed.tokenB" />
         </template>
         <template v-else>
