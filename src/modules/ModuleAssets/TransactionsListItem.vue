@@ -45,7 +45,11 @@ const detailsParsed = computed(() => {
 
     return { kind: 'swap' as const, ...tokens }
   } else if (item.kind === 'burn' || item.kind === 'mint') {
-    return { kind: 'mint-burn' as const, liquidity: item.liquidity, pair: item.pair }
+    return {
+      kind: 'mint-burn' as const,
+      liquidity: item.liquidity,
+      symbol: `${item.pair.token0.symbol}-${item.pair.token1.symbol}`,
+    }
   }
 
   const ty: never = item
@@ -60,21 +64,21 @@ const detailsParsed = computed(() => {
   >
     <div class="font-semibold text-sm flex items-center space-x-2">
       <span :class="$style.kind">{{ kindFormatted }}</span>
-      <div class="flex items-center space-x-1">
+      <div
+        class="flex items-center space-x-1"
+        @click.stop
+      >
         <template v-if="detailsParsed.kind === 'swap'">
-          <ModuleAssetsTransactionsListItemSwapAmount v-bind="detailsParsed.tokenA" />
+          <CurrencyFormatTruncate v-bind="detailsParsed.tokenA" />
           <span> for </span>
-          <ModuleAssetsTransactionsListItemSwapAmount v-bind="detailsParsed.tokenB" />
+          <CurrencyFormatTruncate v-bind="detailsParsed.tokenB" />
         </template>
         <template v-else>
-          <span>{{ detailsParsed.pair.token0.symbol }}-{{ detailsParsed.pair.token1.symbol }}</span>
-          <span class="max-w-40 inline-block truncate">
-            <CurrencyFormat
-              :amount="detailsParsed.liquidity"
-              decimals="18"
-              symbol="?"
-            />
-          </span>
+          <CurrencyFormatTruncate
+            :symbol="detailsParsed.symbol"
+            :amount="detailsParsed.liquidity"
+            decimals="18"
+          />
         </template>
       </div>
     </div>
