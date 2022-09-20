@@ -9,8 +9,9 @@ describe('Formatting address', () => {
   test.each([
     [4, 'ae3a....B44e'],
     [7, 'ae3a8a1....056B44e'],
-  ])('with length %o formats to %o', (len, result) => {
-    expect(formatAddress(ADDRESS, len)).toEqual(result)
+    [4, '0xae3a....B44e', true],
+  ] as Array<[number, string, boolean?]>)('with length %o formats to %o (prefix = %o)', (len, result, prefix) => {
+    expect(formatAddress(ADDRESS, len, prefix)).toEqual(result)
   })
 })
 

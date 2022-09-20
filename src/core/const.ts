@@ -35,6 +35,12 @@ export const NETWORK: Network = Object.freeze({
   },
 })
 
+export const EXPLORER_BASE = `https://baobab.klaytnfinder.io`
+
+export function makeExplorerLinkAccount(address: Address): string {
+  return `${EXPLORER_BASE}/account/${address}`
+}
+
 export const WHITELIST_TOKENS = Object.freeze([
   {
     address: NATIVE_TOKEN,

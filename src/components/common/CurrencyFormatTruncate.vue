@@ -1,3 +1,9 @@
+<script lang="ts">
+export default {
+  inheritAttrs: false,
+}
+</script>
+
 <script setup lang="ts">
 import { MaskSymbol, formatCurrency } from '@/utils/composable.currency-input'
 import BigNumber from 'bignumber.js'
@@ -61,7 +67,10 @@ const formattedAmount = computed(
     distance="8"
   >
     <template #trigger>
-      <span class="truncated-wrap">
+      <span
+        class="truncated-wrap"
+        v-bind="$attrs"
+      >
         <template v-if="!resolvedSymbol"><span class="amount">{{ formattedAmountWithoutSymbol }}</span></template>
         <template v-else-if="resolvedSymbol.position === 'left'">
           <span class="whitespace-pre">{{ resolvedSymbol.str + resolvedSymbol.delimiter }}</span><span class="amount">{{ formattedAmountWithoutSymbol }}</span>
