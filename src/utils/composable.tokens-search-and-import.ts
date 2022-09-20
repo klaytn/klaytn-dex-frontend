@@ -1,11 +1,14 @@
 import { Address, isAddress, Token } from '@/core'
 import { Ref } from 'vue'
 import escapeStringRegex from 'escape-string-regexp'
+import { useMinimalTokensApi } from './minimal-tokens-api'
 
 interface ComposableReturn<T extends Token> {
-  tokensFiltered: Ref<T[]>
+  tokensFiltered: Ref<readonly T[]>
   isImportPending: Ref<boolean>
   importResult: Ref<null | ImportResult>
+  tokenToImport: Ref<null | Token>
+  noResults: Ref<boolean>
 }
 
 type ImportResult = { kind: 'not-found' } | { kind: 'found'; token: Token }
@@ -13,23 +16,12 @@ type ImportResult = { kind: 'not-found' } | { kind: 'found'; token: Token }
 export function useTokensSearchAndImport<T extends Token>({
   tokens,
   search,
-  isSmartContract,
-  getToken,
-  lookupToken,
 }: {
-  tokens: Ref<T[]>
+  tokens: Ref<readonly T[]>
   search: Ref<string>
-
-  isSmartContract: (address: Address) => Promise<boolean>
-  /**
-   * Fetch token data from somewhere
-   */
-  getToken: (address: Address) => Promise<Token>
-  /**
-   * Reactive lookup for already stored token
-   */
-  lookupToken: (address: Address) => null | Token
 }): ComposableReturn<T> {
+  const { lookupToken, isSmartContract, getToken } = useMinimalTokensApi()
+
   const searchAsAddress = computed<null | Address>(() => (isAddress(search.value) ? search.value : null))
 
   const notKnownAddress = computed<null | Address>(() => {
@@ -73,8 +65,18 @@ export function useTokensSearchAndImport<T extends Token>({
 
   const isImportPending = computed<boolean>(() => tryGetTokenScope.value?.expose.pending.value ?? false)
   const importResult = computed<null | ImportResult>(() => tryGetTokenScope.value?.expose.result.value ?? null)
+  const tokenToImport = computed(() => {
+    const res = importResult.value
+    return res?.kind === 'found' ? res.token : null
+  })
+  const noResults = computed<boolean>(() => {
+    const res = importResult.value
+    return !tokensFiltered.value.length && res?.kind === 'not-found'
+  })
 
   return {
+    noResults,
+    tokenToImport,
     tokensFiltered,
     importResult,
     isImportPending,

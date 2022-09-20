@@ -5,6 +5,7 @@ import { Ref } from 'vue'
 import { TokensQueryResult, useTokensQuery } from '@/query/tokens-derived-usd'
 import BigNumber from 'bignumber.js'
 import Debug from 'debug'
+import { MinimalTokensApi } from '@/utils/minimal-tokens-api'
 
 const debug = Debug('store-tokens')
 
@@ -227,7 +228,7 @@ export const useTokensStore = defineStore('tokens', () => {
     console.log('Query:', Query.result.value, Query.loading.value, Query.variables.value)
   })
 
-  const { lookup: lookupDerivedUSD } = useDerivedUsdIndex(Query.result)
+  const { lookup: lookupDerivedUsd } = useDerivedUsdIndex(Query.result)
 
   return {
     isBalancePending,
@@ -241,8 +242,21 @@ export const useTokensStore = defineStore('tokens', () => {
     findTokenData,
     lookupUserBalance,
     touchUserBalance,
-    lookupDerivedUSD,
+    lookupDerivedUsd,
   }
 })
+
+export function createMinimalTokenApiWithStores(): MinimalTokensApi {
+  const tokens = useTokensStore()
+  const dex = useDexStore()
+
+  return {
+    isSmartContract: (a) => dex.anyDex.dex().agent.isSmartContract(a),
+    getToken: (a) => dex.anyDex.dex().tokens.getToken(a),
+    lookupToken: (a) => tokens.findTokenData(a),
+    lookupBalance: (a) => tokens.lookupUserBalance(a),
+    lookupDerivedUsd: (a) => tokens.lookupDerivedUsd(a),
+  }
+}
 
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useTokensStore, import.meta.hot))

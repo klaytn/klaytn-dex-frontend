@@ -14,7 +14,7 @@ const api = useModalApi()
 </script>
 
 <template>
-  <div class="card space-y-5">
+  <div class="card flex flex-col space-y-5">
     <div class="head pt-5 px-4 space-x-4">
       <button
         v-if="backArrow"
@@ -39,7 +39,7 @@ const api = useModalApi()
     </div>
 
     <slot name="body">
-      <div class="px-4 pb-5">
+      <div class="flex-1 px-4 pb-5">
         <slot />
       </div>
     </slot>

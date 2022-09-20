@@ -21,6 +21,7 @@
     "createEventHook": true,
     "createGlobalState": true,
     "createInjectionState": true,
+    "createMinimalTokenApiWithStores": true,
     "createReactiveFn": true,
     "createSharedComposable": true,
     "createUnrefFn": true,

@@ -4,8 +4,12 @@ path: ''
 </route>
 
 <script setup lang="ts">
+import { apiKey } from '@/utils/minimal-tokens-api'
+
 const assetsStore = useAssetsStore()
 const totalUsd = toRef(assetsStore, 'totalUsd')
+
+provide(apiKey, createMinimalTokenApiWithStores())
 </script>
 
 <template>
@@ -32,11 +36,14 @@ const totalUsd = toRef(assetsStore, 'totalUsd')
         type="primary"
         size="lg"
         class="w-full"
+        @click="assetsStore.openAssetsModal = true"
       >
         Add token
       </KlayButton>
     </div>
   </div>
+
+  <ModuleAssetsAssetsModal />
 </template>
 
 <style lang="scss" scoped>

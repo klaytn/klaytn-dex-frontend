@@ -5,6 +5,7 @@ import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import { KlayIconPlus, KlayIconImportant } from '~klay-icons'
+import InputToken from '@/components/InputToken.vue'
 
 const liquidityStore = useLiquidityAddStore()
 const { isQuotePendingFor, tokenValues, addrs, estimatedFor, isValuesDebounceWelcome } = storeToRefs(liquidityStore)

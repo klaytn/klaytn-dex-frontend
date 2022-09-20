@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { Token, Wei } from '@/core'
+import { Token } from '@/core'
+import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
 
 const props = defineProps<{
   token: Token
   disabled?: boolean
-  balance?: Wei
   forImport?: boolean
 }>()
 
 const emit = defineEmits(['click:import'])
 
-const balanceAsToken = computed(() => props.balance?.decimals(props.token) ?? null)
+const { lookupBalance } = useMinimalTokensApi()
+
+const balanceAsToken = computed(() => lookupBalance(props.token.address)?.decimals(props.token) ?? null)
 </script>
 
 <template>

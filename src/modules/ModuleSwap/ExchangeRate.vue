@@ -5,6 +5,7 @@ import { KlayIconArrowDown } from '~klay-icons'
 import { nonNullSet } from '@/utils/common'
 import BigNumber from 'bignumber.js'
 import { WeiAsToken } from '@/core'
+import InputToken from '@/components/InputToken.vue'
 
 const swapStore = useSwapStore()
 const { gettingAmountFor, tokenValues, estimatedFor } = $(storeToRefs(swapStore))

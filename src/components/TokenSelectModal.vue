@@ -2,16 +2,13 @@
 import { SModal } from '@soramitsu-ui/ui'
 import { Token, Address } from '@/core'
 import invariant from 'tiny-invariant'
-import { TokenWithOptionBalance } from '@/store/tokens'
 import { useTokensSearchAndImport } from '@/utils/composable.tokens-search-and-import'
+import TokenSelectModalListItem from './TokenSelectModalListItem.vue'
 
 const props = defineProps<{
   show: boolean
   selected: Set<Address> | null
-  tokens: TokenWithOptionBalance[]
-  isSmartContract: (addr: Address) => Promise<boolean>
-  getToken: (addr: Address) => Promise<Token>
-  lookupToken: (addr: Address) => null | Token
+  tokens: Token[]
 }>()
 
 const emit = defineEmits(['select', 'update:open', 'import-token'])
@@ -27,13 +24,7 @@ const { notify } = useNotify()
 
 const search = ref('')
 
-const { tokensFiltered, isImportPending, importResult } = useTokensSearchAndImport({
-  tokens,
-  search,
-  isSmartContract: (x) => props.isSmartContract(x),
-  getToken: (x) => props.getToken(x),
-  lookupToken: (x) => props.lookupToken(x),
-})
+const { tokensFiltered, isImportPending, importResult } = useTokensSearchAndImport({ tokens, search })
 
 const recentTokens = computed(() => tokens.value.slice(0, 6))
 
@@ -127,7 +118,6 @@ function doImport() {
                 <TokenSelectModalListItem
                   :token="token"
                   :disabled="isSelected(token.address)"
-                  :balance="token.balance"
                   class="py-2"
                   @click="selectToken(token.address)"
                 />

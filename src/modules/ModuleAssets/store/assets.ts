@@ -28,11 +28,13 @@ export const useAssetsStore = defineStore('assets', () => {
     return items.filter((x) => !hiddenAssets.value.has(x.address))
   })
 
+  const allTokens = computed(() => tokensStore.tokensLoaded)
+
   const totalUsd = computed<BigNumber | null>(() => {
     let sum = new BigNumber(0)
     for (const token of tokensFilteredByHidden.value) {
       const balance = tokensStore.lookupUserBalance(token.address)
-      const usd = tokensStore.lookupDerivedUSD(token.address)
+      const usd = tokensStore.lookupDerivedUsd(token.address)
       if (!balance || !usd)
         // return null
         continue
@@ -58,11 +60,16 @@ export const useAssetsStore = defineStore('assets', () => {
 
   // #endregion
 
+  const openAssetsModal = ref(false)
+
   return {
+    hiddenAssets: readonly(hiddenAssets),
     totalUsd,
     tokensFilteredByHidden,
+    allTokens,
     transactions,
     openDetailsForTransaction,
+    openAssetsModal,
 
     toggleHidden,
     loadTransactions,

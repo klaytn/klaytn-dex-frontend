@@ -12,8 +12,6 @@ declare module '@vue/runtime-core' {
     CurrencyInput: typeof import('./components/common/CurrencyInput.vue')['default']
     FormatAddress: typeof import('./components/common/FormatAddress.vue')['default']
     InputCurrencyTemplate: typeof import('./components/common/InputCurrencyTemplate.vue')['default']
-    InputToken: typeof import('./components/common/InputToken.vue')['default']
-    InputTokenLp: typeof import('./components/common/InputTokenLp.vue')['default']
     KlayAccordionItem: typeof import('./components/common/KlayAccordionItem.vue')['default']
     KlayButton: typeof import('./components/common/KlayButton.vue')['default']
     KlayCharAvatar: typeof import('./components/common/KlayCharAvatar.vue')['default']
@@ -37,6 +35,8 @@ declare module '@vue/runtime-core' {
     ModuleAssetsAssetsList: typeof import('./modules/ModuleAssets/AssetsList.vue')['default']
     ModuleAssetsAssetsListItem: typeof import('./modules/ModuleAssets/AssetsListItem.vue')['default']
     ModuleAssetsAssetsListItemMenuItem: typeof import('./modules/ModuleAssets/AssetsListItemMenuItem.vue')['default']
+    ModuleAssetsAssetsModal: typeof import('./modules/ModuleAssets/AssetsModal.vue')['default']
+    ModuleAssetsAssetsModalListItem: typeof import('./modules/ModuleAssets/AssetsModalListItem.vue')['default']
     ModuleAssetsModalQRCode: typeof import('./modules/ModuleAssets/ModalQRCode.vue')['default']
     ModuleAssetsTitleAddressCopy: typeof import('./modules/ModuleAssets/TitleAddressCopy.vue')['default']
     ModuleAssetsTransactionDetailsModal: typeof import('./modules/ModuleAssets/TransactionDetailsModal.vue')['default']
@@ -87,9 +87,6 @@ declare module '@vue/runtime-core' {
     RouterView: typeof import('vue-router')['RouterView']
     RowsRates: typeof import('./components/common/RowsRates.vue')['default']
     TagName: typeof import('./components/common/TagName.vue')['default']
-    TokenSelect: typeof import('./components/common/TokenSelect/index.vue')['default']
-    TokenSelectModal: typeof import('./components/common/TokenSelect/Modal.vue')['default']
-    TokenSelectModalListItem: typeof import('./components/common/TokenSelect/ModalListItem.vue')['default']
     ValueOrDash: typeof import('./components/common/ValueOrDash.vue')['default']
   }
 }

@@ -4,21 +4,12 @@ import { RouteName } from '@/types'
 import { storeToRefs } from 'pinia'
 
 const assetsStore = useAssetsStore()
-const tokensStore = useTokensStore()
 const swapStore = useSwapStore()
 const router = useRouter()
 
 const { tokensFilteredByHidden: tokens } = storeToRefs(assetsStore)
 
 const isEmpty = computed(() => !tokens.value.length)
-
-function getDerivedUSD(a: Address) {
-  return tokensStore.lookupDerivedUSD(a)
-}
-
-function getBalance(a: Address) {
-  return tokensStore.lookupUserBalance(a)
-}
 
 function gotoSwap(a: Address) {
   swapStore.setBothTokens({ tokenA: a, tokenB: null })
@@ -55,8 +46,6 @@ function openDetails(a: Address) {
 
         <ModuleAssetsAssetsListItem
           :token="token"
-          :derived-usd="getDerivedUSD(token.address)"
-          :balance="getBalance(token.address)"
           @goto-swap="gotoSwap(token.address)"
           @open-details="openDetails(token.address)"
           @hide="hideAsset(token.address)"

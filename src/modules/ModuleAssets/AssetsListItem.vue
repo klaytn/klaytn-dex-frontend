@@ -1,26 +1,30 @@
 <script setup lang="ts">
-import { Token, Wei } from '@/core'
-import BigNumber from 'bignumber.js'
+import { Token } from '@/core'
 import { SPopover } from '@soramitsu-ui/ui'
+import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
 
 // FIXME use correct icon
 import IconDotsVertical from '~icons/mdi/dots-vertical'
 
 const props = defineProps<{
   token: Token
-  derivedUsd?: BigNumber | null
-  balance?: Wei | null
 }>()
+
+const { lookupBalance, lookupDerivedUsd } = useMinimalTokensApi()
+
+const balance = computed(() => lookupBalance(props.token.address))
+const derivedUsd = computed(() => lookupDerivedUsd(props.token.address))
 
 const emit = defineEmits(['goto-swap', 'open-details', 'hide'])
 
 const balanceInUsd = computed(() => {
-  const { balance, derivedUsd: usd } = props
-  if (!balance || !usd) return null
-  return usd.times(balance.decimals(props.token))
+  const balanceValue = balance.value
+  const usd = derivedUsd.value
+  if (!balanceValue || !usd) return null
+  return usd.times(balanceValue.decimals(props.token))
 })
 
-const balanceWithDecimals = computed(() => props.balance?.decimals(props.token))
+const balanceWithDecimals = computed(() => balance.value?.decimals(props.token))
 </script>
 
 <template>
@@ -43,21 +47,14 @@ const balanceWithDecimals = computed(() => props.balance?.decimals(props.token))
     </div>
 
     <div class="two-line">
-      <CurrencyFormat
-        v-slot="{ formatted }"
+      <CurrencyFormatTruncate
         :amount="balanceWithDecimals"
         :symbol="token.symbol"
-      >
-        <span
-          class="max-w-40 truncate"
-          :title="formatted ?? ''"
-        >
-          <ValueOrDash :value="formatted" />
-        </span>
-      </CurrencyFormat>
+        max-width="150"
+      />
 
       <span class="self-end max-w-30 truncate">
-        <CurrencyFormat
+        <CurrencyFormatTruncate
           :amount="balanceInUsd"
           decimals="2"
           usd

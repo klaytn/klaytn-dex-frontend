@@ -5,6 +5,7 @@ import cssRows from '../../ModuleTradeShared/rows.module.scss'
 import { KlayIconArrowDown, KlayIconPlus } from '~klay-icons'
 import { LP_TOKEN_DECIMALS, Wei, WeiAsToken } from '@/core'
 import BigNumber from 'bignumber.js'
+import InputTokenLp from '@/components/InputTokenLp.vue'
 
 const store = useLiquidityRmStore()
 const {
