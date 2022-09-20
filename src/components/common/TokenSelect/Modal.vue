@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { SModal } from '@soramitsu-ui/ui'
-import { isAddress, Token, Address } from '@/core'
+import { Token, Address } from '@/core'
 import invariant from 'tiny-invariant'
 import { TokenWithOptionBalance } from '@/store/tokens'
-import escapeStringRegex from 'escape-string-regexp'
+import { useTokensSearchAndImport } from '@/utils/composable.tokens-search-and-import'
 
 const props = defineProps<{
-  open: boolean
+  show: boolean
   selected: Set<Address> | null
   tokens: TokenWithOptionBalance[]
   isSmartContract: (addr: Address) => Promise<boolean>
@@ -15,8 +15,9 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['select', 'update:open', 'import-token'])
-const openModel = useVModel(props, 'open', emit)
-const tokens = $toRef(props, 'tokens')
+
+const showModel = useVModel(props, 'show', emit)
+const tokens = toRef(props, 'tokens')
 
 function isSelected(addr: Address): boolean {
   return props.selected?.has(addr) ?? false
@@ -24,60 +25,26 @@ function isSelected(addr: Address): boolean {
 
 const { notify } = useNotify()
 
-let search = $ref('')
+const search = ref('')
 
-const tokensFilteredBySearch = $computed(() => {
-  const regex = new RegExp(escapeStringRegex(search), 'i')
-  return (
-    tokens?.filter((token) => regex.test(token.symbol) || regex.test(token.name) || regex.test(token.address)) ?? []
-  )
+const { tokensFiltered, isImportPending, importResult } = useTokensSearchAndImport({
+  tokens,
+  search,
+  isSmartContract: (x) => props.isSmartContract(x),
+  getToken: (x) => props.getToken(x),
+  lookupToken: (x) => props.lookupToken(x),
 })
 
-const recentTokens = $computed(() => tokens.slice(0, 6))
-
-/**
- * it is ref, thus it is possible to reset it immediately,
- * not after debounce delay
- */
-let searchAsAddress = $computed<null | Address>(() => (isAddress(search) ? search : null))
-
-const searchAsAddressSmartcontractCheckScope = useParamScope($$(searchAsAddress), (addr) => {
-  const { state } = useTask(() => props.isSmartContract(addr), { immediate: true })
-  usePromiseLog(state, 'smartcontract-check-' + addr)
-  return state
-})
-
-const importLookupScope = useParamScope(
-  computed(() => {
-    const addr = searchAsAddress
-    const addrSmartcontractCheckState = searchAsAddressSmartcontractCheckScope.value?.expose
-    if (addr && addrSmartcontractCheckState?.fulfilled?.value && !props.lookupToken(addr)) return addr
-    return null
-  }),
-  (addr) => {
-    const { state } = useTask(() => props.getToken(addr), { immediate: true })
-    usePromiseLog(state, 'import-lookup')
-    return state
-  },
-)
-
-const isImportLookupPending = $computed<boolean>(
-  () => !!importLookupScope.value?.expose.pending || !!searchAsAddressSmartcontractCheckScope.value?.expose.pending,
-)
-
-const tokenToImport = $computed<Token | null>(() => importLookupScope.value?.expose.fulfilled?.value ?? null)
+const recentTokens = computed(() => tokens.value.slice(0, 6))
 
 const nothingFound = $computed(() => {
-  if (tokensFilteredBySearch.length) return false
-  // maybe importing something
-  if (searchAsAddress && (tokenToImport || isImportLookupPending)) return false
-
-  return true
+  return !tokensFiltered.value.length && importResult.value?.kind === 'not-found'
 })
 
+const tokenToImport = computed(() => (importResult.value?.kind === 'found' ? importResult.value.token : null))
+
 function resetSearch() {
-  search = ''
-  searchAsAddress = null
+  search.value = ''
 }
 
 function selectToken(token: Address) {
@@ -85,15 +52,15 @@ function selectToken(token: Address) {
 }
 
 function doImport() {
-  invariant(tokenToImport)
-  emit('import-token', tokenToImport)
+  invariant(tokenToImport.value)
+  emit('import-token', tokenToImport.value)
   resetSearch()
   notify({ type: 'ok', description: 'Token added' })
 }
 </script>
 
 <template>
-  <SModal v-model:show="openModel">
+  <SModal v-model:show="showModel">
     <KlayModalCard
       style="width: 344px"
       no-padding
@@ -123,7 +90,9 @@ function doImport() {
             </TagName>
           </div>
 
-          <div class="flex-1 min-h-0 overflow-y-scroll list">
+          <hr class="klay-divider">
+
+          <div class="flex-1 min-h-0 overflow-y-scroll">
             <div class="h-full">
               <div
                 v-if="nothingFound"
@@ -140,20 +109,20 @@ function doImport() {
               />
 
               <div
-                v-if="isImportLookupPending"
+                v-if="isImportPending"
                 class="p-8 flex items-center justify-center"
               >
                 <KlayLoader />
               </div>
 
               <template
-                v-for="(token, i) in tokensFilteredBySearch"
+                v-for="(token, i) in tokensFiltered"
                 :key="token.address"
               >
-                <div
+                <hr
                   v-if="i > 0 || tokenToImport"
-                  class="list-div mx-4"
-                />
+                  class="klay-divider mx-4"
+                >
 
                 <TokenSelectModalListItem
                   :token="token"
@@ -172,17 +141,10 @@ function doImport() {
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/vars';
+@use '@/styles/vars';
 
-.list {
-  border-top: 1px solid $gray5;
-}
-
-.list-div {
-  border-top: 1px solid $gray5;
-}
 .no-results {
-  color: rgba(49, 49, 49, 1);
+  color: vars.$dark2;
   font-size: 14px;
 }
 </style>
