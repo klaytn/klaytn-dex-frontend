@@ -33,7 +33,6 @@ export function usePairInput(options?: { addrsOrigin?: Ref<TokensPair<Address | 
   const tokenValues = toReactive(tokenValuesRef)
 
   function setBothAddrs(value: TokensPair<Address | null>) {
-    console.log('wtf', value)
     addrsRaw.value = value
   }
 
