@@ -13,6 +13,15 @@ const tokensStore = useTokensStore()
 const { notify } = useNotify()
 
 const search = ref('')
+const searchDebounced = ref('')
+syncRef(search, searchDebounced, { direction: 'ltr' })
+watchDebounced(
+  searchDebounced,
+  (val) => {
+    search.value = val
+  },
+  { debounce: 500 },
+)
 
 const { tokensFiltered, isImportPending, tokenToImport, noResults } = useTokensSearchAndImport({
   tokens,
@@ -26,10 +35,9 @@ function doImport() {
   invariant(token)
   tokensStore.importToken(token)
   search.value = ''
+  showImportConfirmation.value = false
   notify({ type: 'ok', description: 'Token added' })
 }
-
-// const tokenToImport
 </script>
 
 <template>
@@ -43,7 +51,7 @@ function doImport() {
 
     <KlayModalCard
       v-show="!showImportConfirmation"
-      class="w-344px !max-h-640px"
+      class="w-344px h-640px"
     >
       <template #title>
         Add a token
@@ -53,7 +61,7 @@ function doImport() {
         <div class="flex-1 min-h-0 flex flex-col">
           <div class="px-4 pb-4">
             <KlayTextField
-              v-model="search"
+              v-model="searchDebounced"
               label="Search name or paste address"
             />
           </div>
@@ -61,12 +69,18 @@ function doImport() {
           <hr class="klay-divider w-full">
 
           <div class="flex-1 overflow-y-scroll">
-            <div v-if="noResults">
+            <div
+              v-if="noResults"
+              class="p-4 flex justify-center no-results"
+            >
               No results
             </div>
 
             <template v-else-if="isImportPending || tokenToImport">
-              <div v-if="isImportPending">
+              <div
+                v-if="isImportPending"
+                class="p-4 flex items-center justify-center"
+              >
                 <KlayLoader />
               </div>
               <ListItem
@@ -75,8 +89,6 @@ function doImport() {
                 for-import
                 @click:import="showImportConfirmation = true"
               />
-
-              <hr class="klay-divider mx-4">
             </template>
 
             <template v-else>
@@ -85,14 +97,14 @@ function doImport() {
                 :key="x.address"
               >
                 <hr
-                  v-if="i > 0"
+                  v-if="i > 0 || isImportPending || tokenToImport"
                   class="klay-divider mx-4"
                 >
 
                 <ListItem
                   :token="x"
                   :enabled="!assetsStore.hiddenAssets.has(x.address)"
-                  @update:enabled="assetsStore.toggleHidden(x.address, $event)"
+                  @update:enabled="assetsStore.toggleHidden(x.address, !$event)"
                 />
               </template>
             </template>
@@ -101,7 +113,12 @@ function doImport() {
           <hr class="klay-divider w-full">
 
           <div class="p-4">
-            <KlayButton @click="show = false">
+            <KlayButton
+              size="lg"
+              type="primary"
+              class="w-full"
+              @click="show = false"
+            >
               OK
             </KlayButton>
           </div>
@@ -110,3 +127,12 @@ function doImport() {
     </KlayModalCard>
   </SModal>
 </template>
+
+<style scoped lang="scss">
+@use '@/styles/vars';
+
+.no-results {
+  font-size: 14px;
+  color: vars.$gray2;
+}
+</style>

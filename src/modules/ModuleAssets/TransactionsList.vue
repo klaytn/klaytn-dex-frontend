@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
+import ListItem from './TransactionsListItem.vue'
 
 const store = useAssetsStore()
 const { transactions } = storeToRefs(store)
@@ -20,7 +21,7 @@ const { transactions } = storeToRefs(store)
           class="klay-divider my-0 mx-4 !w-auto"
         >
 
-        <ModuleAssetsTransactionsListItem
+        <ListItem
           :item="x"
           @click="store.openDetailsForTransaction = x"
         />

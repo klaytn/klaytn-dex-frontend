@@ -2,6 +2,7 @@
 import { Token } from '@/core'
 import { SPopover } from '@soramitsu-ui/ui'
 import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
+import MenuItem from './AssetsListItemMenuItem.vue'
 
 // FIXME use correct icon
 import IconDotsVertical from '~icons/mdi/dots-vertical'
@@ -75,15 +76,15 @@ const balanceWithDecimals = computed(() => balance.value?.decimals(props.token))
             v-if="show"
             class="rounded-lg bg-white shadow-lg py-2"
           >
-            <ModuleAssetsAssetsListItemMenuItem @click="emit('goto-swap')">
+            <MenuItem @click="emit('goto-swap')">
               Swap
-            </ModuleAssetsAssetsListItemMenuItem>
-            <ModuleAssetsAssetsListItemMenuItem @click="emit('open-details')">
+            </MenuItem>
+            <MenuItem @click="emit('open-details')">
               Details
-            </ModuleAssetsAssetsListItemMenuItem>
-            <ModuleAssetsAssetsListItemMenuItem @click="emit('hide')">
+            </MenuItem>
+            <MenuItem @click="emit('hide')">
               Hide
-            </ModuleAssetsAssetsListItemMenuItem>
+            </MenuItem>
           </div>
         </template>
       </SPopover>

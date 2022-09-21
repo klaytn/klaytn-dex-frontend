@@ -2,6 +2,7 @@
 import { Address } from '@/core'
 import { RouteName } from '@/types'
 import { storeToRefs } from 'pinia'
+import ListItem from './AssetsListItem.vue'
 
 const assetsStore = useAssetsStore()
 const swapStore = useSwapStore()
@@ -44,7 +45,7 @@ function openDetails(a: Address) {
           class="klay-divider mx-4 my-0 !w-auto"
         >
 
-        <ModuleAssetsAssetsListItem
+        <ListItem
           :token="token"
           @goto-swap="gotoSwap(token.address)"
           @open-details="openDetails(token.address)"

@@ -22,7 +22,9 @@ export function useTokensSearchAndImport<T extends Token>({
 }): ComposableReturn<T> {
   const { lookupToken, isSmartContract, getToken } = useMinimalTokensApi()
 
-  const searchAsAddress = computed<null | Address>(() => (isAddress(search.value) ? search.value : null))
+  const searchAsAddress = computed<null | Address>(() =>
+    search.value && isAddress(search.value) ? search.value : null,
+  )
 
   const notKnownAddress = computed<null | Address>(() => {
     const value = searchAsAddress.value
@@ -71,7 +73,7 @@ export function useTokensSearchAndImport<T extends Token>({
   })
   const noResults = computed<boolean>(() => {
     const res = importResult.value
-    return !tokensFiltered.value.length && res?.kind === 'not-found'
+    return !tokensFiltered.value.length && (!searchAsAddress.value || res?.kind === 'not-found')
   })
 
   return {

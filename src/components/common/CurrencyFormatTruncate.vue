@@ -62,22 +62,23 @@ const formattedAmount = computed(
 </script>
 
 <template>
-  <SPopover
-    hide-delay="100"
-    distance="8"
-  >
+  <SPopover :trigger="amount ? 'hover' : 'manual'">
     <template #trigger>
       <span
         class="truncated-wrap"
+        :class="{ 'no-value': !amount }"
         v-bind="$attrs"
       >
-        <template v-if="!resolvedSymbol"><span class="amount">{{ formattedAmountWithoutSymbol }}</span></template>
-        <template v-else-if="resolvedSymbol.position === 'left'">
-          <span class="whitespace-pre">{{ resolvedSymbol.str + resolvedSymbol.delimiter }}</span><span class="amount">{{ formattedAmountWithoutSymbol }}</span>
+        <template v-if="amount">
+          <template v-if="!resolvedSymbol"><span class="amount">{{ formattedAmountWithoutSymbol }}</span></template>
+          <template v-else-if="resolvedSymbol.position === 'left'">
+            <span class="whitespace-pre">{{ resolvedSymbol.str + resolvedSymbol.delimiter }}</span><span class="amount">{{ formattedAmountWithoutSymbol }}</span>
+          </template>
+          <template v-else>
+            <span class="amount">{{ formattedAmountWithoutSymbol }}</span><span class="whitespace-pre">{{ resolvedSymbol.delimiter + resolvedSymbol.str }}</span>
+          </template>
         </template>
-        <template v-else>
-          <span class="amount">{{ formattedAmountWithoutSymbol }}</span><span class="whitespace-pre">{{ resolvedSymbol.delimiter + resolvedSymbol.str }}</span>
-        </template>
+        <template v-else>&mdash;</template>
       </span>
     </template>
 
@@ -103,7 +104,7 @@ const formattedAmount = computed(
     display: inline-block;
   }
 
-  &:hover {
+  &:hover:not(.no-value) {
     background: vars.$blue-light3;
   }
 }
@@ -118,5 +119,6 @@ const formattedAmount = computed(
 
 .popper {
   border: 1px solid vars.$gray5; // same as .klay-divider
+  z-index: 10;
 }
 </style>
