@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { formatAddress } from '@/core'
 import { storeToRefs } from 'pinia'
-import invariant from 'tiny-invariant'
-import { KlayIconCopy, KlayIconRefresh, KlayIconArrowDown_2 } from '~klay-icons'
+import { KlayIconRefresh, KlayIconArrowDown_2 } from '~klay-icons'
 import { RouteName, Tab } from '@/types'
 
 const AssetsTabs = {
@@ -34,13 +32,13 @@ const route = useRoute()
 const tab = computed<AssetsTabs>({
   get: () => {
     const name = route.name
-    if (name === RouteName.AssetsThemselves) return AssetsTabs.Assets
+    if (name === RouteName.Assets) return AssetsTabs.Assets
     if (name === RouteName.Transactions) return AssetsTabs.Transactions
     throw new Error(`Unexpected route name: ${String(name)}`)
   },
   set: (v) => {
     router.replace({
-      name: v === AssetsTabs.Assets ? RouteName.AssetsThemselves : RouteName.Transactions,
+      name: v === AssetsTabs.Assets ? RouteName.Assets : RouteName.Transactions,
     })
   },
 })
@@ -120,7 +118,3 @@ function refresh() {}
   height: 600px;
 }
 </style>
-
-<route lang="yaml">
-name: Assets
-</route>

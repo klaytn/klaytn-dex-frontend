@@ -1,8 +1,3 @@
-<route lang="yaml">
-name: AssetsThemselves
-path: ''
-</route>
-
 <script setup lang="ts">
 import { apiKey } from '@/utils/minimal-tokens-api'
 

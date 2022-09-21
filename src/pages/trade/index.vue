@@ -1,8 +1,3 @@
-<route lang="yaml">
-name: Trade
-path: /swap
-</route>
-
 <script setup lang="ts">
 import { RouteName } from '@/types'
 import { KlayIconBackArrow } from '~klay-icons'

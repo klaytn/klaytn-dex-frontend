@@ -1,8 +1,3 @@
-<route lang="yaml">
-name: Transactions
-path: /transactions
-</route>
-
 <script setup lang="ts">
 const store = useAssetsStore()
 

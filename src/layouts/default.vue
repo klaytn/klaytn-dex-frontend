@@ -14,7 +14,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
   return [
     {
       label: t('DefaultLayout.menu.assets'),
-      routeName: RouteName.AssetsThemselves,
+      routeName: RouteName.Assets,
     },
     {
       label: t('DefaultLayout.menu.trade'),

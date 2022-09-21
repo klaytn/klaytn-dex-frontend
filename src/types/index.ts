@@ -1,19 +1,16 @@
 import type { App } from 'vue'
-import type { RouteRecordRaw, Router } from 'vue-router'
-// import type { HeadClient } from '@vueuse/head'
+import type { Router } from 'vue-router'
 
 export interface AppContext<HasRouter extends boolean = true> {
   app: App<Element>
   router: HasRouter extends true ? Router : undefined
-  routes: HasRouter extends true ? RouteRecordRaw[] : undefined
-  // head: HeadClient | undefined
 }
 
 export type Plugin = (ctx: AppContext) => void
 
 export const RouteName = {
   Assets: 'Assets',
-  AssetsThemselves: 'AssetsThemselves',
+  AssetDetails: 'AssetDetails',
   Transactions: 'Transactions',
   Trade: 'Trade',
   Swap: 'Swap',
