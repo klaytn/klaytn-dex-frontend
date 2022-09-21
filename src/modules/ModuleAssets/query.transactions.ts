@@ -7,6 +7,7 @@ import { Ref } from 'vue'
 import { byValue, byString } from 'sort-es'
 import { ApolloClientId } from '@/types'
 import { TokensPair } from '@/utils/pair'
+import { DocumentNode } from '@apollo/client/core'
 
 export type TimestampEpochSec = Opaque<string, 'timestamp-unix-epoch-sec'>
 
@@ -18,17 +19,17 @@ export type TransactionId = Opaque<string, 'tx-id'>
 
 type StringAmount = WeiAsToken<string>
 
-export interface Swap {
+export interface FragmentSwap {
   id: TransactionId
   timestamp: TimestampEpochSec
   amount0In: StringAmount
   amount1Out: StringAmount
   amount0Out: StringAmount
   amount1In: StringAmount
-  pair: PairRaw
+  pair: FragmentPair
 }
 
-interface PairRaw {
+interface FragmentPair {
   id: Address
   token0: PairTokenRaw
   token1: PairTokenRaw
@@ -47,102 +48,103 @@ interface MintBurnCommon {
   liquidity: StringAmount
   amount0: StringAmount
   amount1: StringAmount
-  pair: PairRaw
+  pair: FragmentPair
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface Mint extends MintBurnCommon {}
+export interface FragmentMint extends MintBurnCommon {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface Burn extends MintBurnCommon {}
+export interface FragmentBurn extends MintBurnCommon {}
 
 export interface TransactionsQueryResult {
-  swaps: Swap[]
-  mints: Mint[]
-  burns: Burn[]
+  swaps: FragmentSwap[]
+  mints: FragmentMint[]
+  burns: FragmentBurn[]
 }
 
-export function useTransactionsQuery(props: {
-  account: MaybeRef<null | Address>
-  /**
-   * How do we implement fuzzy search?
-   */
-  // search: MaybeRef<string | null>
-}) {
-  const LIMIT = 10
+const LIMIT = 10
+
+const FRAGMENT_PAIR = gql`
+  fragment pair on Pair {
+    token0 {
+      id
+      name
+      symbol
+      decimals
+    }
+    token1 {
+      id
+      name
+      symbol
+      decimals
+    }
+    id
+  }
+`
+
+const FRAGMENT_SWAP = gql`
+  fragment fragmentSwap on Swap {
+    id
+    timestamp
+    amount0In
+    amount1Out
+    amount0Out
+    amount1In
+    pair {
+      ...pair
+    }
+  }
+  ${FRAGMENT_PAIR}
+`
+
+const FRAGMENT_MINT = gql`
+  fragment mint on Mint {
+    timestamp
+    id
+    amount1
+    amount0
+    liquidity
+    pair {
+      ...pair
+    }
+  }
+  ${FRAGMENT_PAIR}
+`
+
+const FRAGMENT_BURN = gql`
+  fragment burn on Burn {
+    timestamp
+    id
+    amount1
+    amount0
+    liquidity
+    pair {
+      ...pair
+    }
+  }
+  ${FRAGMENT_PAIR}
+`
+
+export function useTransactionsQueryByAccount(props: { account: MaybeRef<null | Address> }) {
   let offset = 0
 
   const { result, loading, fetchMore, load } = useLazyQuery<TransactionsQueryResult>(
     gql`
       query TransactionsQuery($userId: String!, $offset: Int, $limit: Int) {
         swaps(where: { from: $userId }, orderBy: timestamp, orderDirection: desc, offset: $offset, limit: $limit) {
-          id
-          timestamp
-          amount0In
-          amount1Out
-          amount0Out
-          amount1In
-          pair {
-            token0 {
-              id
-              name
-              symbol
-              decimals
-            }
-            token1 {
-              id
-              name
-              symbol
-              decimals
-            }
-            id
-          }
+          ...fragmentSwap
         }
         mints(where: { to: $userId }, orderBy: timestamp, orderDirection: desc, offset: $offset, limit: $limit) {
-          timestamp
-          id
-          amount1
-          amount0
-          liquidity
-          pair {
-            token0 {
-              id
-              name
-              symbol
-              decimals
-            }
-            token1 {
-              id
-              name
-              symbol
-              decimals
-            }
-            id
-          }
+          ...mint
         }
         burns(where: { sender: $userId }, orderBy: timestamp, orderDirection: desc, offset: $offset, limit: $limit) {
-          timestamp
-          id
-          amount1
-          amount0
-          liquidity
-          pair {
-            token0 {
-              id
-              name
-              symbol
-              decimals
-            }
-            token1 {
-              id
-              name
-              symbol
-              decimals
-            }
-            id
-          }
+          ...burn
         }
       }
+      ${FRAGMENT_SWAP}
+      ${FRAGMENT_MINT}
+      ${FRAGMENT_BURN}
     `,
     () => ({
       userId: unref(props.account),
@@ -156,7 +158,7 @@ export function useTransactionsQuery(props: {
 
   return {
     load,
-    result,
+    enumerated: useTransactionEnum(result),
     loading,
     fetchMore: () => {
       offset += LIMIT
@@ -175,7 +177,188 @@ export function useTransactionsQuery(props: {
   }
 }
 
-export type TransactionEnum = ({ kind: 'swap' } & Swap) | ({ kind: 'mint' } & Mint) | ({ kind: 'burn' } & Burn)
+// FIXME does not work
+export function useTransactionsQueryByAccountAndAsset(props: {
+  account: MaybeRef<null | Address>
+  asset: MaybeRef<null | Address>
+}) {
+  let offset = 0
+
+  const variables = () => ({
+    account: unref(props.account),
+    asset: unref(props.account),
+    limit: LIMIT,
+  })
+
+  const options = () => ({
+    enabled: !!unref(props.account),
+    clientId: ApolloClientId.Exchange,
+  })
+
+  const queryFactory = <T>(doc: DocumentNode) => useLazyQuery<T>(doc, variables, options)
+
+  const queries = {
+    swapsLeft: queryFactory<Pick<TransactionsQueryResult, 'swaps'>>(gql`
+      query SwapsLeft($account: String!, $asset: String!, $offset: Int, $limit: Int) {
+        swaps(
+          where: { from: $account, pair: { token0: { id: $asset } } }
+          orderBy: timestamp
+          orderDirection: desc
+          offset: $offset
+          limit: $limit
+        ) {
+          ...fragmentSwap
+        }
+      }
+      ${FRAGMENT_SWAP}
+    `),
+    swapsRight: queryFactory<Pick<TransactionsQueryResult, 'swaps'>>(gql`
+      query SwapsRight($account: String!, $asset: String!, $offset: Int, $limit: Int) {
+        swaps(
+          where: { from: $account, pair: { token1: { id: $asset } } }
+          orderBy: timestamp
+          orderDirection: desc
+          offset: $offset
+          limit: $limit
+        ) {
+          ...fragmentSwap
+        }
+      }
+      ${FRAGMENT_SWAP}
+    `),
+    mintsLeft: queryFactory<Pick<TransactionsQueryResult, 'mints'>>(gql`
+      query MintsLeft($account: String!, $asset: String!, $offset: Int, $limit: Int) {
+        mints(
+          where: { from: $account, pair: { token0: { id: $asset } } }
+          orderBy: timestamp
+          orderDirection: desc
+          offset: $offset
+          limit: $limit
+        ) {
+          ...mint
+        }
+      }
+      ${FRAGMENT_MINT}
+    `),
+    mintsRight: queryFactory<Pick<TransactionsQueryResult, 'mints'>>(gql`
+      query MintsRight($account: String!, $asset: String!, $offset: Int, $limit: Int) {
+        mints(
+          where: { from: $account, pair: { token1: { id: $asset } } }
+          orderBy: timestamp
+          orderDirection: desc
+          offset: $offset
+          limit: $limit
+        ) {
+          ...mint
+        }
+      }
+      ${FRAGMENT_MINT}
+    `),
+    burnsLeft: queryFactory<Pick<TransactionsQueryResult, 'burns'>>(gql`
+      query MintsLeft($account: String!, $asset: String!, $offset: Int, $limit: Int) {
+        burns(
+          where: { from: $account, pair: { token0: { id: $asset } } }
+          orderBy: timestamp
+          orderDirection: desc
+          offset: $offset
+          limit: $limit
+        ) {
+          ...burn
+        }
+      }
+      ${FRAGMENT_BURN}
+    `),
+    burnsRight: queryFactory<Pick<TransactionsQueryResult, 'burns'>>(gql`
+      query MintsRight($account: String!, $asset: String!, $offset: Int, $limit: Int) {
+        burns(
+          where: { from: $account, pair: { token1: { id: $asset } } }
+          orderBy: timestamp
+          orderDirection: desc
+          offset: $offset
+          limit: $limit
+        ) {
+          ...mint
+        }
+      }
+      ${FRAGMENT_BURN}
+    `),
+  }
+
+  const queriesEnum = Object.values(queries)
+
+  const loading = logicOr(queriesEnum.map((x) => x.loading))
+
+  const mergedResult = computed<null | TransactionsQueryResult>(() => {
+    const swaps = mergeListsOrNull(queries.swapsLeft.result.value?.swaps, queries.swapsRight.result.value?.swaps)
+    const mints = mergeListsOrNull(queries.mintsLeft.result.value?.mints, queries.mintsRight.result.value?.mints)
+    const burns = mergeListsOrNull(queries.burnsLeft.result.value?.burns, queries.burnsRight.result.value?.burns)
+    return swaps && mints && burns && { swaps, mints, burns }
+  })
+
+  const enumerated = useTransactionEnum(mergedResult)
+
+  function fetchMore() {
+    offset += LIMIT
+
+    for (const { fetchMore } of [queries.swapsLeft, queries.swapsRight]) {
+      fetchMore({
+        variables: { offset },
+        updateQuery(prev, { fetchMoreResult }) {
+          if (!fetchMoreResult) return prev
+          return {
+            swaps: [...prev.swaps, ...fetchMoreResult.swaps],
+          }
+        },
+      })
+    }
+
+    for (const { fetchMore } of [queries.mintsLeft, queries.mintsRight]) {
+      fetchMore({
+        variables: { offset },
+        updateQuery(prev, { fetchMoreResult }) {
+          if (!fetchMoreResult) return prev
+          return {
+            mints: [...prev.mints, ...fetchMoreResult.mints],
+          }
+        },
+      })
+    }
+
+    for (const { fetchMore } of [queries.burnsLeft, queries.burnsRight]) {
+      fetchMore({
+        variables: { offset },
+        updateQuery(prev, { fetchMoreResult }) {
+          if (!fetchMoreResult) return prev
+          return {
+            burns: [...prev.burns, ...fetchMoreResult.burns],
+          }
+        },
+      })
+    }
+  }
+
+  function load() {
+    for (const x of queriesEnum) x.load()
+  }
+
+  return { load, loading, fetchMore, enumerated }
+}
+
+function mergeListsOrNull<T>(...lists: (T[] | null | undefined)[]): null | T[] {
+  const merged: T[] = []
+
+  for (const list of lists) {
+    if (!list) return null
+    merged.push(...list)
+  }
+
+  return merged
+}
+
+export type TransactionEnum =
+  | ({ kind: 'swap' } & FragmentSwap)
+  | ({ kind: 'mint' } & FragmentMint)
+  | ({ kind: 'burn' } & FragmentBurn)
 
 export function useTransactionEnum(
   result: Ref<null | undefined | TransactionsQueryResult>,
@@ -183,6 +366,7 @@ export function useTransactionEnum(
   return computed(() => {
     const resultValue = result.value
     if (!resultValue) return null
+    console.log({ resultValue })
 
     const items = [
       ...resultValue.swaps.map<TransactionEnum>((x) => ({ kind: 'swap', ...x })),
@@ -196,7 +380,7 @@ export function useTransactionEnum(
   })
 }
 
-type SwapAmounts = Pick<Swap, 'amount0In' | 'amount0Out' | 'amount1In' | 'amount1Out'>
+type SwapAmounts = Pick<FragmentSwap, 'amount0In' | 'amount0Out' | 'amount1In' | 'amount1Out'>
 
 type ParsedAmounts = Record<'in' | 'out', ParsedAmountByToken>
 

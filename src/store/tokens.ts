@@ -224,10 +224,6 @@ export const useTokensStore = defineStore('tokens', () => {
 
   const isDerivedUSDPending = Query.loading
 
-  watchEffect(() => {
-    console.log('Query:', Query.result.value, Query.loading.value, Query.variables.value)
-  })
-
   const { lookup: lookupDerivedUsd } = useDerivedUsdIndex(Query.result)
 
   return {

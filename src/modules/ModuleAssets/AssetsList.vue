@@ -22,7 +22,7 @@ function hideAsset(a: Address) {
 }
 
 function openDetails(a: Address) {
-  // todo
+  router.push({ name: RouteName.AssetDetails, params: { id: a } })
 }
 </script>
 
@@ -55,3 +55,9 @@ function openDetails(a: Address) {
     </template>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.no-results {
+  // todo
+}
+</style>

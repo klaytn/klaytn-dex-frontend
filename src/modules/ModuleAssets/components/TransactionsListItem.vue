@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { WeiAsToken } from '@/core'
 import { buildPair } from '@/utils/pair'
-import { parseSwapAmounts, TransactionEnum } from './query.transactions'
+import { parseSwapAmounts, TransactionEnum } from '../query.transactions'
 
 const props = defineProps<{
   item: TransactionEnum

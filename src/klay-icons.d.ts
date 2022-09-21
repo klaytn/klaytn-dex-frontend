@@ -22,6 +22,8 @@ declare module '~klay-icons' {
   export const KlayIconPlus: DefineComponent<{}, {}, any>
   export const KlayIconRefresh: DefineComponent<{}, {}, any>
   export const KlayIconSearch: DefineComponent<{}, {}, any>
+  export const KlayIconSwap: DefineComponent<{}, {}, any>
   export const KlayIconSwitch: DefineComponent<{}, {}, any>
+  export const KlayIconTrashCanOutline: DefineComponent<{}, {}, any>
   export const KlayIconWallet: DefineComponent<{}, {}, any>
 }

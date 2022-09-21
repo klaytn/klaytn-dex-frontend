@@ -2,6 +2,9 @@
 import { storeToRefs } from 'pinia'
 import { KlayIconRefresh, KlayIconArrowDown_2 } from '~klay-icons'
 import { RouteName, Tab } from '@/types'
+import { apiKey } from '@/utils/minimal-tokens-api'
+
+provide(apiKey, createMinimalTokenApiWithStores())
 
 const AssetsTabs = {
   Assets: 'assets',
@@ -29,21 +32,23 @@ const tabs = computed<Tab[]>(() => {
 const router = useRouter()
 const route = useRoute()
 
-const tab = computed<AssetsTabs>({
+const tab = computed<AssetsTabs | null>({
   get: () => {
     const name = route.name
+    if (name === RouteName.AssetDetails) return null
     if (name === RouteName.Assets) return AssetsTabs.Assets
     if (name === RouteName.Transactions) return AssetsTabs.Transactions
     throw new Error(`Unexpected route name: ${String(name)}`)
   },
   set: (v) => {
-    router.replace({
-      name: v === AssetsTabs.Assets ? RouteName.Assets : RouteName.Transactions,
-    })
+    v &&
+      router.replace({
+        name: v === AssetsTabs.Assets ? RouteName.Assets : RouteName.Transactions,
+      })
   },
 })
 
-const isQRCodeModalOpen = ref(false)
+const onAssetDetails = computed(() => tab.value === null)
 
 function refresh() {}
 </script>
@@ -56,6 +61,10 @@ function refresh() {}
     >
       Connect Wallet
     </div>
+
+    <template v-else-if="onAssetDetails">
+      <RouterView />
+    </template>
 
     <template v-else>
       <div class="flex items-center space-x-4 px-4 pt-4">
@@ -103,7 +112,7 @@ function refresh() {}
     </template>
   </div>
 
-  <ModuleAssetsModalQRCode v-model:show="isQRCodeModalOpen" />
+  <ModuleAssetsModalQRCode />
 </template>
 
 <style lang="scss" scoped>

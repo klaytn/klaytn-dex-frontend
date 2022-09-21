@@ -1,14 +1,22 @@
 <script setup lang="ts">
-import { useTransactionsQueryByAccount } from './query.transactions'
+import { Address } from '@/core'
+import { useTransactionsQueryByAccountAndAsset } from './query.transactions'
 import TransactionsList from './components/TransactionsList.vue'
+
+const props = defineProps<{
+  id: Address
+}>()
 
 const dexStore = useDexStore()
 
 const {
-  load,
   enumerated: transactions,
   loading,
-} = useTransactionsQueryByAccount({ account: toRef(dexStore, 'account') })
+  load,
+} = useTransactionsQueryByAccountAndAsset({
+  account: toRef(dexStore, 'account'),
+  asset: toRef(props, 'id'),
+})
 
 load()
 </script>

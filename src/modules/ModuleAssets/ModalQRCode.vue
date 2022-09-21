@@ -1,19 +1,14 @@
 <script setup lang="ts">
-const props = defineProps<{
-  show: boolean
-}>()
-
-const emit = defineEmits<(e: 'update:show', value: boolean) => void>()
-
-const showModel = useVModel(props, 'show', emit)
+const assetsStore = useAssetsStore()
+const show = toRef(assetsStore, 'openReceiveModal')
 
 const dexStore = useDexStore()
 </script>
 
 <template>
   <ModalAddressQRCode
-    :address="showModel ? dexStore.account : null"
-    @close="showModel = false"
+    :address="show ? dexStore.account : null"
+    @close="show = false"
   >
     <template #title>
       Receive any token

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TransactionEnum } from './query.transactions'
+import { TransactionEnum } from '../query.transactions'
 import { SModal } from '@soramitsu-ui/ui'
 
 const props = defineProps<{

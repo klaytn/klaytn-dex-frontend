@@ -29,7 +29,10 @@ const balanceWithDecimals = computed(() => balance.value?.decimals(props.token))
 </script>
 
 <template>
-  <div class="whole-item flex items-center px-4 py-3">
+  <div
+    class="whole-item flex items-center px-4 py-3"
+    @click="emit('open-details')"
+  >
     <KlayCharAvatar
       :symbol="token.symbol"
       class="mr-2"

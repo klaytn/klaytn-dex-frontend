@@ -52,7 +52,7 @@ async function copyAddress() {
         <KlayButton>dl</KlayButton>
       </div>
 
-      <hr class="klay-divider my-4">
+      <hr class="klay-divider !my-4">
 
       <KlayButton
         class="w-full"

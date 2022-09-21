@@ -2,11 +2,9 @@ import { Address } from '@/core'
 import { isAddress } from '@ethersproject/address'
 import BigNumber from 'bignumber.js'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { TransactionEnum, useTransactionEnum, useTransactionsQuery } from '../query.transactions'
 
 export const useAssetsStore = defineStore('assets', () => {
   const tokensStore = useTokensStore()
-  const dexStore = useDexStore()
 
   const hiddenAssets = useLocalStorage<Set<Address>>('assets-hidden-tokens', new Set(), {
     serializer: {
@@ -43,36 +41,19 @@ export const useAssetsStore = defineStore('assets', () => {
     return sum
   })
 
-  // #region Transactions
-
-  const TransactionsQuery = useTransactionsQuery({ account: toRef(dexStore, 'account') })
-  const transactions = useTransactionEnum(TransactionsQuery.result)
-
-  function loadTransactions() {
-    TransactionsQuery.load()
-  }
-
-  // #endregion
-
-  // #region Transaction details
-
-  const openDetailsForTransaction = shallowRef<null | TransactionEnum>(null)
-
-  // #endregion
-
   const openAssetsModal = ref(false)
+
+  const openReceiveModal = ref(false)
 
   return {
     hiddenAssets: readonly(hiddenAssets),
     totalUsd,
     tokensFilteredByHidden,
     allTokens,
-    transactions,
-    openDetailsForTransaction,
     openAssetsModal,
+    openReceiveModal,
 
     toggleHidden,
-    loadTransactions,
   }
 })
 
