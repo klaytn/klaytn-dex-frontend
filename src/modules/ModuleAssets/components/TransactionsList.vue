@@ -51,7 +51,7 @@ useInfiniteScroll(containerProps.ref, () => emit('load-more'), { distance: ITEM_
       class="relative"
     >
       <ListItem
-        v-for="(x, i) in virtualList"
+        v-for="x in virtualList"
         :key="x.index"
         height="56"
         :item="x.data"
