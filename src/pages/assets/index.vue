@@ -34,19 +34,17 @@ const tabs = computed<Tab[]>(() => {
 const router = useRouter()
 const route = useRoute()
 
-const tab = computed<AssetsTabs | null>({
+const tab = computed<AssetsTabs>({
   get: () => {
     const name = route.name
-    if (name === RouteName.AssetDetails) return null
     if (name === RouteName.Assets) return AssetsTabs.Assets
     if (name === RouteName.Transactions) return AssetsTabs.Transactions
     throw new Error(`Unexpected route name: ${String(name)}`)
   },
   set: (v) => {
-    v &&
-      router.replace({
-        name: v === AssetsTabs.Assets ? RouteName.Assets : RouteName.Transactions,
-      })
+    router.replace({
+      name: v === AssetsTabs.Assets ? RouteName.Assets : RouteName.Transactions,
+    })
   },
 })
 
