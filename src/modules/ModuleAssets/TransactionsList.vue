@@ -8,6 +8,7 @@ const {
   load,
   enumerated: transactions,
   loading,
+  fetchMore,
 } = useTransactionsQueryByAccount({ account: toRef(dexStore, 'account') })
 
 load()
@@ -17,5 +18,6 @@ load()
   <TransactionsList
     :transactions="transactions"
     :loading="loading"
+    @load-more="fetchMore"
   />
 </template>

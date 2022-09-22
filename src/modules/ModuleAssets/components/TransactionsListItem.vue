@@ -5,6 +5,8 @@ import { parseSwapAmounts, TransactionEnum } from '../query.transactions'
 
 const props = defineProps<{
   item: TransactionEnum
+  height?: string | number
+  hasDivider?: boolean
 }>()
 
 const timestampFormat = new Intl.DateTimeFormat('en', {
@@ -59,8 +61,9 @@ const detailsParsed = computed(() => {
 
 <template>
   <div
-    class="px-4 py-2 cursor-pointer select-none"
-    :class="$style.root"
+    class="px-4 flex flex-col justify-center cursor-pointer select-none"
+    :class="[$style.root, { [$style.hasDivider]: hasDivider }]"
+    :style="{ height: `${height}px` }"
   >
     <div class="font-semibold text-sm flex items-center space-x-2">
       <span :class="$style.kind">{{ kindFormatted }}</span>
@@ -95,8 +98,22 @@ const detailsParsed = computed(() => {
 @use '@/styles/vars';
 
 .root {
+  position: relative;
+
   &:hover {
     background: vars.$gray7;
+  }
+}
+
+.has-divider {
+  &::before {
+    content: '';
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    top: 0;
+    height: 1px;
+    background: vars.$gray5;
   }
 }
 

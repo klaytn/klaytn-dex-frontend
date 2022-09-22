@@ -74,7 +74,7 @@ export interface TransactionsQueryResult {
   burns: FragmentBurn[]
 }
 
-const LIMIT = 10
+const LIMIT = 5
 
 const FRAGMENT_PAIR = gql`
   fragment pair on Pair {
@@ -147,18 +147,18 @@ const FRAGMENT_BURN = gql`
 `
 
 export function useTransactionsQueryByAccount(props: { account: MaybeRef<null | Address> }) {
-  let offset = 0
+  let first = LIMIT
 
   const { result, loading, fetchMore, load } = useLazyQuery<TransactionsQueryResult>(
     gql`
-      query TransactionsQuery($userId: String!, $offset: Int, $limit: Int) {
-        swaps(where: { from: $userId }, orderBy: timestamp, orderDirection: desc, offset: $offset, limit: $limit) {
+      query TransactionsQuery($userId: String!, $first: Int!) {
+        swaps(where: { from: $userId }, orderBy: timestamp, orderDirection: desc, first: $first) {
           ...fragmentSwap
         }
-        mints(where: { to: $userId }, orderBy: timestamp, orderDirection: desc, offset: $offset, limit: $limit) {
+        mints(where: { to: $userId }, orderBy: timestamp, orderDirection: desc, first: $first) {
           ...mint
         }
-        burns(where: { sender: $userId }, orderBy: timestamp, orderDirection: desc, offset: $offset, limit: $limit) {
+        burns(where: { sender: $userId }, orderBy: timestamp, orderDirection: desc, first: $first) {
           ...burn
         }
       }
@@ -168,7 +168,7 @@ export function useTransactionsQueryByAccount(props: { account: MaybeRef<null | 
     `,
     () => ({
       userId: unref(props.account),
-      limit: LIMIT,
+      first,
     }),
     () => ({
       enabled: !!unref(props.account),
@@ -181,16 +181,13 @@ export function useTransactionsQueryByAccount(props: { account: MaybeRef<null | 
     enumerated: useTransactionEnum(result),
     loading,
     fetchMore: () => {
-      offset += LIMIT
+      first += LIMIT
       fetchMore({
-        variables: { offset },
+        variables: { first },
         updateQuery: (prev, { fetchMoreResult }) => {
           if (!fetchMoreResult) return prev
-          return {
-            swaps: [...prev.swaps, ...fetchMoreResult.swaps],
-            mints: [...prev.mints, ...fetchMoreResult.mints],
-            burns: [...prev.burns, ...fetchMoreResult.burns],
-          }
+          console.log('new result', fetchMoreResult)
+          return fetchMoreResult
         },
       })
     },

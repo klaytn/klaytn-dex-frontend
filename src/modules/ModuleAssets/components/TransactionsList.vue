@@ -8,50 +8,65 @@ export default {
 import { TransactionEnum } from '../query.transactions'
 import ListItem from './TransactionsListItem.vue'
 import TransactionDetailsModal from './TransactionDetailsModal.vue'
+import { mergeProps } from 'vue'
 
 const props = defineProps<{
   transactions: TransactionEnum[] | null
   loading?: boolean
 }>()
 
+const emit = defineEmits(['load-more'])
+
 const openDetailsFor = shallowRef<null | TransactionEnum>(null)
+
+const ITEM_HEIGHT = 56
+
+const {
+  list: virtualList,
+  containerProps,
+  wrapperProps,
+} = useVirtualList(
+  computed(() => props.transactions ?? []),
+  { itemHeight: ITEM_HEIGHT },
+)
+
+useInfiniteScroll(containerProps.ref, () => emit('load-more'), { distance: ITEM_HEIGHT / 2 })
 </script>
 
 <template>
   <div
+    v-bind="mergeProps($attrs, containerProps)"
     class="overflow-y-scroll"
-    v-bind="$attrs"
   >
     <div
-      v-if="loading"
-      class="p-4 flex justify-center"
-    >
-      <KlayLoader />
-    </div>
-
-    <div
-      v-else-if="!transactions?.length"
+      v-if="!transactions?.length"
       class="p-4 text-center no-results"
     >
       No transactions
     </div>
 
-    <template v-else>
-      <template
-        v-for="(x, i) in transactions"
-        :key="x.id"
-      >
-        <hr
-          v-if="i > 0"
-          class="klay-divider my-0 mx-4 !w-auto"
-        >
+    <div
+      v-else
+      v-bind="wrapperProps"
+      class="relative"
+    >
+      <ListItem
+        v-for="(x, i) in virtualList"
+        :key="x.index"
+        height="56"
+        :item="x.data"
+        @click="openDetailsFor = x.data"
+      />
 
-        <ListItem
-          :item="x"
-          @click="openDetailsFor = x"
-        />
-      </template>
-    </template>
+      <div
+        v-if="loading"
+        class="absolute bottom-0 left-0 right-0 flex justify-end"
+      >
+        <div class="p-1 rounded-full bg-white shadow-lg border border-gray-100 m-4">
+          <KlayLoader size="24" />
+        </div>
+      </div>
+    </div>
   </div>
 
   <TransactionDetailsModal
