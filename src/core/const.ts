@@ -35,7 +35,7 @@ export const NETWORK: Network = Object.freeze({
   },
 })
 
- const EXPLORER_BASE = `https://baobab.klaytnfinder.io`
+const EXPLORER_BASE = `https://baobab.klaytnfinder.io`
 
 export function makeExplorerLinkAccount(address: Address): string {
   return `${EXPLORER_BASE}/account/${address}`
