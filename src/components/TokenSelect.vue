@@ -31,7 +31,7 @@ provide(apiKey, createMinimalTokenApiWithStores())
 
 <template>
   <TokenSelectModal
-    v-model:open="isModalOpen"
+    v-model:show="isModalOpen"
     :selected="selected"
     :tokens="tokensStore.tokensWithBalance"
     @select="onSelect"

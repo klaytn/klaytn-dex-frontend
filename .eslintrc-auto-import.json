@@ -78,6 +78,7 @@
     "reactivePick": true,
     "readonly": true,
     "ref": true,
+    "refAndDebounced": true,
     "refAutoReset": true,
     "refDebounced": true,
     "refDefault": true,

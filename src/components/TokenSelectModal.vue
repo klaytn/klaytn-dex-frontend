@@ -11,7 +11,7 @@ const props = defineProps<{
   tokens: Token[]
 }>()
 
-const emit = defineEmits(['select', 'update:open', 'import-token'])
+const emit = defineEmits(['select', 'update:show', 'import-token'])
 
 const showModel = useVModel(props, 'show', emit)
 const tokens = toRef(props, 'tokens')
@@ -22,17 +22,11 @@ function isSelected(addr: Address): boolean {
 
 const { notify } = useNotify()
 
-const search = ref('')
+const { instant: search, debounced: searchDebounced } = refAndDebounced('', 500)
 
-const { tokensFiltered, isImportPending, importResult } = useTokensSearchAndImport({ tokens, search })
+const { tokensFiltered, isImportPending, noResults, tokenToImport } = useTokensSearchAndImport({ tokens, search })
 
 const recentTokens = computed(() => tokens.value.slice(0, 6))
-
-const nothingFound = $computed(() => {
-  return !tokensFiltered.value.length && importResult.value?.kind === 'not-found'
-})
-
-const tokenToImport = computed(() => (importResult.value?.kind === 'found' ? importResult.value.token : null))
 
 function resetSearch() {
   search.value = ''
@@ -53,7 +47,7 @@ function doImport() {
 <template>
   <SModal v-model:show="showModel">
     <KlayModalCard
-      style="width: 344px"
+      style="width: 344px; height: 640px"
       no-padding
       title="Select a token"
       class="flex flex-col min-h-0 max-h-90vh overflow-hidden"
@@ -61,7 +55,7 @@ function doImport() {
       <template #body>
         <div class="flex-1 min-h-0 flex flex-col">
           <KlayTextField
-            v-model="search"
+            v-model="searchDebounced"
             class="mx-[17px]"
             label="Search name or paste address"
             data-testid="modal-search"
@@ -86,7 +80,7 @@ function doImport() {
           <div class="flex-1 min-h-0 overflow-y-scroll">
             <div class="h-full">
               <div
-                v-if="nothingFound"
+                v-if="noResults"
                 class="p-4 text-center no-results"
               >
                 No results found

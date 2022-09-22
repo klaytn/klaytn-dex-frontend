@@ -27,7 +27,7 @@ const balanceUsd = computed(() => {
 </script>
 
 <template>
-  <div class="px-4 py-2 flex items-center space-x-2">
+  <div class="px-4 py-3 flex items-center space-x-2">
     <KlayCharAvatar
       size="36"
       :symbol="token.symbol"
