@@ -63,6 +63,7 @@
     "@soramitsu-ui/theme": "^0.3.0",
     "@soramitsu-ui/vite-plugin-svg": "^0.1.0",
     "@types/bn.js": "^5.1.0",
+    "@types/debug": "^4.1.7",
     "@types/dompurify": "^2.3.3",
     "@types/marked": "^4.0.6",
     "@types/nprogress": "^0.2.0",

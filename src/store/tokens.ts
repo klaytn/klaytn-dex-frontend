@@ -222,6 +222,10 @@ export const useTokensStore = defineStore('tokens', () => {
     () => Query.load(),
   )
 
+  function touchDerivedUsd() {
+    Query.refetch()
+  }
+
   const isDerivedUSDPending = Query.loading
 
   const { lookup: lookupDerivedUsd } = useDerivedUsdIndex(Query.result)
@@ -239,6 +243,7 @@ export const useTokensStore = defineStore('tokens', () => {
     lookupUserBalance,
     touchUserBalance,
     lookupDerivedUsd,
+    touchDerivedUsd,
   }
 })
 

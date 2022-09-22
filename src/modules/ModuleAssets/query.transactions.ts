@@ -149,7 +149,7 @@ const FRAGMENT_BURN = gql`
 export function useTransactionsQueryByAccount(props: { account: MaybeRef<null | Address> }) {
   let first = LIMIT
 
-  const { result, loading, fetchMore, load } = useLazyQuery<TransactionsQueryResult>(
+  const { result, loading, fetchMore, load, refetch } = useLazyQuery<TransactionsQueryResult>(
     gql`
       query TransactionsQuery($userId: String!, $first: Int!) {
         swaps(where: { from: $userId }, orderBy: timestamp, orderDirection: desc, first: $first) {
@@ -177,6 +177,7 @@ export function useTransactionsQueryByAccount(props: { account: MaybeRef<null | 
   )
 
   return {
+    refetch,
     load,
     enumerated: useTransactionEnum(result),
     loading,
@@ -186,7 +187,6 @@ export function useTransactionsQueryByAccount(props: { account: MaybeRef<null | 
         variables: { first },
         updateQuery: (prev, { fetchMoreResult }) => {
           if (!fetchMoreResult) return prev
-          console.log('new result', fetchMoreResult)
           return fetchMoreResult
         },
       })

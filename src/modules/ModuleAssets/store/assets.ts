@@ -2,6 +2,8 @@ import { Address } from '@/core'
 import { isAddress } from '@ethersproject/address'
 import BigNumber from 'bignumber.js'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import invariant from 'tiny-invariant'
+import { Ref } from 'vue'
 
 export const useAssetsStore = defineStore('assets', () => {
   const tokensStore = useTokensStore()
@@ -45,6 +47,16 @@ export const useAssetsStore = defineStore('assets', () => {
 
   const openReceiveModal = ref(false)
 
+  const refreshButton = shallowRef<null | RefreshButtonProps>(null)
+
+  function useRefreshButton(props: RefreshButtonProps) {
+    invariant(!refreshButton.value, 'Refresh button is already occupied')
+    refreshButton.value = props
+    onScopeDispose(() => {
+      refreshButton.value = null
+    })
+  }
+
   return {
     hiddenAssets: readonly(hiddenAssets),
     totalUsd,
@@ -52,9 +64,16 @@ export const useAssetsStore = defineStore('assets', () => {
     allTokens,
     openAssetsModal,
     openReceiveModal,
+    refreshButton,
 
     toggleHidden,
+    useRefreshButton,
   }
 })
+
+interface RefreshButtonProps {
+  loading: boolean
+  onClick: () => void
+}
 
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useAssetsStore, import.meta.hot))

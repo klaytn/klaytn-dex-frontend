@@ -19,6 +19,7 @@ specifiers:
   '@soramitsu-ui/ui': ^0.6.1
   '@soramitsu-ui/vite-plugin-svg': ^0.1.0
   '@types/bn.js': ^5.1.0
+  '@types/debug': ^4.1.7
   '@types/dompurify': ^2.3.3
   '@types/marked': ^4.0.6
   '@types/nprogress': ^0.2.0
@@ -131,6 +132,7 @@ devDependencies:
   '@soramitsu-ui/theme': 0.3.0
   '@soramitsu-ui/vite-plugin-svg': 0.1.0
   '@types/bn.js': 5.1.0
+  '@types/debug': 4.1.7
   '@types/dompurify': 2.3.3
   '@types/marked': 4.0.6
   '@types/nprogress': 0.2.0
@@ -1322,6 +1324,12 @@ packages:
     resolution: {integrity: sha512-hC7OMnszpxhZPduX+m+nrx+uFoLkWOMiR4oa/AZF3MuSETYTZmFfJAHqZEM8MVlvfG7BEUcgvtwoCTxBp6hm3g==}
     dev: true
 
+  /@types/debug/4.1.7:
+    resolution: {integrity: sha512-9AonUzyTjXXhEOa0DnqpzZi6VHlqKMswga9EXjpXnnqxwLtdvPPtlO8evrI5D9S6asFRCQ6v+wpiUKbw+vKqyg==}
+    dependencies:
+      '@types/ms': 0.7.31
+    dev: true
+
   /@types/dompurify/2.3.3:
     resolution: {integrity: sha512-nnVQSgRVuZ/843oAfhA25eRSNzUFcBPk/LOiw5gm8mD9/X7CNcbRkQu/OsjCewO8+VIYfPxUnXvPEVGenw14+w==}
     dependencies:
@@ -1367,6 +1375,10 @@ packages:
 
   /@types/minimatch/3.0.5:
     resolution: {integrity: sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==}
+    dev: true
+
+  /@types/ms/0.7.31:
+    resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
     dev: true
 
   /@types/node/12.20.55:

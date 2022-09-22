@@ -1,6 +1,19 @@
 <script setup lang="ts">
 const assetsStore = useAssetsStore()
 const totalUsd = toRef(assetsStore, 'totalUsd')
+
+const tokensStore = useTokensStore()
+
+function refresh() {
+  tokensStore.touchDerivedUsd()
+  tokensStore.touchUserBalance()
+}
+
+const isRefreshing = computed(
+  () => tokensStore.isBalancePending || tokensStore.isImportedPending || tokensStore.isDerivedUSDPending,
+)
+
+assetsStore.useRefreshButton(reactive({ loading: isRefreshing, onClick: refresh }))
 </script>
 
 <template>

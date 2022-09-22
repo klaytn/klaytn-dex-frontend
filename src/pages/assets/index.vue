@@ -13,8 +13,10 @@ const AssetsTabs = {
 
 type AssetsTabs = typeof AssetsTabs[keyof typeof AssetsTabs]
 
-const store = useDexStore()
-const { account } = storeToRefs(store)
+const dexStore = useDexStore()
+const { account } = storeToRefs(dexStore)
+
+const assetsStore = useAssetsStore()
 
 const tabs = computed<Tab[]>(() => {
   return [
@@ -49,8 +51,6 @@ const tab = computed<AssetsTabs | null>({
 })
 
 const onAssetDetails = computed(() => tab.value === null)
-
-function refresh() {}
 </script>
 
 <template>
@@ -76,9 +76,11 @@ function refresh() {}
 
         <div class="flex-1 flex justify-end">
           <KlayButton
+            v-if="assetsStore.refreshButton"
             type="action"
             rounded
-            @click="refresh"
+            :loading="assetsStore.refreshButton.loading"
+            @click="assetsStore.refreshButton!.onClick()"
           >
             <template #icon>
               <KlayIconRefresh />
@@ -98,7 +100,7 @@ function refresh() {}
         <KlayButton
           type="action"
           rounded
-          @click="isQRCodeModalOpen = true"
+          @click="assetsStore.openReceiveModal = true"
         >
           <template #icon>
             <KlayIconArrowDown_2 />
