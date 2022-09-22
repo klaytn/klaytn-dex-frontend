@@ -16,7 +16,7 @@ const { lookupBalance, lookupDerivedUsd } = useMinimalTokensApi()
 const balance = computed(() => lookupBalance(props.token.address))
 const derivedUsd = computed(() => lookupDerivedUsd(props.token.address))
 
-const emit = defineEmits(['goto-swap', 'open-details', 'hide'])
+const emit = defineEmits(['goto-swap', 'hide'])
 
 const balanceInUsd = computed(() => {
   const balanceValue = balance.value
@@ -29,10 +29,7 @@ const balanceWithDecimals = computed(() => balance.value?.decimals(props.token))
 </script>
 
 <template>
-  <div
-    class="whole-item flex items-center px-4 py-3"
-    @click="emit('open-details')"
-  >
+  <div class="flex items-center px-4 py-3">
     <KlayCharAvatar
       :symbol="token.symbol"
       class="mr-2"
@@ -82,9 +79,6 @@ const balanceWithDecimals = computed(() => balance.value?.decimals(props.token))
             <MenuItem @click="emit('goto-swap')">
               Swap
             </MenuItem>
-            <MenuItem @click="emit('open-details')">
-              Details
-            </MenuItem>
             <MenuItem @click="emit('hide')">
               Hide
             </MenuItem>
@@ -97,12 +91,6 @@ const balanceWithDecimals = computed(() => balance.value?.decimals(props.token))
 
 <style lang="scss" scoped>
 @use '@/styles/vars';
-
-.whole-item {
-  &:hover {
-    background: vars.$gray7;
-  }
-}
 
 .two-line {
   display: flex;

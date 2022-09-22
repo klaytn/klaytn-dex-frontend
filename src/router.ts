@@ -55,12 +55,7 @@ export default createRouter({
         {
           name: RouteName.Assets,
           path: '',
-          component: () => import('./pages/assets/assets/index.vue'),
-        },
-        {
-          name: RouteName.AssetDetails,
-          path: ':id',
-          component: () => import('./pages/assets/assets/[id].vue'),
+          component: () => import('./pages/assets/assets.vue'),
         },
         {
           name: RouteName.Transactions,

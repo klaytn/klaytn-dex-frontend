@@ -20,17 +20,13 @@ function gotoSwap(a: Address) {
 function hideAsset(a: Address) {
   assetsStore.toggleHidden(a, true)
 }
-
-function openDetails(a: Address) {
-  router.push({ name: RouteName.AssetDetails, params: { id: a } })
-}
 </script>
 
 <template>
   <div class="overflow-y-scroll">
     <div
       v-if="isEmpty"
-      class="p-4 text-center no-results"
+      class="p-4 text-center"
     >
       There are no added assets
     </div>
@@ -48,16 +44,9 @@ function openDetails(a: Address) {
         <ListItem
           :token="token"
           @goto-swap="gotoSwap(token.address)"
-          @open-details="openDetails(token.address)"
           @hide="hideAsset(token.address)"
         />
       </template>
     </template>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.no-results {
-  // todo
-}
-</style>

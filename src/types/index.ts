@@ -10,7 +10,6 @@ export type Plugin = (ctx: AppContext) => void
 
 export const RouteName = {
   Assets: 'Assets',
-  AssetDetails: 'AssetDetails',
   Transactions: 'Transactions',
   Trade: 'Trade',
   Swap: 'Swap',
