@@ -3,8 +3,9 @@ import { Address } from '@/core'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import { SModal } from '@soramitsu-ui/ui'
 import invariant from 'tiny-invariant'
-import { KlayIconCopy } from '~klay-icons'
+import { KlayIconCopy, KlayIconDownload } from '~klay-icons'
 import IcRoundCheck from '~icons/ic/round-check'
+import { saveAs } from 'file-saver'
 
 const props = defineProps<{
   address?: Address | null
@@ -22,6 +23,7 @@ const qr = useQRCode(
   {
     width: 195,
     margin: 0,
+    type: 'image/png',
   },
 )
 
@@ -32,6 +34,10 @@ async function copyAddress() {
   invariant(props.address)
   await copy(props.address)
   copyOk.value = true
+}
+
+async function download() {
+  saveAs(await fetch(qr.value).then((x) => x.blob()), 'address.png')
 }
 </script>
 
@@ -49,7 +55,14 @@ async function copyAddress() {
           alt="QR Code"
         >
 
-        <KlayButton>dl</KlayButton>
+        <KlayButton
+          type="action"
+          @click="download"
+        >
+          <template #icon>
+            <KlayIconDownload />
+          </template>
+        </KlayButton>
       </div>
 
       <hr class="klay-divider !my-4">
