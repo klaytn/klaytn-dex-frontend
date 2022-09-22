@@ -5,8 +5,9 @@ import { install as installNotifications } from '@/plugins/notifications'
 import { LiquidityPairsPosition } from '@/modules/ModuleLiquidity/query.liquidity-pairs'
 import { deepClone } from '@/utils/common'
 import { WeiAsToken } from '@/core'
+import { testid } from './common'
 
-const TESTID_LIST_ITEM = '[data-testid=pair-list-item]'
+const TESTID_LIST_ITEM = testid('pair-list-item')
 
 function mountFactory(positions: LiquidityPairsPosition[]) {
   cy.mount(PairsList, {
