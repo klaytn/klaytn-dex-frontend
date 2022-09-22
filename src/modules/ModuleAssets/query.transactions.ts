@@ -15,27 +15,32 @@ export type TimestampEpochSec = Opaque<string, 'timestamp-unix-epoch-sec'>
  * It is like address, but with a suffix
  * @example '0x7825af8d514b722b21a387401db0c2d635758e0ba987eb775f4ae0db84214a08-0'
  */
-export type TransactionId = Opaque<string, 'tx-id'>
+export type SwapId = Opaque<string, 'swap-id'>
+
+export type MintId = Opaque<string, 'mint-id'>
+
+export type BurnId = Opaque<string, 'burn-id'>
 
 type StringAmount = WeiAsToken<string>
 
 export interface FragmentSwap {
-  id: TransactionId
+  id: SwapId
   timestamp: TimestampEpochSec
   amount0In: StringAmount
   amount1Out: StringAmount
   amount0Out: StringAmount
   amount1In: StringAmount
   pair: FragmentPair
+  transaction: FragmentTransaction
 }
 
 interface FragmentPair {
   id: Address
-  token0: PairTokenRaw
-  token1: PairTokenRaw
+  token0: FragmentToken
+  token1: FragmentToken
 }
 
-interface PairTokenRaw {
+interface FragmentToken {
   id: Address
   name: string
   symbol: TokenSymbol
@@ -43,19 +48,25 @@ interface PairTokenRaw {
 }
 
 interface MintBurnCommon {
-  id: TransactionId
   timestamp: TimestampEpochSec
   liquidity: StringAmount
   amount0: StringAmount
   amount1: StringAmount
   pair: FragmentPair
+  transaction: FragmentTransaction
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface FragmentMint extends MintBurnCommon {}
+export interface FragmentMint extends MintBurnCommon {
+  id: MintId
+}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface FragmentBurn extends MintBurnCommon {}
+export interface FragmentBurn extends MintBurnCommon {
+  id: BurnId
+}
+
+interface FragmentTransaction {
+  id: Address
+}
 
 export interface TransactionsQueryResult {
   swaps: FragmentSwap[]
@@ -94,6 +105,9 @@ const FRAGMENT_SWAP = gql`
     pair {
       ...pair
     }
+    transaction {
+      id
+    }
   }
   ${FRAGMENT_PAIR}
 `
@@ -108,6 +122,9 @@ const FRAGMENT_MINT = gql`
     pair {
       ...pair
     }
+    transaction {
+      id
+    }
   }
   ${FRAGMENT_PAIR}
 `
@@ -121,6 +138,9 @@ const FRAGMENT_BURN = gql`
     liquidity
     pair {
       ...pair
+    }
+    transaction {
+      id
     }
   }
   ${FRAGMENT_PAIR}
@@ -366,7 +386,6 @@ export function useTransactionEnum(
   return computed(() => {
     const resultValue = result.value
     if (!resultValue) return null
-    console.log({ resultValue })
 
     const items = [
       ...resultValue.swaps.map<TransactionEnum>((x) => ({ kind: 'swap', ...x })),

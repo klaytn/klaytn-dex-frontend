@@ -54,7 +54,7 @@ function refresh() {}
 </script>
 
 <template>
-  <div class="wrap mx-auto space-y-4 flex flex-col">
+  <div class="wrap mx-auto space-y-4 flex flex-col overflow-hidden">
     <div
       v-if="!account"
       class="p-4 text-center"

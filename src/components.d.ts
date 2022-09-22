@@ -40,6 +40,8 @@ declare module '@vue/runtime-core' {
     ModuleAssetsAssetsModalListItem: typeof import('./modules/ModuleAssets/AssetsModalListItem.vue')['default']
     ModuleAssetsAssetTransactionsList: typeof import('./modules/ModuleAssets/AssetTransactionsList.vue')['default']
     ModuleAssetsComponentsTransactionDetailsModal: typeof import('./modules/ModuleAssets/components/TransactionDetailsModal.vue')['default']
+    ModuleAssetsComponentsTransactionDetailsModalRow: typeof import('./modules/ModuleAssets/components/TransactionDetailsModalRow.vue')['default']
+    ModuleAssetsComponentsTransactionDetailsModalRowSubWrap: typeof import('./modules/ModuleAssets/components/TransactionDetailsModalRowSubWrap.vue')['default']
     ModuleAssetsComponentsTransactionsList: typeof import('./modules/ModuleAssets/components/TransactionsList.vue')['default']
     ModuleAssetsComponentsTransactionsListItem: typeof import('./modules/ModuleAssets/components/TransactionsListItem.vue')['default']
     ModuleAssetsModalQRCode: typeof import('./modules/ModuleAssets/ModalQRCode.vue')['default']
