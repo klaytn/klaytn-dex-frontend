@@ -17,18 +17,16 @@ export default createRouter({
           name: RouteName.Liquidity,
           path: '/liquidity',
           component: () => import('./pages/trade/liquidity/index.vue'),
-          children: [
-            {
-              name: RouteName.LiquidityAdd,
-              path: 'add',
-              component: () => import('./pages/trade/liquidity/add.vue'),
-            },
-            {
-              name: RouteName.LiquidityRemove,
-              path: 'remove',
-              component: () => import('./pages/trade/liquidity/remove.vue'),
-            },
-          ],
+        },
+        {
+          name: RouteName.LiquidityAdd,
+          path: '/liquidity/add',
+          component: () => import('./pages/trade/liquidity/add.vue'),
+        },
+        {
+          name: RouteName.LiquidityRemove,
+          path: '/liquidity/remove',
+          component: () => import('./pages/trade/liquidity/remove.vue'),
         },
       ],
     },
