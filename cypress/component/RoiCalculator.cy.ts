@@ -2,8 +2,8 @@ import RoiCalculator from '@/modules/ModuleEarnShared/RoiCalculator/index.vue'
 import BigNumber from 'bignumber.js'
 import { VueTestUtils } from 'cypress/vue'
 import { createI18n } from 'vue-i18n'
+import { testid } from './common'
 
-const testid = (id: string) => `[data-testid=${id}]`
 const getInput = () => cy.get('input' + testid('staked-input'))
 const getReceive = () => cy.get('input' + testid('receive-value'))
 

@@ -1,18 +1,29 @@
 <script setup lang="ts" name="KlayModalCard">
 import { useModalApi } from '@soramitsu-ui/ui'
-import { KlayIconClose } from '~klay-icons'
+import MaterialSymbolsArrowBack from '~icons/material-symbols/arrow-back'
+import MaterialSymbolsClose from '~icons/material-symbols/close'
 
 defineProps<{
   title?: string
+  backArrow?: boolean
 }>()
+
+const emit = defineEmits(['click:back'])
 
 const api = useModalApi()
 </script>
 
 <template>
-  <div class="card space-y-5">
-    <div class="head pt-5 px-4">
-      <h3>
+  <div class="card flex flex-col space-y-5">
+    <div class="head pt-5 px-4 space-x-4">
+      <button
+        v-if="backArrow"
+        @click="emit('click:back')"
+      >
+        <MaterialSymbolsArrowBack />
+      </button>
+
+      <h3 class="flex-1">
         <slot name="title">
           {{ title }}
         </slot>
@@ -23,12 +34,12 @@ const api = useModalApi()
         type="button"
         @click="api.close()"
       >
-        <KlayIconClose />
+        <MaterialSymbolsClose />
       </button>
     </div>
 
     <slot name="body">
-      <div class="px-4 pb-5">
+      <div class="flex-1 px-4 pb-5">
         <slot />
       </div>
     </slot>
@@ -47,7 +58,6 @@ const api = useModalApi()
 .head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   height: 65px;
 
   h3 {

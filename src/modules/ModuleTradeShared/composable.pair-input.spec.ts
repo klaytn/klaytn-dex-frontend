@@ -1,6 +1,6 @@
 import { useEstimatedLayer, usePairInput } from './composable.pair-input'
 import { afterEach, beforeEach, describe, expect, Mock, test, vi } from 'vitest'
-import { buildPair, emptyPair, TokensPair, TokenType } from '@/utils/pair'
+import { buildPair, emptyPair, TokensPair } from '@/utils/pair'
 import { Address, WeiAsToken } from '@/core'
 
 const emptyTokenPair = (): TokensPair<null | WeiAsToken> => emptyPair()

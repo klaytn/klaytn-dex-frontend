@@ -1,9 +1,9 @@
-import TokenSelectModal from '@/components/common/TokenSelect/Modal.vue'
-import { Address, Token, Wei } from '@/core'
+import TokenSelectModal from '@/components/TokenSelectModal.vue'
+import { Address, Wei } from '@/core'
 import { WHITELIST_TOKENS } from '@/core/const'
-import { TokenWithOptionBalance } from '@/store/tokens'
 import { MaybeRef } from '@vueuse/core'
 import { TOASTS_API_KEY, defineToastsApi } from '@soramitsu-ui/ui'
+import { apiKey as minimalTokensApiKey } from '@/utils/minimal-tokens-api'
 
 const testid = (id: string) => `[data-testid=${id}]`
 const TESTID_RECENT_TOKEN = testid('modal-recent-token')
@@ -16,47 +16,39 @@ describe('Token select modal', () => {
       {
         components: { TokenSelectModal },
         setup() {
-          const tokens: TokenWithOptionBalance[] = WHITELIST_TOKENS.map((x, i) => ({
-            ...x,
-            balance: new Wei(BigInt(i) * 1_876_000_141_785_000_000n),
-          }))
+          const tokens = WHITELIST_TOKENS
 
-          function lookupToken(addr: Address) {
-            const regex = new RegExp('^' + addr + '$', 'i')
-            return tokens.find((x) => regex.test(x.address))
-          }
-
-          async function isSmartContract() {
-            return true
-          }
-
-          async function getToken(addr: Address): Promise<Token> {
-            throw new Error('unimpl')
-          }
+          provide(TOASTS_API_KEY, defineToastsApi())
+          provide(minimalTokensApiKey, {
+            lookupBalance: (a) =>
+              new Wei(BigInt(tokens.findIndex((x) => x.address === a)) * 1_876_000_141_785_000_000n),
+            lookupDerivedUsd: () => null,
+            getToken: () => {
+              throw new Error('unimpl')
+            },
+            lookupToken: (a) => {
+              const regex = new RegExp('^' + a + '$', 'i')
+              return tokens.find((x) => regex.test(x.address)) ?? null
+            },
+            isSmartContract: async () => true,
+          })
 
           return {
             tokens,
-            getToken,
-            lookupToken,
-            isSmartContract,
             selected: props?.selected ?? null,
           }
         },
         template: `
           <TokenSelectModal
-            open
+            show
             :selected="selected"
             :tokens="tokens"
-            v-bind="{ getToken, lookupToken, isSmartContract }"
           />
         `,
       },
       {
         global: {
           stubs: { transition: false },
-          provide: {
-            [TOASTS_API_KEY as symbol]: defineToastsApi(),
-          },
         },
       },
     )

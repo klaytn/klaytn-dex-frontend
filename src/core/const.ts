@@ -1,3 +1,4 @@
+import Percent from './entities/Percent'
 import type { Token, Address, TokenSymbol, Network } from './types'
 
 /**
@@ -34,6 +35,27 @@ export const NETWORK: Network = Object.freeze({
     decimals: NATIVE_TOKEN_DECIMALS,
   },
 })
+
+/**
+ * It is static and equals 0.3%
+ */
+export const POOL_COMMISSION = new Percent(3, 1000)
+
+export const TRADE_MAX_HOPS = 3
+
+export const TRADE_MAX_NUM_RESULTS = 3
+
+export const TRADE_MAX_PRICE_IMPACT = new Percent(1, 10)
+
+const EXPLORER_BASE = `https://baobab.klaytnfinder.io`
+
+export function makeExplorerLinkAccount(address: Address): string {
+  return `${EXPLORER_BASE}/account/${address}`
+}
+
+export function makeExplorerLinkToTransaction(address: Address): string {
+  return `${EXPLORER_BASE}/tx/${address}`
+}
 
 export const WHITELIST_TOKENS = Object.freeze([
   {
