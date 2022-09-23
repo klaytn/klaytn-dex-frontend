@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatCurrency } from '@/utils/composable.currency-input'
+import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import BigNumber from 'bignumber.js'
 import { PropType } from 'vue'
 
@@ -34,7 +34,7 @@ const formatted = computed(() => {
     ? formatCurrency({
         amount: props.amount,
         symbol: props.usd
-          ? { str: '$', position: 'left', delimiter: '' }
+          ? SYMBOL_USD
           : props.symbol
           ? {
               str: props.symbol,

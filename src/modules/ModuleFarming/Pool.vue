@@ -1,13 +1,15 @@
 <script setup lang="ts" name="ModuleFarmingPool">
 import { RouteName, RoiType } from '@/types'
-import { ModalOperation, Pool } from './types'
+import { ModalOperation, Pool, ModalOperationComposite, ModalOperationCompositeBase } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
-import { CONSTANT_FARMING_DECIMALS } from './utils'
-import { Wei, ADDRESS_FARMING } from '@/core'
+import { CONSTANT_FARMING_DECIMALS, farmingToWei } from './utils'
+import { Wei, ADDRESS_FARMING, WeiAsToken, TokenSymbol } from '@/core'
 import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
+import { TokensPair } from '@/utils/pair'
+import StakeUnstakeModal from '../ModuleEarnShared/StakeUnstakeModal.vue'
 
 const dexStore = useDexStore()
 const { notify } = useNotify()
@@ -20,7 +22,7 @@ const props = defineProps<{
 }>()
 const { pool } = toRefs(props)
 const emit = defineEmits<{
-  (e: 'staked' | 'unstaked', value: string): void
+  (e: 'staked' | 'unstaked', value: WeiAsToken): void
   (e: 'withdrawn'): void
 }>()
 
@@ -30,21 +32,42 @@ const showRoiCalculator = ref(false)
 const roiType = RoiType.Farming
 const roiPool = ref<Pool | null>(null)
 
-const modalOpen = computed({
-  get() {
-    return !!modalOperation.value
-  },
-  set(value) {
-    if (!value) modalOperation.value = null
-  },
+const poolSymbols = computed<TokensPair<TokenSymbol>>(() => {
+  const [a, b] = props.pool.name.split('-') as TokenSymbol[]
+  return { tokenA: a, tokenB: b }
 })
 
-const tokenSymbols = computed(() => {
-  return pool.value.name.split('-')
-})
+async function stakeFn(amount: WeiAsToken<BigNumber>) {
+  const dex = dexStore.getNamedDexAnyway()
+  await dex.earn.farming.deposit({ poolId: props.pool.id, amount: farmingToWei(amount) })
+}
 
-const formattedStaked = computed(() => {
-  return formatCurrency({ amount: new BigNumber(pool.value.staked), decimals: FORMATTED_BIG_INT_DECIMALS })
+async function unstakeFn(amount: WeiAsToken<BigNumber>) {
+  const dex = dexStore.getNamedDexAnyway()
+  await dex.earn.farming.withdraw({ poolId: props.pool.id, amount: farmingToWei(amount) })
+}
+
+const modalOperationComposite = computed((): null | ModalOperationComposite => {
+  const base: ModalOperationCompositeBase = {
+    balance: props.pool.balance,
+    staked: props.pool.staked,
+    symbols: poolSymbols.value,
+  }
+
+  const kind = modalOperation.value
+  return kind === ModalOperation.Stake
+    ? {
+        kind,
+        stake: stakeFn,
+        ...base,
+      }
+    : kind === ModalOperation.Unstake
+    ? {
+        kind,
+        unstake: unstakeFn,
+        ...base,
+      }
+    : null
 })
 
 const formattedEarned = computed(() => {
@@ -110,29 +133,28 @@ const { state: withdrawState, run: withdraw } = useTask(async () => {
 
   return { earned }
 })
+
 usePromiseLog(withdrawState, 'farming-pool-withdraw')
+
 wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
     const { earned } = result.fulfilled.value
+    const formatted = formatCurrency({ amount: earned })
+    notify({ type: 'ok', description: `${formatted} DEX tokens were withdrawn` })
     emit('withdrawn')
-    notify({ type: 'ok', description: `${earned} DEX tokens were withdrawn` })
   } else {
     notify({ type: 'err', description: 'Withdraw DEX tokens error', error: result.rejected.reason })
   }
 })
 
-function handleStaked(amount: string) {
+function handleStaked(amount: WeiAsToken<BigNumber>) {
   modalOperation.value = null
-  emit('staked', amount)
+  emit('staked', amount.toFixed() as WeiAsToken)
 }
 
-function handleUnstaked(amount: string) {
+function handleUnstaked(amount: WeiAsToken<BigNumber>) {
   modalOperation.value = null
-  emit('unstaked', amount)
-}
-
-function handleModalClose() {
-  modalOperation.value = null
+  emit('unstaked', amount.toFixed() as WeiAsToken)
 }
 
 function openRoiCalculator() {
@@ -146,10 +168,7 @@ function openRoiCalculator() {
     <template #title>
       <div class="grid grid-cols-5">
         <div class="flex items-center space-x-2">
-          <KlaySymbolsPair
-            :token-a="tokenSymbols[0]"
-            :token-b="tokenSymbols[1]"
-          />
+          <KlaySymbolsPair v-bind="poolSymbols" />
 
           <span class="title-name">
             {{ pool.name }}
@@ -236,10 +255,16 @@ function openRoiCalculator() {
 
             <InputCurrencyTemplate right>
               <template #input>
-                <input
-                  :value="formattedStaked"
-                  readonly
+                <CurrencyFormat
+                  v-slot="{ formatted }"
+                  :amount="pool.staked"
+                  decimals="6"
                 >
+                  <input
+                    :value="formatted"
+                    readonly
+                  >
+                </CurrencyFormat>
               </template>
 
               <template #right>
@@ -256,10 +281,16 @@ function openRoiCalculator() {
 
             <InputCurrencyTemplate right>
               <template #input>
-                <input
-                  :value="formattedEarned"
-                  readonly
+                <CurrencyFormat
+                  v-slot="{ formatted }"
+                  :amount="pool.earned"
+                  decimals="6"
                 >
+                  <input
+                    :value="formatted"
+                    readonly
+                  >
+                </CurrencyFormat>
               </template>
 
               <template #right>
@@ -300,11 +331,9 @@ function openRoiCalculator() {
     </div>
   </KlayAccordionItem>
 
-  <ModuleFarmingModal
-    v-model="modalOpen"
-    :pool="pool"
-    :operation="modalOperation"
-    @update:mode="handleModalClose"
+  <StakeUnstakeModal
+    :operation="modalOperationComposite"
+    @close="modalOperation = null"
     @staked="handleStaked"
     @unstaked="handleUnstaked"
   />
@@ -355,11 +384,11 @@ function openRoiCalculator() {
 }
 
 .calculator-icon {
-  fill: vars.$gray3;
+  color: vars.$gray3;
   height: 18px;
 
   &:hover {
-    fill: vars.$blue;
+    color: vars.$blue;
   }
 }
 

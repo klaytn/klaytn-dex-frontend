@@ -20,6 +20,7 @@ const amountAsToken = computed(() => (props.token && props.amount && props.amoun
         <input
           readonly
           :value="formatted"
+          placeholder="—"
         >
       </CurrencyFormat>
     </template>
