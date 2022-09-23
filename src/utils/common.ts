@@ -1,4 +1,5 @@
-import { Wei } from '@/core'
+import { POOL_COMMISSION, Wei, WeiAsToken } from '@/core'
+import { Price, TokenAmount, Percent, Fraction } from '@/core'
 import { Tab } from '@/types'
 import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'
@@ -28,6 +29,10 @@ export function formatPercent(v1: string, v2: string) {
 
 export function deepClone<T>(object: T): T {
   return reallyFastDeepClone(object)
+}
+
+export function arrayEquals<T>(a: T[], b: T[]): boolean {
+  return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((val, index) => val === b[index])
 }
 
 export function stringHashForHsl(str: string): number {
@@ -61,6 +66,20 @@ export function roundRates({ a_per_b, b_per_a }: Rates): RatesRounded {
     b_per_a: roundTo(b_per_a, 7),
   }
 }
+
+// export function computePriceImpact(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
+//   const feeCoefficient = new Fraction(1).plus(POOL_COMMISSION)
+//   const exactQuote = TokenAmount.fromToken(
+//     outputAmount.token,
+//     midPrice
+//       .toFraction()
+//       .dividedBy(feeCoefficient)
+//       .multipliedBy(inputAmount.toFraction())
+//       .toFixed(outputAmount.currency.decimals) as WeiAsToken,
+//   )
+//   const slippage = exactQuote.minus(outputAmount).dividedBy(exactQuote)
+//   return new Percent(slippage.numerator, slippage.denominator)
+// }
 
 /**
  * Serializer for {@link @vueuse/core#useLocalStorage()}

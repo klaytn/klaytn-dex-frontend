@@ -12,15 +12,17 @@ const isOpen = ref(false)
 <template>
   <div class="collapse px-4">
     <div
-      class="flex items-center cursor-pointer py-3"
+      class="flex items-center cursor-pointer py-3 space-x-4"
       @click="isOpen = !isOpen"
     >
-      <div class="head">
-        <slot name="head" />
+      <div class="head flex-1">
+        <slot
+          name="head"
+          v-bind="{ isOpen }"
+        />
       </div>
       <div
         v-if="!alwaysOpened"
-        class="ml-auto"
         :class="{
           'chevron--opened rotate-180': isOpen,
         }"

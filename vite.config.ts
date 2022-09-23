@@ -20,6 +20,8 @@ export default defineConfig({
       web3: 'web3/dist/web3.min.js',
       '@popperjs/core': '@popperjs/core/lib/index',
       '@soramitsu-ui/ui': process.env.NODE_ENV === 'test' ? '@soramitsu-ui/ui/dist/lib.cjs' : '@soramitsu-ui/ui',
+      '@uniswap/v2-sdk': '@uniswap/v2-sdk/dist/v2-sdk.esm.js',
+      '@uniswap/sdk-core': '@uniswap/sdk-core/dist/sdk-core.esm.js',
     },
   },
 
