@@ -7,7 +7,7 @@ import Debug from 'debug'
 import { useSwapAmounts, GetAmountsProps } from '../composable.get-amounts'
 import { useTrade } from '../composable.trade'
 import { usePairAddress, usePairBalance } from '../../ModuleTradeShared/composable.pair-by-tokens'
-import { useSwapValidation, ValidationError } from '../composable.validation'
+import { useSwapValidation } from '../composable.validation'
 import { buildSwapProps, TokenAddrAndWeiInput } from '../util.swap-props'
 import {
   usePairInput,
@@ -208,7 +208,7 @@ export const useSwapStore = defineStore('swap', () => {
     disableMultiHops,
   })
 
-  const trade = computed(() => (tradeResult.value?.kind === 'exist' ? tradeResult.value.trade : null))
+  const trade = computed(() => (tradeResult.value?.kind === 'ok' ? tradeResult.value.trade : null))
   const priceImpact = computed(() => trade.value?.priceImpact ?? null)
 
   const { gotAmountFor, gettingAmountFor } = useSwapAmounts(

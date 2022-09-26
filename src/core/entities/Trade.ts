@@ -37,8 +37,13 @@ interface BestTradePropsOut extends BestTradePropsBase {
 
 export type BestTradeProps = BestTradePropsOut | BestTradePropsIn
 
+export type BestTradeResult =
+  | { kind: 'route-not-found' }
+  | { kind: 'price-impact-is-too-high' }
+  | { kind: 'ok'; trade: Trade }
+
 export default class Trade {
-  public static bestTrade(props: BestTradeProps): null | Trade {
+  public static bestTrade(props: BestTradeProps): BestTradeResult {
     const { pairs, disableMultiHops } = props
     const options: UniBestTradeOptions = {
       maxHops: disableMultiHops ? 1 : TRADE_MAX_HOPS,
@@ -51,9 +56,10 @@ export default class Trade {
         ? UniTrade.bestTradeExactIn(pairsUni, props.amountIn.toUni(), props.tokenOut.toUni(), options)
         : UniTrade.bestTradeExactOut(pairsUni, props.tokenIn.toUni(), props.amountOut.toUni(), options)
 
+    if (!trades.length) return { kind: 'route-not-found' }
     const trade = trades.find((x) => x.priceImpact.lessThan(MAX_PRICE_IMPACT_AS_UNI_FRACTION))
-    if (!trade) return null
-    return new Trade(trade)
+    if (!trade) return { kind: 'price-impact-is-too-high' }
+    return { kind: 'ok', trade: new Trade(trade) }
   }
 
   public readonly route: Route

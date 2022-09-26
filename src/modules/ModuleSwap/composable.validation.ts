@@ -1,4 +1,5 @@
 import { Wei } from '@/core'
+import { BestTradeResult } from '@/core/entities/Trade'
 import { buildPair, TokensPair } from '@/utils/pair'
 import { Ref } from 'vue'
 
@@ -9,6 +10,7 @@ export const ValidationError = {
   RouteNotFound: 'route-not-found',
   InsufficientBalanceOfInputToken: 'insufficient-balance',
   WalletIsNotConnected: 'unconnected-wallet',
+  PriceImpactIsTooHigh: 'high-price-impact',
 } as const
 
 export type ValidationError = typeof ValidationError[keyof typeof ValidationError]
@@ -21,7 +23,7 @@ interface ValidationProps {
   selected: TokensPair<boolean>
   tokenABalance: Ref<null | Wei>
   tokenAInput: Ref<null | Wei>
-  trade: Ref<'empty' | 'exist' | 'pending'>
+  trade: Ref<BestTradeResult['kind'] | 'pending'>
   wallet: Ref<'anonymous' | 'connected'>
 }
 
@@ -35,7 +37,8 @@ export function useSwapValidation({
   return computed(() => {
     if (!(selected.tokenA && selected.tokenB && tokenAInput.value)) return resultErr(ValidationError.UnselectedTokens)
     if (trade.value === 'pending') return resultPending()
-    if (trade.value === 'empty') return resultErr(ValidationError.RouteNotFound)
+    if (trade.value === 'route-not-found') return resultErr(ValidationError.RouteNotFound)
+    if (trade.value === 'price-impact-is-too-high') return resultErr(ValidationError.PriceImpactIsTooHigh)
     if (wallet.value === 'anonymous') return resultErr(ValidationError.WalletIsNotConnected)
     if (!tokenABalance.value) return resultPending()
     if (tokenABalance.value.asBigInt < tokenAInput.value.asBigInt)
@@ -54,7 +57,7 @@ if (import.meta.vitest) {
         selected: { tokenA: false, tokenB: true },
         tokenABalance: shallowRef(null),
         tokenAInput: shallowRef(null),
-        trade: ref('empty'),
+        trade: ref('route-not-found'),
         wallet: ref('anonymous'),
       })
 
@@ -66,7 +69,7 @@ if (import.meta.vitest) {
         selected: buildPair(() => true),
         tokenABalance: shallowRef(null),
         tokenAInput: shallowRef(new Wei(551)),
-        trade: ref('empty'),
+        trade: ref('route-not-found'),
         wallet: ref('anonymous'),
       })
 
@@ -81,7 +84,7 @@ if (import.meta.vitest) {
         selected: buildPair(() => true),
         tokenABalance: shallowRef(BALANCE),
         tokenAInput: shallowRef(INPUT),
-        trade: ref('exist'),
+        trade: ref('ok'),
         wallet: ref('connected'),
       })
 
@@ -93,7 +96,7 @@ if (import.meta.vitest) {
         selected: buildPair(() => true),
         tokenABalance: shallowRef(null),
         tokenAInput: shallowRef(new Wei(4123)),
-        trade: ref('exist'),
+        trade: ref('ok'),
         wallet: ref('connected'),
       })
 
@@ -105,7 +108,7 @@ if (import.meta.vitest) {
         selected: buildPair(() => true),
         tokenABalance: shallowRef(null),
         tokenAInput: shallowRef(new Wei(42000000000)),
-        trade: ref('exist'),
+        trade: ref('ok'),
         wallet: ref('anonymous'),
       })
 
@@ -122,6 +125,18 @@ if (import.meta.vitest) {
       })
 
       expect(validation.value).toEqual(resultErr(ValidationError.UnselectedTokens))
+    })
+
+    test('When tokens are selected and input token exists, but price impact is too hight, validation fails', () => {
+      const validation = useSwapValidation({
+        selected: buildPair(() => true),
+        tokenABalance: shallowRef(null),
+        tokenAInput: shallowRef(new Wei(42000000000)),
+        trade: ref('price-impact-is-too-high'),
+        wallet: ref('anonymous'),
+      })
+
+      expect(validation.value).toEqual(resultErr(ValidationError.PriceImpactIsTooHigh))
     })
   })
 }
