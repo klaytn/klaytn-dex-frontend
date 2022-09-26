@@ -1,24 +1,31 @@
 <script setup lang="ts">
-import { WeiAsToken } from '@/core'
+import { PoolId, TokenSymbol, WeiAsToken } from '@/core'
 import { formatCurrency } from '@/utils/composable.currency-input'
 import BigNumber from 'bignumber.js'
-import { ModalOperation, ModalOperationComposite } from './types'
+import { ModalOperation } from './types'
 import InputTokenLp from '@/components/InputTokenLp.vue'
+import { TokensPair } from '@/utils/pair'
+import { farmingToWei } from './utils'
 
 const props = defineProps<{
-  operation: ModalOperationComposite
+  operation: ModalOperation
+  poolId: PoolId
+  staked: WeiAsToken<BigNumber>
+  balance: WeiAsToken<BigNumber>
+  symbols: null | TokensPair<TokenSymbol>
 }>()
 
 const emit = defineEmits<(e: 'staked' | 'unstaked', amount: WeiAsToken<BigNumber>) => void>()
 
 const { notify } = useNotify()
+const dexStore = useDexStore()
 
 const inputAmount = shallowRef(new BigNumber(0) as WeiAsToken<BigNumber>)
 
 const label = computed(() => {
-  const { operation } = props
-  if (operation.kind === ModalOperation.Stake) {
-    if (operation.staked.isZero()) {
+  const { operation, staked } = props
+  if (operation === ModalOperation.Stake) {
+    if (staked.isZero()) {
       return 'Stake LP tokens'
     } else {
       return 'Stake additional LP tokens'
@@ -29,8 +36,7 @@ const label = computed(() => {
 })
 
 const notEnough = computed(() => {
-  const { operation } = props
-  const compareValue = operation.kind === ModalOperation.Stake ? operation.balance : operation.staked
+  const compareValue = props.operation === ModalOperation.Stake ? props.balance : props.staked
   return new BigNumber(inputAmount.value).isGreaterThan(compareValue)
 })
 
@@ -41,17 +47,20 @@ const lessThanOrEqualToZero = computed(() => {
 const disabled = logicOr(notEnough, lessThanOrEqualToZero)
 
 function setMax() {
-  const { operation } = props
-  inputAmount.value = operation.kind === ModalOperation.Stake ? operation.balance : operation.staked
+  inputAmount.value = props.operation === ModalOperation.Stake ? props.balance : props.staked
 }
 
 const { state: operationState, run: confirm } = useTask(async () => {
-  const amount = inputAmount.value
-  const { operation } = props
-  if (operation.kind === ModalOperation.Stake) await operation.stake(amount)
-  else await operation.unstake(amount)
+  const dex = dexStore.getNamedDexAnyway()
+  const { operation, poolId } = props
 
-  return { amount, operation: operation.kind }
+  const amount = inputAmount.value
+  const amountWei = farmingToWei(amount)
+
+  if (operation === 'stake') await dex.earn.farming.deposit({ poolId: props.poolId, amount: amountWei })
+  else dex.earn.farming.withdraw({ poolId, amount: amountWei })
+
+  return { amount, operation }
 })
 
 wheneverFulfilled(operationState, ({ amount, operation }) => {
@@ -79,22 +88,22 @@ const loading = toRef(operationState, 'pending')
     <div class="space-y-4">
       <InputTokenLp
         v-model="inputAmount"
-        :symbols="operation.symbols"
+        :symbols="symbols"
         @click:max="setMax"
       >
         <template #bottom-right>
-          <template v-if="operation.kind === ModalOperation.Stake">
+          <template v-if="operation === ModalOperation.Stake">
             <span :class="$style.bottomLine">Balance:</span>
             <CurrencyFormatTruncate
               :class="$style.bottomLine"
-              :amount="operation.balance"
+              :amount="balance"
             />
           </template>
           <template v-else>
             <span :class="$style.bottomLine">Staked:</span>
             <CurrencyFormatTruncate
               :class="$style.bottomLine"
-              :amount="operation.staked"
+              :amount="staked"
             />
           </template>
         </template>

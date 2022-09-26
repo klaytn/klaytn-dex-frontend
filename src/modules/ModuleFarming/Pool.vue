@@ -1,15 +1,15 @@
 <script setup lang="ts" name="ModuleFarmingPool">
 import { RouteName, RoiType } from '@/types'
-import { ModalOperation, Pool, ModalOperationComposite, ModalOperationCompositeBase } from './types'
+import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
-import { CONSTANT_FARMING_DECIMALS, farmingToWei } from './utils'
-import { Wei, ADDRESS_FARMING, WeiAsToken, TokenSymbol } from '@/core'
+import { CONSTANT_FARMING_DECIMALS } from './utils'
+import { Wei, ADDRESS_FARMING, WeiAsToken, TokenSymbol, makeExplorerLinkToAccount } from '@/core'
 import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import { TokensPair } from '@/utils/pair'
-import StakeUnstakeModal from '../ModuleEarnShared/StakeUnstakeModal.vue'
+import StakeUnstakeModal from './Modal.vue'
 
 const dexStore = useDexStore()
 const { notify } = useNotify()
@@ -35,39 +35,6 @@ const roiPool = ref<Pool | null>(null)
 const poolSymbols = computed<TokensPair<TokenSymbol>>(() => {
   const [a, b] = props.pool.name.split('-') as TokenSymbol[]
   return { tokenA: a, tokenB: b }
-})
-
-async function stakeFn(amount: WeiAsToken<BigNumber>) {
-  const dex = dexStore.getNamedDexAnyway()
-  await dex.earn.farming.deposit({ poolId: props.pool.id, amount: farmingToWei(amount) })
-}
-
-async function unstakeFn(amount: WeiAsToken<BigNumber>) {
-  const dex = dexStore.getNamedDexAnyway()
-  await dex.earn.farming.withdraw({ poolId: props.pool.id, amount: farmingToWei(amount) })
-}
-
-const modalOperationComposite = computed((): null | ModalOperationComposite => {
-  const base: ModalOperationCompositeBase = {
-    balance: props.pool.balance,
-    staked: props.pool.staked,
-    symbols: poolSymbols.value,
-  }
-
-  const kind = modalOperation.value
-  return kind === ModalOperation.Stake
-    ? {
-        kind,
-        stake: stakeFn,
-        ...base,
-      }
-    : kind === ModalOperation.Unstake
-    ? {
-        kind,
-        unstake: unstakeFn,
-        ...base,
-      }
-    : null
 })
 
 const formattedEarned = computed(() => {
@@ -312,7 +279,7 @@ function openRoiCalculator() {
             <a
               class="link-with-icon"
               target="_blank"
-              :href="`https://baobab.klaytnfinder.io/account/${ADDRESS_FARMING}`"
+              :href="makeExplorerLinkToAccount(ADDRESS_FARMING)"
             >
               <span>View Contract</span>
               <KlayIconLink />
@@ -320,7 +287,7 @@ function openRoiCalculator() {
             <a
               class="link-with-icon"
               target="_blank"
-              :href="`https://baobab.klaytnfinder.io/account/${pool.pairId}?tabId=tokenBalance`"
+              :href="makeExplorerLinkToAccount(pool.pairId)"
             >
               <span>See Pair Info</span>
               <KlayIconLink />
@@ -332,7 +299,10 @@ function openRoiCalculator() {
   </KlayAccordionItem>
 
   <StakeUnstakeModal
-    :operation="modalOperationComposite"
+    :operation="modalOperation"
+    :staked="pool.staked"
+    :balance="pool.balance"
+    :symbols="poolSymbols"
     @close="modalOperation = null"
     @staked="handleStaked"
     @unstaked="handleUnstaked"

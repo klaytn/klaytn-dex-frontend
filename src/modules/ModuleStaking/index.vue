@@ -83,20 +83,22 @@ function viewMore() {
   page.value++
 }
 
-const pools = computed<Pool[] | null>(() => {
-  if (!rawPools.value || blockNumber.value === null || !rewards.value || !tokens.value) return null
+const pools = computed((): Pool[] | null => {
+  const rawPoolsValue = rawPools.value
+  const rewardsValue = rewards.value
+  const tokensValue = tokens.value
 
-  let pools = [] as Pool[]
+  if (!rawPoolsValue || !rewardsValue || !tokensValue) return null
 
-  rawPools.value.forEach((pool) => {
-    if (!rawPools.value || !blockNumber.value || !rewards.value || !tokens.value) return
+  const pools = [] as Pool[]
 
+  for (const pool of rawPoolsValue) {
     const id = pool.id
 
-    const reward = rewards.value.get(pool.id)
+    const reward = rewardsValue.get(pool.id)
     const earned = reward ? (new BigNumber(reward.toToken(pool.rewardToken)) as WeiAsToken<BigNumber>) : null
 
-    if (earned === null) return
+    if (earned === null) continue
 
     const stakeToken = {
       ...pool.stakeToken,
@@ -111,8 +113,8 @@ const pools = computed<Pool[] | null>(() => {
       new Wei(pool.users[0]?.amount ?? '0').toToken(pool.stakeToken),
     ) as WeiAsToken<BigNumber>
 
-    const stakeTokenFromTokensQuery = tokens.value.find((token) => token.id === pool.stakeToken.id)
-    const rewardTokenFromTokensQuery = tokens.value.find((token) => token.id === pool.rewardToken.id)
+    const stakeTokenFromTokensQuery = tokensValue.find((token) => token.id === pool.stakeToken.id)
+    const rewardTokenFromTokensQuery = tokensValue.find((token) => token.id === pool.rewardToken.id)
 
     if (!stakeTokenFromTokensQuery || !rewardTokenFromTokensQuery) return
 
@@ -132,8 +134,6 @@ const pools = computed<Pool[] | null>(() => {
 
     const createdAtBlock = Number(pool.createdAtBlock)
 
-    const endsIn = Number(pool.endBlock) - blockNumber.value
-
     pools.push({
       id,
       stakeToken,
@@ -144,9 +144,9 @@ const pools = computed<Pool[] | null>(() => {
       createdAtBlock,
       annualPercentageRate,
       totalStaked,
-      endsIn,
+      endBlock: Number(pool.endBlock),
     })
-  })
+  }
 
   return pools
 })
@@ -234,6 +234,7 @@ function handleUnstaked(pool: Pool, amount: string) {
           v-for="pool in paginatedPools"
           :key="pool.id"
           :pool="pool"
+          :block-number="blockNumber"
           @staked="(value: string) => handleStaked(pool, value)"
           @unstaked="(value: string) => handleUnstaked(pool, value)"
         />
