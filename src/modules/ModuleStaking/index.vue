@@ -96,7 +96,7 @@ const pools = computed((): Pool[] | null => {
     const id = pool.id
 
     const reward = rewardsValue.get(pool.id)
-    const earned = reward ? (new BigNumber(reward.toToken(pool.rewardToken)) as WeiAsToken<BigNumber>) : null
+    const earned = reward ? reward.decimals(pool.rewardToken) : null
 
     if (earned === null) continue
 
@@ -109,21 +109,17 @@ const pools = computed((): Pool[] | null => {
       decimals: Number(pool.rewardToken.decimals),
     }
 
-    const staked = new BigNumber(
-      new Wei(pool.users[0]?.amount ?? '0').toToken(pool.stakeToken),
-    ) as WeiAsToken<BigNumber>
+    const staked = new Wei(pool.users[0]?.amount ?? '0').decimals(pool.stakeToken)
 
     const stakeTokenFromTokensQuery = tokensValue.find((token) => token.id === pool.stakeToken.id)
     const rewardTokenFromTokensQuery = tokensValue.find((token) => token.id === pool.rewardToken.id)
 
-    if (!stakeTokenFromTokensQuery || !rewardTokenFromTokensQuery) return
+    if (!stakeTokenFromTokensQuery || !rewardTokenFromTokensQuery) continue
 
     const stakeTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
     const rewardTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
 
-    const totalTokensStaked = new BigNumber(
-      new Wei(pool.totalTokensStaked).toToken(stakeToken),
-    ) as WeiAsToken<BigNumber>
+    const totalTokensStaked = new Wei(pool.totalTokensStaked).decimals(stakeToken)
     const totalStaked = stakeTokenPrice.times(totalTokensStaked) as AmountInUSD
 
     const rewardRate = new BigNumber(pool.rewardRate)
