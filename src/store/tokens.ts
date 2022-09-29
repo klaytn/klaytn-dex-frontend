@@ -43,7 +43,7 @@ async function loadBalances(dex: Dex, tokens: Address[]): Promise<Map<Address, W
     dex.tokens
       .getBalancesBunch(tokensWithoutKlay.map((a) => ({ address: a, balanceOf: dex.agent.address })))
       .then((balances) => {
-        return balances.map<[Address, Wei]>((wei, i) => [tokens[i], wei])
+        return balances.map<[Address, Wei]>((wei, i) => [tokensWithoutKlay[i], wei])
       }),
     klay ? dex.tokens.getKlayBalance().then((x) => [[NATIVE_TOKEN, x] as const]) : [],
   ])
