@@ -6,6 +6,7 @@ import { KlayIconImportant } from '~klay-icons'
 import BigNumber from 'bignumber.js'
 import { Ref } from 'vue'
 import { formatCurrency } from '@/utils/composable.currency-input'
+import TokenSelect from './TokenSelect.vue'
 
 const props = withDefaults(
   defineProps<{

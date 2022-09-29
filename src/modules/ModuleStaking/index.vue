@@ -3,8 +3,8 @@ import { SButton } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
 import { Pool, Sorting } from './types'
 import { usePoolsQuery } from './query.pools'
-import { useTokensQuery } from './query.tokens'
-import { PAGE_SIZE, BLOCKS_PER_YEAR } from './const'
+import { useTokensQuery } from '@/query/tokens-derived-usd'
+import { PAGE_SIZE, BLOCKS_PER_YEAR, REFETCH_TOKENS_INTERVAL } from './const'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { TokenPriceInUSD, AmountInUSD, PercentageRate } from '../ModuleEarnShared/types'
 import { useFetchStakingRewards } from './composable.fetch-rewards'
@@ -45,7 +45,12 @@ const stakeAndRewardTokenIds = computed(() => {
   )
 })
 
-const TokensQuery = useTokensQuery(computed(() => stakeAndRewardTokenIds.value || []))
+const TokensQuery = useTokensQuery(
+  computed(() => stakeAndRewardTokenIds.value || []),
+  {
+    pollInterval: REFETCH_TOKENS_INTERVAL,
+  },
+)
 const tokens = computed(() => {
   return TokensQuery.result.value?.tokens ?? null
 })

@@ -1,7 +1,3 @@
-<route lang="yaml">
-name: Swap
-</route>
-
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 import { ValidationError } from '@/modules/ModuleSwap/composable.validation'

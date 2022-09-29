@@ -2,6 +2,12 @@ import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
 import { Address, DexPure, Dex, Token, Wei, isNativeToken, NATIVE_TOKEN } from '@/core'
 import { WHITELIST_TOKENS } from '@/core'
 import { Ref } from 'vue'
+import { TokensQueryResult, useTokensQuery } from '@/query/tokens-derived-usd'
+import BigNumber from 'bignumber.js'
+import Debug from 'debug'
+import { MinimalTokensApi } from '@/utils/minimal-tokens-api'
+
+const debug = Debug('store-tokens')
 
 export interface TokenWithOptionBalance extends Token {
   balance: null | Wei
@@ -129,6 +135,21 @@ function useUserBalance(tokens: Ref<null | Address[]>) {
   return { isPending, isLoaded, lookup, touch }
 }
 
+function useDerivedUsdIndex(result: Ref<null | undefined | TokensQueryResult>): {
+  lookup: (address: Address) => null | BigNumber
+} {
+  const map = computed<null | Map<string, BigNumber>>(() => {
+    const items = result.value?.tokens ?? null
+    const map = items && new Map(items.map((x) => [x.id.toLowerCase(), new BigNumber(x.derivedUSD)]))
+    debug('computed derived usd map: %o', map, result.value)
+    return map
+  })
+
+  return {
+    lookup: (a) => map.value?.get(a.toLowerCase()) ?? null,
+  }
+}
+
 function useTokensIndex(tokens: Ref<null | readonly Token[]>) {
   /**
    * All addresses are written in lower-case
@@ -183,18 +204,60 @@ export const useTokensStore = defineStore('tokens', () => {
     )
   })
 
+  function* tokenIdsForQuery() {
+    for (const x of importedFetched.value ?? []) {
+      yield x.address
+    }
+    for (const x of WHITELIST_TOKENS) {
+      yield x.address
+    }
+  }
+
+  const Query = useTokensQuery(
+    computed(() => [...tokenIdsForQuery()]),
+    { pollInterval: 10_000 },
+  )
+  whenever(
+    () => !!importedFetched.value,
+    () => Query.load(),
+  )
+
+  function touchDerivedUsd() {
+    Query.refetch()
+  }
+
+  const isDerivedUSDPending = Query.loading
+
+  const { lookup: lookupDerivedUsd } = useDerivedUsdIndex(Query.result)
+
   return {
     isBalancePending,
     isImportedPending,
     isImportedLoaded,
     tokensLoaded,
     tokensWithBalance,
+    isDerivedUSDPending,
 
     importToken,
     findTokenData,
     lookupUserBalance,
     touchUserBalance,
+    lookupDerivedUsd,
+    touchDerivedUsd,
   }
 })
+
+export function createMinimalTokenApiWithStores(): MinimalTokensApi {
+  const tokens = useTokensStore()
+  const dex = useDexStore()
+
+  return {
+    isSmartContract: (a) => dex.anyDex.dex().agent.isSmartContract(a),
+    getToken: (a) => dex.anyDex.dex().tokens.getToken(a),
+    lookupToken: (a) => tokens.findTokenData(a),
+    lookupBalance: (a) => tokens.lookupUserBalance(a),
+    lookupDerivedUsd: (a) => tokens.lookupDerivedUsd(a),
+  }
+}
 
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useTokensStore, import.meta.hot))

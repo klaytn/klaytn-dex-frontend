@@ -5,7 +5,3 @@ const route = useRoute()
 <template>
   <ModuleGovernanceProposal :id="route.params.id" />
 </template>
-
-<route lang="yaml">
-name: VotingProposal
-</route>

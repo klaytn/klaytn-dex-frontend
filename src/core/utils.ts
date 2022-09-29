@@ -6,8 +6,8 @@ import invariant from 'tiny-invariant'
 
 export const isAddress = ethersIsAddress as (raw: string) => raw is Address
 
-export function formatAddress(address: Address): string {
-  return `${address.slice(2, 6)}....${address.slice(-4)}`
+export function formatAddress(address: Address, length = 4, keepPrefix = false): string {
+  return `${address.slice(keepPrefix ? 0 : 2, 2 + length)}....${address.slice(-length)}`
 }
 
 export function isEmptyAddress(address: Address): boolean {

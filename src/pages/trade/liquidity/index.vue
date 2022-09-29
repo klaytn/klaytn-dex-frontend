@@ -1,7 +1,3 @@
-<route lang="yaml">
-name: Liquidity
-</route>
-
 <script lang="ts" setup>
 import { RouteName } from '@/types'
 </script>

@@ -22,6 +22,7 @@ declare global {
   const createEventHook: typeof import('@vueuse/core')['createEventHook']
   const createGlobalState: typeof import('@vueuse/core')['createGlobalState']
   const createInjectionState: typeof import('@vueuse/core')['createInjectionState']
+  const createMinimalTokenApiWithStores: typeof import('./store/tokens')['createMinimalTokenApiWithStores']
   const createReactiveFn: typeof import('@vueuse/core')['createReactiveFn']
   const createSharedComposable: typeof import('@vueuse/core')['createSharedComposable']
   const createUnrefFn: typeof import('@vueuse/core')['createUnrefFn']
@@ -78,6 +79,7 @@ declare global {
   const reactivePick: typeof import('@vueuse/core')['reactivePick']
   const readonly: typeof import('vue')['readonly']
   const ref: typeof import('vue')['ref']
+  const refAndDebounced: typeof import('./composables/ref-and-debounced')['refAndDebounced']
   const refAutoReset: typeof import('@vueuse/core')['refAutoReset']
   const refDebounced: typeof import('@vueuse/core')['refDebounced']
   const refDefault: typeof import('@vueuse/core')['refDefault']
@@ -106,6 +108,7 @@ declare global {
   const unrefElement: typeof import('@vueuse/core')['unrefElement']
   const until: typeof import('@vueuse/core')['until']
   const useActiveElement: typeof import('@vueuse/core')['useActiveElement']
+  const useAssetsStore: typeof import('./modules/ModuleAssets/store/assets')['useAssetsStore']
   const useAsyncQueue: typeof import('@vueuse/core')['useAsyncQueue']
   const useAsyncState: typeof import('@vueuse/core')['useAsyncState']
   const useAttrs: typeof import('vue')['useAttrs']
@@ -297,6 +300,7 @@ declare module '@vue/runtime-core' {
     readonly createEventHook: UnwrapRef<typeof import('@vueuse/core')['createEventHook']>
     readonly createGlobalState: UnwrapRef<typeof import('@vueuse/core')['createGlobalState']>
     readonly createInjectionState: UnwrapRef<typeof import('@vueuse/core')['createInjectionState']>
+    readonly createMinimalTokenApiWithStores: UnwrapRef<typeof import('./store/tokens')['createMinimalTokenApiWithStores']>
     readonly createReactiveFn: UnwrapRef<typeof import('@vueuse/core')['createReactiveFn']>
     readonly createSharedComposable: UnwrapRef<typeof import('@vueuse/core')['createSharedComposable']>
     readonly createUnrefFn: UnwrapRef<typeof import('@vueuse/core')['createUnrefFn']>
@@ -353,6 +357,7 @@ declare module '@vue/runtime-core' {
     readonly reactivePick: UnwrapRef<typeof import('@vueuse/core')['reactivePick']>
     readonly readonly: UnwrapRef<typeof import('vue')['readonly']>
     readonly ref: UnwrapRef<typeof import('vue')['ref']>
+    readonly refAndDebounced: UnwrapRef<typeof import('./composables/ref-and-debounced')['refAndDebounced']>
     readonly refAutoReset: UnwrapRef<typeof import('@vueuse/core')['refAutoReset']>
     readonly refDebounced: UnwrapRef<typeof import('@vueuse/core')['refDebounced']>
     readonly refDefault: UnwrapRef<typeof import('@vueuse/core')['refDefault']>
@@ -381,6 +386,7 @@ declare module '@vue/runtime-core' {
     readonly unrefElement: UnwrapRef<typeof import('@vueuse/core')['unrefElement']>
     readonly until: UnwrapRef<typeof import('@vueuse/core')['until']>
     readonly useActiveElement: UnwrapRef<typeof import('@vueuse/core')['useActiveElement']>
+    readonly useAssetsStore: UnwrapRef<typeof import('./modules/ModuleAssets/store/assets')['useAssetsStore']>
     readonly useAsyncQueue: UnwrapRef<typeof import('@vueuse/core')['useAsyncQueue']>
     readonly useAsyncState: UnwrapRef<typeof import('@vueuse/core')['useAsyncState']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>

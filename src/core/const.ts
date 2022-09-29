@@ -47,6 +47,16 @@ export const TRADE_MAX_NUM_RESULTS = 3
 
 export const TRADE_MAX_PRICE_IMPACT = new Percent(1, 10)
 
+const EXPLORER_BASE = `https://baobab.klaytnfinder.io`
+
+export function makeExplorerLinkAccount(address: Address): string {
+  return `${EXPLORER_BASE}/account/${address}`
+}
+
+export function makeExplorerLinkToTransaction(address: Address): string {
+  return `${EXPLORER_BASE}/tx/${address}`
+}
+
 export const WHITELIST_TOKENS = Object.freeze([
   {
     address: NATIVE_TOKEN,

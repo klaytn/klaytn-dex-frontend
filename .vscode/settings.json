@@ -47,5 +47,6 @@
   "files.associations": {
     "*.css": "postcss"
   },
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "svg.preview.background": "transparent"
 }

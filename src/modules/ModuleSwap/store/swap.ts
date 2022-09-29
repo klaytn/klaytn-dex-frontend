@@ -131,7 +131,7 @@ export const useSwapStore = defineStore('swap', () => {
     selection.addrs[type] = addr
   }
 
-  function setBothTokens(pair: TokensPair<Address>) {
+  function setBothTokens(pair: TokensPair<Address | null>) {
     selection.setBothAddrs(pair)
     selection.resetInput()
   }

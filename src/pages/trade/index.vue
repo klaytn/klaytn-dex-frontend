@@ -1,7 +1,3 @@
-<route lang="yaml">
-name: Trade
-</route>
-
 <script setup lang="ts">
 import { RouteName } from '@/types'
 import { KlayIconBackArrow, KlayIconFilters } from '~klay-icons'
@@ -72,7 +68,7 @@ const headLinks: {
           :key="item.toName"
           :to="{ name: item.toName }"
           class="link"
-          active-class="link--active"
+          exact-active-class="link--active"
         >
           {{ item.label }}
         </RouterLink>
