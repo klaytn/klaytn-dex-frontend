@@ -24,9 +24,13 @@ const debugModule = Debug('swap-store')
 
 type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { trade: Trade; amountFor: TokenType }
 
-function useSwap(input: Ref<null | NormalizedWeiInput>) {
+function useSwap(
+  input: Ref<null | NormalizedWeiInput>,
+  options: {
+    onSuccess: () => void
+  },
+) {
   const dexStore = useDexStore()
-  const tokensStore = useTokensStore()
   const { notify } = useNotify()
 
   const swapKey = computed(() => {
@@ -68,9 +72,7 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
     })
 
     usePromiseLog(swapState, 'swap')
-    wheneverFulfilled(swapState, () => {
-      tokensStore.touchUserBalance()
-    })
+    wheneverFulfilled(swapState, options.onSuccess)
     useNotifyOnError(swapState, notify, 'Swap failed')
 
     return {
@@ -96,6 +98,7 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
 
 export const useSwapStore = defineStore('swap', () => {
   const dexStore = useDexStore()
+  const tokensStore = useTokensStore()
 
   const pageRoute = useRoute()
   const isActiveRoute = computed(() => pageRoute.name === RouteName.Swap)
@@ -133,7 +136,7 @@ export const useSwapStore = defineStore('swap', () => {
 
   function setBothTokens(pair: TokensPair<Address | null>) {
     selection.setBothAddrs(pair)
-    selection.resetInput()
+    resetInput()
   }
 
   const { estimatedFor, setEstimated, setMainToken } = useEstimatedLayer(selection)
@@ -281,7 +284,18 @@ export const useSwapStore = defineStore('swap', () => {
 
   // #region Action
 
-  const { prepare, prepareState, swapState, swapFee, swap, clear: clearSwap } = useSwap(normalizedWeiInputs)
+  const {
+    prepare,
+    prepareState,
+    swapState,
+    swapFee,
+    swap,
+    clear: clearSwap,
+  } = useSwap(normalizedWeiInputs, {
+    onSuccess: () => {
+      tokensStore.touchUserBalance()
+    },
+  })
 
   // #endregion
 
