@@ -1,5 +1,5 @@
 import { TokenImpl, TokenAmount, Trade, Pair, Wei } from '@/core'
-import { BestTradePropsBase, BestTradeProps } from '@/core/entities/Trade'
+import { BestTradePropsBase, BestTradeProps, BestTradeResult } from '@/core/entities/Trade'
 import { TokensPair, TokenType } from '@/utils/pair'
 import { MaybeRef } from '@vueuse/core'
 import { ComputedRef } from 'vue'
@@ -17,17 +17,8 @@ interface UseTradeProps {
   } | null>
 }
 
-export type UseTradeResult =
-  | {
-      kind: 'empty'
-    }
-  | {
-      kind: 'exist'
-      trade: Trade
-    }
-
-export function useTrade(props: UseTradeProps): ComputedRef<UseTradeResult | null> {
-  return computed(() => {
+export function useTrade(props: UseTradeProps): ComputedRef<BestTradeResult | null> {
+  return computed((): null | BestTradeResult => {
     const pairs = unref(props.pairs)
     const { tokenA: inputToken, tokenB: outputToken } = props.tokens
     const { for: amountFor, wei: amountWei } = unref(props.amount) ?? {}
@@ -56,16 +47,10 @@ export function useTrade(props: UseTradeProps): ComputedRef<UseTradeResult | nul
       // TODO move to worker?
       const trade = Trade.bestTrade(tradeProps)
       debug('computed trade: %o', trade)
-
-      if (!trade) return { kind: 'empty' }
-
-      return {
-        trade,
-        kind: 'exist',
-      }
+      return trade
     } catch (err) {
       console.error('Failed to compute trade:', err)
-      return { kind: 'empty' }
+      return { kind: 'route-not-found' }
     }
   })
 }

@@ -40,8 +40,10 @@ describe('Trade', () => {
       tokenOut: TokenB,
     })
 
-    expect(trade).not.toBeNull()
-    expect(trade!.route.toString()).toMatchInlineSnapshot('"MER > VEN"')
-    expect(trade!.priceImpact.toFormat()).toMatchInlineSnapshot('"0.30 %"')
+    expect(trade.kind).toBe('ok')
+    if (trade.kind === 'ok') {
+      expect(trade.trade.route.toString()).toMatchInlineSnapshot('"MER > VEN"')
+      expect(trade.trade.priceImpact.toFormat()).toMatchInlineSnapshot('"0.30 %"')
+    }
   })
 })

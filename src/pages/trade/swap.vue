@@ -55,6 +55,9 @@ onUnmounted(() => swapStore.resetInput())
         <template v-else-if="validationError === ValidationError.RouteNotFound">
           Route {{ whichRouteNotFound() }} not found
         </template>
+        <template v-else-if="validationError === ValidationError.PriceImpactIsTooHigh">
+          Too much impact
+        </template>
       </template>
       <template v-else>
         Swap
