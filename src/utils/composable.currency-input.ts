@@ -67,7 +67,7 @@ export function formatCurrency({
   symbol?: MaskSymbol | null
   decimals?: number
 }) {
-  const rounded = typeof decimals === 'number' ? new BigNumber(amount).decimalPlaces(decimals) : amount
+  const rounded = typeof decimals === 'number' ? new BigNumber(amount).toFixed(decimals) : amount
   const num = formatNumberWithCommas(rounded)
   if (symbol) {
     const sym = composeSymbol(symbol)
@@ -238,7 +238,15 @@ if (import.meta.vitest) {
       [{ amount: 1_555_222.4123 }, '1,555,222.4123'],
       [{ amount: 1.444000111, decimals: 7 }, '1.4440001'],
       [{ amount: 1.444000199, decimals: 7 }, '1.4440002'],
-    ])('Formats %o into %o', (input, output) => {
+      [
+        {
+          amount: new BigNumber('1.751554358495751722150827385409601564116127291004119659134e+22'),
+          decimals: 2,
+          symbol: { str: '$', position: 'left' as const, delimiter: '' },
+        },
+        '$17,515,543,584,957,517,221,508.27',
+      ],
+    ])('Formats %o into %s', (input, output) => {
       expect(formatCurrency(input)).toEqual(output)
     })
   })

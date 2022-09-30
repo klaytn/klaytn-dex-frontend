@@ -1,12 +1,14 @@
 <script lang="ts" setup>
-import { Token, Address, Wei, WeiAsToken } from '@/core'
+import { Address, WeiAsToken } from '@/core'
 import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 import { KlayIconImportant } from '~klay-icons'
 import BigNumber from 'bignumber.js'
 import { Ref } from 'vue'
-import { formatCurrency } from '@/utils/composable.currency-input'
 import TokenSelect from './TokenSelect.vue'
+import { SPopover } from '@soramitsu-ui/ui'
+import PopperInfo from './InputTokenPopperInfo.vue'
+import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
 
 const props = withDefaults(
   defineProps<{
@@ -58,15 +60,13 @@ const { isWalletConnected } = storeToRefs(dexStore)
 const tokensStore = useTokensStore()
 const { isBalancePending } = storeToRefs(tokensStore)
 
-const tokenData = computed<null | Token>(() => (props.address && tokensStore.findTokenData(props.address)) ?? null)
+const { lookupDerivedUsd, lookupBalance, lookupToken } = useMinimalTokensApi()
 
-const balance = computed<null | Wei>(() => (props.address && tokensStore.lookupUserBalance(props.address)) ?? null)
+const balance = computed(() => props.address && lookupBalance(props.address))
+const derivedUsd = computed(() => props.address && lookupDerivedUsd(props.address))
+const tokenData = computed(() => props.address && lookupToken(props.address))
 
-const balanceAsToken = computed(
-  () => balance.value && tokenData.value && new BigNumber(balance.value.toToken(tokenData.value)),
-)
-
-const balanceFormatted = computed(() => balanceAsToken.value && formatCurrency({ amount: balanceAsToken.value }))
+const balanceAsToken = computed(() => balance.value && tokenData.value && balance.value.decimals(tokenData.value))
 
 // #endregion
 
@@ -116,41 +116,70 @@ function setToMax() {
     </template>
 
     <template #bottom-right>
-      <div
-        :title="balanceFormatted ?? ''"
-        class="balance flex items-center space-x-2"
+      <SPopover
+        placement="bottom-end"
+        distance="8"
+        hide-delay="150"
       >
-        <span class="truncate max-w-40">
-          <template v-if="isWalletConnected">
-            Balance:
-            <ValueOrDash :value="balanceFormatted" />
-          </template>
-          <template v-else> Balance: Connect Wallet </template>
-        </span>
-        <KlayLoader
-          v-if="isBalancePending"
-          color="gray"
-          size="14"
-        />
-        <KlayIconImportant />
-      </div>
+        <template #trigger>
+          <div class="balance flex items-center space-x-2">
+            <span class="flex items-center">
+              <span class="whitespace-pre">Balance: </span>
+              <span
+                v-if="isWalletConnected"
+                class="inline-block truncate max-w-20"
+              >
+                <CurrencyFormat :amount="balanceAsToken" />
+              </span>
+              <span v-else>Connect Wallet</span>
+            </span>
+
+            <KlayLoader
+              v-if="isBalancePending"
+              color="gray"
+              size="14"
+            />
+
+            <KlayIconImportant class="icon-info" />
+          </div>
+        </template>
+
+        <template #popper="{ show }">
+          <PopperInfo
+            v-if="show && tokenData && balance"
+            :token="tokenData"
+            :balance="balanceAsToken"
+            :derived-usd="derivedUsd"
+          />
+        </template>
+      </SPopover>
     </template>
   </InputCurrencyTemplate>
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/vars';
-
-.balance {
-  max-width: 200px;
-}
+@use '@/styles/vars';
 
 .balance,
 .estimated {
   font-style: normal;
   font-weight: 500;
   font-size: 12px;
-  line-height: 15px;
+  line-height: 1em;
   color: #778294;
+  user-select: none;
+}
+
+.icon-info {
+  font-size: 16px;
+  color: #c2cbda;
+}
+
+.balance {
+  cursor: pointer;
+
+  &:hover .icon-info {
+    color: vars.$gray2;
+  }
 }
 </style>

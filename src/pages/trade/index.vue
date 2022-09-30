@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouteName } from '@/types'
 import { KlayIconBackArrow, KlayIconFilters } from '~klay-icons'
+import TheTokensApiProvider from '@/components/TheTokensApiProvider.vue'
 
 // const tokensStore = useTokensStore()
 // const { isBalancePending, isImportedPending } = storeToRefs(tokensStore)
@@ -43,65 +44,67 @@ const headLinks: {
 </script>
 
 <template>
-  <div class="wrap mx-auto pb-5">
-    <div class="flex items-center mb-4 space-x-4 pt-5 px-4">
-      <template v-if="liquiditySubSection">
-        <RouterLink :to="{ name: RouteName.Liquidity }">
+  <TheTokensApiProvider>
+    <div class="wrap mx-auto pb-5">
+      <div class="flex items-center mb-4 space-x-4 pt-5 px-4">
+        <template v-if="liquiditySubSection">
+          <RouterLink :to="{ name: RouteName.Liquidity }">
+            <KlayButton
+              type="action"
+              rounded
+            >
+              <template #icon>
+                <KlayIconBackArrow />
+              </template>
+            </KlayButton>
+          </RouterLink>
+
+          <h1>
+            {{ liquiditySubSection.label }}
+          </h1>
+        </template>
+
+        <template v-else>
+          <RouterLink
+            v-for="item in headLinks"
+            :key="item.toName"
+            :to="{ name: item.toName }"
+            class="link"
+            exact-active-class="link--active"
+          >
+            {{ item.label }}
+          </RouterLink>
+        </template>
+
+        <div class="flex-1" />
+
+        <ModuleSwapModalPreferences v-slot="{ open }">
           <KlayButton
             type="action"
             rounded
+            @click="open()"
           >
             <template #icon>
-              <KlayIconBackArrow />
+              <KlayIconFilters />
             </template>
           </KlayButton>
-        </RouterLink>
+        </ModuleSwapModalPreferences>
 
-        <h1>
-          {{ liquiditySubSection.label }}
-        </h1>
-      </template>
-
-      <template v-else>
-        <RouterLink
-          v-for="item in headLinks"
-          :key="item.toName"
-          :to="{ name: item.toName }"
-          class="link"
-          exact-active-class="link--active"
-        >
-          {{ item.label }}
-        </RouterLink>
-      </template>
-
-      <div class="flex-1" />
-
-      <ModuleSwapModalPreferences v-slot="{ open }">
-        <KlayButton
+        <!-- <KlayButton
           type="action"
           rounded
-          @click="open()"
+          :loading="isBalancePending || isImportedPending"
+          @click="refresh"
         >
           <template #icon>
-            <KlayIconFilters />
+            <KlayIconRefresh />
           </template>
-        </KlayButton>
-      </ModuleSwapModalPreferences>
+        </KlayButton> -->
+      </div>
 
-      <!-- <KlayButton
-        type="action"
-        rounded
-        :loading="isBalancePending || isImportedPending"
-        @click="refresh"
-      >
-        <template #icon>
-          <KlayIconRefresh />
-        </template>
-      </KlayButton> -->
+      <RouterView />
     </div>
-
-    <RouterView />
-  </div>
+  </TheTokensApiProvider>
 </template>
 
 <style lang="scss" scoped>

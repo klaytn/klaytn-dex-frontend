@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { Address } from '@/core'
-import { apiKey } from '@/utils/minimal-tokens-api'
 import { KlayIconCollapseArrow } from '~klay-icons'
 import TokenSelectModal from './TokenSelectModal.vue'
 
@@ -25,8 +24,6 @@ function onSelect(token: Address) {
   model.value = token
   isModalOpen.value = false
 }
-
-provide(apiKey, createMinimalTokenApiWithStores())
 </script>
 
 <template>
