@@ -29,8 +29,8 @@ const decimalsNum = eagerComputed(() => {
   return typeof value === 'string' ? Number(value) : typeof value === 'number' ? value : undefined
 })
 
-const formatted = computed(() => {
-  return props.amount
+const formatted = computed(() =>
+  props.amount
     ? formatCurrency({
         amount: props.amount,
         symbol: props.usd
@@ -44,8 +44,8 @@ const formatted = computed(() => {
           : null,
         decimals: decimalsNum.value,
       })
-    : null
-})
+    : null,
+)
 </script>
 
 <template>

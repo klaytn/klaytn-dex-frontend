@@ -2,9 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { KlayIconRefresh, KlayIconArrowDown_2 } from '~klay-icons'
 import { RouteName, Tab } from '@/types'
-import { apiKey } from '@/utils/minimal-tokens-api'
-
-provide(apiKey, createMinimalTokenApiWithStores())
+import TheTokensApiProvider from '@/components/TheTokensApiProvider.vue'
 
 const AssetsTabs = {
   Assets: 'assets',
@@ -52,67 +50,69 @@ const onAssetDetails = computed(() => tab.value === null)
 </script>
 
 <template>
-  <div class="wrap mx-auto space-y-4 flex flex-col overflow-hidden">
-    <div
-      v-if="!account"
-      class="p-4 text-center"
-    >
-      Connect Wallet
-    </div>
+  <TheTokensApiProvider>
+    <div class="wrap mx-auto space-y-4 flex flex-col overflow-hidden">
+      <div
+        v-if="!account"
+        class="p-4 text-center"
+      >
+        Connect Wallet
+      </div>
 
-    <template v-else-if="onAssetDetails">
-      <RouterView />
-    </template>
+      <template v-else-if="onAssetDetails">
+        <RouterView />
+      </template>
 
-    <template v-else>
-      <div class="flex items-center space-x-4 px-4 pt-4">
-        <h1 class="flex-1 text-lg font-bold">
-          Assets
-        </h1>
+      <template v-else>
+        <div class="flex items-center space-x-4 px-4 pt-4">
+          <h1 class="flex-1 text-lg font-bold">
+            Assets
+          </h1>
 
-        <ModuleAssetsTitleAddressCopy />
+          <ModuleAssetsTitleAddressCopy />
 
-        <div class="flex-1 flex justify-end">
+          <div class="flex-1 flex justify-end">
+            <KlayButton
+              v-if="assetsStore.refreshButton"
+              type="action"
+              rounded
+              :loading="assetsStore.refreshButton.loading"
+              @click="assetsStore.refreshButton!.onClick()"
+            >
+              <template #icon>
+                <KlayIconRefresh />
+              </template>
+            </KlayButton>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4 px-4">
+          <KlayTabs
+            v-model="tab"
+            :tabs="tabs"
+          />
+
+          <div class="flex-1" />
+
           <KlayButton
-            v-if="assetsStore.refreshButton"
             type="action"
             rounded
-            :loading="assetsStore.refreshButton.loading"
-            @click="assetsStore.refreshButton!.onClick()"
+            @click="assetsStore.openReceiveModal = true"
           >
             <template #icon>
-              <KlayIconRefresh />
+              <KlayIconArrowDown_2 />
             </template>
           </KlayButton>
         </div>
-      </div>
 
-      <div class="flex items-center space-x-4 px-4">
-        <KlayTabs
-          v-model="tab"
-          :tabs="tabs"
-        />
+        <div class="flex-1 min-h-0">
+          <RouterView />
+        </div>
+      </template>
+    </div>
 
-        <div class="flex-1" />
-
-        <KlayButton
-          type="action"
-          rounded
-          @click="assetsStore.openReceiveModal = true"
-        >
-          <template #icon>
-            <KlayIconArrowDown_2 />
-          </template>
-        </KlayButton>
-      </div>
-
-      <div class="flex-1 min-h-0">
-        <RouterView />
-      </div>
-    </template>
-  </div>
-
-  <ModuleAssetsModalQRCode />
+    <ModuleAssetsModalQRCode />
+  </TheTokensApiProvider>
 </template>
 
 <style lang="scss" scoped>

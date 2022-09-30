@@ -11,6 +11,7 @@ declare module '@vue/runtime-core' {
     CurrencyFormatTruncate: typeof import('./components/common/CurrencyFormatTruncate.vue')['default']
     CurrencyInput: typeof import('./components/common/CurrencyInput.vue')['default']
     FormatAddress: typeof import('./components/common/FormatAddress.vue')['default']
+    IconCopyCheck: typeof import('./components/common/IconCopyCheck.vue')['default']
     InputCurrencyTemplate: typeof import('./components/common/InputCurrencyTemplate.vue')['default']
     KlayAccordionItem: typeof import('./components/common/KlayAccordionItem.vue')['default']
     KlayButton: typeof import('./components/common/KlayButton.vue')['default']

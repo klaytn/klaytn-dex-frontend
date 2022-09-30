@@ -3,8 +3,7 @@ import { Address } from '@/core'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import { SModal } from '@soramitsu-ui/ui'
 import invariant from 'tiny-invariant'
-import { KlayIconCopy, KlayIconDownload } from '~klay-icons'
-import IcRoundCheck from '~icons/ic/round-check'
+import { KlayIconDownload } from '~klay-icons'
 import { saveAs } from 'file-saver'
 
 const props = defineProps<{
@@ -77,8 +76,7 @@ async function download() {
         />
 
         <template #icon>
-          <IcRoundCheck v-if="copyOk" />
-          <KlayIconCopy v-else />
+          <IconCopyCheck :check="copyOk" />
         </template>
       </KlayButton>
     </KlayModalCard>
