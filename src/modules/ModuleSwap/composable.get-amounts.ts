@@ -55,35 +55,32 @@ export function useSwapAmounts(props: Ref<null | GetAmountsProps>) {
     ({ props, dex }) => {
       debug('setting amounts: %o', props)
 
-      const { set, state } = usePromise<Wei>()
+      const { state, run } = useTask(() => getAmounts({ ...props, dex }), { immediate: true })
+
       usePromiseLog(state, 'swap-get-amount')
       useNotifyOnError(state, notify, 'Failed to compute amount')
 
-      function run() {
-        set(getAmounts({ ...props, dex }))
-      }
-
-      run()
-
-      return state
+      return { state, run }
     },
   )
 
   const gettingFor = computed<null | TokenType>(() => {
     const x = scope.value
-    return x?.expose.pending ? x.payload.props.amountFor : null
+    return x?.expose.state.pending ? x.payload.props.amountFor : null
   })
 
   const gotFor = computed(() => {
     const x = scope.value
 
-    return x?.expose.fulfilled
+    return x?.expose.state.fulfilled
       ? {
-          amount: x.expose.fulfilled.value,
+          amount: x.expose.state.fulfilled.value,
           props: x.payload.props,
         }
       : null
   })
 
-  return { gotAmountFor: gotFor, gettingAmountFor: gettingFor }
+  const touch = () => scope.value?.expose.run()
+
+  return { gotAmountFor: gotFor, gettingAmountFor: gettingFor, touch }
 }

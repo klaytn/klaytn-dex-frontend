@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useTradeStore } from '../ModuleTradeShared/trade-store'
 import { useLiquidityPairsQuery } from './query.liquidity-pairs'
 
 const { loading: isLoading, result, refetch } = useLiquidityPairsQuery()
@@ -8,6 +9,13 @@ if (result.value && !isLoading.value) refetch()
 
 const isLoaded = computed(() => !!result.value)
 const isUserEmpty = computed(() => result.value && !result.value.user)
+
+const tradeStore = useTradeStore()
+
+tradeStore.useRefresh({
+  run: () => refetch(),
+  pending: isLoading,
+})
 </script>
 
 <template>
@@ -17,14 +25,7 @@ const isUserEmpty = computed(() => result.value && !result.value.user)
     </h3>
 
     <div
-      v-if="isLoading"
-      class="flex items-center justify-center p-8"
-    >
-      <KlayLoader />
-    </div>
-
-    <div
-      v-else-if="isUserEmpty"
+      v-if="isUserEmpty"
       class="px-4"
     >
       Empty
