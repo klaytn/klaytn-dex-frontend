@@ -1,7 +1,16 @@
 <script lang="ts" setup>
-const store = useLiquidityAddStore()
+const addStore = useLiquidityAddStore()
+const dexStore = useDexStore()
 
-onUnmounted(() => store.resetInput())
+onUnmounted(() => addStore.resetInput())
+
+const isSupplyDisabled = computed(() => {
+  return !addStore.finalRates || !dexStore.isWalletConnected
+})
+
+const supplyLabel = computed(() => {
+  return dexStore.isWalletConnected ? 'Supply' : 'Connect Wallet'
+})
 </script>
 
 <template>
@@ -14,11 +23,11 @@ onUnmounted(() => store.resetInput())
       class="w-full"
       size="lg"
       type="primary"
-      :disabled="!store.isValid"
-      :loading="store.supplyScope?.prepareState.pending"
-      @click="store.prepareSupply()"
+      :disabled="isSupplyDisabled"
+      :loading="addStore.supplyScope?.prepareState.pending"
+      @click="addStore.prepareSupply()"
     >
-      Supply
+      {{ supplyLabel }}
     </KlayButton>
 
     <ModuleLiquidityAddDetails />
