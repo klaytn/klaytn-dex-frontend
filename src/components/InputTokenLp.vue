@@ -38,7 +38,7 @@ const tokensNormalized = computed(() => {
   return tokens as TokensPair<Token>
 })
 
-const balanceFormatted = computed(() => props.balance && formatCurrency({ amount: props.balance.asBigNum }))
+const balanceAsToken = computed(() => props.balance?.decimals({ decimals: LP_TOKEN_DECIMALS }))
 </script>
 
 <template>
@@ -70,12 +70,10 @@ const balanceFormatted = computed(() => props.balance && formatCurrency({ amount
     </template>
 
     <template #bottom-right>
-      <span
-        class="balance max-w-40 truncate"
-        :title="balanceFormatted ?? ''"
-      >
-        Balance: <ValueOrDash :value="balanceFormatted" />
-      </span>
+      <div class="balance flex items-center">
+        <pre>Balance: </pre>
+        <CurrencyFormatTruncate :amount="balanceAsToken" />
+      </div>
     </template>
   </InputCurrencyTemplate>
 </template>

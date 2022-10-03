@@ -58,7 +58,7 @@ const liquidityAsBigNum = computed<WeiAsToken<BigNumber>>({
         v-if="i === 0"
         class="flex justify-center -my-2"
       >
-        <KlayIconPlus />
+        <KlayIconPlus class="shadow-md rounded-full" />
       </div>
     </template>
 
