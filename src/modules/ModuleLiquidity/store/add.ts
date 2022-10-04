@@ -316,12 +316,6 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   // #endregion
 
-  // #region etc
-
-  const isValid = computed(() => !!finalRates.value)
-
-  // #endregion
-
   return {
     tokenValues: readonly(tokenValues),
     estimatedFor: estimatedForAfterQuoting,
@@ -349,7 +343,6 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     prepareSupply,
     clearSupply,
     supplyScope,
-    isValid,
   }
 })
 
