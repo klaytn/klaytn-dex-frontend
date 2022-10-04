@@ -300,7 +300,6 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     amounts,
     whenSupplied: () => {
       tokensStore.touchUserBalance()
-      navigateToLiquidity()
     },
   })
 
@@ -312,6 +311,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     }
 
     clearSupply()
+    navigateToLiquidity()
   }
 
   // #endregion
