@@ -130,28 +130,30 @@ export function useFilteredPools<T extends Pool>(
   })
 }
 
+function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): number {
+  switch (sorting) {
+    case Sorting.Liquidity:
+      return poolB.liquidity.comparedTo(poolA.liquidity)
+    case Sorting.AnnualPercentageRate:
+      return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
+    case Sorting.Multiplier:
+      return poolB.multiplier.comparedTo(poolA.multiplier)
+    case Sorting.Earned:
+      return poolB.earned.comparedTo(poolA.earned)
+    case Sorting.Latest:
+      return poolB.createdAtBlock - poolA.createdAtBlock
+    default:
+      return 0
+  }
+}
+
 export function useSortedPools(pools: Ref<Pool[] | null>, sort: Ref<Sorting>) {
   const sorted = computed<Pool[] | null>(() => {
     if (!pools.value) return null
-    const sortValue = sort.value
+    const sorting = sort.value
 
     const list = [...pools.value]
-
-    list.sort((poolA, poolB) => {
-      if (sortValue === Sorting.Liquidity) return poolB.liquidity.comparedTo(poolA.liquidity)
-
-      if (sortValue === Sorting.AnnualPercentageRate)
-        return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
-
-      if (sortValue === Sorting.Multiplier) return poolB.multiplier.comparedTo(poolA.multiplier)
-
-      if (sortValue === Sorting.Earned) return poolB.earned.comparedTo(poolA.earned)
-
-      if (sortValue === Sorting.Latest) return poolB.createdAtBlock - poolA.createdAtBlock
-
-      return 0
-    })
-
+    list.sort((a, b) => comparePools(a, b, sorting))
     return list
   })
 
