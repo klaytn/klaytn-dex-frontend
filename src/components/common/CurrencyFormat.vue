@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatCurrency } from '@/utils/composable.currency-input'
+import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import BigNumber from 'bignumber.js'
 import { PropType } from 'vue'
 
@@ -29,12 +29,12 @@ const decimalsNum = eagerComputed(() => {
   return typeof value === 'string' ? Number(value) : typeof value === 'number' ? value : undefined
 })
 
-const formatted = computed(() => {
-  return props.amount
+const formatted = computed(() =>
+  props.amount
     ? formatCurrency({
         amount: props.amount,
         symbol: props.usd
-          ? { str: '$', position: 'left', delimiter: '' }
+          ? SYMBOL_USD
           : props.symbol
           ? {
               str: props.symbol,
@@ -44,8 +44,8 @@ const formatted = computed(() => {
           : null,
         decimals: decimalsNum.value,
       })
-    : null
-})
+    : null,
+)
 </script>
 
 <template>

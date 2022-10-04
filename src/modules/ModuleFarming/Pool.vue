@@ -6,12 +6,14 @@ import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 import { CONSTANT_FARMING_DECIMALS } from './utils'
-import { Wei, ADDRESS_FARMING } from '@/core'
+import { Wei, ADDRESS_FARMING, WeiAsToken, TokenSymbol, makeExplorerLinkToAccount } from '@/core'
+import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
+import { TokensPair } from '@/utils/pair'
+import StakeUnstakeModal from './Modal.vue'
 
 const dexStore = useDexStore()
 const { notify } = useNotify()
 
-const vBem = useBemClass()
 const router = useRouter()
 const { t } = useI18n()
 
@@ -20,7 +22,7 @@ const props = defineProps<{
 }>()
 const { pool } = toRefs(props)
 const emit = defineEmits<{
-  (e: 'staked' | 'unstaked', value: string): void
+  (e: 'staked' | 'unstaked', value: WeiAsToken): void
   (e: 'withdrawn'): void
 }>()
 
@@ -30,25 +32,13 @@ const showRoiCalculator = ref(false)
 const roiType = RoiType.Farming
 const roiPool = ref<Pool | null>(null)
 
-const modalOpen = computed({
-  get() {
-    return !!modalOperation.value
-  },
-  set(value) {
-    if (!value) modalOperation.value = null
-  },
-})
-
-const tokenSymbols = computed(() => {
-  return pool.value.name.split('-')
-})
-
-const formattedStaked = computed(() => {
-  return new BigNumber(pool.value.staked.toFixed(FORMATTED_BIG_INT_DECIMALS))
+const poolSymbols = computed<TokensPair<TokenSymbol>>(() => {
+  const [a, b] = props.pool.name.split('-') as TokenSymbol[]
+  return { tokenA: a, tokenB: b }
 })
 
 const formattedEarned = computed(() => {
-  return new BigNumber(pool.value.earned.toFixed(FORMATTED_BIG_INT_DECIMALS))
+  return formatCurrency({ amount: new BigNumber(pool.value.earned), decimals: FORMATTED_BIG_INT_DECIMALS })
 })
 
 const formattedAnnualPercentageRate = computed(() => {
@@ -56,7 +46,10 @@ const formattedAnnualPercentageRate = computed(() => {
 })
 
 const formattedLiquidity = computed(() => {
-  return '$' + new BigNumber(pool.value.liquidity.toFixed(0, BigNumber.ROUND_UP))
+  return formatCurrency({
+    amount: pool.value.liquidity.decimalPlaces(0, BigNumber.ROUND_UP),
+    symbol: SYMBOL_USD,
+  })
 })
 
 const formattedMultiplier = computed(() => {
@@ -72,8 +65,8 @@ const stats = computed(() => {
   }
 })
 
-function goToLiquidityAddPage(pairId: Pool['pairId']) {
-  router.push({ name: RouteName.LiquidityAdd, params: { id: pairId } })
+function goToLiquidityAddPage() {
+  router.push({ name: RouteName.LiquidityAdd, params: { id: pool.value.pairId } })
 }
 
 const {
@@ -107,172 +100,210 @@ const { state: withdrawState, run: withdraw } = useTask(async () => {
 
   return { earned }
 })
+
 usePromiseLog(withdrawState, 'farming-pool-withdraw')
+
 wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
     const { earned } = result.fulfilled.value
+    const formatted = formatCurrency({ amount: earned })
+    notify({ type: 'ok', description: `${formatted} DEX tokens were withdrawn` })
     emit('withdrawn')
-    notify({ type: 'ok', description: `${earned} DEX tokens were withdrawn` })
   } else {
     notify({ type: 'err', description: 'Withdraw DEX tokens error', error: result.rejected.reason })
   }
 })
 
-function handleStaked(amount: string) {
+function handleStaked(amount: WeiAsToken<BigNumber>) {
   modalOperation.value = null
-  emit('staked', amount)
+  emit('staked', amount.toFixed() as WeiAsToken)
 }
 
-function handleUnstaked(amount: string) {
+function handleUnstaked(amount: WeiAsToken<BigNumber>) {
   modalOperation.value = null
-  emit('unstaked', amount)
+  emit('unstaked', amount.toFixed() as WeiAsToken)
 }
 
-function handleModalClose() {
-  modalOperation.value = null
-}
-
-function openRoiCalculator(event: Event, pool: Pool) {
-  event.stopPropagation()
+function openRoiCalculator() {
   showRoiCalculator.value = true
-  roiPool.value = pool
+  roiPool.value = pool.value
 }
 </script>
 
 <template>
-  <KlayAccordionItem
-    v-model="expanded"
-    v-bem="{ enabled }"
-  >
+  <KlayAccordionItem v-model="expanded">
     <template #title>
-      <div v-bem="'head'">
-        <div v-bem="'icons'">
-          <KlayCharAvatar
-            v-for="(symbol, index) in tokenSymbols"
-            :key="index"
-            v-bem="'icon'"
-            :symbol="symbol"
-          />
+      <div class="grid grid-cols-5">
+        <div class="flex items-center space-x-2">
+          <KlaySymbolsPair v-bind="poolSymbols" />
+
+          <span class="title-name">
+            {{ pool.name }}
+          </span>
         </div>
-        <div v-bem="'name'">
-          {{ pool.name }}
-        </div>
+
         <div
           v-for="(value, label) in stats"
           :key="label"
-          v-bem="'stats-item'"
+          class="space-y-1"
         >
-          <div v-bem="'stats-item-label'">
+          <div class="stats-item-label">
             {{ t(`ModuleFarmingPool.stats.${label}`) }}
           </div>
-          <div v-bem="'stats-item-value'">
-            {{ value }}
+
+          <div
+            v-if="label === 'annualPercentageRate'"
+            class="stats-item-value flex items-center space-x-2"
+          >
+            <span>
+              {{ value }}
+            </span>
             <KlayIconCalculator
-              v-if="label === 'annualPercentageRate'"
-              v-bem="'stats-item-calculator'"
-              @click="openRoiCalculator($event, pool)"
+              class="calculator-icon"
+              @click.stop="openRoiCalculator()"
             />
           </div>
+
+          <span
+            v-else
+            class="stats-item-value"
+          >
+            {{ value }}
+          </span>
         </div>
       </div>
     </template>
-    <template v-if="!loading">
-      <div v-bem="'first-row'">
-        <KlayButton
-          v-if="!enabled"
-          v-bem="'enable'"
-          type="primary"
-          @click="enable()"
-        >
-          Enable {{ pool.name }} balance
-        </KlayButton>
+
+    <div class="min-h-84px flex flex-col justify-center">
+      <template v-if="expanded">
         <div
-          v-if="enabled"
-          v-bem="'staked-input-wrapper'"
+          v-if="loading"
+          class="h-full flex items-center justify-center"
         >
-          <KlayTextField
-            v-bem="'staked-input'"
-            :model-value="formattedStaked"
-            disabled
-          />
-          <div v-bem="'staked-input-label'">
-            Staked LP Tokes
+          <KlayLoader />
+        </div>
+
+        <div
+          v-else
+          class="space-y-4"
+        >
+          <div
+            v-if="!enabled"
+            class="flex items-center space-x-6"
+          >
+            <KlayButton
+              class="w-60"
+              type="primary"
+              @click="enable()"
+            >
+              Enable {{ pool.name }} balance
+            </KlayButton>
+
+            <KlayButton
+              class="w-50"
+              @click="goToLiquidityAddPage()"
+            >
+              Get {{ pool.name }} LP
+            </KlayButton>
           </div>
-          <div v-bem="'staked-input-buttons'">
+
+          <div
+            v-else
+            class="enabled-grid"
+          >
+            <span class="input-label">Staked LP Tokens</span>
+
+            <div class="input-label flex items-center">
+              <span class="flex-1">Earned DEX Tokens</span>
+              <span>Earned for all time: <i>TODO</i></span>
+            </div>
+
+            <span />
+
+            <InputCurrencyTemplate right>
+              <template #input>
+                <CurrencyFormat
+                  v-slot="{ formatted }"
+                  :amount="pool.staked"
+                  decimals="6"
+                >
+                  <input
+                    :value="formatted"
+                    readonly
+                  >
+                </CurrencyFormat>
+              </template>
+
+              <template #right>
+                <div class="space-x-2">
+                  <KlayButton @click="unstake()">
+                    -
+                  </KlayButton>
+                  <KlayButton @click="stake()">
+                    +
+                  </KlayButton>
+                </div>
+              </template>
+            </InputCurrencyTemplate>
+
+            <InputCurrencyTemplate right>
+              <template #input>
+                <CurrencyFormat
+                  v-slot="{ formatted }"
+                  :amount="pool.earned"
+                  decimals="6"
+                >
+                  <input
+                    :value="formatted"
+                    readonly
+                  >
+                </CurrencyFormat>
+              </template>
+
+              <template #right>
+                <KlayButton @click="withdraw()">
+                  Withdraw
+                </KlayButton>
+              </template>
+            </InputCurrencyTemplate>
+
             <KlayButton
-              v-bem="'unstake'"
-              @click="unstake()"
+              class="w-50"
+              @click="goToLiquidityAddPage()"
             >
-              -
+              Get {{ pool.name }} LP
             </KlayButton>
-            <KlayButton
-              v-bem="'stake-additional'"
-              @click="stake()"
+          </div>
+
+          <div class="flex items-center space-x-4">
+            <a
+              class="link-with-icon"
+              target="_blank"
+              :href="makeExplorerLinkToAccount(ADDRESS_FARMING)"
             >
-              +
-            </KlayButton>
+              <span>View Contract</span>
+              <KlayIconLink />
+            </a>
+            <a
+              class="link-with-icon"
+              target="_blank"
+              :href="makeExplorerLinkToAccount(pool.pairId)"
+            >
+              <span>See Pair Info</span>
+              <KlayIconLink />
+            </a>
           </div>
         </div>
-        <div
-          v-if="enabled"
-          v-bem="'earned-input-wrapper'"
-        >
-          <KlayTextField
-            v-bem="'earned-input'"
-            :model-value="formattedEarned"
-            disabled
-          />
-          <div v-bem="'earned-input-label'">
-            Earned DEX Tokens
-          </div>
-          <div v-bem="'earned-input-buttons'">
-            <KlayButton
-              v-bem="'withdraw'"
-              @click="withdraw()"
-            >
-              Withdraw
-            </KlayButton>
-          </div>
-        </div>
-        <KlayButton
-          v-bem="'get-lp'"
-          @click="goToLiquidityAddPage(pool.pairId)"
-        >
-          Get {{ pool.name }} LP
-        </KlayButton>
-      </div>
-      <div v-bem="'links'">
-        <a
-          v-bem="'link'"
-          target="_blank"
-          :href="`https://baobab.klaytnfinder.io/account/${ADDRESS_FARMING}`"
-        >
-          View Contract
-          <KlayIconLink v-bem="'link-icon'" />
-        </a>
-        <a
-          v-bem="'link'"
-          target="_blank"
-          :href="`https://baobab.klaytnfinder.io/account/${pool.pairId}?tabId=tokenBalance`"
-        >
-          See Pair Info
-          <KlayIconLink v-bem="'link-icon'" />
-        </a>
-      </div>
-    </template>
-    <div
-      v-if="loading"
-      v-bem="'loader'"
-    >
-      <KlayLoader />
+      </template>
     </div>
   </KlayAccordionItem>
 
-  <ModuleFarmingModal
-    v-model="modalOpen"
-    :pool="pool"
+  <StakeUnstakeModal
     :operation="modalOperation"
-    @update:mode="handleModalClose"
+    :staked="pool.staked"
+    :balance="pool.balance"
+    :symbols="poolSymbols"
+    @close="modalOperation = null"
     @staked="handleStaked"
     @unstaked="handleUnstaked"
   />
@@ -293,89 +324,62 @@ function openRoiCalculator(event: Event, pool: Pool) {
   />
 </template>
 
-<style lang="sass">
-@import '@/styles/vars.sass'
+<style lang="scss" scoped>
+@use '@/styles/vars';
 
-.module-farming-pool
-  &__head
-    display: flex
-    align-items: center
-  &__icons
-    display: flex
-  &__icon:last-child
-    margin-left: -9px
-  &__name
-    width: 180px
-    margin-left: 8px
-    font-size: 16px
-  &__stats-item
-    display: flex
-    flex-direction: column
-    flex: 1
-    margin-bottom: 12px
-    &-label
-      font-weight: 500
-      font-size: 12px
-      line-height: 14px
-      color: $gray2
-    &-value
-      display: flex
-      align-items: center
-      font-size: 16px
-      line-height: 19px
-      margin-top: 4px
-    &-calculator
-      margin-left: 5px
-      fill: $gray3
-  &__first-row
-    display: flex
-    align-items: center
-  &--enabled &__first-row
-    margin-top: 24px
-  &__staked-input, &__earned-input
-    width: 388px
-    &-wrapper
-      position: relative
-    .s-text-field__input-wrapper
-      height: 72px
-      input
-        padding: 16px 120px 33px 16px
-        font-size: 30px
-        font-weight: 600
-        line-height: 39px
-    &-label
-      position: absolute
-      bottom: 80px
-      font-size: 12px
-      line-height: 14px
-    &-buttons
-      position: absolute
-      right: 16px
-      top: 16px
-  &__earned-input-wrapper
-    margin-left: 24px
-  &__unstake, &__stake-additional
-    margin-left: 8px
-  &__enable
-    width: 240px
-  &__get-lp
-    width: 200px
-    margin-left: 24px
-  &__links
-    display: flex
-    margin-top: 16px
-  &__link
-    display: flex
-    align-items: center
-    font-size: 12px
-    & + &
-      margin-left: 20px
-    &-icon
-      margin-left: 5px
-      color: $gray3
-  &__loader
-    display: flex
-    justify-content: center
-    align-items: center
-    height: 82px
+.input-label {
+  font-size: 12px;
+}
+
+.loader-wrapper {
+  height: 82px;
+}
+
+.title-name {
+  font-size: 16px;
+}
+
+.stats-item {
+  &-label {
+    font-weight: 500;
+    font-size: 12px;
+    color: vars.$gray2;
+    line-height: 1rem;
+  }
+
+  &-value {
+    line-height: 1rem;
+    font-size: 16px;
+  }
+}
+
+.calculator-icon {
+  color: vars.$gray3;
+  height: 18px;
+
+  &:hover {
+    color: vars.$blue;
+  }
+}
+
+.enabled-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 24px;
+  row-gap: 8px;
+  align-items: center;
+}
+
+.link-with-icon {
+  display: flex;
+  align-items: center;
+
+  & > :first-child {
+    font-size: 12px;
+  }
+  & > :last-child {
+    color: vars.$gray3;
+    margin-left: 8px;
+  }
+}
 </style>

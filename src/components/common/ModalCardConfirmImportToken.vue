@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Token, Wei, makeExplorerLinkAccount } from '@/core'
+import { Token, Wei, makeExplorerLinkToAccount } from '@/core'
 import BigNumber from 'bignumber.js'
 import MaterialSymbolsErrorRounded from '~icons/material-symbols/error-rounded'
 
@@ -13,7 +13,7 @@ const emit = defineEmits(['confirm', 'cancel'])
 
 const understandCheck = ref(false)
 
-const explorerLink = computed(() => makeExplorerLinkAccount(props.token.address))
+const explorerLink = computed(() => makeExplorerLinkToAccount(props.token.address))
 
 const balanceAsToken = computed(() => props.balance?.decimals(props.token))
 
