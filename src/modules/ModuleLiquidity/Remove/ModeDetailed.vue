@@ -41,14 +41,10 @@ const balanceAsBigNum = computed(() => pairUserBalance.value?.decimals(LP_TOKEN_
       @click:max="store.setLiquidityToMax()"
     >
       <template #bottom-right>
-        <span
-          :class="$style.balance"
-          class="whitespace-pre"
-        >Balance: </span>
-        <CurrencyFormatTruncate
-          :class="$style.balance"
-          :amount="balanceAsBigNum"
-        />
+        <div :class="[$style.balance, 'flex items-center']">
+          <pre>Balance: </pre>
+          <CurrencyFormatTruncate :amount="balanceAsBigNum" />
+        </div>
       </template>
     </InputTokenLp>
 
@@ -70,7 +66,7 @@ const balanceAsBigNum = computed(() => pairUserBalance.value?.decimals(LP_TOKEN_
         v-if="i === 0"
         class="flex justify-center -my-2"
       >
-        <KlayIconPlus />
+        <KlayIconPlus class="shadow-md rounded-full" />
       </div>
     </template>
 
