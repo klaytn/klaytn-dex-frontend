@@ -26,11 +26,19 @@ export const RouteName = {
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type RouteName = typeof RouteName[keyof typeof RouteName]
 
-export interface HeaderMenuItem {
+export type HeaderMenuItem = {
   label: string
-  routeName: RouteName
-  activeWith?: RouteName[]
-}
+} & (
+  | {
+      kind: 'route'
+      routeName: RouteName
+      activeWith?: RouteName[]
+    }
+  | {
+      kind: 'external'
+      href: string
+    }
+)
 
 export const RoiType = {
   Farming: 'farming',

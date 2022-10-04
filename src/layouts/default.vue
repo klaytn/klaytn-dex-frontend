@@ -14,25 +14,30 @@ const menu = computed<HeaderMenuItem[]>(() => {
   return [
     {
       label: t('DefaultLayout.menu.assets'),
+      kind: 'route',
       routeName: RouteName.Assets,
     },
     {
       label: t('DefaultLayout.menu.trade'),
       routeName: RouteName.Swap,
+      kind: 'route',
       activeWith: [RouteName.Trade, RouteName.Liquidity, RouteName.LiquidityAdd, RouteName.LiquidityRemove],
     },
     {
       label: t('DefaultLayout.menu.earn'),
       routeName: RouteName.Farms,
+      kind: 'route',
       activeWith: [RouteName.Pools],
     },
     {
       label: t('DefaultLayout.menu.voting'),
       routeName: RouteName.Voting,
+      kind: 'route',
     },
     {
       label: t('DefaultLayout.menu.charts'),
-      routeName: RouteName.Charts,
+      kind: 'external',
+      href: import.meta.env.VITE_APP_DASHBOARDS_HREF,
     },
   ]
 })
