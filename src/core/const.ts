@@ -49,7 +49,7 @@ export const TRADE_MAX_PRICE_IMPACT = new Percent(1, 10)
 
 const EXPLORER_BASE = `https://baobab.klaytnfinder.io`
 
-export function makeExplorerLinkAccount(address: Address): string {
+export function makeExplorerLinkToAccount(address: Address): string {
   return `${EXPLORER_BASE}/account/${address}`
 }
 

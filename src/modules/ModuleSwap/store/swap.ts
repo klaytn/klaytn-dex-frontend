@@ -103,13 +103,7 @@ export const useSwapStore = defineStore('swap', () => {
   const pageRoute = useRoute()
   const isActiveRoute = computed(() => pageRoute.name === RouteName.Swap)
 
-  const multihops = useLocalStorage<boolean>('swap-multi-hops', true)
-  const disableMultiHops = computed({
-    get: () => !multihops.value,
-    set: (v) => {
-      multihops.value = !v
-    },
-  })
+  const multihops = useLocalStorage<boolean>('swap-multi-hops', false)
 
   const slippageTolerance = ref(0)
 
@@ -208,7 +202,7 @@ export const useSwapStore = defineStore('swap', () => {
     pairs,
     amount: inputAmount,
     tokens: tokenImpls,
-    disableMultiHops,
+    disableMultiHops: logicNot(multihops),
   })
 
   const trade = computed(() => (tradeResult.value?.kind === 'ok' ? tradeResult.value.trade : null))
@@ -365,7 +359,7 @@ export const useSwapStore = defineStore('swap', () => {
     resetInput,
 
     slippageTolerance,
-    disableMultiHops,
+    multihops,
 
     isRefreshing,
     refresh,
