@@ -1,5 +1,3 @@
-import { Address } from '@/core'
-import { TokensPair } from '@/utils/pair'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { Sorting } from '../types'
 
@@ -8,16 +6,16 @@ export const useFarmingStore = defineStore('farming', () => {
   const searchQuery = ref('')
   const sorting = ref<Sorting>(Sorting.Default)
 
-  /**
-   * TODO: use it to open related pool
-   */
-  const openPoolsFor = ref<null | TokensPair<Address>>(null)
-
-  function setOpenPoolsFor(tokens: TokensPair<Address>) {
-    openPoolsFor.value = tokens
+  function setFilterByPairName(name: string) {
+    searchQuery.value = name
   }
 
-  return { stakedOnly, searchQuery, sorting, setOpenPoolsFor, openPoolsFor }
+  return {
+    stakedOnly,
+    searchQuery,
+    sorting,
+    setFilterByPairName,
+  }
 })
 
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useFarmingStore, import.meta.hot))

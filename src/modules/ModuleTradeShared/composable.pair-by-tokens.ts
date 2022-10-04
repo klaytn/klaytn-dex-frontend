@@ -1,8 +1,8 @@
 import { Address, isEmptyAddress, Wei } from '@/core'
 import { ActiveDex, AnyDex } from '@/store/dex'
 import { TokensPair } from '@/utils/pair'
+import { PromiseStateAtomic } from '@vue-kakuyaku/core'
 import { MaybeRef } from '@vueuse/core'
-import { Except } from 'type-fest'
 import { Ref } from 'vue'
 
 type NullableReactiveTokens = TokensPair<Address | null> | Ref<null | TokensPair<null | Address>>
@@ -64,11 +64,11 @@ export function usePairAddress(tokens: NullableReactiveTokens): {
   const scope = useParamScope(
     computed(() => composeKeyWithAnyDex(tokens, dexStore.anyDex)),
     ({ tokens, dex }) => {
-      const { state, run } = useTask<Except<PairAddressResult, 'tokens'>>(
+      const { state, run } = useTask<PairAddressResult>(
         async () => {
           const addr = await dex.tokens.getPairAddress(tokens)
-          if (isEmptyAddress(addr)) return { kind: 'empty' }
-          return { kind: 'exist', addr }
+          if (isEmptyAddress(addr)) return { kind: 'empty', tokens }
+          return { kind: 'exist', addr, tokens }
         },
         { immediate: true },
       )
@@ -78,15 +78,11 @@ export function usePairAddress(tokens: NullableReactiveTokens): {
     },
   )
 
-  const pending = computed(() => scope.value?.expose.state.pending ?? false)
-  const pair = computed<null | PairAddressResult>(() => {
-    const result = scope.value?.expose.state.fulfilled?.value
-    if (!result) return null
-    return {
-      ...result,
-      tokens: scope.value!.payload.tokens,
-    }
-  })
+  const state = computed(() => scope.value?.expose.state ?? null)
+
+  const pending = computed(() => state.value?.pending ?? false)
+
+  const pair = computed<null | PairAddressResult>(() => state.value?.fulfilled?.value ?? null)
 
   function touch() {
     scope.value?.expose.run()

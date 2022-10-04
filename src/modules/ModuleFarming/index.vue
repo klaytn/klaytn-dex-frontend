@@ -1,8 +1,8 @@
 <script setup lang="ts" name="ModuleFarming">
-import { PercentageRate, Pool, TokenPriceInUSD } from './types'
-import { BLOCKS_PER_YEAR, PAGE_SIZE } from './const'
+import { Pool } from './types'
+import { PAGE_SIZE } from './const'
 import BigNumber from 'bignumber.js'
-import { WeiAsToken, Wei, WeiRaw, Address } from '@/core'
+import { WeiAsToken, WeiRaw, Address } from '@/core'
 import { deepClone } from '@/utils/common'
 import { or, not } from '@vueuse/core'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
@@ -10,9 +10,9 @@ import { useFetchFarmingRewards } from './composable.fetch-rewards'
 import { useFarmingQuery } from './query.farming'
 import { useLiquidityPositionsQuery } from './query.liquidity-positions'
 import { usePairsAndRewardTokenQuery } from './query.pairs-and-reward-token'
-import { farmingFromWei, farmingToWei } from './utils'
+import { farmingToWei } from './utils'
 import { storeToRefs } from 'pinia'
-import { useSortedPools } from './composable.sorted-pools'
+import { useFilteredPools, useMappedPools, useSortedPools } from './composable.pools'
 
 const vBem = useBemClass()
 
@@ -49,14 +49,6 @@ const PairsAndRewardTokenQuery = usePairsAndRewardTokenQuery(
   computed(() => pairsAndRewardTokenQueryVariables.value.pairIds),
 )
 
-const pairs = computed(() => {
-  return PairsAndRewardTokenQuery.result.value?.pairs ?? null
-})
-
-const rewardToken = computed(() => {
-  return PairsAndRewardTokenQuery.result.value?.token ?? null
-})
-
 function handleFarmingQueryResult() {
   pairsAndRewardTokenQueryVariables.value.pairIds = poolPairIds.value
 
@@ -84,105 +76,17 @@ const liquidityPositions = computed(() => {
   return LiquidityPositionsQuery.result.value.user?.liquidityPositions ?? []
 })
 
-const pools = computed<Pool[] | null>(() => {
-  if (farming.value === null || pairs.value === null || blockNumber.value === null || rewardToken.value === null)
-    return null
-
-  let pools = [] as Pool[]
-
-  farming.value.pools.forEach((pool) => {
-    if (!farming.value || !pairs.value || !blockNumber.value || !rewards.value) return
-
-    const id = pool.id
-    const pair = pairs.value.find((pair) => pair.id === pool.pair) ?? null
-
-    const reward = rewards.value.get(pool.id)
-    const earned = reward ? farmingFromWei(reward) : null
-
-    if (pair === null || earned === null) return
-
-    const pairId = pair.id
-    const name = pair.name
-
-    const staked = farmingFromWei(new Wei(pool.users[0]?.amount ?? '0'))
-
-    const liquidityPosition = liquidityPositions.value?.find((position) => position.pair.id === pairId) ?? null
-    const balance = new BigNumber(liquidityPosition?.liquidityTokenBalance ?? 0) as WeiAsToken<BigNumber>
-
-    const reserveUSD = new BigNumber(pair.reserveUSD)
-    const totalSupply = new BigNumber(pair.totalSupply)
-    const totalTokensStaked = new BigNumber(farmingFromWei(new Wei(pool.totalTokensStaked)))
-    const stakeTokenPrice = reserveUSD.dividedBy(totalSupply) as TokenPriceInUSD
-    const liquidity = reserveUSD.dividedBy(totalSupply).multipliedBy(totalTokensStaked) as WeiAsToken<BigNumber>
-
-    const annualPercentageRate = new BigNumber(0) as PercentageRate
-
-    const totalLpRewardPricePerYear = new BigNumber(pair.dayData[0].volumeUSD).times(365)
-    const lpAnnualPercentageRate = (
-      !liquidity.isZero() ? totalLpRewardPricePerYear.div(liquidity).times(100) : new BigNumber(0)
-    ) as PercentageRate
-
-    const bonusEndBlock = Number(pool.bonusEndBlock)
-    const allocPoint = new BigNumber(pool.allocPoint)
-    const totalAllocPoint = new BigNumber(farming.value.totalAllocPoint)
-    const bonusMultiplier = new BigNumber(pool.bonusMultiplier)
-    const multiplier = allocPoint
-      .dividedBy(totalAllocPoint)
-      .multipliedBy(blockNumber.value < bonusEndBlock ? bonusMultiplier : 1)
-
-    const createdAtBlock = Number(pool.createdAtBlock)
-
-    pools.push({
-      id,
-      name,
-      pairId,
-      earned,
-      staked,
-      balance,
-      annualPercentageRate,
-      lpAnnualPercentageRate,
-      stakeTokenPrice,
-      liquidity,
-      multiplier,
-      createdAtBlock,
-    })
-  })
-
-  const sumOfMultipliers = pools.reduce((acc, pool) => acc.plus(pool.multiplier), new BigNumber(0))
-
-  pools = pools.map((pool) => {
-    if (!farming.value || !rewardToken.value) return pool
-    const farmingRewardRate = new BigNumber(farmingFromWei(new Wei(farming.value.rewardRate)))
-    const poolRewardRate = farmingRewardRate.times(pool.multiplier.div(sumOfMultipliers))
-    const totalRewardPricePerYear = poolRewardRate.times(BLOCKS_PER_YEAR).times(rewardToken.value.derivedUSD)
-    const annualPercentageRate = (
-      !pool.liquidity.isZero() ? totalRewardPricePerYear.div(pool.liquidity).times(100) : new BigNumber(0)
-    ) as PercentageRate
-    return {
-      ...pool,
-      annualPercentageRate,
-    }
-  })
-
-  return pools
+const poolsMapped = useMappedPools({
+  rewards,
+  pairsAndRewardToken: PairsAndRewardTokenQuery.result,
+  liquidityPositions,
+  blockNumber,
+  farming: FarmingQuery.result,
 })
 
-const filteredPools = computed<Pool[] | null>(() => {
-  if (pools.value === null) return null
+const poolsFiltered = useFilteredPools(poolsMapped, { stakedOnly, searchQuery })
 
-  let filteredPools = [...pools.value]
-
-  if (stakedOnly.value) filteredPools = filteredPools.filter((pool) => !pool.staked.isZero())
-
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filteredPools = filteredPools.filter((pool) => pool.name.toLowerCase().includes(query))
-  }
-
-  return filteredPools
-})
-
-const sortedPools = useSortedPools(filteredPools, sorting)
+const poolsSorted = useSortedPools(poolsFiltered, sorting)
 
 const isLoading = or(
   FarmingQuery.loading,
@@ -248,23 +152,29 @@ function handleUnstaked(pool: Pool, amount: string) {
   updateBalance(pool.pairId, new BigNumber(amount))
 }
 
+// #region Pagination
+
 const page = ref(1)
 
 const showViewMore = computed(() => {
-  if (sortedPools.value === null) return false
-
-  return sortedPools.value.length > page.value * PAGE_SIZE
+  if (poolsSorted.value === null) return false
+  return poolsSorted.value.length > page.value * PAGE_SIZE
 })
 
 function viewMore() {
   page.value++
 }
 
-const paginatedPools = computed<Pool[] | null>(() => {
-  if (sortedPools.value === null) return null
-
-  return sortedPools.value.slice(0, page.value * PAGE_SIZE)
+const poolsPaginated = computed<Pool[] | null>(() => {
+  if (poolsSorted.value === null) return null
+  return poolsSorted.value.slice(0, page.value * PAGE_SIZE)
 })
+
+// #endregion
+
+const poolsFinal = poolsPaginated
+
+const expandPools = computed(() => poolsPaginated.value?.length === 1)
 </script>
 
 <template>
@@ -272,9 +182,10 @@ const paginatedPools = computed<Pool[] | null>(() => {
     <template v-if="farming">
       <div v-bem="'list'">
         <ModuleFarmingPool
-          v-for="pool in paginatedPools"
+          v-for="pool in poolsFinal"
           :key="pool.id"
           :pool="pool"
+          :expanded="expandPools"
           @staked="(value: string) => handleStaked(pool, value)"
           @unstaked="(value: string) => handleUnstaked(pool, value)"
         />
