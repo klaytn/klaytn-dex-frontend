@@ -97,14 +97,14 @@ const pools = computed<Pool[] | null>(() => {
     const pair = pairs.value.find((pair) => pair.id === pool.pair) ?? null
 
     const reward = rewards.value.get(pool.id)
-    const earned = reward ? (new BigNumber(farmingFromWei(reward)) as WeiAsToken<BigNumber>) : null
+    const earned = reward ? farmingFromWei(reward) : null
 
     if (pair === null || earned === null) return
 
     const pairId = pair.id
     const name = pair.name
 
-    const staked = new BigNumber(farmingFromWei(new Wei(pool.users[0]?.amount ?? '0'))) as WeiAsToken<BigNumber>
+    const staked = farmingFromWei(new Wei(pool.users[0]?.amount ?? '0'))
 
     const liquidityPosition = liquidityPositions.value?.find((position) => position.pair.id === pairId) ?? null
     const balance = new BigNumber(liquidityPosition?.liquidityTokenBalance ?? 0) as WeiAsToken<BigNumber>

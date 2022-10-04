@@ -23,7 +23,7 @@ export interface Pool {
   createdAtBlock: number
   totalStaked: AmountInUSD
   annualPercentageRate: PercentageRate
-  endsIn: number
+  endBlock: number
 }
 
 export const Sorting = {

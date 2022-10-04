@@ -35,11 +35,11 @@ export function useSwapValidation({
   wallet,
 }: ValidationProps): Ref<ValidationResult> {
   return computed(() => {
+    if (wallet.value === 'anonymous') return resultErr(ValidationError.WalletIsNotConnected)
     if (!(selected.tokenA && selected.tokenB && tokenAInput.value)) return resultErr(ValidationError.UnselectedTokens)
     if (trade.value === 'pending') return resultPending()
     if (trade.value === 'route-not-found') return resultErr(ValidationError.RouteNotFound)
     if (trade.value === 'price-impact-is-too-high') return resultErr(ValidationError.PriceImpactIsTooHigh)
-    if (wallet.value === 'anonymous') return resultErr(ValidationError.WalletIsNotConnected)
     if (!tokenABalance.value) return resultPending()
     if (tokenABalance.value.asBigInt < tokenAInput.value.asBigInt)
       return resultErr(ValidationError.InsufficientBalanceOfInputToken)
@@ -52,7 +52,7 @@ if (import.meta.vitest) {
   const { describe, test, expect } = import.meta.vitest
 
   describe('swap validation', () => {
-    test('When some token is not selected, "Select Token" returned', () => {
+    test('When wallet is not connected, "Not Connected" returned', () => {
       const validation = useSwapValidation({
         selected: { tokenA: false, tokenB: true },
         tokenABalance: shallowRef(null),
@@ -61,7 +61,7 @@ if (import.meta.vitest) {
         wallet: ref('anonymous'),
       })
 
-      expect(validation.value).toEqual(resultErr(ValidationError.UnselectedTokens))
+      expect(validation.value).toEqual(resultErr(ValidationError.WalletIsNotConnected))
     })
 
     test('When trade is empty, validation errors', () => {
@@ -70,7 +70,7 @@ if (import.meta.vitest) {
         tokenABalance: shallowRef(null),
         tokenAInput: shallowRef(new Wei(551)),
         trade: ref('route-not-found'),
-        wallet: ref('anonymous'),
+        wallet: ref('connected'),
       })
 
       expect(validation.value).toEqual(resultErr(ValidationError.RouteNotFound))
@@ -133,7 +133,7 @@ if (import.meta.vitest) {
         tokenABalance: shallowRef(null),
         tokenAInput: shallowRef(new Wei(42000000000)),
         trade: ref('price-impact-is-too-high'),
-        wallet: ref('anonymous'),
+        wallet: ref('connected'),
       })
 
       expect(validation.value).toEqual(resultErr(ValidationError.PriceImpactIsTooHigh))

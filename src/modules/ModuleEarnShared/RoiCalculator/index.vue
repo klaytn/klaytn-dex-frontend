@@ -7,12 +7,13 @@ import { RoiType } from '@/types'
 import { PERIOD_DAYS } from './const'
 import { makeTabsArray } from '@/utils/common'
 import { StakeTabs, CompoundingTabs, StakeUnits } from './types'
-import { useFormattedCurrency, MaskSymbol } from '@/utils/composable.currency-input'
+import { useFormattedCurrency, MaskSymbol, SYMBOL_USD as MASK_SYMBOL_USD } from '@/utils/composable.currency-input'
 import { Ref } from 'vue'
 import { MaybeRef } from '@vueuse/core'
 
+const DECIMALS_USD = 2
+
 const { t } = useI18n()
-const vBem = useBemClass()
 
 const props = defineProps<{
   show: boolean
@@ -21,24 +22,16 @@ const props = defineProps<{
   lpApr?: BigNumber
   staked: WeiAsToken<BigNumber>
   balance: WeiAsToken<BigNumber>
+  /**
+   * USD
+   */
   stakeTokenPrice: BigNumber
   stakeTokenDecimals: number
   rewardTokenDecimals: number
   stakeTokenSymbol: string
   rewardTokenSymbol: string
 }>()
-const {
-  type,
-  apr,
-  lpApr,
-  staked,
-  balance,
-  stakeTokenPrice,
-  stakeTokenDecimals,
-  rewardTokenDecimals,
-  stakeTokenSymbol,
-  rewardTokenSymbol,
-} = toRefs(props)
+
 const emit = defineEmits<(e: 'update:show', value: boolean) => void>()
 
 const showModel = useVModel(props, 'show', emit)
@@ -54,17 +47,15 @@ const stakeUnits = ref<StakeUnits>(StakeUnits.USD)
 
 // #region Symbols
 
-const MASK_SYMBOL_USD: MaskSymbol = { str: '$', position: 'left', delimiter: '' }
-
 const useMaskSymbolOrUSD = (symbol: MaybeRef<MaskSymbol>, reverse = false): Ref<MaskSymbol> =>
   computed(() => {
     const isUSD = stakeUnits.value === StakeUnits.USD
-    return (!reverse && isUSD) || (reverse && !isUSD) ? unref(symbol) : MASK_SYMBOL_USD
+    return (!reverse && !isUSD) || (reverse && isUSD) ? unref(symbol) : MASK_SYMBOL_USD
   })
 
-const stakeTokenSymbolAsMask = computed<MaskSymbol>(() => ({ str: stakeTokenSymbol.value, position: 'right' }))
+const stakeTokenSymbolAsMask = computed<MaskSymbol>(() => ({ str: props.stakeTokenSymbol, position: 'right' }))
 
-const rewardTokenSymbolAsMask = computed<MaskSymbol>(() => ({ str: rewardTokenSymbol.value, position: 'right' }))
+const rewardTokenSymbolAsMask = computed<MaskSymbol>(() => ({ str: props.rewardTokenSymbol, position: 'right' }))
 
 // #endregion
 
@@ -72,22 +63,25 @@ const rewardTokenSymbolAsMask = computed<MaskSymbol>(() => ({ str: rewardTokenSy
 
 const inputCurrencySymbol = useMaskSymbolOrUSD(stakeTokenSymbolAsMask)
 
+const inputDecimals = eagerComputed(() =>
+  stakeUnits.value === StakeUnits.USD ? DECIMALS_USD : props.stakeTokenDecimals,
+)
+
 // #endregion
 
 function setStakeValueInUSD(amount: BigNumber | number) {
-  if (stakeUnits.value === StakeUnits.USD)
-    parsedStakeValue.value = new BigNumber(amount).decimalPlaces(stakeTokenDecimals.value)
-  else parsedStakeValue.value = new BigNumber(amount).div(stakeTokenPrice.value).decimalPlaces(stakeTokenDecimals.value)
+  if (stakeUnits.value === StakeUnits.USD) parsedStakeValue.value = new BigNumber(amount)
+  else parsedStakeValue.value = new BigNumber(amount).div(props.stakeTokenPrice)
 }
 
 function setStakeValueWithBalance() {
   if (stakeUnits.value === StakeUnits.USD)
-    parsedStakeValue.value = balance.value.times(stakeTokenPrice.value).decimalPlaces(2)
-  else parsedStakeValue.value = balance.value
+    parsedStakeValue.value = props.balance.times(props.stakeTokenPrice).decimalPlaces(2)
+  else parsedStakeValue.value = props.balance
 }
 
 const totalApr = computed(() => {
-  return apr.value.plus(lpApr?.value ? lpApr.value : 0)
+  return props.apr.plus(props.lpApr ?? 0)
 })
 
 const compoundsPerYear = computed(() => {
@@ -102,8 +96,8 @@ const apy = computed(() => {
 // #region Different values
 
 const stakeValueInAnotherUnits = computed(() => {
-  if (stakeUnits.value === StakeUnits.USD) return parsedStakeValue.value.div(stakeTokenPrice.value)
-  else return parsedStakeValue.value.times(stakeTokenPrice.value)
+  if (stakeUnits.value === StakeUnits.USD) return parsedStakeValue.value.div(props.stakeTokenPrice)
+  else return parsedStakeValue.value.times(props.stakeTokenPrice)
 })
 
 const formattedStakeValueInAnotherUnits = useFormattedCurrency({
@@ -139,9 +133,7 @@ const formattedReceiveValueInAnotherUnits = useFormattedCurrency({
 // #endregion
 
 function switchUnits() {
-  parsedStakeValue.value = stakeValueInAnotherUnits.value.decimalPlaces(
-    stakeUnits.value === StakeUnits.USD ? stakeTokenDecimals.value : 2,
-  )
+  parsedStakeValue.value = stakeValueInAnotherUnits.value
   stakeUnits.value = stakeUnits.value === StakeUnits.USD ? StakeUnits.tokens : StakeUnits.USD
 }
 
@@ -150,7 +142,7 @@ watch(
   (value) => {
     if (value) {
       nextTick(() => {
-        setStakeValueInUSD(staked.value)
+        setStakeValueInUSD(props.staked)
       })
     }
   },
@@ -158,15 +150,15 @@ watch(
 )
 
 const detailsList = computed(() => {
-  if (type.value === RoiType.Farming)
+  if (props.type === RoiType.Farming)
     return [
       { label: 'APR (incl. LP rewards)', value: totalApr.value.toFixed(2) + '%' },
-      { label: 'Base APR (DEX-Tokens yield only)', value: apr.value.toFixed(2) + '%' },
+      { label: 'Base APR (DEX-Tokens yield only)', value: props.apr.toFixed(2) + '%' },
       { label: 'APY', value: apy.value.toFixed(2) + '%' },
     ]
   else
     return [
-      { label: 'APR', value: apr.value.toFixed(2) + '%' },
+      { label: 'APR', value: props.apr.toFixed(2) + '%' },
       { label: 'APY', value: apy.value.toFixed(2) + '%' },
     ]
 })
@@ -175,55 +167,58 @@ const detailsList = computed(() => {
 <template>
   <SModal v-model:show="showModel">
     <KlayModalCard
-      v-bem
       class="w-[420px] flex flex-col"
       :title="t('ModuleEarnSharedRoiCalculator.title')"
     >
       <template #body>
-        <div
-          v-bem="'content'"
-          class="px-4 pb-5"
-        >
-          <span v-bem="'label'"> Staked for </span>
-          <KlayTabs
-            v-model="stakeFor"
-            :tabs="stakeTabs"
-          />
-          <KlaySwitch
-            v-model="compoundingEnabled"
-            v-bem="'compounding-checkbox'"
-            label="Compounding every"
-          />
-          <KlayTabs
-            v-model="compoundingEvery"
-            :tabs="compoundingTabs"
-            :disabled="!compoundingEnabled"
-          />
-          <hr class="klay-divider my-4">
-          <span v-bem="'label'"> Amount staked </span>
+        <div class="px-4 pb-5 space-y-4">
+          <div class="space-y-2 flex flex-col items-start">
+            <span class="label"> Staked for </span>
+            <KlayTabs
+              v-model="stakeFor"
+              :tabs="stakeTabs"
+            />
+          </div>
 
-          <div>
+          <div class="space-y-2 flex flex-col items-start">
+            <KlaySwitch
+              v-model="compoundingEnabled"
+              label="Compounding every"
+            />
+
+            <KlayTabs
+              v-model="compoundingEvery"
+              :tabs="compoundingTabs"
+              :disabled="!compoundingEnabled"
+            />
+          </div>
+
+          <hr class="klay-divider">
+
+          <div class="space-y-2">
+            <span class="label"> Amount staked </span>
+
             <InputCurrencyTemplate
               right
               bottom
               no-input-filter
-              data-testid="staked-input"
             >
               <template #input>
                 <CurrencyInput
                   v-model="parsedStakeValue"
-                  :decimals="stakeTokenDecimals"
+                  :decimals="inputDecimals"
                   :symbol="inputCurrencySymbol.str"
                   :symbol-position="inputCurrencySymbol.position"
                   :symbol-delimiter="inputCurrencySymbol.delimiter"
-                  data-testid="staked-input"
+                  data-testid="input-staked"
                 />
               </template>
 
               <template #right>
                 <div class="flex items-center h-full">
                   <KlayIconSwitch
-                    v-bem="'input-switch'"
+                    class="cursor-pointer"
+                    data-testid="switch-units"
                     @click="switchUnits"
                   />
                 </div>
@@ -231,38 +226,35 @@ const detailsList = computed(() => {
 
               <template #bottom-left>
                 <span
-                  v-bem="'input-another-units'"
-                  class="truncate"
-                  :title="formattedStakeValueInAnotherUnits"
+                  data-testid="input-staked-alt-units"
+                  class="input-alt-units"
                 >
                   {{ formattedStakeValueInAnotherUnits }}
                 </span>
               </template>
             </InputCurrencyTemplate>
+
+            <div class="space-x-2">
+              <KlayButton
+                v-for="amount in [10, 100, 1000]"
+                :key="amount"
+                size="sm"
+                @click="setStakeValueInUSD(amount)"
+              >
+                ${{ amount }}
+              </KlayButton>
+              <KlayButton
+                size="sm"
+                @click="setStakeValueWithBalance()"
+              >
+                My balance
+              </KlayButton>
+            </div>
           </div>
 
-          <div v-bem="'amounts'">
-            <KlayButton
-              v-for="amount in [10, 100, 1000]"
-              :key="amount"
-              v-bem="'amount'"
-              size="sm"
-              @click="setStakeValueInUSD(amount)"
-            >
-              ${{ amount }}
-            </KlayButton>
-            <KlayButton
-              v-bem="'amount'"
-              size="sm"
-              @click="setStakeValueWithBalance()"
-            >
-              My balance
-            </KlayButton>
-          </div>
-          <span v-bem="'label'"> You will receive (APY = {{ apy.toFixed(2) }}%) </span>
-
-          <div>
-            <InputCurrencyTemplate>
+          <div class="space-y-2">
+            <span class="label"> You will receive (APY = {{ apy.toFixed(2) }}%) </span>
+            <InputCurrencyTemplate bottom>
               <template #input>
                 <input
                   data-testid="receive-value"
@@ -271,48 +263,55 @@ const detailsList = computed(() => {
                 >
               </template>
 
-              <template #bottom-right>
-                <span v-bem="'input-another-units'">
+              <template #bottom-left>
+                <span class="input-alt-units">
                   {{ formattedReceiveValueInAnotherUnits }}
                 </span>
               </template>
             </InputCurrencyTemplate>
           </div>
 
-          <KlayCollapse v-bem="'details'">
+          <KlayCollapse>
             <template #head>
               Details
             </template>
             <template #main>
-              <div
-                v-for="item in detailsList"
-                :key="item.label"
-                v-bem="'details-item'"
-              >
-                <div v-bem="'details-item-label'">
-                  {{ item.label }}
+              <div class="space-y-4 pt-2">
+                <div class="space-y-3">
+                  <div
+                    v-for="item in detailsList"
+                    :key="item.label"
+                    class="details-item"
+                  >
+                    <div>
+                      {{ item.label }}
+                    </div>
+                    <div>
+                      {{ item.value }}
+                    </div>
+                  </div>
                 </div>
-                <div v-bem="'details-item-value'">
-                  {{ item.value }}
-                </div>
+
+                <hr class="klay-divider">
+
+                <ul class="details-list">
+                  <template v-if="type === RoiType.Farming">
+                    <li>Calculated based on current rates.</li>
+                    <li>LP rewards: 0.17% trading fees, distributed proportionally among LP token holders.</li>
+                    <li>
+                      All figures are estimates provided for your convenience only, and by no means represent guaranteed
+                      returns.
+                    </li>
+                  </template>
+                  <template v-else>
+                    <li>Calculated based on current rates.</li>
+                    <li>
+                      All figures are estimates provided for your convenience only, and by no means represent guaranteed
+                      returns.
+                    </li>
+                  </template>
+                </ul>
               </div>
-              <ul v-bem="'details-description'">
-                <template v-if="type === RoiType.Farming">
-                  <li>— Calculated based on current rates.</li>
-                  <li>— LP rewards: 0.17% trading fees, distributed proportionally among LP token holders.</li>
-                  <li>
-                    — All figures are estimates provided for your convenience only, and by no means represent guaranteed
-                    returns.
-                  </li>
-                </template>
-                <template v-else>
-                  <li>— Calculated based on current rates.</li>
-                  <li>
-                    — All figures are estimates provided for your convenience only, and by no means represent guaranteed
-                    returns.
-                  </li>
-                </template>
-              </ul>
             </template>
           </KlayCollapse>
         </div>
@@ -321,55 +320,31 @@ const detailsList = computed(() => {
   </SModal>
 </template>
 
-<style lang="sass">
-@import '@/styles/vars.sass'
+<style lang="scss" scoped>
+@use '@/styles/vars.sass';
 
-.module-earn-shared-roi-calculator
-  width: 345px
-  &__content
-    flex-grow: 1
-    overflow-y: auto
-    display: flex
-    flex-direction: column
-    align-items: flex-start
-  &__label
-    margin-bottom: 8px
-    font-weight: 700
-    font-size: 14px
-  &__compounding-checkbox
-    margin-top: 16px
-    margin-bottom: 8px
-  &__input
-    &-switch
-      cursor: pointer
-    &-another-units
-      font-size: 12px
-      font-weight: 400
-      color: $gray2
-      user-select: none
-  &__amounts
-    margin: 8px 0 24px
-  &__amount
-    flex: 1
-    font-size: 12px
-    font-weight: 700
-    & + &
-      margin-left: 8px
-  &__details
-    margin-top: 16px
-    width: 100%
-    &-item
-      display: flex
-      justify-content: space-between
-      font-size: 12px
-      font-weight: 500
-      line-height: 28px
-    &-description
-      padding-top: 8px
-      font-size: 10px
-      font-weight: 300
-      color: $gray2
-      line-height: 18px
-      border-top: 1px solid $gray5
-      white-space: pre-line
+.label {
+  font-weight: 700;
+  font-size: 14px;
+}
+.details-list {
+  list-style: inside '— ';
+  font-size: 10px;
+  font-weight: 300;
+  color: vars.$gray2;
+  line-height: 18px;
+}
+
+.details-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.input-alt-units {
+  font-size: 12px;
+  font-weight: 400;
+  color: vars.$gray2;
+}
 </style>

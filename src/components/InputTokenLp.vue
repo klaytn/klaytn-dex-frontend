@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { Token, Wei, WeiAsToken, LP_TOKEN_DECIMALS } from '@/core'
-import { formatCurrency } from '@/utils/composable.currency-input'
+import { WeiAsToken, LP_TOKEN_DECIMALS, TokenSymbol } from '@/core'
 import { TokensPair } from '@/utils/pair'
 import BigNumber from 'bignumber.js'
 import { Ref } from 'vue'
 
 const props = defineProps<{
   modelValue: WeiAsToken<BigNumber>
-  balance?: null | Wei
-  tokens?: null | TokensPair<Token | null>
+  symbols?: null | TokensPair<TokenSymbol>
 }>()
 
 const emit = defineEmits(['update:modelValue', 'click:max'])
@@ -31,14 +29,6 @@ watchDebounced(
   },
   { debounce: 500 },
 )
-
-const tokensNormalized = computed(() => {
-  const { tokens } = props
-  if (!tokens?.tokenA || !tokens?.tokenB) return null
-  return tokens as TokensPair<Token>
-})
-
-const balanceAsToken = computed(() => props.balance?.decimals({ decimals: LP_TOKEN_DECIMALS }))
 </script>
 
 <template>
@@ -57,23 +47,20 @@ const balanceAsToken = computed(() => props.balance?.decimals({ decimals: LP_TOK
 
     <template #top-right>
       <div
-        v-if="tokensNormalized"
+        v-if="symbols"
         class="space-x-2 flex items-center"
       >
         <KlaySymbolsPair
-          :token-a="tokensNormalized.tokenA.symbol"
-          :token-b="tokensNormalized.tokenB.symbol"
+          :token-a="symbols.tokenA"
+          :token-b="symbols.tokenB"
         />
 
-        <span class="pair-symbols"> {{ tokensNormalized.tokenA.symbol }}-{{ tokensNormalized.tokenB.symbol }} </span>
+        <span class="pair-symbols"> {{ symbols.tokenA }}-{{ symbols.tokenB }} </span>
       </div>
     </template>
 
     <template #bottom-right>
-      <div class="balance flex items-center">
-        <pre>Balance: </pre>
-        <CurrencyFormatTruncate :amount="balanceAsToken" />
-      </div>
+      <slot name="bottom-right" />
     </template>
   </InputCurrencyTemplate>
 </template>

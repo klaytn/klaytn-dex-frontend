@@ -5,7 +5,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { MaskSymbol, formatCurrency } from '@/utils/composable.currency-input'
+import { MaskSymbol, formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import BigNumber from 'bignumber.js'
 import { SetRequired } from 'type-fest'
 import { PropType } from 'vue'
@@ -38,7 +38,7 @@ const props = defineProps({
 
 const resolvedSymbol = computed<null | SetRequired<MaskSymbol, 'delimiter'>>(() =>
   props.usd
-    ? { str: '$', position: 'left', delimiter: '' }
+    ? SYMBOL_USD
     : props.symbol
     ? { str: props.symbol, delimiter: props.symbolDelimiter, position: props.symbolPosition }
     : null,

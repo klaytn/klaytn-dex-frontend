@@ -1,12 +1,11 @@
 import { Address, Wei } from '@/core'
 import { MAX_UINT256 } from './const'
 import { MaybeRef, or } from '@vueuse/core'
-import { Ref } from 'vue'
 
 export function useEnableState(props: {
   contract: MaybeRef<Address>
   spender: MaybeRef<Address>
-  active: Ref<boolean>
+  active?: MaybeRef<boolean>
 }) {
   const dexStore = useDexStore()
   const { notify } = useNotify()
@@ -14,7 +13,7 @@ export function useEnableState(props: {
   const checkAllowanceScope = useParamScope(
     computed(() => {
       const activeDex = dexStore.active
-      if (activeDex.kind !== 'named' || !unref(props.active)) return null
+      if (activeDex.kind !== 'named' || !(unref(props.active) ?? false)) return null
       const dex = activeDex.dex()
       const spender = unref(props.spender)
       const contract = unref(props.contract)

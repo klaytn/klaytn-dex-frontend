@@ -19,8 +19,8 @@ function open() {
 
       <div>
         <KlaySwitch
-          v-model="swapStore.disableMultiHops"
-          label="Disable multi-hops"
+          v-model="swapStore.multihops"
+          label="Enable multi-hops"
         />
       </div>
     </KlayModalCard>

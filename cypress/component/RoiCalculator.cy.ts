@@ -4,7 +4,9 @@ import { VueTestUtils } from 'cypress/vue'
 import { createI18n } from 'vue-i18n'
 import { testid } from './common'
 
-const getInput = () => cy.get('input' + testid('staked-input'))
+const getInput = () => cy.get('input' + testid('input-staked'))
+const getInputAltUnits = () => cy.get(testid('input-staked-alt-units'))
+const getSwitchBtn = () => cy.get(testid('switch-units'))
 const getReceive = () => cy.get('input' + testid('receive-value'))
 
 function mountFactory() {
@@ -60,6 +62,10 @@ after(() => {
   VueTestUtils.config.global.plugins = []
 })
 
+beforeEach(() => {
+  cy.viewport(550, 800)
+})
+
 describe('RoiCalculator', () => {
   it('playground', () => {
     mountFactory()
@@ -68,11 +74,31 @@ describe('RoiCalculator', () => {
   it('typing value', () => {
     mountFactory()
 
-    getInput().type('123').blur().should('have.value', '10,123 VEN-ARS')
-    getReceive().should('have.value', '1,047.91900973590953494249 DEX')
+    getInput().type('123').blur().should('have.value', '$10,123')
+    getReceive().should('have.value', '$1,047.91900973590953494249')
   })
 
-  it('assert "switch unit" behaviour')
+  it('when "$10" is clicked, then value is set in dollars', () => {
+    mountFactory()
+
+    cy.contains('$10').click()
+    getInput().should('have.value', '$10')
+  })
+
+  it('when units are switched, values are updated accordingly', () => {
+    mountFactory()
+
+    getInput().should('have.value', '$10')
+    getInputAltUnits().should('have.text', '0.05 VEN-ARS')
+    getReceive().should('have.value', '$1.0351862192392665563')
+
+    getSwitchBtn().click()
+
+    getInput().should('have.value', '0.05 VEN-ARS')
+    getInputAltUnits().should('have.text', '$10')
+    getReceive().should('have.value', '0.0051759310961963327815 DEX')
+  })
+
   it('assert value setting by clicking on preset amounts')
   it('assert behaviour on clicking on staked for, compounding every (off/on)')
   it('assert "Details" section has correct data')

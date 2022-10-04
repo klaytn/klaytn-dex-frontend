@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { KlayIconCopy } from '~klay-icons'
-import IcRoundCheck from '~icons/ic/round-check'
 import invariant from 'tiny-invariant'
 
 const store = useDexStore()
@@ -27,15 +25,10 @@ async function copyAddress() {
         :length="6"
       />
     </span>
-    <KlayIconCopy
-      v-if="!copied"
-      :class="$style.icon"
-      class="cursor-pointer"
+    <IconCopyCheck
+      :check="copied"
+      :class="[$style.icon, { 'cursor-pointer': !copied }]"
       @click="copyAddress()"
-    />
-    <IcRoundCheck
-      v-else
-      :class="$style.icon"
     />
   </span>
 </template>
