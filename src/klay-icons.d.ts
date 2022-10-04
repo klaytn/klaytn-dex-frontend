@@ -1,5 +1,6 @@
 declare module '~klay-icons' {
   import { type DefineComponent } from 'vue'
+  export const KlayIconArrowDown_2: DefineComponent<{}, {}, any>
   export const KlayIconArrowDown: DefineComponent<{}, {}, any>
   export const KlayIconBackArrow: DefineComponent<{}, {}, any>
   export const KlayIconBusd: DefineComponent<{}, {}, any>
@@ -11,6 +12,7 @@ declare module '~klay-icons' {
   export const KlayIconCopy: DefineComponent<{}, {}, any>
   export const KlayIconDai: DefineComponent<{}, {}, any>
   export const KlayIconDexLogo: DefineComponent<{}, {}, any>
+  export const KlayIconDownload: DefineComponent<{}, {}, any>
   export const KlayIconEmptyToken: DefineComponent<{}, {}, any>
   export const KlayIconEth: DefineComponent<{}, {}, any>
   export const KlayIconFilters: DefineComponent<{}, {}, any>
@@ -21,6 +23,8 @@ declare module '~klay-icons' {
   export const KlayIconPlus: DefineComponent<{}, {}, any>
   export const KlayIconRefresh: DefineComponent<{}, {}, any>
   export const KlayIconSearch: DefineComponent<{}, {}, any>
+  export const KlayIconSwap: DefineComponent<{}, {}, any>
   export const KlayIconSwitch: DefineComponent<{}, {}, any>
+  export const KlayIconTrashCanOutline: DefineComponent<{}, {}, any>
   export const KlayIconWallet: DefineComponent<{}, {}, any>
 }

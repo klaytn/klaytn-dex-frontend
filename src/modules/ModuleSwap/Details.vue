@@ -1,9 +1,10 @@
 <script setup lang="ts" name="SwapModuleDetails">
+import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import cssRows from '../ModuleTradeShared/rows.module.scss'
 
 const store = useSwapStore()
-const { rates, symbols } = storeToRefs(store)
+const { finalRates: rates, symbols, trade, priceImpact } = storeToRefs(store)
 
 const bothSymbols = computed(() => {
   const { tokenA, tokenB } = symbols.value || {}
@@ -11,15 +12,13 @@ const bothSymbols = computed(() => {
   return null
 })
 
-const route = computed(() => {
-  const { tokenA, tokenB } = bothSymbols.value || {}
-  if (!tokenA || !tokenB) return null
-  return `${tokenA} > ${tokenB}`
+const formattedPriceImpact = computed(() => {
+  return priceImpact.value?.toFormat(2, BigNumber.ROUND_UP) ?? null
 })
 </script>
 
 <template>
-  <div v-if="bothSymbols">
+  <div v-if="trade && bothSymbols && formattedPriceImpact">
     <KlayCollapse>
       <template #head>
         <h3 class="py-2">
@@ -43,9 +42,16 @@ const route = computed(() => {
           </div> -->
 
           <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
+            <span>Price Impact</span>
+            <span>
+              <ValueOrDash :value="formattedPriceImpact" />
+            </span>
+          </div>
+
+          <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
             <span>Route</span>
             <span>
-              <ValueOrDash :value="route" />
+              {{ trade.route.toString() }}
             </span>
           </div>
         </div>

@@ -1,8 +1,7 @@
-import { Address, isNativeToken, Wei } from '@/core'
-import { SwapProps, SwapExactAForB, SwapAForExactB } from '@/core/entities/swap'
+import { Wei, Address, isNativeToken, Trade } from '@/core'
+import { SwapProps } from '@/core/domain/swap'
 import { TokenType } from '@/utils/pair'
 import invariant from 'tiny-invariant'
-import { Except } from 'type-fest'
 
 export interface TokenAddrAndWeiInput {
   addr: Address
@@ -10,46 +9,48 @@ export interface TokenAddrAndWeiInput {
 }
 
 export function buildSwapProps({
+  trade,
   tokenA,
   tokenB,
   referenceToken,
 }: {
+  trade: Trade
   tokenA: TokenAddrAndWeiInput
   tokenB: TokenAddrAndWeiInput
   referenceToken: TokenType
 }): SwapProps {
   invariant(tokenA.addr !== tokenB.addr, 'Cannot swap token for itself')
 
-  const addrs = { addressA: tokenA.addr, addressB: tokenB.addr }
   const isTokenANative = isNativeToken(tokenA.addr)
   const isTokenBNative = isNativeToken(tokenB.addr)
 
   if (referenceToken === 'tokenA') {
     // exact A for B
 
-    const amounts: Except<SwapExactAForB<string, string>, 'mode'> = {
+    const rest = {
       amountIn: tokenA.input,
       amountOutMin: tokenB.input,
+      trade,
     }
 
     return isTokenANative
-      ? { mode: 'exact-eth-for-tokens', ...amounts, ...addrs }
+      ? { mode: 'exact-eth-for-tokens', ...rest }
       : isTokenBNative
-      ? { mode: 'exact-tokens-for-eth', ...amounts, ...addrs }
-      : { mode: 'exact-tokens-for-tokens', ...amounts, ...addrs }
+      ? { mode: 'exact-tokens-for-eth', ...rest }
+      : { mode: 'exact-tokens-for-tokens', ...rest }
   } else {
     // A for exact B
 
-    const amounts: Except<SwapAForExactB<string, string>, 'mode'> = {
-      // FIXME Where A & B come?
+    const rest = {
       amountInMax: tokenA.input,
       amountOut: tokenB.input,
+      trade,
     }
 
     return isTokenANative
-      ? { mode: 'eth-for-exact-tokens', ...amounts, ...addrs }
+      ? { mode: 'eth-for-exact-tokens', ...rest }
       : isTokenBNative
-      ? { mode: 'tokens-for-exact-eth', ...amounts, ...addrs }
-      : { mode: 'tokens-for-exact-tokens', ...amounts, ...addrs }
+      ? { mode: 'tokens-for-exact-eth', ...rest }
+      : { mode: 'tokens-for-exact-tokens', ...rest }
   }
 }

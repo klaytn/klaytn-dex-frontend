@@ -3,21 +3,27 @@ import { storeToRefs } from 'pinia'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { KlayIconArrowDown } from '~klay-icons'
 import { nonNullSet } from '@/utils/common'
+import BigNumber from 'bignumber.js'
+import { WeiAsToken } from '@/core'
+import InputToken from '@/components/InputToken.vue'
 
 const swapStore = useSwapStore()
-const { gettingAmountFor, inputRates } = $(storeToRefs(swapStore))
+const { gettingAmountFor, tokenValues, estimatedFor } = $(storeToRefs(swapStore))
 
 const models = reactive(
   buildPair((type) => {
     return {
-      input: computed({
-        get: () => inputRates[type]?.value,
-        set: (v) => v && swapStore.setTokenValue(type, v),
+      input: computed<WeiAsToken<BigNumber>>({
+        get: () => {
+          const val = tokenValues[type]
+          return new BigNumber(val ?? '0') as WeiAsToken<BigNumber>
+        },
+        set: (v) => swapStore.setToken(type, v.toFixed() as WeiAsToken),
       }),
       addr: computed({
         get: () => swapStore.addrs[type],
         set: (addr) => {
-          swapStore.setToken(type, addr)
+          swapStore.setTokenAddress(type, addr)
         },
       }),
     }
@@ -36,10 +42,10 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(swapStore.addr
       >
         <InputToken
           v-model="models[type].input"
-          v-model:token="models[type].addr"
+          v-model:address="models[type].addr"
           set-by-balance
           :is-loading="gettingAmountFor === type"
-          :estimated="inputRates[type]?.type === 'estimated'"
+          :estimated="estimatedFor === type"
           :selected="allSelectedTokens"
           :data-testid="`swap-input-${type}`"
         />

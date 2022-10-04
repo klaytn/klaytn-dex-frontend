@@ -1,4 +1,5 @@
 import { Address, Token, WeiRaw } from '@/core'
+import { ApolloClientId } from '@/types'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { Except } from 'type-fest'
@@ -16,9 +17,11 @@ export interface PoolsQueryResult {
     createdAtBlock: string
     totalTokensStaked: WeiRaw<string>
     endBlock: string
-    users: {
-      amount: WeiRaw<string>
-    }[]
+    users: [
+      {
+        amount: WeiRaw<string>
+      }?,
+    ]
   }[]
 }
 
@@ -53,9 +56,10 @@ export function usePoolsQuery(userId: Ref<Address | null>) {
     () => ({
       userId: userId.value,
     }),
-    {
-      clientId: 'staking',
+    () => ({
+      clientId: ApolloClientId.Staking,
+      enabled: !!userId.value,
       pollInterval: REFETCH_POOLS_INTERVAL,
-    },
+    }),
   )
 }

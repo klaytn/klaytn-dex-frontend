@@ -5,7 +5,7 @@ import { and, type MaybeRef, not } from '@vueuse/core'
 import { type Ref } from 'vue'
 import { type PromiseStateAtomic } from '@vue-kakuyaku/core'
 import type Caver from 'caver-js'
-import type { AgentProvider } from './entities/agent'
+import type { AgentProvider } from './domain/agent'
 
 const INITIAL_DELAY_TIMEOUT = 300
 
@@ -112,7 +112,7 @@ interface ConnectedProvider {
 
 export function useWeb3Provider(props: { network: AppNetwork }) {
   const { state: detectMetamaskState, run: detectMetamask } = useTask(
-    () => detectEthereumProvider({ mustBeMetaMask: true }) as Promise<null | ExtendedExternalProvider>,
+    () => detectEthereumProvider({ mustBeMetaMask: true, silent: true }) as Promise<null | ExtendedExternalProvider>,
     { immediate: true },
   )
   useErrorRetry(detectMetamaskState, detectMetamask, { count: Infinity, interval: 1_000 })

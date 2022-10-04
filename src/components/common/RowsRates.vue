@@ -30,6 +30,6 @@ function rateByTokenType(type: TokenType) {
       per
       {{ symbols[mirrorTokenType(token)] }}
     </span>
-    <span> <ValueOrDash :value="rateByTokenType(token)" /> </span>
+    <span><CurrencyFormat :amount="rateByTokenType(token)" /></span>
   </div>
 </template>

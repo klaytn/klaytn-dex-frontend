@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Token, Wei } from '@/core'
-import { roundTo } from 'round-to'
 
 const props = defineProps<{
   token?: Token | null
@@ -8,22 +7,24 @@ const props = defineProps<{
   isLoading?: boolean
 }>()
 
-const roundedTokenRelativeAmount = computed(() => {
-  const { token, amount } = props
-  if (token && amount) {
-    const value = amount.toToken(token)
-    return roundTo(Number(value), 7)
-  }
-  return null
-})
+const amountAsToken = computed(() => (props.token && props.amount && props.amount.decimals(props.token)) ?? null)
 </script>
 
 <template>
-  <InputTokenTemplate
-    :model-value="roundedTokenRelativeAmount?.toString()"
-    input-readonly
-    :input-loading="isLoading"
-  >
+  <InputCurrencyTemplate :loading="isLoading">
+    <template #input>
+      <CurrencyFormat
+        v-slot="{ formatted }"
+        :amount="amountAsToken"
+      >
+        <input
+          readonly
+          :value="formatted"
+          placeholder="—"
+        >
+      </CurrencyFormat>
+    </template>
+
     <template #top-right>
       <div
         v-if="token"
@@ -33,7 +34,7 @@ const roundedTokenRelativeAmount = computed(() => {
         <span class="token-symbol">{{ token.symbol }}</span>
       </div>
     </template>
-  </InputTokenTemplate>
+  </InputCurrencyTemplate>
 </template>
 
 <style lang="scss">

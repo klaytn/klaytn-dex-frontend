@@ -1,5 +1,14 @@
 <script setup lang="ts">
+import BigNumber from 'bignumber.js'
+import { storeToRefs } from 'pinia'
 import cssRows from '../ModuleTradeShared/rows.module.scss'
+
+const store = useSwapStore()
+const { priceImpact } = storeToRefs(store)
+
+const formattedPriceImpact = computed(() => {
+  return priceImpact.value?.toFormat(2, BigNumber.ROUND_UP) ?? null
+})
 </script>
 
 <template>
@@ -15,7 +24,7 @@ import cssRows from '../ModuleTradeShared/rows.module.scss'
       </div>
       <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
         <span>Price Impact</span>
-        <span>?</span>
+        <span>{{ formattedPriceImpact }}</span>
       </div>
       <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
         <span>Network + LP Fee</span>
@@ -27,7 +36,7 @@ import cssRows from '../ModuleTradeShared/rows.module.scss'
 
     <p class="px-4 note">
       Output is estimated. You will receive at least <i>... XXX</i>
-      or the transacction will revert
+      or the transaction will revert
     </p>
   </div>
 </template>

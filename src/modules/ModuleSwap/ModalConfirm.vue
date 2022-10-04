@@ -7,7 +7,14 @@ const { swapState } = storeToRefs(store)
 
 const show = computed({
   get: () => store.prepareState?.fulfilled,
-  set: (v) => !v && store.clearSwap(),
+  set: (v) => {
+    if (!v) {
+      if (swapState.value?.fulfilled) {
+        store.resetInput()
+      }
+      store.clearSwap()
+    }
+  },
 })
 </script>
 

@@ -1,11 +1,13 @@
 import { isAddress as ethersIsAddress } from '@ethersproject/address'
-import type { Address, Deadline } from './types'
-import { Wei } from './entities'
+import type { Address, BigNumberIsh, Deadline } from './types'
+import Wei from './entities/Wei'
+import BigNumber from 'bignumber.js'
+import invariant from 'tiny-invariant'
 
 export const isAddress = ethersIsAddress as (raw: string) => raw is Address
 
-export function formatAddress(address: Address): string {
-  return `${address.slice(2, 6)}....${address.slice(-4)}`
+export function formatAddress(address: Address, length = 4, keepPrefix = false): string {
+  return `${address.slice(keepPrefix ? 0 : 2, 2 + length)}....${address.slice(-length)}`
 }
 
 export function isEmptyAddress(address: Address): boolean {
@@ -27,4 +29,17 @@ export function deadlineFiveMinutesFromNow(): Deadline {
  */
 export function computeTransactionFee(gasPrice: Wei, gas: number | bigint): Wei {
   return new Wei(gasPrice.asBigInt * BigInt(gas))
+}
+
+export function parseBigNumberIsh(value: BigNumberIsh): BigNumber {
+  if (typeof value === 'bigint') return new BigNumber(value.toString())
+  if (value instanceof BigNumber) return value
+  return new BigNumber(value)
+}
+
+export function parseBigIntIsh(value: BigNumberIsh): bigint {
+  if (typeof value === 'bigint') return value
+  const bigNumberValue = parseBigNumberIsh(value)
+  invariant(bigNumberValue.isInteger, 'value in not an integer')
+  return BigInt(bigNumberValue.toFixed(0))
 }

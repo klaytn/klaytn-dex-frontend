@@ -1,4 +1,5 @@
-import { Wei } from '@/core'
+import { POOL_COMMISSION, Wei, WeiAsToken } from '@/core'
+import { Price, TokenAmount, Percent, Fraction } from '@/core'
 import { Tab } from '@/types'
 import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'
@@ -28,6 +29,10 @@ export function formatPercent(v1: string, v2: string) {
 
 export function deepClone<T>(object: T): T {
   return reallyFastDeepClone(object)
+}
+
+export function arrayEquals<T>(a: T[], b: T[]): boolean {
+  return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((val, index) => val === b[index])
 }
 
 export function stringHashForHsl(str: string): number {
@@ -62,6 +67,23 @@ export function roundRates({ a_per_b, b_per_a }: Rates): RatesRounded {
   }
 }
 
+// export function computePriceImpact(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
+//   const feeCoefficient = new Fraction(1).plus(POOL_COMMISSION)
+//   const exactQuote = TokenAmount.fromToken(
+//     outputAmount.token,
+//     midPrice
+//       .toFraction()
+//       .dividedBy(feeCoefficient)
+//       .multipliedBy(inputAmount.toFraction())
+//       .toFixed(outputAmount.currency.decimals) as WeiAsToken,
+//   )
+//   const slippage = exactQuote.minus(outputAmount).dividedBy(exactQuote)
+//   return new Percent(slippage.numerator, slippage.denominator)
+// }
+
+/**
+ * Serializer for {@link @vueuse/core#useLocalStorage()}
+ */
 export const JSON_SERIALIZER: Serializer<JsonValue> = {
   read: (raw) => JSON.parse(raw),
   write: (parsed) => JSON.stringify(parsed),
@@ -75,30 +97,6 @@ export function nonNullSet<T>(values: (null | undefined | T)[]): Set<T> {
   return set
 }
 
-if (import.meta.vitest) {
-  const { test, expect, describe } = import.meta.vitest
-
-  describe('format rate', () => {
-    test('case 1', () => {
-      expect(formatRate('423', '20')).toMatchInlineSnapshot('"21.15000"')
-    })
-
-    test('case 2', () => {
-      expect(formatRate('1000', '3.5')).toMatchInlineSnapshot('"285.71429"')
-    })
-  })
-
-  describe('format percent', () => {
-    test('case 1', () => {
-      expect(formatPercent('423', '20')).toMatchInlineSnapshot('"5.00%"')
-    })
-
-    test('case 2', () => {
-      expect(formatPercent('1000', '3.5')).toMatchInlineSnapshot('"0.35%"')
-    })
-  })
-}
-
 export function shortenStringInTheMiddle(string: string) {
   const stringLength = string.length
   return `${string.slice(2, 6)}...${string.slice(stringLength - 6, stringLength - 2)}`
@@ -109,4 +107,8 @@ export function makeTabsArray(data: string[]): Tab[] {
     id: item,
     label: item,
   }))
+}
+
+export function formatNumberWithCommas(value: string | number | BigNumber): string {
+  return value.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ',')
 }
