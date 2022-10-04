@@ -80,7 +80,7 @@ function useQuoting(props: { pair: Ref<null | PairAddressResult>; mainInput: Ref
   return { pendingFor, exchangeRate, touch }
 }
 
-function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null>; whenSupplied: () => void }) {
+function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null> }) {
   const dexStore = useDexStore()
   const { notify } = useNotify()
 
@@ -126,7 +126,6 @@ function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null>; whenSupplie
     useNotifyOnError(statePrepare, notify, 'Preparation failed')
     useNotifyOnError(stateSupply, notify, 'Liquidity addition failed')
     wheneverFulfilled(stateSupply, () => {
-      props.whenSupplied()
       notify({ type: 'ok', description: 'Liquidity addition succeeded!' })
     })
 
@@ -191,8 +190,17 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   // #region Pair balance & reserves
 
-  const { result: pairBalance, touch: touchPairBalance } = usePairBalance(addrsReadonly, doesPairExist)
-  const { result: pairReserves, touch: touchPairReserves } = usePairReserves(addrsReadonly, doesPairExist)
+  const {
+    result: pairBalance,
+    touch: touchPairBalance,
+    pending: isPairBalancePending,
+  } = usePairBalance(addrsReadonly, doesPairExist)
+
+  const {
+    result: pairReserves,
+    touch: touchPairReserves,
+    pending: isPairReservesPending,
+  } = usePairReserves(addrsReadonly, doesPairExist)
 
   const {
     userBalance: pairUserBalance,
@@ -299,20 +307,31 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     }),
   )
 
-  const {
-    prepare: prepareSupply,
-    clear: clearSupply,
-    scope: supplyScope,
-  } = usePrepareSupply({
-    tokens: supplyTokens,
-    whenSupplied() {
-      touchPairBalance()
-      touchPairReserves()
-      touchQuote()
-      tokensStore.touchUserBalance()
-      router.push({ name: RouteName.Liquidity })
-    },
-  })
+  const { prepare: prepareSupply, clear: clearSupply, scope: supplyScope } = usePrepareSupply({ tokens: supplyTokens })
+
+  const closeSupply = () => {
+    clearSupply()
+    refresh()
+    router.push({ name: RouteName.Liquidity })
+  }
+
+  // #endregion
+
+  // #region etc
+
+  const isRefreshing = logicOr(
+    toRef(tokensStore, 'isBalancePending'),
+    isPairBalancePending,
+    isPairReservesPending,
+    computed(() => !!isQuotePendingFor.value),
+  )
+
+  const refresh = () => {
+    touchPairBalance()
+    touchPairReserves()
+    touchQuote()
+    tokensStore.touchUserBalance()
+  }
 
   // #endregion
 
@@ -340,9 +359,12 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     resetInput,
 
     finalRates,
-    prepareSupply,
-    clearSupply,
     supplyScope,
+    prepareSupply,
+    closeSupply,
+
+    isRefreshing,
+    refresh,
   }
 })
 
