@@ -17,16 +17,24 @@ const { notify } = useNotify()
 const router = useRouter()
 const { t } = useI18n()
 
-const props = defineProps<{
-  pool: Pool
-}>()
+const props = withDefaults(
+  defineProps<{
+    pool: Pool
+    expanded?: boolean
+  }>(),
+  { expanded: false },
+)
+
 const { pool } = toRefs(props)
+
 const emit = defineEmits<{
   (e: 'staked' | 'unstaked', value: WeiAsToken): void
   (e: 'withdrawn'): void
+  (e: 'update:expanded', value: boolean): void
 }>()
 
-const expanded = ref(false)
+const expanded = useVModel(props, 'expanded', emit, { passive: true })
+
 const modalOperation = ref<ModalOperation | null>(null)
 const showRoiCalculator = ref(false)
 const roiType = RoiType.Farming

@@ -12,16 +12,16 @@ const props = defineProps<{
   alwaysOpened?: boolean
 }>()
 
-const { liquidityTokenBalance, pair } = $(toRefs(toRef(props, 'data')))
-const { name, reserve0, reserve1, reserveKLAY, reserveUSD, totalSupply, token0, token1 } = $(toRefs($$(pair)))
+const { liquidityTokenBalance, pair } = toRefs(toRef(props, 'data'))
+const pairReactive = toReactive(pair)
 
 const pairAddrs = computed(() => ({
-  tokenA: token0.id,
-  tokenB: token1.id,
+  tokenA: pairReactive.token0.id,
+  tokenB: pairReactive.token1.id,
 }))
 
 const formattedPoolShare = useFormattedPercent(
-  computed(() => new BigNumber(liquidityTokenBalance).dividedBy(totalSupply).toNumber()),
+  computed(() => new BigNumber(liquidityTokenBalance.value).dividedBy(pairReactive.totalSupply).toNumber()),
   7,
 )
 
@@ -39,6 +39,13 @@ function goToRemoveLiquidity() {
   rmLiquidityStore.setTokens(pairAddrs.value)
   router.push({ name: RouteName.LiquidityRemove })
 }
+
+const farmingStore = useFarmingStore()
+
+function goToFarms() {
+  farmingStore.setFilterByPairName(pair.value.name)
+  router.push({ name: RouteName.Farms })
+}
 </script>
 
 <template>
@@ -46,18 +53,18 @@ function goToRemoveLiquidity() {
     <template #head>
       <div class="head flex items-center space-x-2">
         <KlaySymbolsPair
-          :token-a="token0.symbol"
-          :token-b="token1.symbol"
+          :token-a="pair.token0.symbol"
+          :token-b="pair.token1.symbol"
         />
-        <span>{{ name }}</span>
+        <span>{{ pair.name }}</span>
         <span>
           <CurrencyFormat
-            :amount="reserveKLAY"
+            :amount="pair.reserveKLAY"
             :decimals="3"
           />
         </span>
         <span class="reserve-usd">(<CurrencyFormat
-          :amount="reserveUSD"
+          :amount="pair.reserveUSD"
           :decimals="2"
           symbol="$"
           symbol-delimiter=""
@@ -69,19 +76,19 @@ function goToRemoveLiquidity() {
     <template #main>
       <div class="space-y-4 pt-4">
         <div :class="cssRowMd">
-          <span>Pooled {{ token0.name }}</span>
+          <span>Pooled {{ pair.token0.name }}</span>
           <span>
             <CurrencyFormat
-              :amount="reserve0"
+              :amount="pair.reserve0"
               :decimals="5"
             />
           </span>
         </div>
         <div :class="cssRowMd">
-          <span>Pooled {{ token1.name }}</span>
+          <span>Pooled {{ pair.token1.name }}</span>
           <span>
             <CurrencyFormat
-              :amount="reserve1"
+              :amount="pair.reserve1"
               :decimals="5"
             />
           </span>
@@ -111,7 +118,7 @@ function goToRemoveLiquidity() {
           </KlayButton>
           <KlayButton
             type="primary"
-            disabled
+            @click="goToFarms()"
           >
             Deposit
           </KlayButton>

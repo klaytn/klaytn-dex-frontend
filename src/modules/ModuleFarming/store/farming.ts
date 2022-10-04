@@ -6,7 +6,16 @@ export const useFarmingStore = defineStore('farming', () => {
   const searchQuery = ref('')
   const sorting = ref<Sorting>(Sorting.Default)
 
-  return { stakedOnly, searchQuery, sorting }
+  function setFilterByPairName(name: string) {
+    searchQuery.value = name
+  }
+
+  return {
+    stakedOnly,
+    searchQuery,
+    sorting,
+    setFilterByPairName,
+  }
 })
 
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useFarmingStore, import.meta.hot))
