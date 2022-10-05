@@ -4,10 +4,16 @@ import { Tab } from './const'
 
 const active = useLocalStorage<Tab>('liquidity-remove-active-tab', 'amount')
 
-const store = useLiquidityRmStore()
-const { prepareSupplyState, isReadyToPrepareSupply } = storeToRefs(store)
+const rmStore = useLiquidityRmStore()
+const { prepareSupplyState, isReadyToPrepareSupply } = storeToRefs(rmStore)
 
-onUnmounted(() => store.clear())
+const rmSelectionStore = useLiquidityRmSelectionStore()
+
+rmSelectionStore.setRouteIsActive(true)
+onUnmounted(() => {
+  rmSelectionStore.setRouteIsActive(false)
+  rmStore.clear()
+})
 </script>
 
 <template>
@@ -23,7 +29,7 @@ onUnmounted(() => store.clear())
       class="w-full"
       :loading="prepareSupplyState?.pending"
       :disabled="!isReadyToPrepareSupply"
-      @click="store.prepareSupply()"
+      @click="rmStore.prepareSupply()"
     >
       Remove
     </KlayButton>
