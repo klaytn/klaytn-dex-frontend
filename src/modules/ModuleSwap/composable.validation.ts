@@ -36,12 +36,13 @@ export function useSwapValidation({
 }: ValidationProps): Ref<ValidationResult> {
   return computed(() => {
     if (wallet.value === 'anonymous') return resultErr(ValidationError.WalletIsNotConnected)
-    if (!(selected.tokenA && selected.tokenB && tokenAInput.value)) return resultErr(ValidationError.UnselectedTokens)
+    if (!(selected.tokenA && selected.tokenB && (tokenAInput.value?.asBigInt ?? 0n) > 0n))
+      return resultErr(ValidationError.UnselectedTokens)
     if (trade.value === 'pending') return resultPending()
     if (trade.value === 'route-not-found') return resultErr(ValidationError.RouteNotFound)
     if (trade.value === 'price-impact-is-too-high') return resultErr(ValidationError.PriceImpactIsTooHigh)
     if (!tokenABalance.value) return resultPending()
-    if (tokenABalance.value.asBigInt < tokenAInput.value.asBigInt)
+    if (tokenABalance.value.asBigInt < tokenAInput.value!.asBigInt)
       return resultErr(ValidationError.InsufficientBalanceOfInputToken)
 
     return resultOk()
@@ -137,6 +138,18 @@ if (import.meta.vitest) {
       })
 
       expect(validation.value).toEqual(resultErr(ValidationError.PriceImpactIsTooHigh))
+    })
+
+    test('When tokenA value exists, but it is 0, then validation fails to "Select tokens"', () => {
+      const validation = useSwapValidation({
+        selected: buildPair(() => true),
+        tokenABalance: shallowRef(null),
+        tokenAInput: shallowRef(new Wei(0)),
+        trade: ref('pending'),
+        wallet: ref('connected'),
+      })
+
+      expect(validation.value).toEqual(resultErr(ValidationError.UnselectedTokens))
     })
   })
 }

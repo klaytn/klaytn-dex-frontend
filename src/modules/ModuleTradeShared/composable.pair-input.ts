@@ -2,6 +2,7 @@ import { Address, Wei, WeiAsToken } from '@/core'
 import { JSON_SERIALIZER } from '@/utils/common'
 import { emptyPair, buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
 import { Serializer } from '@vueuse/core'
+import BigNumber from 'bignumber.js'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 
@@ -124,8 +125,13 @@ export function useEstimatedLayer({ tokenValues }: Pick<PairInputReturn, 'tokenV
   const isUpToDate = ref(false)
 
   function setMainToken(type: TokenType, token: WeiAsToken) {
-    tokenValues[type] = token
-    estimatedFor.value = mirrorTokenType(type)
+    if (new BigNumber(token).isZero()) {
+      tokenValues.tokenA = tokenValues.tokenB = token
+      estimatedFor.value = null
+    } else {
+      tokenValues[type] = token
+      estimatedFor.value = mirrorTokenType(type)
+    }
     isUpToDate.value = false
   }
 
