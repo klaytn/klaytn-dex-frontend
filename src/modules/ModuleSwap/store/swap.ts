@@ -208,7 +208,11 @@ export const useSwapStore = defineStore('swap', () => {
   const trade = computed(() => (tradeResult.value?.kind === 'ok' ? tradeResult.value.trade : null))
   const priceImpact = computed(() => trade.value?.priceImpact ?? null)
 
-  const { gotAmountFor, gettingAmountFor } = useSwapAmounts(
+  const {
+    gotAmountFor,
+    gettingAmountFor,
+    touch: touchAmounts,
+  } = useSwapAmounts(
     computed<GetAmountsProps | null>(() => {
       const input = inputAmount.value
       if (!input) return null
@@ -309,6 +313,22 @@ export const useSwapStore = defineStore('swap', () => {
 
   // #endregion
 
+  // #region etc
+
+  const isRefreshing = logicOr(
+    toRef(tokensStore, 'isBalancePending'),
+    toRef(tokensStore, 'isDerivedUSDPending'),
+    computed(() => !!gettingAmountFor.value),
+  )
+
+  const refresh = () => {
+    tokensStore.touchUserBalance()
+    tokensStore.touchDerivedUsd()
+    touchAmounts()
+  }
+
+  // #endregion
+
   return {
     tokenValues: readonly(tokenValues),
     finalRates,
@@ -340,6 +360,9 @@ export const useSwapStore = defineStore('swap', () => {
 
     slippageTolerance,
     multihops,
+
+    isRefreshing,
+    refresh,
   }
 })
 

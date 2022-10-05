@@ -20,7 +20,6 @@ function usePrepareSupply(props: {
   pairAddress: Ref<null | Address>
   liquidity: Ref<Wei | null>
   amounts: Ref<null | TokensPair<Wei>>
-  whenSupplied: () => void
 }) {
   const dexStore = useDexStore()
   const { notify } = useNotify()
@@ -75,7 +74,6 @@ function usePrepareSupply(props: {
 
     usePromiseLog(supplyState, 'liquidity-remove-supply')
     useNotifyOnError(supplyState, notify, 'Supply failed')
-    wheneverFulfilled(supplyState, props.whenSupplied)
 
     const fee = computed(() => prepareState.fulfilled?.value?.fee)
 
@@ -309,9 +307,6 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     pairAddress: computed(() => existingPair.value?.addr ?? null),
     liquidity,
     amounts,
-    whenSupplied: () => {
-      tokensStore.touchUserBalance()
-    },
   })
 
   function closeSupply() {
@@ -323,6 +318,29 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
     clearSupply()
     navigateToLiquidity()
+  }
+
+  // #endregion
+
+  // #region etc
+
+  /**
+   * **NOTE**: we ignore `isPairPending` here.
+   * We ignore it in "Refresh" logic in general.
+   * Is that an issue?
+   */
+  const isRefreshing = logicOr(
+    isAmountsPending,
+    isPairBalancePending,
+    isReservesPending,
+    toRef(tokensStore, 'isBalancePending'),
+  )
+
+  const refresh = () => {
+    touchAmounts()
+    touchPairBalance()
+    touchPairReserves()
+    tokensStore.touchUserBalance()
   }
 
   // #endregion
@@ -359,6 +377,9 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     clear,
     supply,
     closeSupply,
+
+    isRefreshing,
+    refresh,
   }
 })
 

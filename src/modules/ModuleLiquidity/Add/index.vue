@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { useTradeStore } from '@/modules/ModuleTradeShared/trade-store'
+
 const addStore = useLiquidityAddStore()
 const dexStore = useDexStore()
 
@@ -10,6 +12,11 @@ const isSupplyDisabled = computed(() => {
 
 const supplyLabel = computed(() => {
   return dexStore.isWalletConnected ? 'Supply' : 'Connect Wallet'
+})
+
+useTradeStore().useRefresh({
+  run: () => addStore.refresh(),
+  pending: toRef(addStore, 'isRefreshing'),
 })
 </script>
 

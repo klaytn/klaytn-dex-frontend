@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { useTradeStore } from '@/modules/ModuleTradeShared/trade-store'
 import { RouteName } from '@/types'
-import { KlayIconBackArrow, KlayIconFilters } from '~klay-icons'
+import invariant from 'tiny-invariant'
+import { KlayIconBackArrow, KlayIconFilters, KlayIconRefresh } from '~klay-icons'
 import TheTokensApiProvider from '@/components/TheTokensApiProvider.vue'
 
 // const tokensStore = useTokensStore()
@@ -24,6 +26,8 @@ const liquiditySubSection = computed(() => {
   }
 })
 
+const isSwapActive = computed(() => route.name === RouteName.Swap)
+
 const headLinks: {
   toName: RouteName
   label: string
@@ -38,9 +42,16 @@ const headLinks: {
   },
 ]
 
-// function refresh() {
-//   tokensStore.touchUserBalance()
-// }
+const tradeStore = useTradeStore()
+
+const showRefreshButton = computed(() => !!tradeStore.refresh)
+const isRefreshing = computed(() => unref(tradeStore.refresh?.pending) ?? false)
+
+function refresh() {
+  const api = tradeStore.refresh
+  invariant(api)
+  api.run()
+}
 </script>
 
 <template>
@@ -80,6 +91,7 @@ const headLinks: {
 
         <ModuleSwapModalPreferences v-slot="{ open }">
           <KlayButton
+            v-if="isSwapActive"
             type="action"
             rounded
             @click="open()"
@@ -90,16 +102,17 @@ const headLinks: {
           </KlayButton>
         </ModuleSwapModalPreferences>
 
-        <!-- <KlayButton
+        <KlayButton
+          v-if="showRefreshButton"
           type="action"
           rounded
-          :loading="isBalancePending || isImportedPending"
+          :loading="isRefreshing"
           @click="refresh"
         >
           <template #icon>
             <KlayIconRefresh />
           </template>
-        </KlayButton> -->
+        </KlayButton>
       </div>
 
       <RouterView />

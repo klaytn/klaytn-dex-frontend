@@ -11,11 +11,7 @@ function supply() {
 
 const show = computed({
   get: () => supplyScope.value?.prepareState.fulfilled ?? false,
-  set: (flag) => {
-    if (!flag) {
-      store.clearSupply()
-    }
-  },
+  set: (flag) => !flag && store.closeSupply(),
 })
 </script>
 

@@ -1,15 +1,22 @@
 <script lang="ts" setup>
+import { useTradeStore } from '@/modules/ModuleTradeShared/trade-store'
 import { storeToRefs } from 'pinia'
 import { Tab } from './const'
 
 const active = useLocalStorage<Tab>('liquidity-remove-active-tab', 'amount')
 
 const rmStore = useLiquidityRmStore()
-const { prepareSupplyState, isReadyToPrepareSupply } = storeToRefs(rmStore)
+const { prepareSupplyState, isReadyToPrepareSupply, isRefreshing } = storeToRefs(rmStore)
+
+useTradeStore().useRefresh({
+  run: () => rmStore.refresh(),
+  pending: isRefreshing,
+})
 
 const rmSelectionStore = useLiquidityRmSelectionStore()
 
 rmSelectionStore.setRouteIsActive(true)
+
 onUnmounted(() => {
   rmSelectionStore.setRouteIsActive(false)
   rmStore.clear()
