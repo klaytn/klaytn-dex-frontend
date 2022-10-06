@@ -73,11 +73,6 @@ export default createRouter({
       component: () => import('./pages/voting/[id].vue'),
     },
     {
-      name: RouteName.Charts,
-      path: '/charts',
-      component: () => import('./pages/charts.vue'),
-    },
-    {
       path: '/:catchAll(.*)*',
       redirect: { name: RouteName.Swap },
     },
