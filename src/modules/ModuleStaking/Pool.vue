@@ -136,7 +136,7 @@ usePromiseLog(withdrawState, 'staking-pool-withdraw')
 wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
     const { earned } = result.fulfilled.value
-    invariant(earned, 'earned is null')
+    invariant(earned)
     const formatted = formatCurrency({
       amount: earned,
       symbol: { str: props.pool.rewardToken.symbol, position: 'right' },

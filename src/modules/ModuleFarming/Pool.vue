@@ -118,7 +118,7 @@ usePromiseLog(withdrawState, 'farming-pool-withdraw')
 wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
     const { earned } = result.fulfilled.value
-    invariant(earned, 'earned is null')
+    invariant(earned)
     const formatted = formatCurrency({ amount: earned })
     notify({ type: 'ok', description: `${formatted} DEX tokens were withdrawn` })
     emit('withdrawn')

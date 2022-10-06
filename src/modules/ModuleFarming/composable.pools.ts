@@ -140,7 +140,7 @@ function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): num
     case Sorting.Multiplier:
       return poolB.multiplier.comparedTo(poolA.multiplier)
     case Sorting.Earned:
-      invariant(poolB.earned && poolA.earned, 'earned is null')
+      invariant(poolB.earned && poolA.earned)
       return poolB.earned.comparedTo(poolA.earned)
     case Sorting.Latest:
       return poolB.createdAtBlock - poolA.createdAtBlock

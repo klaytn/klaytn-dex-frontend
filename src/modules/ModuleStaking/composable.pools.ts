@@ -114,7 +114,7 @@ function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): num
     case Sorting.AnnualPercentageRate:
       return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.Earned:
-      invariant(poolB.earned && poolA.earned, 'earned is null')
+      invariant(poolB.earned && poolA.earned)
       return poolB.earned.comparedTo(poolA.earned)
     case Sorting.TotalStaked:
       return poolB.totalStaked.comparedTo(poolA.totalStaked)
