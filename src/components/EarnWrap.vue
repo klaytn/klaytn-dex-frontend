@@ -52,10 +52,10 @@ const searchQuery = computed({
 })
 
 const sortingOptions = computed(() => {
-  const filteredFarmingSortingOptions = Object.values(FarmingSorting).filter(option => {
+  const filteredFarmingSortingOptions = Object.values(FarmingSorting).filter((option) => {
     return dexStore.isWalletConnected || option !== FarmingSorting.Earned
   })
-  const filteredStakingSortingOptions = Object.values(StakingSorting).filter(option => {
+  const filteredStakingSortingOptions = Object.values(StakingSorting).filter((option) => {
     return dexStore.isWalletConnected || option !== StakingSorting.Earned
   })
 

@@ -88,11 +88,7 @@ const poolsFiltered = useFilteredPools(poolsMapped, { stakedOnly, searchQuery })
 
 const poolsSorted = useSortedPools(poolsFiltered, sorting)
 
-const isLoading = or(
-  FarmingQuery.loading,
-  LiquidityPositionsQuery.loading,
-  PairsAndRewardTokenQuery.loading,
-)
+const isLoading = or(FarmingQuery.loading, LiquidityPositionsQuery.loading, PairsAndRewardTokenQuery.loading)
 
 for (const [QueryName, Query] of Object.entries({
   FarmingQuery,
