@@ -7,16 +7,9 @@ import WalletConnectButton from './WalletConnectButton.vue'
 import WalletIcon from './WalletIcon.vue'
 
 const store = useDexStore()
-const { account, selectedWallet, connectState, isChainCorrect, isChainLoaded, isProviderSetupPending } =
-  storeToRefs(store)
+const { account, selectedWallet, isChainCorrect, isChainLoaded, isProviderSetupPending } = storeToRefs(store)
 
 const openModal = ref(false)
-whenever(
-  () => !!connectState.value?.fulfilled,
-  () => {
-    openModal.value = false
-  },
-)
 
 const wrongChain = and(isChainLoaded, not(isChainCorrect))
 
