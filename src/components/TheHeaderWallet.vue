@@ -9,18 +9,13 @@ import WalletIcon from './WalletIcon.vue'
 const store = useDexStore()
 const { account, selectedWallet, isChainCorrect, isChainLoaded, isProviderSetupPending } = storeToRefs(store)
 
-const openModal = ref(false)
-
 const wrongChain = and(isChainLoaded, not(isChainCorrect))
 
 const addressFormatted = computed(() => account.value && formatAddress(account.value))
 </script>
 
 <template>
-  <WalletConnectButton
-    v-if="!selectedWallet"
-    @click="openModal = true"
-  />
+  <WalletConnectButton v-if="!selectedWallet" />
 
   <SPopover
     v-else
