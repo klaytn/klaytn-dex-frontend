@@ -35,7 +35,7 @@ function sortReservesForQuote({
   tokenA: Address
   quoteFor: TokenType
 }): PairReserves {
-  if (quoteFor === 'tokenB' && token0 === tokenA) return reserves
+  if (quoteFor === 'tokenB' && token0.toLowerCase() === tokenA.toLowerCase()) return reserves
   return { reserve0: reserves.reserve1, reserve1: reserves.reserve0 }
 }
 
@@ -199,4 +199,30 @@ export class Tokens extends TokensPure {
     const userBalance = new Wei(await contract.balanceOf([this.address]).call())
     return { totalSupply, userBalance }
   }
+}
+
+if (import.meta.vitest) {
+  const { describe, test, expect } = import.meta.vitest
+
+  describe('Sorting reserves for quote', () => {
+    const RESERVES: PairReserves = { reserve0: new Wei(1000), reserve1: new Wei(2000) }
+    // const RESERVES_REVERSED: PairReserves = { reserve0: RESERVES.reserve1, reserve1: RESERVES.reserve0 }
+    const token0 = '0x2486A551714F947C386Fe9c8b895C2A6b3275EC9' as Address
+    const tokenA = '0x2486a551714f947c386fe9c8b895c2a6b3275ec9' as Address
+
+    test.todo('When quote is for B and token A is first, returns reserves as-is')
+
+    test.todo('When quote is not for B, returns reversed')
+
+    test.todo('When quote is for A, but token A is second, returns reversed')
+
+    test('Returns reserves as is even when token A and first token have same addresses in different cases', () => {
+      expect(sortReservesForQuote({ reserves: RESERVES, token0, tokenA, quoteFor: 'tokenB' })).toMatchInlineSnapshot(`
+        {
+          "reserve0": "1000",
+          "reserve1": "2000",
+        }
+      `)
+    })
+  })
 }
