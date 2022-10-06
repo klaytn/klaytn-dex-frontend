@@ -87,6 +87,7 @@ declare module '@vue/runtime-core' {
     ModuleStakingPool: typeof import('./modules/ModuleStaking/Pool.vue')['default']
     ModuleStakingPoolHead: typeof import('./modules/ModuleStaking/PoolHead.vue')['default']
     ModuleSwapDetails: typeof import('./modules/ModuleSwap/Details.vue')['default']
+    ModuleSwapDetailsRowSlippage: typeof import('./modules/ModuleSwap/DetailsRowSlippage.vue')['default']
     ModuleSwapExchangeRate: typeof import('./modules/ModuleSwap/ExchangeRate.vue')['default']
     ModuleSwapModalConfirm: typeof import('./modules/ModuleSwap/ModalConfirm.vue')['default']
     ModuleSwapModalConfirmDetails: typeof import('./modules/ModuleSwap/ModalConfirmDetails.vue')['default']
