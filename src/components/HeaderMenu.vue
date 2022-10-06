@@ -1,6 +1,6 @@
 <script setup lang="ts" name="HeaderMenu">
 import { RouteName, HeaderMenuItem } from '@/types'
-import { KlayIconLink } from '~klay-icons'
+import { KlayIconArrowOutward } from '~klay-icons'
 
 const props = defineProps<{
   items: HeaderMenuItem[]
@@ -49,7 +49,7 @@ const itemsWithActive = computed(() =>
         class="header-item flex items-center space-x-2"
       >
         <span> {{ item.label }} </span>
-        <KlayIconLink class="icon-link" />
+        <KlayIconArrowOutward class="icon-link" />
       </a>
     </template>
   </div>
