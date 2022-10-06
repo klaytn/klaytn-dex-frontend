@@ -1,13 +1,12 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, TokenSymbol, Trade, WeiAsToken, Wei, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS } from '@/core'
-import BigNumber from 'bignumber.js'
+import { Address, TokenSymbol, WeiAsToken, Wei, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS, Percent } from '@/core'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
-import { useSwapAmounts, GetAmountsProps } from '../composable.get-amounts'
+import { useSwapAmounts, GetAmountsProps, useSlippage, useSlippageParsed } from '../composable.get-amounts'
 import { useTrade } from '../composable.trade'
 import { useSwapValidation } from '../composable.validation'
-import { buildSwapProps, TokenAddrAndWeiInput } from '../util.swap-props'
+import { buildSwapProps, PropsToBuildSwapProps } from '../util.swap-props'
 import {
   usePairInput,
   useEstimatedLayer,
@@ -18,13 +17,14 @@ import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { usePairsQuery } from '../query.pairs'
+import { numberToPercent } from '@/utils/common'
+
+const SLIPPAGE_PRECISION = 5
 
 const debugModule = Debug('swap-store')
 
-type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { trade: Trade; amountFor: TokenType }
-
 function useSwap(
-  input: Ref<null | NormalizedWeiInput>,
+  props: Ref<null | PropsToBuildSwapProps>,
   options: {
     onSuccess: () => void
   },
@@ -33,29 +33,38 @@ function useSwap(
   const { notify } = useNotify()
 
   const swapKey = computed(() => {
-    if (!input.value) return null
-    const { tokenA, tokenB, amountFor, trade } = input.value
+    if (!props.value) return null
+    const {
+      trade: {
+        route: {
+          input: { address: input },
+          output: { address: output },
+        },
+      },
+      amounts,
+    } = props.value
+
     return (
       dexStore.active.kind === 'named' && {
-        key: `${tokenA.addr}-${tokenA.input}-${tokenB.addr}-${tokenB.input}-${amountFor}`,
-        payload: { props: { trade, tokenA, tokenB, amountFor }, dex: dexStore.active.dex() },
+        key:
+          // NOTE: we do not put `expertMode` here because it actually doesn't produce any significant effect
+          `${input}-${output}-${
+            amounts.mode === 'exact-in'
+              ? `exact-in-${amounts.amountIn}-${amounts.amountOutMin}`
+              : `exact-out-${amounts.amountInMax}-${amounts.amountOut}`
+          }`,
+        payload: { props: props.value, swap: dexStore.active.dex().swap },
       }
     )
   })
 
   const { filteredKey, setActive } = useControlledComposedKey(swapKey)
 
-  const scope = useParamScope(filteredKey, ({ props: { trade, tokenA, tokenB, amountFor }, dex }) => {
+  const scope = useParamScope(filteredKey, ({ props, swap: swapAgent }) => {
     const { state: prepareState, run: prepare } = useTask(
       async () => {
-        // 1. Approve amount of the tokenA
-        await dex.agent.approveAmount(tokenA.addr, tokenA.input)
-
-        // 2. Perform swap according to which token is "exact" and if
-        // some of them is native
-        const swapProps = buildSwapProps({ trade, tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
-        const { send, fee } = await dex.swap.prepareSwap(swapProps)
-
+        const swapProps = buildSwapProps(props)
+        const { send, fee } = await swapAgent.prepareSwap(swapProps)
         return { send, fee }
       },
       { immediate: true },
@@ -105,6 +114,8 @@ export const useSwapStore = defineStore('swap', () => {
   const multihops = useLocalStorage<boolean>('swap-multi-hops', false)
 
   const slippageTolerance = ref(0)
+
+  const expertMode = ref(false)
 
   // #region selection
 
@@ -201,6 +212,7 @@ export const useSwapStore = defineStore('swap', () => {
 
   const {
     gotAmountFor,
+    gotResult: gotAmountsResult,
     gettingAmountFor,
     touch: touchAmounts,
   } = useSwapAmounts(
@@ -220,19 +232,23 @@ export const useSwapStore = defineStore('swap', () => {
     }),
   )
 
+  const amountsWithSlippage = useSlippage(
+    computed(() => gotAmountsResult.value?.amountsResult ?? null),
+    computed(() => numberToPercent(slippageTolerance.value, SLIPPAGE_PRECISION)),
+  )
+
+  const slippageDataParsed = useSlippageParsed({ tokens, amounts: amountsWithSlippage })
+
   watch(
     [gotAmountFor, selection.tokens],
     ([result]) => {
       if (result) {
-        const {
-          props: { amountFor },
-          amount,
-        } = result
+        const { amount, amountFor } = result
         const tokenData = selection.tokens[amountFor]
         if (tokenData) {
-          debugModule('Setting computed amount %o for %o', amount, amountFor)
-          const raw = amount.toToken(tokenData)
-          setEstimated(new BigNumber(raw).toFixed(5) as WeiAsToken)
+          debugModule('Setting computed amount for %o: %o', amountFor, amount.asBigInt)
+          const raw = amount.decimals(tokenData)
+          setEstimated(raw.toFixed(5) as WeiAsToken)
         }
       }
     },
@@ -240,38 +256,31 @@ export const useSwapStore = defineStore('swap', () => {
   )
 
   const estimatedForAfterAmountsComputation = computed<null | TokenType>(() => {
-    return gotAmountFor.value?.props.amountFor ?? null
-  })
-
-  const normalizedWeiInputs = computed<NormalizedWeiInput | null>(() => {
-    if (gotAmountFor.value) {
-      const {
-        amount,
-        props: { amountFor, referenceValue, trade },
-      } = gotAmountFor.value
-      return {
-        ...buildPair((type) => ({
-          addr: type === 'tokenA' ? trade.route.input.address : trade.route.output.address,
-          input: amountFor === type ? amount : referenceValue,
-        })),
-        trade,
-        amountFor,
-      }
-    }
-    return null
+    return gotAmountFor.value?.amountFor ?? null
   })
 
   const finalRates = useRates(
     computed(() => {
-      const wei = normalizedWeiInputs.value
-      if (!wei) return null
-      return buildPair((type) => wei[type].input)
+      const amounts = gotAmountsResult.value?.amountsResult
+      if (!amounts) return null
+      return { tokenA: amounts.amountIn, tokenB: amounts.amountOut }
     }),
   )
 
   // #endregion
 
   // #region Action
+
+  const propsForSwap = computed<null | PropsToBuildSwapProps>(() => {
+    const amountsProps = gotAmountsResult.value?.props
+    if (!amountsProps) return null
+
+    const { trade } = amountsProps
+    const amounts = amountsWithSlippage.value
+    invariant(amounts, 'Amounts with slippage must exist if `gotAmountsResult` are not null')
+
+    return { trade, amounts, expertMode: expertMode.value }
+  })
 
   const {
     prepare,
@@ -280,7 +289,7 @@ export const useSwapStore = defineStore('swap', () => {
     swapFee,
     swap,
     clear: clearSwap,
-  } = useSwap(normalizedWeiInputs, {
+  } = useSwap(propsForSwap, {
     onSuccess: () => {
       tokensStore.touchUserBalance()
     },
@@ -324,7 +333,6 @@ export const useSwapStore = defineStore('swap', () => {
     tokenValues: readonly(tokenValues),
     finalRates,
     addrs: addrsReadonly,
-    normalizedWeiInputs,
     tokens,
     trade,
     symbols,
@@ -334,16 +342,18 @@ export const useSwapStore = defineStore('swap', () => {
     isValidationPending,
     validationError,
 
-    swap,
     swapState,
     prepareState,
-    prepare,
     swapFee,
     gettingAmountFor,
     gotAmountFor,
-    clearSwap,
+    gotAmountsResult,
     estimatedFor: estimatedForAfterAmountsComputation,
+    slippageDataParsed,
 
+    prepare,
+    swap,
+    clearSwap,
     setTokenAddress,
     setToken: setMainToken,
     setBothTokens,
@@ -351,6 +361,7 @@ export const useSwapStore = defineStore('swap', () => {
 
     slippageTolerance,
     multihops,
+    expertMode,
 
     isRefreshing,
     refresh,

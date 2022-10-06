@@ -3,20 +3,20 @@ import { buildPair, nonNullPair, TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 
 const store = useSwapStore()
-const { normalizedWeiInputs, tokens, symbols } = storeToRefs(store)
+const { gotAmountsResult, tokens, symbols } = storeToRefs(store)
 
 const bothSymbols = computed(() => nonNullPair(symbols.value))
 
 const amountsAsTokens = computed(() => {
   const tokensVal = nonNullPair(tokens.value)
-  const amounts = normalizedWeiInputs.value
+  const amounts = gotAmountsResult.value?.amountsResult
   return (
     amounts &&
     tokensVal &&
     buildPair((type) => {
-      const wei = amounts[type]
+      const wei = amounts[type === 'tokenA' ? 'amountIn' : 'amountOut']
       const token = tokensVal[type]
-      return wei.input.decimals(token)
+      return wei.decimals(token)
     })
   )
 })
@@ -40,16 +40,15 @@ const amountsAsTokens = computed(() => {
         class="symbol"
         :data-i="i"
       >{{ bothSymbols[type] }}</span>
-      <CurrencyFormat
-        v-slot="{ formatted }"
-        :amount="amountsAsTokens[type]"
+      <div
+        class="amount"
+        :data-i="i"
       >
-        <span
-          class="amount max-w-60 truncate"
-          :data-i="i"
-          :title="formatted!"
-        >{{ formatted }}</span>
-      </CurrencyFormat>
+        <CurrencyFormatTruncate
+          :amount="amountsAsTokens[type]"
+          max-width="270"
+        />
+      </div>
 
       <div
         v-if="i === 0"

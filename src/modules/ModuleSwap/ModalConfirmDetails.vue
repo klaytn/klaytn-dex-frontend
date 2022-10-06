@@ -2,9 +2,10 @@
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import cssRows from '../ModuleTradeShared/rows.module.scss'
+import DetailsRowSlippage from './DetailsRowSlippage.vue'
 
 const store = useSwapStore()
-const { priceImpact } = storeToRefs(store)
+const { priceImpact, slippageDataParsed } = storeToRefs(store)
 
 const formattedPriceImpact = computed(() => {
   return priceImpact.value?.toFormat(2, BigNumber.ROUND_UP) ?? null
@@ -18,14 +19,14 @@ const formattedPriceImpact = computed(() => {
         <span>Price</span>
         <span>?</span>
       </div>
-      <div :class="[cssRows.rowSm]">
-        <span>Minimum received</span>
-        <span>?</span>
-      </div>
+
+      <DetailsRowSlippage :data="slippageDataParsed!" />
+
       <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
         <span>Price Impact</span>
         <span>{{ formattedPriceImpact }}</span>
       </div>
+
       <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
         <span>Network + LP Fee</span>
         <span>?</span>

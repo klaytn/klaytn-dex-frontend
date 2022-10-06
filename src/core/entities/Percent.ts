@@ -11,7 +11,7 @@ export default class Percent extends Fraction {
   public toFormat(
     decimals = 2,
     rounding: BigNumber.RoundingMode = BigNumber.ROUND_HALF_UP,
-    format: object = { decimalSeparator: '.', suffix: ' %' },
+    format: object = { decimalSeparator: '.', suffix: '%' },
   ): string {
     return this.multipliedBy(ONE_HUNDRED_PERCENT).toFormat(decimals, rounding, format)
   }

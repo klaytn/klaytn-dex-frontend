@@ -1,4 +1,4 @@
-import { Wei } from '@/core'
+import { Wei, Percent } from '@/core'
 import { Tab } from '@/types'
 import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'
@@ -49,20 +49,6 @@ export function roundRates({ a_per_b, b_per_a }: Rates): RatesRounded {
   }
 }
 
-// export function computePriceImpact(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
-//   const feeCoefficient = new Fraction(1).plus(POOL_COMMISSION)
-//   const exactQuote = TokenAmount.fromToken(
-//     outputAmount.token,
-//     midPrice
-//       .toFraction()
-//       .dividedBy(feeCoefficient)
-//       .multipliedBy(inputAmount.toFraction())
-//       .toFixed(outputAmount.currency.decimals) as WeiAsToken,
-//   )
-//   const slippage = exactQuote.minus(outputAmount).dividedBy(exactQuote)
-//   return new Percent(slippage.numerator, slippage.denominator)
-// }
-
 /**
  * Serializer for {@link @vueuse/core#useLocalStorage()}
  */
@@ -93,4 +79,9 @@ export function makeTabsArray(data: string[]): Tab[] {
 
 export function formatNumberWithCommas(value: string | number | BigNumber): string {
   return value.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ',')
+}
+
+export function numberToPercent(num: number, precision: number): Percent {
+  const pow = 10 ** precision
+  return new Percent(num * pow, pow)
 }

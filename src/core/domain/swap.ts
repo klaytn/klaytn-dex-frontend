@@ -5,6 +5,20 @@ import CommonContracts from './CommonContracts'
 import { Agent } from './agent'
 import { TransactionObject, IsomorphicOverrides } from '../isomorphic-contract'
 import invariant from 'tiny-invariant'
+import { Opaque, Simplify } from 'type-fest'
+import BigNumber from 'bignumber.js'
+import { BigNumber as EthersBigNumber } from 'ethers'
+import { MAX_UINT256 } from '../const'
+
+const ZERO = new Fraction(0)
+const ONE = new Fraction(1)
+
+type SlippagePercent = Opaque<Percent, 'non-negative'>
+
+export function parseSlippage(raw: Percent): SlippagePercent {
+  invariant(!raw.isLessThan(ZERO), () => `Slippage should be a non-negative number, got: ${raw.toFixed()}`)
+  return raw as SlippagePercent
+}
 
 interface HasTrade {
   trade: Trade
@@ -16,21 +30,31 @@ export interface SwapPropsBase extends HasTrade {
    */
   deadline?: Deadline
   /**
-   * @defualt 0
+   * If true, the maximum amount for IN token will be approved before swap.
+   *
+   * If not, the only maximum needed amount will be approved.
+   *
+   * @default false
    */
-  allowedSlippage?: Percent
+  expertMode?: boolean
 }
 
-export interface SwapExactAForB<A extends string, B extends string> {
-  mode: `exact-${A}-for-${B}`
+export interface AmountsExactIn {
   amountIn: Wei
   amountOutMin: Wei
 }
 
-export interface SwapAForExactB<A extends string, B extends string> {
-  mode: `${A}-for-exact-${B}`
-  amountOut: Wei
+export interface AmountsExactOut {
   amountInMax: Wei
+  amountOut: Wei
+}
+
+export interface SwapExactAForB<A extends string, B extends string> extends AmountsExactIn {
+  mode: `exact-${A}-for-${B}`
+}
+
+export interface SwapAForExactB<A extends string, B extends string> extends AmountsExactOut {
+  mode: `${A}-for-exact-${B}`
 }
 
 export type SwapExactForAndForExact<A extends string, B extends string> = SwapAForExactB<A, B> | SwapExactAForB<A, B>
@@ -53,47 +77,40 @@ export interface SwapResult {
   send: () => Promise<unknown>
 }
 
-interface GetAmountsInProps extends HasTrade {
-  mode: 'in'
-  amountOut: Wei
-}
-
-interface GetAmountsOutProps extends HasTrade {
-  mode: 'out'
+export interface GetAmountsExactInputProps extends HasTrade {
+  mode: 'exact-in'
   amountIn: Wei
 }
 
-type GetAmountsProps = GetAmountsInProps | GetAmountsOutProps
+export interface GetAmountsExactOutputProps extends HasTrade {
+  mode: 'exact-out'
+  amountOut: Wei
+}
 
-const ZERO = new Fraction(0)
-const ONE = new Fraction(1)
+export type GetAmountsForExactInputResult = Simplify<AmountsExactIn & AmountsInOut>
 
-function applySlippage(props: SwapPropsAmounts & Pick<SwapPropsBase, 'allowedSlippage'>): {
+export type GetAmountsForExactOutputResult = Simplify<AmountsExactOut & AmountsInOut>
+
+export interface AmountsInOut {
   amountIn: Wei
   amountOut: Wei
-} {
-  const slippage = props.allowedSlippage ?? new Percent(0)
-  invariant(!slippage.isLessThan(ZERO), () => `Slippage should be a non-negative number, got: ${slippage.toFixed()}`)
+}
 
-  let amountIn: Wei
-  let amountOut: Wei
+export function applySlippageForExactInput(amountOut: Wei, slippage: SlippagePercent): { amountOutMin: Wei } {
+  const adjusted = ONE.plus(slippage).invert().multipliedBy(new Fraction(amountOut.asBigInt)).quotient.decimalPlaces(0)
 
-  if (isSwapExactInput(props)) {
-    amountIn = props.amountIn
+  return { amountOutMin: new Wei(adjusted) }
+}
 
-    const adjusted = ONE.plus(slippage)
-      .invert()
-      .multipliedBy(new Fraction(props.amountOutMin.asBigInt))
-      .quotient.decimalPlaces(0)
-    amountOut = new Wei(adjusted)
-  } else {
-    amountOut = props.amountOut
+export function applySlippageForExactOutput(amountIn: Wei, slippage: SlippagePercent): { amountInMax: Wei } {
+  const adjusted = ONE.plus(slippage).multipliedBy(new Fraction(amountIn.asBigInt)).quotient.decimalPlaces(0)
 
-    const adjusted = ONE.plus(slippage).multipliedBy(new Fraction(props.amountInMax.asBigInt)).quotient.decimalPlaces(0)
-    amountIn = new Wei(adjusted)
-  }
+  return { amountInMax: new Wei(adjusted) }
+}
 
-  return { amountIn, amountOut }
+function amountsTupleToWei(tuple: (string | BigNumber | EthersBigNumber)[]): { amountIn: Wei; amountOut: Wei } {
+  const [a, b] = tuple
+  return { amountIn: new Wei(a), amountOut: new Wei(b) }
 }
 
 export class SwapPure {
@@ -107,14 +124,20 @@ export class SwapPure {
     return this.#contracts
   }
 
-  public async getAmounts(props: GetAmountsProps): Promise<[Wei, Wei]> {
-    const router = this.#contracts.get('router') || (await this.#contracts.init('router'))
-
+  public async getAmounts(props: GetAmountsExactInputProps | GetAmountsExactOutputProps): Promise<AmountsInOut> {
+    const router = await this.routerContract()
     const path = props.trade.routePath()
-    const [amount0, amount1] = await (props.mode === 'in'
-      ? router.getAmountsIn([props.amountOut.asStr, path]).call()
-      : router.getAmountsOut([props.amountIn.asStr, path]).call())
-    return [new Wei(amount0), new Wei(amount1)]
+
+    const raw =
+      props.mode === 'exact-in'
+        ? await router.getAmountsOut([props.amountIn.asStr, path]).call()
+        : await router.getAmountsIn([props.amountOut.asStr, path]).call()
+
+    return amountsTupleToWei(raw)
+  }
+
+  private async routerContract() {
+    return this.#contracts.get('router') || this.#contracts.init('router')
   }
 }
 
@@ -127,17 +150,13 @@ export class Swap extends SwapPure {
   }
 
   public async prepareSwap(props: SwapProps): Promise<SwapResult> {
+    await this.approveAmountForSwap(props)
+
     const router = this.contracts.get('router') || (await this.contracts.init('router'))
 
     const { deadline = deadlineFiveMinutesFromNow() } = props
     const { address } = this.#agent
     const path = props.trade.routePath()
-
-    const {
-      amountIn: amountInAsWei,
-      amountOut: { asStr: amountOut },
-    } = applySlippage(props)
-    const amountIn = amountInAsWei.asStr
 
     const gasPrice = await this.#agent.getGasPrice()
     const baseOverrides: IsomorphicOverrides = {
@@ -149,38 +168,50 @@ export class Swap extends SwapPure {
 
     switch (props.mode) {
       case 'exact-tokens-for-tokens': {
-        tx = router.swapExactTokensForTokens([amountIn, amountOut, path, address, deadline], baseOverrides)
+        tx = router.swapExactTokensForTokens(
+          [props.amountIn.asStr, props.amountOutMin.asStr, path, address, deadline],
+          baseOverrides,
+        )
 
         break
       }
       case 'tokens-for-exact-tokens': {
-        tx = router.swapTokensForExactTokens([amountIn, amountOut, path, address, deadline], baseOverrides)
+        tx = router.swapTokensForExactTokens(
+          [props.amountInMax.asStr, props.amountOut.asStr, path, address, deadline],
+          baseOverrides,
+        )
 
         break
       }
       case 'exact-tokens-for-eth': {
-        tx = router.swapExactTokensForETH([amountIn, amountOut, path, address, deadline], baseOverrides)
+        tx = router.swapExactTokensForETH(
+          [props.amountIn.asStr, props.amountOutMin.asStr, path, address, deadline],
+          baseOverrides,
+        )
 
         break
       }
       case 'exact-eth-for-tokens': {
-        tx = router.swapExactETHForTokens([amountOut, path, address, deadline], {
+        tx = router.swapExactETHForTokens([props.amountOutMin.asStr, path, address, deadline], {
           ...baseOverrides,
-          value: amountInAsWei,
+          value: props.amountIn,
         })
 
         break
       }
       case 'eth-for-exact-tokens': {
-        tx = router.swapETHForExactTokens([amountOut, path, address, deadline], {
+        tx = router.swapETHForExactTokens([props.amountOut.asStr, path, address, deadline], {
           ...baseOverrides,
-          value: amountInAsWei,
+          value: props.amountInMax,
         })
 
         break
       }
       case 'tokens-for-exact-eth': {
-        tx = router.swapTokensForExactETH([amountOut, amountIn, path, address, deadline], baseOverrides)
+        tx = router.swapTokensForExactETH(
+          [props.amountOut.asStr, props.amountInMax.asStr, path, address, deadline],
+          baseOverrides,
+        )
 
         break
       }
@@ -196,71 +227,53 @@ export class Swap extends SwapPure {
 
     return { fee, send }
   }
+
+  private async approveAmountForSwap(props: SwapProps): Promise<void> {
+    const inputToken = props.trade.route.input.address
+
+    const amountForApprove = props.expertMode
+      ? new Wei(MAX_UINT256)
+      : isSwapExactInput(props)
+      ? props.amountIn
+      : props.amountInMax
+
+    await this.#agent.approveAmount(inputToken, amountForApprove)
+  }
 }
 
 if (import.meta.vitest) {
   const { test, expect, describe } = import.meta.vitest
 
   describe('applySlippage', () => {
-    test('0 slippage, exact input', () => {
-      expect(
-        applySlippage({
-          mode: 'exact-eth-for-tokens',
-          amountIn: new Wei(10000000n),
-          amountOutMin: new Wei(1000000000n),
-        }),
-      ).toMatchInlineSnapshot(`
+    test('0 slippage with exact input', () => {
+      expect(applySlippageForExactInput(new Wei(10000000), parseSlippage(new Percent(0)))).toMatchInlineSnapshot(`
         {
-          "amountIn": "10000000",
-          "amountOut": "1000000000",
+          "amountOutMin": "10000000",
         }
       `)
     })
 
-    test('0.5% slippage, exact input', () => {
-      expect(
-        applySlippage({
-          mode: 'exact-tokens-for-tokens',
-          amountIn: new Wei(10000000n),
-          amountOutMin: new Wei(1000000000n),
-          allowedSlippage: new Percent(5, 1000),
-        }),
-      ).toMatchInlineSnapshot(`
+    test('0.5% slippage with exact input', () => {
+      expect(applySlippageForExactInput(new Wei(10000000), parseSlippage(new Percent(5, 1000)))).toMatchInlineSnapshot(`
         {
-          "amountIn": "10000000",
-          "amountOut": "995024876",
+          "amountOutMin": "9950249",
         }
       `)
     })
 
-    test('2.5% slippage, exact output', () => {
-      expect(
-        applySlippage({
-          mode: 'tokens-for-exact-eth',
-          amountInMax: new Wei(10000000n),
-          amountOut: new Wei(1000000000n),
-          allowedSlippage: new Percent(25, 1000),
-        }),
-      ).toMatchInlineSnapshot(`
+    test('2.5% slippage with exact output', () => {
+      expect(applySlippageForExactOutput(new Wei(10000000), parseSlippage(new Percent(25, 1000))))
+        .toMatchInlineSnapshot(`
         {
-          "amountIn": "10250000",
-          "amountOut": "1000000000",
+          "amountInMax": "10250000",
         }
       `)
     })
 
-    test('2% slippage, exact output', () => {
-      expect(
-        applySlippage({
-          mode: 'eth-for-exact-tokens',
-          amountInMax: new Wei(1n),
-          amountOut: new Wei(1n),
-          allowedSlippage: new Percent(2, 100),
-        }),
-      ).toMatchInlineSnapshot(`
+    test('2% slippage with exact output, small wei amount', () => {
+      expect(applySlippageForExactOutput(new Wei(1), parseSlippage(new Percent(2, 100)))).toMatchInlineSnapshot(`
         {
-          "amountIn": "1",
-          "amountOut": "1",
+          "amountInMax": "1",
         }
       `)
     })

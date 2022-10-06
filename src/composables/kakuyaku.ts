@@ -41,7 +41,7 @@ export function usePromiseLog(state: PromiseStateAtomic<unknown>, name: string) 
       if (state.pending) {
         debug('pending...')
       } else if (state.fulfilled) {
-        debug('fulfilled: %o', state.fulfilled.value)
+        debug('fulfilled with value: %o', state.fulfilled.value)
       } else if (state.rejected) {
         debug('rejected')
         console.error(`Promise "${name}" errored:`, state.rejected.reason)
@@ -49,6 +49,10 @@ export function usePromiseLog(state: PromiseStateAtomic<unknown>, name: string) 
     },
     { deep: true, immediate: true },
   )
+
+  onScopeDispose(() => {
+    debug('disposed')
+  })
 }
 
 export function useNotifyOnError(state: PromiseStateAtomic<unknown>, notify: NotifyFn, message?: string) {
