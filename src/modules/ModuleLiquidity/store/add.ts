@@ -223,9 +223,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   const { setMainToken, setEstimated, estimatedFor } = useEstimatedLayer(selection)
 
-  const isValuesDebounceWelcome = eagerComputed<boolean>(() => {
-    return doesPairExist.value
-  })
+  const isValuesDebounceWelcome = doesPairExist
 
   // #endregion
 
