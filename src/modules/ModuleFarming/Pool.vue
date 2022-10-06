@@ -10,7 +10,7 @@ import { Wei, ADDRESS_FARMING, WeiAsToken, TokenSymbol, makeExplorerLinkToAccoun
 import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import { TokensPair } from '@/utils/pair'
 import StakeUnstakeModal from './Modal.vue'
-import TheWalletConnect from '@/components/TheWalletConnect.vue'
+import WalletConnectButton from '@/components/WalletConnectButton.vue'
 import invariant from 'tiny-invariant'
 
 const dexStore = useDexStore()
@@ -202,7 +202,7 @@ function openRoiCalculator() {
             v-if="!dexStore.isWalletConnected"
             class="flex items-center space-x-6"
           >
-            <TheWalletConnect
+            <WalletConnectButton
               v-if="!dexStore.isWalletConnected"
               size="md"
             />
