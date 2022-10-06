@@ -5,7 +5,6 @@ import BigNumber from 'bignumber.js'
 import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
 import { makeExplorerLinkToTransaction } from '@/core'
 import RowTemplate from './TransactionDetailsModalRow.vue'
-import RowSubWrap from './TransactionDetailsModalRowSubWrap.vue'
 
 const props = defineProps<{
   item?: TransactionEnum | null
@@ -103,7 +102,7 @@ const detailsParsed = computed<null | DetailsParsed>(() => {
   <SModal v-model:show="showModel">
     <KlayModalCard
       title="Transaction details"
-      class="w-344px"
+      class="w-[344px]"
     >
       <template #body>
         <div class="space-y-4 px-4 pb-5">
@@ -122,15 +121,15 @@ const detailsParsed = computed<null | DetailsParsed>(() => {
 
           <hr class="klay-divider">
 
-          <RowTemplate>
+          <RowTemplate two-line>
             <template #title>
               Date
             </template>
-            <template #value>
-              <span :class="$style.rowValueTop">{{ dateFormatted }}</span>
-              <RowSubWrap>
-                <span :class="$style.rowValueSub">{{ timeFormatted }}</span>
-              </RowSubWrap>
+            <template #value-top>
+              {{ dateFormatted }}
+            </template>
+            <template #value-sub>
+              {{ timeFormatted }}
             </template>
           </RowTemplate>
 
@@ -141,21 +140,15 @@ const detailsParsed = computed<null | DetailsParsed>(() => {
             >
               <hr class="klay-divider">
 
-              <RowTemplate>
+              <RowTemplate two-line>
                 <template #title>
                   Amount {{ x }}
                 </template>
-                <template #value>
-                  <CurrencyFormatTruncate
-                    :class="$style.rowValueTop"
-                    v-bind="detailsParsed.amounts[x].token"
-                  />
-                  <RowSubWrap>
-                    <CurrencyFormatTruncate
-                      :class="$style.rowValueSub"
-                      v-bind="detailsParsed.amounts[x].usd"
-                    />
-                  </RowSubWrap>
+                <template #value-top>
+                  <CurrencyFormatTruncate v-bind="detailsParsed.amounts[x].token" />
+                </template>
+                <template #value-sub>
+                  <CurrencyFormatTruncate v-bind="detailsParsed.amounts[x].usd" />
                 </template>
               </RowTemplate>
             </template>
@@ -169,10 +162,7 @@ const detailsParsed = computed<null | DetailsParsed>(() => {
                 LP Tokens
               </template>
               <template #value>
-                <CurrencyFormatTruncate
-                  :class="$style.rowValueTop"
-                  v-bind="detailsParsed.liquidity"
-                />
+                <CurrencyFormatTruncate v-bind="detailsParsed.liquidity" />
               </template>
             </RowTemplate>
 
@@ -182,21 +172,15 @@ const detailsParsed = computed<null | DetailsParsed>(() => {
             >
               <hr class="klay-divider">
 
-              <RowTemplate>
+              <RowTemplate two-line>
                 <template #title>
                   Amount {{ detailsParsed[x].token.symbol }}
                 </template>
-                <template #value>
-                  <CurrencyFormatTruncate
-                    :class="$style.rowValueTop"
-                    v-bind="detailsParsed[x].token"
-                  />
-                  <RowSubWrap>
-                    <CurrencyFormatTruncate
-                      :class="$style.rowValueSub"
-                      v-bind="detailsParsed[x].usd"
-                    />
-                  </RowSubWrap>
+                <template #value-top>
+                  <CurrencyFormatTruncate v-bind="detailsParsed[x].token" />
+                </template>
+                <template #value-sub>
+                  <CurrencyFormatTruncate v-bind="detailsParsed[x].usd" />
                 </template>
               </RowTemplate>
             </template>
@@ -206,21 +190,6 @@ const detailsParsed = computed<null | DetailsParsed>(() => {
     </KlayModalCard>
   </SModal>
 </template>
-
-<style module lang="scss">
-@use '@/styles/vars';
-
-.row-value-top {
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.row-value-sub {
-  font-weight: 500;
-  font-size: 12px;
-  color: vars.$gray2;
-}
-</style>
 
 <style scoped lang="scss">
 hr {
