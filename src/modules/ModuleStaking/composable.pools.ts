@@ -6,6 +6,7 @@ import { BLOCKS_PER_YEAR } from './const'
 import { PoolsQueryResult } from './query.pools'
 import { PercentageRate, Pool, Rewards, Sorting, TokenPriceInUSD, AmountInUSD } from './types'
 import { Tokens } from '@/query/tokens-derived-usd'
+import invariant from 'tiny-invariant'
 
 export function useMappedPools(props: {
   pools: Ref<undefined | null | PoolsQueryResult>
@@ -113,7 +114,8 @@ function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): num
     case Sorting.AnnualPercentageRate:
       return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.Earned:
-      return poolB.earned!.comparedTo(poolA.earned!)
+      invariant(poolB.earned && poolA.earned, 'earned is null')
+      return poolB.earned.comparedTo(poolA.earned)
     case Sorting.TotalStaked:
       return poolB.totalStaked.comparedTo(poolA.totalStaked)
     case Sorting.Latest:

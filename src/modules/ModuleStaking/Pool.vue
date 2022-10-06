@@ -10,6 +10,7 @@ import { SModal } from '@soramitsu-ui/ui'
 import { formatCurrency } from '@/utils/composable.currency-input'
 import PoolHead from './PoolHead.vue'
 import TheWalletConnect from '@/components/TheWalletConnect.vue'
+import invariant from 'tiny-invariant'
 
 const dexStore = useDexStore()
 const { notify } = useNotify()
@@ -135,8 +136,9 @@ usePromiseLog(withdrawState, 'staking-pool-withdraw')
 wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
     const { earned } = result.fulfilled.value
+    invariant(earned, 'earned is null')
     const formatted = formatCurrency({
-      amount: earned!,
+      amount: earned,
       symbol: { str: props.pool.rewardToken.symbol, position: 'right' },
     })
     notify({ type: 'ok', description: `${formatted} tokens were withdrawn` })
@@ -262,7 +264,7 @@ function openRoiCalculator() {
 
               <template #right>
                 <KlayButton
-                  :disabled="pool.earned!.isZero()"
+                  :disabled="!pool.earned || pool.earned.isZero()"
                   @click="withdraw()"
                 >
                   Withdraw

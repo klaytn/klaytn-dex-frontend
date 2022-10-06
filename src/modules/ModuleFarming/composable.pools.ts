@@ -1,6 +1,7 @@
 import { Wei, WeiAsToken } from '@/core'
 import BigNumber from 'bignumber.js'
 import escapeStringRegexp from 'escape-string-regexp'
+import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 import { BLOCKS_PER_YEAR } from './const'
 import { FarmingQueryResult } from './query.farming'
@@ -139,7 +140,8 @@ function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): num
     case Sorting.Multiplier:
       return poolB.multiplier.comparedTo(poolA.multiplier)
     case Sorting.Earned:
-      return poolB.earned!.comparedTo(poolA.earned!)
+      invariant(poolB.earned && poolA.earned, 'earned is null')
+      return poolB.earned.comparedTo(poolA.earned)
     case Sorting.Latest:
       return poolB.createdAtBlock - poolA.createdAtBlock
     default:

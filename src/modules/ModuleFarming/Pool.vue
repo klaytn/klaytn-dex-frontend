@@ -11,6 +11,7 @@ import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import { TokensPair } from '@/utils/pair'
 import StakeUnstakeModal from './Modal.vue'
 import TheWalletConnect from '@/components/TheWalletConnect.vue'
+import invariant from 'tiny-invariant'
 
 const dexStore = useDexStore()
 const { notify } = useNotify()
@@ -117,7 +118,8 @@ usePromiseLog(withdrawState, 'farming-pool-withdraw')
 wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
     const { earned } = result.fulfilled.value
-    const formatted = formatCurrency({ amount: earned! })
+    invariant(earned, 'earned is null')
+    const formatted = formatCurrency({ amount: earned })
     notify({ type: 'ok', description: `${formatted} DEX tokens were withdrawn` })
     emit('withdrawn')
   } else {
