@@ -176,6 +176,7 @@
     "useKeyModifier": true,
     "useLastChanged": true,
     "useLiquidityAddStore": true,
+    "useLiquidityRmSelectionStore": true,
     "useLiquidityRmStore": true,
     "useLocalStorage": true,
     "useMagicKeys": true,

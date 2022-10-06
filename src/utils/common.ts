@@ -1,5 +1,4 @@
-import { POOL_COMMISSION, Wei, WeiAsToken } from '@/core'
-import { Price, TokenAmount, Percent, Fraction } from '@/core'
+import { Wei } from '@/core'
 import { Tab } from '@/types'
 import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'
@@ -9,23 +8,6 @@ import { JsonValue } from 'type-fest'
 import { TokensPair } from './pair'
 
 const reallyFastDeepClone = rfdc()
-
-// FIXME v1 & v2 values comes from `Token.value`. What type is it?
-
-export function formatRate(v1: string, v2: string) {
-  const bigNA = new BigNumber(v1)
-  const bigNB = new BigNumber(v2)
-
-  return bigNA.dividedBy(bigNB).toFixed(5)
-}
-
-export function formatPercent(v1: string, v2: string) {
-  const bigNA = new BigNumber(v1)
-  const bigNB = new BigNumber(v2)
-  const percent = bigNA.dividedToIntegerBy(100)
-
-  return `${bigNB.dividedBy(percent).toFixed(2)}%`
-}
 
 export function deepClone<T>(object: T): T {
   return reallyFastDeepClone(object)

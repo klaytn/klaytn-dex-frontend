@@ -5,7 +5,6 @@ import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
 import { useSwapAmounts, GetAmountsProps, useSlippage, useSlippageParsed } from '../composable.get-amounts'
 import { useTrade } from '../composable.trade'
-import { usePairAddress, usePairBalance } from '../../ModuleTradeShared/composable.pair-by-tokens'
 import { useSwapValidation } from '../composable.validation'
 import { buildSwapProps, PropsToBuildSwapProps } from '../util.swap-props'
 import {
@@ -181,14 +180,6 @@ export const useSwapStore = defineStore('swap', () => {
       }) ?? null
     )
   })
-
-  const { pair: pairAddrResult } = usePairAddress(addrsReadonly)
-  const { result: pairBalance } = usePairBalance(
-    addrsReadonly,
-    computed(() => pairAddrResult.value?.kind === 'exist'),
-  )
-  const poolShare = computed(() => pairBalance.value?.poolShare ?? null)
-  // const formattedPoolShare = useFormattedPercent(poolShare, 7)
 
   // #endregion
 

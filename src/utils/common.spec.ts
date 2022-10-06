@@ -1,27 +1,7 @@
 import { Percent } from '@/core'
 import BigNumber from 'bignumber.js'
 import { expect, test, describe } from 'vitest'
-import { formatRate, formatPercent, formatNumberWithCommas, numberToPercent } from './common'
-
-describe('format rate', () => {
-  test('case 1', () => {
-    expect(formatRate('423', '20')).toMatchInlineSnapshot('"21.15000"')
-  })
-
-  test('case 2', () => {
-    expect(formatRate('1000', '3.5')).toMatchInlineSnapshot('"285.71429"')
-  })
-})
-
-describe('format percent', () => {
-  test('case 1', () => {
-    expect(formatPercent('423', '20')).toMatchInlineSnapshot('"5.00%"')
-  })
-
-  test('case 2', () => {
-    expect(formatPercent('1000', '3.5')).toMatchInlineSnapshot('"0.35%"')
-  })
-})
+import { formatNumberWithCommas, numberToPercent } from './common'
 
 describe('number with commas', () => {
   test.each([

@@ -2,6 +2,7 @@ declare module '~klay-icons' {
   import { type DefineComponent } from 'vue'
   export const KlayIconArrowDown_2: DefineComponent<{}, {}, any>
   export const KlayIconArrowDown: DefineComponent<{}, {}, any>
+  export const KlayIconArrowOutward: DefineComponent<{}, {}, any>
   export const KlayIconBackArrow: DefineComponent<{}, {}, any>
   export const KlayIconBusd: DefineComponent<{}, {}, any>
   export const KlayIconCalculator: DefineComponent<{}, {}, any>

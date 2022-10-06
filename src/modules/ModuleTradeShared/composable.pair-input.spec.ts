@@ -186,4 +186,29 @@ describe('useEstimatedLayer()', () => {
 
     expect(() => setEstimated('412' as WeiAsToken)).toThrowError()
   })
+
+  test('when main token value is set to 0, then other token is set to 0 too', () => {
+    const tokenValues = emptyTokenPair()
+    const { setMainToken, setEstimated, estimatedFor } = useEstimatedLayer({ tokenValues })
+
+    setMainToken('tokenB', '442' as WeiAsToken)
+    setEstimated('55' as WeiAsToken)
+
+    expect(tokenValues).toMatchInlineSnapshot(`
+      {
+        "tokenA": "55",
+        "tokenB": "442",
+      }
+    `)
+
+    setMainToken('tokenB', '0' as WeiAsToken)
+
+    expect(tokenValues).toMatchInlineSnapshot(`
+      {
+        "tokenA": "0",
+        "tokenB": "0",
+      }
+    `)
+    expect(estimatedFor.value).toBeNull()
+  })
 })
