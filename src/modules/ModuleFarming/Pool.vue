@@ -48,9 +48,7 @@ const poolSymbols = computed<TokensPair<TokenSymbol>>(() => {
 })
 
 const formattedEarned = computed(() => {
-  return pool.value.earned
-    ? formatCurrency({ amount: new BigNumber(pool.value.earned), decimals: FORMATTED_BIG_INT_DECIMALS })
-    : '0'
+  return formatCurrency({ amount: new BigNumber(pool.value.earned ?? 0), decimals: FORMATTED_BIG_INT_DECIMALS })
 })
 
 const formattedAnnualPercentageRate = computed(() => {
