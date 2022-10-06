@@ -19,9 +19,11 @@ export function useFetchRewards<K extends PoolId | Address>({
   rewards: Ref<null | Rewards<K>>
   areRewardsFetched: Ref<boolean>
 } {
+  const dexStore = useDexStore()
   const { state, set } = usePromise<RewardsWithBlockNumber<K>>() // use promise state
 
   function run() {
+    if (!dexStore.isWalletConnected) return
     const ids = poolIds.value
     invariant(ids)
     if (!state.pending) {

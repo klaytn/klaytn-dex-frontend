@@ -8,7 +8,7 @@ export interface Pool {
   name: string
   pairId: Address
   staked: WeiAsToken<BigNumber>
-  earned: WeiAsToken<BigNumber>
+  earned: WeiAsToken<BigNumber> | null
   balance: WeiAsToken<BigNumber>
   annualPercentageRate: PercentageRate
   lpAnnualPercentageRate: PercentageRate

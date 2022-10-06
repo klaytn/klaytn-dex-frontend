@@ -6,7 +6,7 @@ import { KlayIconCalculator, KlayIconClock } from '~klay-icons'
 const props = defineProps<{
   rewardTokenSymbol: TokenSymbol
   stakeTokenSymbol: TokenSymbol
-  earned: BigNumber
+  earned: BigNumber | null
   totalStakedUsd: BigNumber
   annualPercentageRate: BigNumber
   endsIn: number
@@ -50,7 +50,7 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
       <div :class="$style.title">
         Earned
       </div>
-      <div :class="[$style.value, { [$style.valueEmpty]: earned.isEqualTo(0) }]">
+      <div :class="[$style.value, { [$style.valueEmpty]: !earned || earned.isEqualTo(0) }]">
         <CurrencyFormat :amount="earned" />
       </div>
     </div>

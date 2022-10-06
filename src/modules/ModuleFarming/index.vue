@@ -77,11 +77,11 @@ const liquidityPositions = computed(() => {
 })
 
 const poolsMapped = useMappedPools({
-  rewards,
-  pairsAndRewardToken: PairsAndRewardTokenQuery.result,
-  liquidityPositions,
-  blockNumber,
   farming: FarmingQuery.result,
+  blockNumber,
+  pairsAndRewardToken: PairsAndRewardTokenQuery.result,
+  rewards,
+  liquidityPositions,
 })
 
 const poolsFiltered = useFilteredPools(poolsMapped, { stakedOnly, searchQuery })
@@ -92,7 +92,6 @@ const isLoading = or(
   FarmingQuery.loading,
   LiquidityPositionsQuery.loading,
   PairsAndRewardTokenQuery.loading,
-  not(areRewardsFetched),
 )
 
 for (const [QueryName, Query] of Object.entries({

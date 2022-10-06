@@ -52,11 +52,10 @@ export function useFarmingQuery(userId: MaybeRef<Address | null>) {
         }
       `,
     () => ({
-      userId: unref(userId),
+      userId: unref(userId) ?? '',
     }),
     () => ({
       clientId: ApolloClientId.Farming,
-      enabled: !!unref(userId),
       pollInterval: REFETCH_FARMING_INTERVAL,
     }),
   )

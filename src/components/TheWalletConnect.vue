@@ -17,6 +17,13 @@ const {
   isProviderSetupPending,
 } = storeToRefs(store)
 
+const props = withDefaults(
+  defineProps<{
+    size?: 'sm' | 'md' | 'lg'
+  }>(),
+  { size: 'sm' },
+)
+
 const openModal = ref(false)
 whenever(
   () => !!connectState.value?.fulfilled,
@@ -59,7 +66,7 @@ const wallets = computed<Wallet[]>(() => {
   <KlayButton
     v-if="!selectedWallet"
     type="primary"
-    size="sm"
+    :size="props.size"
     @click="openModal = true"
   >
     Connect Wallet

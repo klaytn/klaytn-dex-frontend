@@ -24,7 +24,7 @@ export function useMappedPools(props: {
       rewards: { value: rewards },
       liquidityPositions: { value: liquidityPositions },
     } = props
-    if (!farmingResult || !blockNumber || !pairsAndRewardToken || !rewards) return null
+    if (!farmingResult || !blockNumber || !pairsAndRewardToken) return null
     const { token: rewardToken, pairs } = pairsAndRewardToken
     const { farming } = farmingResult
 
@@ -34,10 +34,10 @@ export function useMappedPools(props: {
       const id = pool.id
       const pair = pairs.find((pair) => pair.id === pool.pair) ?? null
 
-      const reward = rewards.get(pool.id)
+      const reward = rewards?.get(pool.id) ?? null
       const earned = reward ? farmingFromWei(reward) : null
 
-      if (pair === null || earned === null) continue
+      if (pair === null) continue
 
       const pairId = pair.id
       const name = pair.name
@@ -139,7 +139,7 @@ function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): num
     case Sorting.Multiplier:
       return poolB.multiplier.comparedTo(poolA.multiplier)
     case Sorting.Earned:
-      return poolB.earned.comparedTo(poolA.earned)
+      return poolB.earned!.comparedTo(poolA.earned!)
     case Sorting.Latest:
       return poolB.createdAtBlock - poolA.createdAtBlock
     default:

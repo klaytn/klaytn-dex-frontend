@@ -4,11 +4,13 @@ import { useLazyQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
 
+export type Tokens = {
+  id: Address
+  derivedUSD: string
+}[]
+
 export interface TokensQueryResult {
-  tokens: {
-    id: Address
-    derivedUSD: string
-  }[]
+  tokens: Tokens
 }
 
 export function useTokensQuery(

@@ -54,11 +54,10 @@ export function usePoolsQuery(userId: Ref<Address | null>) {
       }
     `,
     () => ({
-      userId: userId.value,
+      userId: unref(userId) ?? '',
     }),
     () => ({
       clientId: ApolloClientId.Staking,
-      enabled: !!userId.value,
       pollInterval: REFETCH_POOLS_INTERVAL,
     }),
   )
