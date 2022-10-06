@@ -1,4 +1,4 @@
-import { Address, Token, Wei, WeiAsToken, LP_TOKEN_DECIMALS as LP_TOKEN_DECIMALS_VALUE } from '@/core'
+import { Address, Token, Wei } from '@/core'
 import {
   useNullablePairBalanceComponents,
   usePairAddress,
@@ -6,7 +6,7 @@ import {
   usePairReserves,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { buildPair, TokensPair, TOKEN_TYPES } from '@/utils/pair'
-import { acceptHMRUpdate, defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
@@ -157,25 +157,36 @@ function useRemoveAmounts(
   }
 }
 
-export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
-  const route = useRoute()
-  const router = useRouter()
-
-  const isActiveRoute = computed(() => route.name === RouteName.LiquidityRemove)
-
-  // #region Selection
+/**
+ * This store exists to be accessible within a router guard
+ * `useLiquidityRmStore` is not accessible because it has dependencies to `dexStore`
+ * and, in general, not implied to be used before dex initialization
+ */
+export const useLiquidityRmSelectionStore = defineStore('liquidity-remove-selection', () => {
+  const [routeIsActive, setRouteIsActive] = useToggle(false)
 
   const selectedRaw = useLocalStorage<null | TokensPair<Address>>('liquidity-remove-tokens', null, {
     serializer: JSON_SERIALIZER as Serializer<any>,
   })
-  const selectedFiltered = computed(() => (isActiveRoute.value ? unref(selectedRaw) : null))
+
+  const isThereSelectionStored = computed(() => !!selectedRaw.value)
+
+  const selectedFiltered = computed(() => (routeIsActive.value ? unref(selectedRaw) : null))
+
+  return { selected: selectedFiltered, selectedRaw, isThereSelectionStored, setRouteIsActive }
+})
+
+export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
+  const router = useRouter()
+
+  // #region Selection
+
+  const selectionStore = useLiquidityRmSelectionStore()
+  const { selected: selectedFiltered, selectedRaw } = storeToRefs(selectionStore)
 
   function navigateToLiquidity() {
     router.push({ name: RouteName.Liquidity })
   }
-
-  // there is no point to stay here if there is no selection
-  whenever(() => isActiveRoute.value && !selectedRaw.value, navigateToLiquidity)
 
   const tokensStore = useTokensStore()
   const selectedTokensData = computed(() => {
