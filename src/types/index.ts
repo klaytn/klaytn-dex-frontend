@@ -52,9 +52,6 @@ export interface Tab {
   label: string
 }
 
-/**
- * TODO use everywhere instead of hardcode
- */
 export const ApolloClientId = {
   Exchange: 'exchange',
   Farming: 'farming',
