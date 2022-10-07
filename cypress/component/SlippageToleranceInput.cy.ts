@@ -10,11 +10,11 @@ after(() => {
   VueTestUtils.config.global.stubs.transition = true
 })
 
-function mountFactory(props?: { thresholdMayFail?: number; thresholdMayBeFrontrun?: number }) {
+function mountFactory(props?: { thresholdMayFail?: number; thresholdMayBeFrontrun?: number; initialValue?: number }) {
   return cy.mount({
     components: { SlippageToleranceInput },
     setup() {
-      const model = ref(0.05)
+      const model = ref(props?.initialValue ?? 0.05)
       const bindings = { ...props }
 
       return { model, bindings }
@@ -61,15 +61,6 @@ describe('Slippage Tolerance Input', () => {
     actualShouldBe('0.03')
   })
 
-  it('input has percent value', () => {
-    mountFactory()
-
-    getHeader().click()
-
-    cy.get('input').should('have.value', '5').type('0')
-    actualShouldBe('0.5')
-  })
-
   it('"may fail" warning is active when value is too low', () => {
     mountFactory({ thresholdMayFail: 0.1 })
 
@@ -85,4 +76,28 @@ describe('Slippage Tolerance Input', () => {
   })
 
   it('when info icon is hovered, the tooltip is shown')
+
+  it('when too much decimals are typed, they are limited to 2', () => {
+    mountFactory({ initialValue: 0 })
+
+    getHeader().click()
+    cy.get('input').type('0.111').should('have.value', '0.11')
+  })
+
+  it('input value is formatted as percent', () => {
+    mountFactory({ initialValue: 0 })
+
+    getHeader().click()
+
+    cy.get('input').type('11.2').blur().should('have.value', '11.2%')
+  })
+
+  it('value from input is set precisely', () => {
+    mountFactory({ initialValue: 0 })
+
+    getHeader().click()
+
+    cy.get('input').type('11.2')
+    actualShouldBe('0.112')
+  })
 })
