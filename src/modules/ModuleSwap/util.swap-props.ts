@@ -1,55 +1,44 @@
-import { Wei, Address, isNativeToken, Trade } from '@/core'
+import { isNativeToken, Trade } from '@/core'
 import { SwapProps } from '@/core/domain/swap'
-import { TokenType } from '@/utils/pair'
-import invariant from 'tiny-invariant'
+import { AmountsAdjusted } from './composable.get-amounts'
+import { excludeKeys } from 'filter-obj'
 
-export interface TokenAddrAndWeiInput {
-  addr: Address
-  input: Wei
+export interface PropsToBuildSwapProps {
+  trade: Trade
+  amounts: AmountsAdjusted
+  expertMode: boolean
 }
 
-export function buildSwapProps({
-  trade,
-  tokenA,
-  tokenB,
-  referenceToken,
-}: {
-  trade: Trade
-  tokenA: TokenAddrAndWeiInput
-  tokenB: TokenAddrAndWeiInput
-  referenceToken: TokenType
-}): SwapProps {
-  invariant(tokenA.addr !== tokenB.addr, 'Cannot swap token for itself')
+export function buildSwapProps({ trade, amounts, expertMode }: PropsToBuildSwapProps): SwapProps {
+  const isInputTokenNative = isNativeToken(trade.route.input.address)
+  const isOutputTokenNative = isNativeToken(trade.route.output.address)
 
-  const isTokenANative = isNativeToken(tokenA.addr)
-  const isTokenBNative = isNativeToken(tokenB.addr)
+  const baseProps = { trade, expertMode }
 
-  if (referenceToken === 'tokenA') {
+  if (amounts.mode === 'exact-in') {
     // exact A for B
 
     const rest = {
-      amountIn: tokenA.input,
-      amountOutMin: tokenB.input,
-      trade,
+      ...excludeKeys(amounts, ['mode']),
+      ...baseProps,
     }
 
-    return isTokenANative
+    return isInputTokenNative
       ? { mode: 'exact-eth-for-tokens', ...rest }
-      : isTokenBNative
+      : isOutputTokenNative
       ? { mode: 'exact-tokens-for-eth', ...rest }
       : { mode: 'exact-tokens-for-tokens', ...rest }
   } else {
     // A for exact B
 
     const rest = {
-      amountInMax: tokenA.input,
-      amountOut: tokenB.input,
-      trade,
+      ...excludeKeys(amounts, ['mode']),
+      ...baseProps,
     }
 
-    return isTokenANative
+    return isInputTokenNative
       ? { mode: 'eth-for-exact-tokens', ...rest }
-      : isTokenBNative
+      : isOutputTokenNative
       ? { mode: 'tokens-for-exact-eth', ...rest }
       : { mode: 'tokens-for-exact-tokens', ...rest }
   }

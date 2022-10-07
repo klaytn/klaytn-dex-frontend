@@ -17,10 +17,15 @@ function open() {
         Swap preferences
       </template>
 
-      <div>
+      <div class="space-y-4">
         <KlaySwitch
           v-model="swapStore.multihops"
           label="Enable multi-hops"
+        />
+
+        <KlaySwitch
+          v-model="swapStore.expertMode"
+          label="Expert mode"
         />
       </div>
     </KlayModalCard>

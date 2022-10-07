@@ -2,6 +2,8 @@ import Percent from './entities/Percent'
 import Currency from './entities/Currency'
 import type { Token, Address, CurrencySymbol, Network } from './types'
 
+export const MAX_UINT256 = 2n ** 256n - 1n
+
 /**
  * Klay token address
  */
