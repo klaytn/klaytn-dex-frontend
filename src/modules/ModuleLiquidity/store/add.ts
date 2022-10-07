@@ -158,7 +158,6 @@ function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null> }) {
 export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const route = useRoute()
   const tokensStore = useTokensStore()
-  const router = useRouter()
 
   const isActiveRoute = computed(() => route.name === RouteName.LiquidityAdd)
 
@@ -309,8 +308,6 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   const closeSupply = () => {
     clearSupply()
-    refresh()
-    router.push({ name: RouteName.Liquidity })
   }
 
   // #endregion
