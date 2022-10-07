@@ -2,8 +2,7 @@
 import { toRefs } from '@vueuse/core'
 import { LiquidityPairsPosition } from '../query.liquidity-pairs'
 import BigNumber from 'bignumber.js'
-import { RouteName } from '@/types'
-import cssRows from '../../ModuleTradeShared/rows.module.scss'
+import cssRows from '../../ModuleTradeShared/rows.module.scss.types'
 
 const cssRowMd = cssRows.rowMd
 
@@ -12,40 +11,15 @@ const props = defineProps<{
   alwaysOpened?: boolean
 }>()
 
+const emit = defineEmits(['click:add', 'click:remove', 'click:deposit'])
+
 const { liquidityTokenBalance, pair } = toRefs(toRef(props, 'data'))
 const pairReactive = toReactive(pair)
-
-const pairAddrs = computed(() => ({
-  tokenA: pairReactive.token0.id,
-  tokenB: pairReactive.token1.id,
-}))
 
 const formattedPoolShare = useFormattedPercent(
   computed(() => new BigNumber(liquidityTokenBalance.value).dividedBy(pairReactive.totalSupply).toNumber()),
   7,
 )
-
-const router = useRouter()
-const addLiquidityStore = useLiquidityAddStore()
-
-function goToAddLiquidity() {
-  addLiquidityStore.setBothAddresses(pairAddrs.value)
-  router.push({ name: RouteName.LiquidityAdd })
-}
-
-const rmLiquidityStore = useLiquidityRmStore()
-
-function goToRemoveLiquidity() {
-  rmLiquidityStore.setTokens(pairAddrs.value)
-  router.push({ name: RouteName.LiquidityRemove })
-}
-
-const farmingStore = useFarmingStore()
-
-function goToFarms() {
-  farmingStore.setFilterByPairName(pair.value.name)
-  router.push({ name: RouteName.Farms })
-}
 </script>
 
 <template>
@@ -110,15 +84,15 @@ function goToFarms() {
         </div>
 
         <div class="grid grid-cols-3 gap-4 mt-4">
-          <KlayButton @click="goToAddLiquidity()">
+          <KlayButton @click="emit('click:add')">
             Add
           </KlayButton>
-          <KlayButton @click="goToRemoveLiquidity()">
+          <KlayButton @click="emit('click:remove')">
             Remove
           </KlayButton>
           <KlayButton
             type="primary"
-            @click="goToFarms()"
+            @click="emit('click:deposit')"
           >
             Deposit
           </KlayButton>
