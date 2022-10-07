@@ -1,4 +1,4 @@
-import { Address, ADDRESS_REWARD_TOKEN } from '@/core'
+import { Address, DEX_TOKEN } from '@/core'
 import { ApolloClientId } from '@/types'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
@@ -33,7 +33,7 @@ export function usePairsAndRewardTokenQuery(pairIds: MaybeRef<Address[]>) {
             volumeUSD
           }
         },
-        token(id: "${ADDRESS_REWARD_TOKEN}") {
+        token(id: "${DEX_TOKEN}") {
           derivedUSD
         }
       }

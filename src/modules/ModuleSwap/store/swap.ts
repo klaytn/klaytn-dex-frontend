@@ -1,6 +1,16 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, TokenSymbol, Trade, WeiAsToken, Wei, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS } from '@/core'
+import {
+  Address,
+  CurrencySymbol,
+  Trade,
+  WeiAsToken,
+  Wei,
+  TokenImpl,
+  Pair,
+  TokenAmount,
+  LP_TOKEN_DECIMALS,
+} from '@/core'
 import BigNumber from 'bignumber.js'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
@@ -155,7 +165,7 @@ export const useSwapStore = defineStore('swap', () => {
           decimals: Number(pair.token1.decimals),
           symbol: pair.token1.symbol,
         })
-        const pairSymbol = (token0.symbol + '-' + token1.symbol) as TokenSymbol
+        const pairSymbol = (token0.symbol + '-' + token1.symbol) as CurrencySymbol
         return new Pair({
           liquidityToken: new TokenImpl({
             address: pair.id,

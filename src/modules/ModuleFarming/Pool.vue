@@ -6,7 +6,7 @@ import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 import { CONSTANT_FARMING_DECIMALS } from './utils'
-import { Wei, ADDRESS_FARMING, WeiAsToken, TokenSymbol, makeExplorerLinkToAccount } from '@/core'
+import { Wei, ADDRESS_FARMING, WeiAsToken, CurrencySymbol, makeExplorerLinkToAccount } from '@/core'
 import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import { TokensPair } from '@/utils/pair'
 import StakeUnstakeModal from './Modal.vue'
@@ -40,8 +40,8 @@ const showRoiCalculator = ref(false)
 const roiType = RoiType.Farming
 const roiPool = ref<Pool | null>(null)
 
-const poolSymbols = computed<TokensPair<TokenSymbol>>(() => {
-  const [a, b] = props.pool.name.split('-') as TokenSymbol[]
+const poolSymbols = computed<TokensPair<CurrencySymbol>>(() => {
+  const [a, b] = props.pool.name.split('-') as CurrencySymbol[]
   return { tokenA: a, tokenB: b }
 })
 

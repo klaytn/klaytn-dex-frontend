@@ -1,4 +1,4 @@
-import { Address, TokenSymbol, WeiAsToken } from '@/core'
+import { Address, CurrencySymbol, WeiAsToken } from '@/core'
 import { ApolloClientId } from '@/types'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
@@ -32,7 +32,7 @@ export interface LiquidityPairsPositionItem {
 
 interface Token {
   id: Address
-  symbol: TokenSymbol
+  symbol: CurrencySymbol
   name: string
   decimals: string
 }

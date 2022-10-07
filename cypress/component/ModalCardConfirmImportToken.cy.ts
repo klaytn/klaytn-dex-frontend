@@ -1,5 +1,5 @@
 import CardImportToken from '@/components/common/ModalCardConfirmImportToken.vue'
-import { Address, Token, TokenSymbol, Wei } from '@/core'
+import { Address, Token, CurrencySymbol, Wei } from '@/core'
 import { MODAL_API_KEY, ModalApi } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
 
@@ -7,7 +7,7 @@ function mountFactory(props?: { balance?: Wei; derivedUsd?: BigNumber }) {
   const token: Token = {
     address: '0x7cB550723972d7F29b047D6e71b62DcCcAF93992' as Address,
     name: 'Neptune',
-    symbol: 'NEP' as TokenSymbol,
+    symbol: 'NEP' as CurrencySymbol,
     decimals: 18,
   }
 

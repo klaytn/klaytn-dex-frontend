@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PoolId, TokenSymbol, WeiAsToken } from '@/core'
+import { PoolId, CurrencySymbol, WeiAsToken } from '@/core'
 import { formatCurrency } from '@/utils/composable.currency-input'
 import BigNumber from 'bignumber.js'
 import { ModalOperation } from './types'
@@ -12,7 +12,7 @@ const props = defineProps<{
   poolId: PoolId
   staked: WeiAsToken<BigNumber>
   balance: WeiAsToken<BigNumber>
-  symbols: null | TokensPair<TokenSymbol>
+  symbols: null | TokensPair<CurrencySymbol>
 }>()
 
 const emit = defineEmits<(e: 'staked' | 'unstaked', amount: WeiAsToken<BigNumber>) => void>()

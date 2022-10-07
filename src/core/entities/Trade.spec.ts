@@ -1,5 +1,5 @@
 import { test, expect, describe } from 'vitest'
-import { TokenSymbol } from '../types'
+import { CurrencySymbol } from '../types'
 import { parseAddress } from '../utils'
 import Pair from './Pair'
 import TokenAmount from './TokenAmount'
@@ -12,13 +12,13 @@ describe('Trade', () => {
     const TokenA = new TokenImpl({
       address: parseAddress('0xb9920BD871e39C6EF46169c32e7AC4C698688881'),
       decimals: 18,
-      symbol: 'MER' as TokenSymbol,
+      symbol: 'MER' as CurrencySymbol,
       name: 'Mercury',
     })
     const TokenB = new TokenImpl({
       address: parseAddress('0x1CDcD477994e86A11E21C27ca907bEA266EA3A0a'),
       decimals: 18,
-      symbol: 'VEN' as TokenSymbol,
+      symbol: 'VEN' as CurrencySymbol,
       name: 'Venus',
     })
 
@@ -31,7 +31,7 @@ describe('Trade', () => {
           liquidityToken: new TokenImpl({
             address: parseAddress('0x1CDcD477994e86A11E21C27ca907bEA266EA3A0a'),
             decimals: 18,
-            symbol: 'VEN-MER' as TokenSymbol,
+            symbol: 'VEN-MER' as CurrencySymbol,
             name: '?',
           }),
         }),

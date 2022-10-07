@@ -5,6 +5,7 @@ import { SToastsDisplay } from '@soramitsu-ui/ui'
 import HeaderMenu from '@/components/HeaderMenu.vue'
 
 // Good for tree-shaking
+const DexToken = defineAsyncComponent(() => import('@/components/DexToken.vue'))
 const TheWalletConnect = defineAsyncComponent(() => import('@/components/TheWalletConnect.vue'))
 const DexInitGuard = defineAsyncComponent(() => import('@/components/DexInitGuard.vue'))
 
@@ -57,6 +58,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
         </div>
 
         <div class="col col-right">
+          <DexToken />
           <TheWalletConnect />
         </div>
 
