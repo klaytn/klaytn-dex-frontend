@@ -76,7 +76,6 @@ const emit = defineEmits(['update:modelValue', 'click:max'])
   background: $gray6;
   border-radius: 8px;
   display: grid;
-  grid-template-columns: 100%;
   align-content: center;
   column-gap: 16px;
 
