@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, CurrencySymbol, WeiAsToken, Wei, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS, Percent } from '@/core'
+import { Address, CurrencySymbol, WeiAsToken, Wei, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS } from '@/core'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
 import { useSwapAmounts, GetAmountsProps, useSlippage, useSlippageParsed } from '../composable.get-amounts'
