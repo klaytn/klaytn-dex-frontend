@@ -42,7 +42,7 @@ const short = computed(() => {
 })
 
 const parsedBody = computed(() => {
-  return marked(proposal.value.body)
+  return marked(proposal.value.body.replace(/ipfs:\/\/([a-z,A-Z,0-9]*)/, 'https://snapshot.mypinata.cloud/ipfs/$1'))
 })
 
 const cleanBody = computed(() => {

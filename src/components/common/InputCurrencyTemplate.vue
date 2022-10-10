@@ -22,7 +22,7 @@ const emit = defineEmits(['update:modelValue', 'click:max'])
 
 <template>
   <div
-    class="input-template px-4"
+    class="input-template px-4 grid-cols-[100%]"
     :class="[containerClass, { 'has-right-column': right }]"
     :data-size="size"
   >
@@ -51,7 +51,7 @@ const emit = defineEmits(['update:modelValue', 'click:max'])
 
     <div
       v-if="bottom"
-      class="space-bottom flex items-center w-full"
+      class="space-bottom flex items-center w-full overflow-hidden"
     >
       <slot name="bottom-left" />
 
@@ -76,7 +76,6 @@ const emit = defineEmits(['update:modelValue', 'click:max'])
   background: $gray6;
   border-radius: 8px;
   display: grid;
-  grid-template-columns: 1fr;
   align-content: center;
   column-gap: 16px;
 

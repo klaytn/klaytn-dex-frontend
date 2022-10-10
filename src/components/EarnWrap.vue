@@ -68,14 +68,14 @@ const menuActiveClass = 'earn-wrap__head-button--active'
       <RouterLink
         v-bem="'head-button'"
         to="/farms"
-        :active-class="menuActiveClass"
+        :exact-active-class="menuActiveClass"
       >
         {{ t('EarnWrap.menu.farms') }}
       </RouterLink>
       <RouterLink
         v-bem="'head-button'"
         to="/pools"
-        :active-class="menuActiveClass"
+        :exact-active-class="menuActiveClass"
       >
         {{ t('EarnWrap.menu.pools') }}
       </RouterLink>
