@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
-import { Address, DexPure, Dex, Token, Wei, isNativeToken, NATIVE_TOKEN } from '@/core'
+import { Address, DexPure, Dex, Token, Wei, isNativeToken, NATIVE_TOKEN, DEX_TOKEN_FULL } from '@/core'
 import { WHITELIST_TOKENS } from '@/core'
 import { Ref } from 'vue'
 import { TokensQueryResult, useTokensQuery } from '@/query/tokens-derived-usd'
@@ -172,6 +172,15 @@ function useTokensIndex(tokens: Ref<null | readonly Token[]>) {
   return { findTokenData }
 }
 
+/**
+ * The general store for tokens and their information related to user.
+ *
+ * It has:
+ *
+ * - Imported and whitelist tokens; DEX token
+ * - Tokens balances
+ * - Tokens derived USD
+ */
 export const useTokensStore = defineStore('tokens', () => {
   const {
     tokensFetched: importedFetched,
@@ -180,43 +189,24 @@ export const useTokensStore = defineStore('tokens', () => {
     importToken,
   } = useImportedTokens()
 
-  const tokensLoaded = computed(() => {
-    return importedFetched.value ? [...importedFetched.value, ...WHITELIST_TOKENS] : WHITELIST_TOKENS
-  })
-  const tokensLoadedAddrs = computed(() => tokensLoaded.value?.map((x) => x.address) ?? null)
+  const importedAndWhitelistTokens = computed(() =>
+    importedFetched.value ? [...importedFetched.value, ...WHITELIST_TOKENS] : WHITELIST_TOKENS,
+  )
 
-  const { findTokenData } = useTokensIndex(tokensLoaded)
+  const allTokensInUse = computed(() => [...importedAndWhitelistTokens.value, DEX_TOKEN_FULL])
+
+  const allTokensAddresses = computed(() => allTokensInUse.value?.map((x) => x.address) ?? null)
+
+  const { findTokenData } = useTokensIndex(allTokensInUse)
 
   const {
     lookup: lookupUserBalance,
     isPending: isBalancePending,
     touch: touchUserBalance,
-  } = useUserBalance(tokensLoadedAddrs)
+  } = useUserBalance(allTokensAddresses)
 
-  const tokensWithBalance = computed(() => {
-    return (
-      tokensLoaded.value?.map<TokenWithOptionBalance>((x) => {
-        return {
-          ...x,
-          balance: lookupUserBalance(x.address),
-        }
-      }) ?? null
-    )
-  })
+  const Query = useTokensQuery(allTokensAddresses, { pollInterval: 10_000 })
 
-  function* tokenIdsForQuery() {
-    for (const x of importedFetched.value ?? []) {
-      yield x.address
-    }
-    for (const x of WHITELIST_TOKENS) {
-      yield x.address
-    }
-  }
-
-  const Query = useTokensQuery(
-    computed(() => [...tokenIdsForQuery()]),
-    { pollInterval: 10_000 },
-  )
   whenever(
     () => !!importedFetched.value,
     () => Query.load(),
@@ -234,9 +224,9 @@ export const useTokensStore = defineStore('tokens', () => {
     isBalancePending,
     isImportedPending,
     isImportedLoaded,
-    tokensLoaded,
-    tokensWithBalance,
     isDerivedUSDPending,
+
+    importedAndWhitelistTokens,
 
     importToken,
     findTokenData,

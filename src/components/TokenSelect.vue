@@ -8,7 +8,10 @@ const props = withDefaults(
     token?: null | Address
     selected?: null | Set<Address>
   }>(),
-  { token: null },
+  {
+    token: null,
+    selected: null,
+  },
 )
 
 const emit = defineEmits(['update:token'])
@@ -30,7 +33,7 @@ function onSelect(token: Address) {
   <TokenSelectModal
     v-model:show="isModalOpen"
     :selected="selected"
-    :tokens="tokensStore.tokensWithBalance"
+    :tokens="tokensStore.importedAndWhitelistTokens"
     @select="onSelect"
     @import-token="tokensStore.importToken($event)"
   />
