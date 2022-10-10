@@ -343,6 +343,9 @@ const detailsList = computed(() => {
 }
 
 .input-alt-units {
+  overflow: hidden;
+  width: 100%;
+  white-space: nowrap;
   font-size: 12px;
   font-weight: 400;
   color: vars.$gray2;
