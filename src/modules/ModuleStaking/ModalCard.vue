@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ModalOperation } from './types'
 import BigNumber from 'bignumber.js'
-import { Wei, WeiAsToken, Token } from '@/core'
+import { Wei, WeiAsToken, Token, Address } from '@/core'
 import invariant from 'tiny-invariant'
 import { formatCurrency } from '@/utils/composable.currency-input'
 
@@ -11,7 +11,7 @@ const { notify } = useNotify()
 const { t } = useI18n()
 
 const props = defineProps<{
-  // pool: Pool
+  poolId: Address
   stakeToken: Pick<Token, 'decimals' | 'symbol'>
   balance: WeiAsToken<BigNumber> | null
   staked: WeiAsToken<BigNumber>
@@ -61,10 +61,11 @@ function setPercent(percent: number) {
 const { state: operationState, run: confirm } = useTask(async () => {
   const amount = inputAmount.value
   const dex = dexStore.getNamedDexAnyway()
-  const { stakeToken, operation } = props
+  const { stakeToken, operation, poolId } = props
 
-  if (operation === ModalOperation.Stake) await dex.earn.staking.deposit({ amount: Wei.fromToken(stakeToken, amount) })
-  else await dex.earn.staking.withdraw({ amount: Wei.fromToken(stakeToken, amount) })
+  if (operation === ModalOperation.Stake)
+    await dex.earn.staking.deposit({ amount: Wei.fromToken(stakeToken, amount), poolId })
+  else await dex.earn.staking.withdraw({ amount: Wei.fromToken(stakeToken, amount), poolId })
 
   return { amount, operation, stakeToken }
 })

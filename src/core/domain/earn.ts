@@ -5,6 +5,7 @@ import { Wei } from '../entities'
 import { Opaque } from 'type-fest'
 import { Address } from '../types'
 import { Interface, JsonFragment } from '@ethersproject/abi'
+import { BigNumber as EthersBigNumber } from '@ethersproject/bignumber'
 import { defaultAbiCoder } from '@/core'
 import MulticallPure from './MulticallPure'
 
@@ -22,9 +23,11 @@ export interface RewardsWithBlockNumber<K extends PoolId | Address> {
 
 interface PropsStaking {
   amount: Wei
+  poolId: Address
 }
 
-interface PropsFarming extends PropsStaking {
+interface PropsFarming {
+  amount: Wei
   poolId: PoolId
 }
 
@@ -97,7 +100,6 @@ export class Farming {
 
 export class Staking {
   #agent: Agent
-  #contract: IsomorphicContract<'staking'> | null = null
   #rewardsEncoder: null | ((poolAddress: Address) => string) = null
   #multicall: MulticallPure
 
@@ -120,22 +122,21 @@ export class Staking {
   }
 
   public async deposit(props: PropsStaking): Promise<void> {
-    const contract = this.#contract || (await this.initContract())
+    const contract = await this.initContract(props.poolId)
 
     const gasPrice = await this.#agent.getGasPrice()
     await contract.deposit([props.amount.asStr], { from: this.#agent.address, gasPrice }).estimateAndSend()
   }
 
   public async withdraw(props: PropsStaking): Promise<void> {
-    const contract = this.#contract || (await this.initContract())
+    const contract = await this.initContract(props.poolId)
 
     const gasPrice = await this.#agent.getGasPrice()
     await contract.withdraw([props.amount.asStr], { gasPrice, from: this.#agent.address }).estimateAndSend()
   }
 
-  private async initContract() {
-    this.#contract = await this.#agent.createContract(ADDRESS_FARMING, 'staking')
-    return this.#contract
+  private async initContract(poolId: Address) {
+    return this.#agent.createContract(poolId, 'staking')
   }
 
   private async initEncoder() {
@@ -152,7 +153,7 @@ function makeRewardsMap<K extends PoolId | Address>(indices: K[], returnData: st
   return new Map(
     returnData.map((hex, idx) => {
       const poolId = indices[idx]
-      const [decoded] = defaultAbiCoder.decode(['uint256'], hex)
+      const [decoded] = defaultAbiCoder.decode(['uint256'], hex) as [EthersBigNumber]
       const value = new Wei(decoded)
       return [poolId, value]
     }),
