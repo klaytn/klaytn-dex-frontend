@@ -12,7 +12,6 @@ export const NATIVE_TOKEN_DECIMALS = 18
 
 export const DEX_TOKEN = '0x825e1ba886c90f15a921a7ac9b19b6d645fa2429' as Address
 export const DEX_TOKEN_DECIMALS = 18
-export const DEX_TOKEN_REFETCH_INTERVAL = 10_000
 
 export const ADDRESS_ROUTER = '0xB0B695584234F2CC16266588b2b951F3d2885705' as Address
 export const ADDRESS_FACTORY = '0xEB487a3A623E25cAa668B6D199F1aBa9D2380456' as Address
@@ -134,6 +133,13 @@ export const WHITELIST_TOKENS = Object.freeze([
     decimals: 18,
   },
 ] as Token[])
+
+export const DEX_TOKEN_FULL: Token = {
+  address: DEX_TOKEN,
+  decimals: DEX_TOKEN_DECIMALS,
+  symbol: 'DEX' as CurrencySymbol,
+  name: 'DEX Token',
+}
 
 export function isNativeToken(address: Address): boolean {
   return address === NATIVE_TOKEN
