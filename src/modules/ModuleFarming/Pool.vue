@@ -10,6 +10,8 @@ import { Wei, ADDRESS_FARMING, WeiAsToken, TokenSymbol, makeExplorerLinkToAccoun
 import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import { TokensPair } from '@/utils/pair'
 import StakeUnstakeModal from './Modal.vue'
+import WalletConnectButton from '@/components/WalletConnectButton.vue'
+import invariant from 'tiny-invariant'
 
 const dexStore = useDexStore()
 const { notify } = useNotify()
@@ -46,7 +48,7 @@ const poolSymbols = computed<TokensPair<TokenSymbol>>(() => {
 })
 
 const formattedEarned = computed(() => {
-  return formatCurrency({ amount: new BigNumber(pool.value.earned), decimals: FORMATTED_BIG_INT_DECIMALS })
+  return formatCurrency({ amount: new BigNumber(pool.value.earned ?? 0), decimals: FORMATTED_BIG_INT_DECIMALS })
 })
 
 const formattedAnnualPercentageRate = computed(() => {
@@ -114,6 +116,7 @@ usePromiseLog(withdrawState, 'farming-pool-withdraw')
 wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
     const { earned } = result.fulfilled.value
+    invariant(earned)
     const formatted = formatCurrency({ amount: earned })
     notify({ type: 'ok', description: `${formatted} DEX tokens were withdrawn` })
     emit('withdrawn')
@@ -196,7 +199,16 @@ function openRoiCalculator() {
           class="space-y-4"
         >
           <div
-            v-if="!enabled"
+            v-if="!dexStore.isWalletConnected"
+            class="flex items-center space-x-6"
+          >
+            <WalletConnectButton
+              v-if="!dexStore.isWalletConnected"
+              size="md"
+            />
+          </div>
+          <div
+            v-else-if="!enabled"
             class="flex items-center space-x-6"
           >
             <KlayButton

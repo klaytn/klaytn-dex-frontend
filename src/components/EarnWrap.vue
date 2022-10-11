@@ -9,6 +9,7 @@ const vBem = useBemClass()
 
 const farmingStore = useFarmingStore()
 const stakingStore = useStakingStore()
+const dexStore = useDexStore()
 
 const route = useRoute()
 
@@ -51,7 +52,14 @@ const searchQuery = computed({
 })
 
 const sortingOptions = computed(() => {
-  const values = route.name === RouteName.Farms ? Object.values(FarmingSorting) : Object.values(StakingSorting)
+  const filteredFarmingSortingOptions = Object.values(FarmingSorting).filter((option) => {
+    return dexStore.isWalletConnected || option !== FarmingSorting.Earned
+  })
+  const filteredStakingSortingOptions = Object.values(StakingSorting).filter((option) => {
+    return dexStore.isWalletConnected || option !== StakingSorting.Earned
+  })
+
+  const values = route.name === RouteName.Farms ? filteredFarmingSortingOptions : filteredStakingSortingOptions
 
   return values.map((option) => ({
     value: option,

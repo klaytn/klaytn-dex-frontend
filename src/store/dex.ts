@@ -85,6 +85,15 @@ export const useDexStore = defineStore('dex', () => {
     return act.dex()
   }
 
+  const openModal = ref(false)
+
+  whenever(
+    () => !!connectState.value?.fulfilled,
+    () => {
+      openModal.value = false
+    },
+  )
+
   return {
     abi: () => abi,
 
@@ -102,6 +111,7 @@ export const useDexStore = defineStore('dex', () => {
     isWalletConnected,
     getNamedDexAnyway,
 
+    openModal,
     initialDelayActive,
   }
 })
