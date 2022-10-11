@@ -181,7 +181,7 @@ export class Liquidity extends LiquidityPure {
   }
 
   /**
-   * - Approves that pair has enought amount for `lpTokenValue`
+   * - Approves that pair has enough amount for `lpTokenValue`
    */
   public async prepareRmLiquidity(props: PrepareRemoveLiquidityProps): Promise<PrepareTransactionResult> {
     await this.#agent.approveAmount(props.pair, props.lpTokenValue)

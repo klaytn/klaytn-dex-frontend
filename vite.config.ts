@@ -1,3 +1,5 @@
+import './etc/git-rev-into-env'
+
 import path from 'path'
 import { defineConfig } from 'vitest/config'
 import Vue from '@vitejs/plugin-vue'

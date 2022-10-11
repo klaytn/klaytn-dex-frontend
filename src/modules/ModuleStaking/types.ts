@@ -18,7 +18,7 @@ export interface Pool {
     name: string
   }
   staked: WeiAsToken<BigNumber>
-  earned: WeiAsToken<BigNumber>
+  earned: WeiAsToken<BigNumber> | null
   stakeTokenPrice: TokenPriceInUSD
   createdAtBlock: number
   totalStaked: AmountInUSD

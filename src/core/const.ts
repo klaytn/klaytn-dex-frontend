@@ -142,7 +142,7 @@ export const DEX_TOKEN_FULL: Token = {
 }
 
 export function isNativeToken(address: Address): boolean {
-  return address === NATIVE_TOKEN
+  return address.toLowerCase() === NATIVE_TOKEN.toLowerCase()
 }
 
 export function sortKlayPair(tokenA: Token, tokenB: Token) {

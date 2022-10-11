@@ -6,7 +6,8 @@ import HeaderMenu from '@/components/HeaderMenu.vue'
 
 // Good for tree-shaking
 const DexToken = defineAsyncComponent(() => import('@/components/DexToken.vue'))
-const TheWalletConnect = defineAsyncComponent(() => import('@/components/TheWalletConnect.vue'))
+const TheWalletConnectModal = defineAsyncComponent(() => import('@/components/TheWalletConnectModal.vue'))
+const TheHeaderWallet = defineAsyncComponent(() => import('@/components/TheHeaderWallet.vue'))
 const DexInitGuard = defineAsyncComponent(() => import('@/components/DexInitGuard.vue'))
 
 const { t } = useI18n()
@@ -47,6 +48,8 @@ const menu = computed<HeaderMenuItem[]>(() => {
 
 <template>
   <DexInitGuard>
+    <TheWalletConnectModal />
+
     <main class="layout">
       <header class="relative">
         <div class="col">
@@ -60,7 +63,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
 
         <div class="col col-right">
           <DexToken />
-          <TheWalletConnect />
+          <TheHeaderWallet />
         </div>
 
         <div class="toasts-mount absolute right-0 bottom-0 w-full">

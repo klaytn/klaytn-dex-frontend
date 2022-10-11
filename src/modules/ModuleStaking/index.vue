@@ -1,15 +1,15 @@
 <script setup lang="ts" name="ModuleStaking">
 import { SButton } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
-import { Pool, Sorting } from './types'
+import { Pool } from './types'
 import { usePoolsQuery } from './query.pools'
 import { useTokensQuery } from '@/query/tokens-derived-usd'
-import { PAGE_SIZE, BLOCKS_PER_YEAR, REFETCH_TOKENS_INTERVAL } from './const'
+import { PAGE_SIZE, REFETCH_TOKENS_INTERVAL } from './const'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
-import { TokenPriceInUSD, AmountInUSD, PercentageRate } from '../ModuleEarnShared/types'
 import { useFetchStakingRewards } from './composable.fetch-rewards'
 import { Wei, WeiAsToken, WeiRaw, Address } from '@/core'
 import { deepClone } from '@/utils/common'
+import { useFilteredPools, useMappedPools, useSortedPools } from './composable.pools'
 
 const dexStore = useDexStore()
 
@@ -23,20 +23,20 @@ const page = ref(1)
 const blockNumber = useBlockNumber(computed(() => dexStore.anyDex.dex().agent))
 
 const PoolsQuery = usePoolsQuery(toRef(dexStore, 'account'))
-const rawPools = computed(() => {
+const pools = computed(() => {
   return PoolsQuery.result.value?.pools ?? null
 })
-const rawPoolIds = computed(() => {
-  if (rawPools.value === null) return null
+const poolIds = computed(() => {
+  if (pools.value === null) return null
 
-  return rawPools.value.map((pool) => pool.id)
+  return pools.value.map((pool) => pool.id)
 })
 
 const stakeAndRewardTokenIds = computed(() => {
-  if (!rawPools.value) return null
+  if (!pools.value) return null
   return Array.from(
     new Set(
-      rawPools.value.reduce((accumulator, pool) => {
+      pools.value.reduce((accumulator, pool) => {
         accumulator.push(pool.stakeToken.id)
         accumulator.push(pool.rewardToken.id)
         return accumulator
@@ -67,134 +67,40 @@ PoolsQuery.onResult(() => {
 if (PoolsQuery.result.value) handlePoolsQueryResult()
 
 const { rewards, areRewardsFetched } = useFetchStakingRewards({
-  poolIds: rawPoolIds,
+  poolIds,
   updateBlockNumber: (v) => {
     blockNumber.value = v
   },
 })
 
 const showViewMore = computed(() => {
-  if (sortedPools.value === null) return false
+  if (poolsSorted.value === null) return false
 
-  return sortedPools.value.length > page.value * PAGE_SIZE
+  return poolsSorted.value.length > page.value * PAGE_SIZE
 })
 
 function viewMore() {
   page.value++
 }
 
-const pools = computed((): Pool[] | null => {
-  const rawPoolsValue = rawPools.value
-  const rewardsValue = rewards.value
-  const tokensValue = tokens.value
-
-  if (!rawPoolsValue || !rewardsValue || !tokensValue) return null
-
-  const pools = [] as Pool[]
-
-  for (const pool of rawPoolsValue) {
-    const id = pool.id
-
-    const reward = rewardsValue.get(pool.id)
-    const earned = reward ? reward.decimals(pool.rewardToken) : null
-
-    if (earned === null) continue
-
-    const stakeToken = {
-      ...pool.stakeToken,
-      decimals: Number(pool.stakeToken.decimals),
-    }
-    const rewardToken = {
-      ...pool.rewardToken,
-      decimals: Number(pool.rewardToken.decimals),
-    }
-
-    const staked = new Wei(pool.users[0]?.amount ?? '0').decimals(pool.stakeToken)
-
-    const stakeTokenFromTokensQuery = tokensValue.find((token) => token.id === pool.stakeToken.id)
-    const rewardTokenFromTokensQuery = tokensValue.find((token) => token.id === pool.rewardToken.id)
-
-    if (!stakeTokenFromTokensQuery || !rewardTokenFromTokensQuery) continue
-
-    const stakeTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
-    const rewardTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
-
-    const totalTokensStaked = new Wei(pool.totalTokensStaked).decimals(stakeToken)
-    const totalStaked = stakeTokenPrice.times(totalTokensStaked) as AmountInUSD
-
-    const rewardRate = new BigNumber(pool.rewardRate)
-    const totalRewardPricePerYear = rewardRate.times(BLOCKS_PER_YEAR).times(rewardTokenPrice)
-    const annualPercentageRate = (
-      !totalStaked.isZero() ? totalRewardPricePerYear.div(totalStaked).times(100) : new BigNumber(0)
-    ) as PercentageRate
-
-    const createdAtBlock = Number(pool.createdAtBlock)
-
-    pools.push({
-      id,
-      stakeToken,
-      rewardToken,
-      earned,
-      staked,
-      stakeTokenPrice,
-      createdAtBlock,
-      annualPercentageRate,
-      totalStaked,
-      endBlock: Number(pool.endBlock),
-    })
-  }
-
-  return pools
+const poolsMapped = useMappedPools({
+  pools: PoolsQuery.result,
+  rewards,
+  tokens,
 })
 
-const filteredPools = computed<Pool[] | null>(() => {
-  if (pools.value === null) return null
+const poolsFiltered = useFilteredPools(poolsMapped, { stakedOnly, searchQuery })
 
-  let filteredPools = [...pools.value]
+const poolsSorted = useSortedPools(poolsFiltered, sorting)
 
-  if (stakedOnly.value) filteredPools = filteredPools?.filter((pool) => !pool.staked.isZero())
-
-  if (searchQuery.value)
-    filteredPools = filteredPools?.filter((pool) =>
-      [pool.stakeToken.symbol, pool.stakeToken.name, pool.rewardToken.symbol, pool.rewardToken.name].some((item) =>
-        item.toLowerCase().includes(searchQuery.value.toLowerCase()),
-      ),
-    )
-
-  return filteredPools
+const poolsPaginated = computed<Pool[] | null>(() => {
+  if (poolsSorted.value === null) return null
+  return poolsSorted.value.slice(0, page.value * PAGE_SIZE)
 })
 
-// TODO move to composable
-const sortedPools = computed<Pool[] | null>(() => {
-  if (filteredPools.value === null) return null
+const poolsFinal = poolsPaginated
 
-  let sortedPools = [...filteredPools.value]
-
-  sortedPools = sortedPools.sort((poolA, poolB) => {
-    if (sorting.value === Sorting.AnnualPercentageRate)
-      return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
-
-    if (sorting.value === Sorting.Earned) return poolB.earned.comparedTo(poolA.earned)
-
-    if (sorting.value === Sorting.TotalStaked) return poolB.earned.comparedTo(poolA.totalStaked)
-
-    if (sorting.value === Sorting.Latest) return poolB.createdAtBlock - poolA.createdAtBlock
-
-    return 0
-  })
-
-  return sortedPools
-})
-
-const paginatedPools = computed<Pool[] | null>(() => {
-  if (sortedPools.value === null) return null
-
-  return sortedPools.value.slice(0, page.value * PAGE_SIZE)
-})
-
-const loading = computed(() => {
-  return pools.value === null || !areRewardsFetched.value
-})
+const isLoading = PoolsQuery.loading
 
 function updateStaked(poolId: Pool['id'], diff: BigNumber) {
   if (!PoolsQuery.result.value) return
@@ -224,10 +130,10 @@ function handleUnstaked(pool: Pool, amount: string) {
 
 <template>
   <div v-bem>
-    <template v-if="rawPools">
+    <template v-if="pools">
       <div v-bem="'list'">
         <ModuleStakingPool
-          v-for="pool in paginatedPools"
+          v-for="pool in poolsFinal"
           :key="pool.id"
           :pool="pool"
           :block-number="blockNumber"
@@ -243,7 +149,7 @@ function handleUnstaked(pool: Pool, amount: string) {
           v-bem="'view-more-button'"
           size="sm"
           type="primary"
-          :loading="loading"
+          :loading="isLoading"
           @click="viewMore"
         >
           View more
@@ -251,7 +157,7 @@ function handleUnstaked(pool: Pool, amount: string) {
       </div>
     </template>
     <div
-      v-if="loading && !showViewMore"
+      v-if="isLoading && !showViewMore"
       v-bem="'loader'"
     >
       <KlayLoader />
