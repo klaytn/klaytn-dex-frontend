@@ -4,7 +4,9 @@ const VALUES_PRESET = [0.001, 0.005, 0.01, 0.03]
 
 <script setup lang="ts">
 import CarbonWarningFilled from '~icons/carbon/warning-filled'
-import { roundTo } from 'round-to'
+import BigNumber from 'bignumber.js'
+
+const PERCENT_DECIMALS = 2
 
 const props = withDefaults(
   defineProps<{
@@ -24,15 +26,20 @@ const props = withDefaults(
 const emit = defineEmits(['update:modelValue'])
 
 const model = useVModel(props, 'modelValue', emit)
-const inputModel = computed({
-  get: () => model.value * 100,
+
+const inputModel = computed<BigNumber>({
+  get: () => new BigNumber(model.value * 100).decimalPlaces(PERCENT_DECIMALS),
   set: (v) => {
-    model.value = v / 100
+    const HUNDRED_DECIMALS = 2
+    model.value = v
+      .div(100)
+      .decimalPlaces(HUNDRED_DECIMALS + PERCENT_DECIMALS)
+      .toNumber()
   },
 })
 
 const valueFormatted = computed(() => {
-  return roundTo(model.value * 100, 1) + `%`
+  return inputModel.value.toString() + `%`
 })
 
 const warningMayFail = computed(() => props.modelValue < props.thresholdMayFail)
@@ -79,13 +86,13 @@ const anyWarning = logicOr(warningMayBeFrontrun, warningMayFail)
             </KlayButton>
           </div>
 
-          <input
+          <CurrencyInput
             v-model="inputModel"
-            type="number"
-            max="100"
-            min="0"
-            step="0.1"
-          >
+            :decimals="PERCENT_DECIMALS"
+            symbol="%"
+            symbol-position="right"
+            symbol-delimiter=""
+          />
         </div>
 
         <div

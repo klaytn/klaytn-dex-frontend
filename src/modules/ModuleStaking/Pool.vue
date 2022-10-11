@@ -123,9 +123,9 @@ function goToSwapPage() {
 
 const { state: withdrawState, run: withdraw } = useTask(async () => {
   const {
-    pool: { earned },
+    pool: { earned, id: poolId },
   } = props
-  await dexStore.getNamedDexAnyway().earn.staking.withdraw({ amount: new Wei(0) })
+  await dexStore.getNamedDexAnyway().earn.staking.withdraw({ amount: new Wei(0), poolId })
   return { earned }
 })
 
@@ -293,6 +293,7 @@ function openRoiCalculator() {
     @update:show="!$event && (modalOperation = null)"
   >
     <ModalCard
+      :pool-id="pool.id"
       :operation="modalOperation!"
       :staked="pool.staked"
       :balance="balance"

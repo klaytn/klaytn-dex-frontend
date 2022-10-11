@@ -16,8 +16,10 @@ const emit = defineEmits(['select', 'update:show', 'import-token'])
 const showModel = useVModel(props, 'show', emit)
 const tokens = toRef(props, 'tokens')
 
+const selectedSetWithLowerAddresses = computed(() => new Set([...(props.selected ?? [])].map((x) => x.toLowerCase())))
+
 function isSelected(addr: Address): boolean {
-  return props.selected?.has(addr) ?? false
+  return selectedSetWithLowerAddresses.value.has(addr.toLowerCase()) ?? false
 }
 
 const { notify } = useNotify()

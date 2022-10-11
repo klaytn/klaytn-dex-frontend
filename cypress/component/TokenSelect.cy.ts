@@ -67,6 +67,15 @@ describe('Token select modal', () => {
     cy.get(TESTID_RECENT_TOKEN).contains(token.symbol).should('have.css', 'pointer-events', 'none')
   })
 
+  it('selected token with lowercase addr is disabled too', () => {
+    const token = WHITELIST_TOKENS.at(4)!
+
+    mountFactory({ selected: new Set([token.address.toLowerCase() as Address]) })
+
+    cy.get(TESTID_LIST_ITEM).contains(token.symbol).should('have.css', 'pointer-events', 'none')
+    cy.get(TESTID_RECENT_TOKEN).contains(token.symbol).should('have.css', 'pointer-events', 'none')
+  })
+
   it('multiple selected tokens are disabled', () => {
     const tokens = [WHITELIST_TOKENS.at(2)!, WHITELIST_TOKENS.at(5)!]
 

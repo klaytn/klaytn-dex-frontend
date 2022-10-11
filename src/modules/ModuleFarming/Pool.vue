@@ -307,6 +307,7 @@ function openRoiCalculator() {
   </KlayAccordionItem>
 
   <StakeUnstakeModal
+    :pool-id="pool.id"
     :operation="modalOperation"
     :staked="pool.staked"
     :balance="pool.balance"

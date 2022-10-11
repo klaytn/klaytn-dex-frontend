@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { Address } from '@/core'
+import { RouteName } from '@/types'
+import { TokensPair } from '@/utils/pair'
 import { useTradeStore } from '../ModuleTradeShared/trade-store'
-import { useLiquidityPairsQuery } from './query.liquidity-pairs'
+import { useLiquidityPairsQuery, LiquidityPairsPosition } from './query.liquidity-pairs'
 
 const { loading: isLoading, result, refetch } = useLiquidityPairsQuery()
 
@@ -16,6 +19,37 @@ tradeStore.useRefresh({
   run: () => refetch(),
   pending: isLoading,
 })
+
+const router = useRouter()
+const addLiquidityStore = useLiquidityAddStore()
+
+function positionToAddresses({
+  pair: {
+    token0: { id: tokenA },
+    token1: { id: tokenB },
+  },
+}: LiquidityPairsPosition): TokensPair<Address> {
+  return { tokenA, tokenB }
+}
+
+function goToAddLiquidity(position: LiquidityPairsPosition) {
+  addLiquidityStore.setBothAddresses(positionToAddresses(position))
+  router.push({ name: RouteName.LiquidityAdd })
+}
+
+const rmLiquidityStore = useLiquidityRmStore()
+
+function goToRemoveLiquidity(position: LiquidityPairsPosition) {
+  rmLiquidityStore.setTokens(positionToAddresses(position))
+  router.push({ name: RouteName.LiquidityRemove })
+}
+
+const farmingStore = useFarmingStore()
+
+function goToFarms({ pair: { name: pairName } }: LiquidityPairsPosition) {
+  farmingStore.setFilterByPairName(pairName)
+  router.push({ name: RouteName.Farms })
+}
 </script>
 
 <template>
@@ -34,6 +68,9 @@ tradeStore.useRefresh({
     <ModuleLiquidityViewPairsList
       v-if="isLoaded && !isUserEmpty"
       :positions="result!.user?.liquidityPositions"
+      @click:add="goToAddLiquidity($event)"
+      @click:remove="goToRemoveLiquidity($event)"
+      @click:deposit="goToFarms($event)"
     />
   </div>
 </template>
