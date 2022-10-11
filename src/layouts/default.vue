@@ -33,6 +33,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
       label: t('DefaultLayout.menu.voting'),
       routeName: RouteName.Voting,
       kind: 'route',
+      activeWith: [RouteName.VotingProposal],
     },
     {
       label: t('DefaultLayout.menu.charts'),
