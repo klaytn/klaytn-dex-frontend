@@ -1,3 +1,5 @@
+import './print-git-revision'
+
 // enable debug
 if (import.meta.env.DEV) {
   localStorage.debug = '*'
