@@ -101,9 +101,6 @@ const poolsFinal = poolsPaginated
 
 const isLoading = PoolsQuery.loading
 
-/**
- * TODO use "optimistic response" API for query result replacement
- */
 function handleStakedUnstaked() {
   PoolsQuery.refetch()
 }

@@ -101,9 +101,6 @@ for (const [QueryName, Query] of Object.entries({
   })
 }
 
-/**
- * TODO use "optimistic response" API for query result replacement
- */
 function handleStakedUnstaked() {
   FarmingQuery.refetch()
   LiquidityPositionsQuery.refetch()
