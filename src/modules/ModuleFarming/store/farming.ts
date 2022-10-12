@@ -4,7 +4,7 @@ import { Sorting } from '../types'
 export const useFarmingStore = defineStore('farming', () => {
   const stakedOnly = ref(false)
   const searchQuery = ref('')
-  const sorting = ref<Sorting>(Sorting.Default)
+  const sorting = ref<Sorting>(Sorting.Hot)
 
   function setFilterByPairName(name: string) {
     searchQuery.value = name

@@ -24,10 +24,11 @@ export interface Pool {
   totalStaked: AmountInUSD
   annualPercentageRate: PercentageRate
   endBlock: number
+  active: boolean
 }
 
 export const Sorting = {
-  Default: 'default',
+  Hot: 'hot',
   AnnualPercentageRate: 'annualPercentageRate',
   Earned: 'earned',
   TotalStaked: 'totalStaked',

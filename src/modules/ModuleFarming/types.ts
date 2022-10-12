@@ -19,7 +19,7 @@ export interface Pool {
 }
 
 export const Sorting = {
-  Default: 'default',
+  Hot: 'hot',
   Liquidity: 'liquidity',
   AnnualPercentageRate: 'annualPercentageRate',
   Multiplier: 'multiplier',

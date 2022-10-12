@@ -12,12 +12,14 @@ export function useMappedPools(props: {
   pools: Ref<undefined | null | PoolsQueryResult>
   rewards: Ref<undefined | null | Rewards<Address>>
   tokens: Ref<undefined | null | Tokens>
+  blockNumber: Ref<number | null>
 }) {
   return computed((): null | Pool[] => {
     const {
       pools: { value: poolsResult },
       rewards: { value: rewards },
       tokens: { value: tokens },
+      blockNumber: { value: blockNumber },
     } = props
     if (!poolsResult || !tokens) return null
 
@@ -59,6 +61,9 @@ export function useMappedPools(props: {
 
       const createdAtBlock = Number(pool.createdAtBlock)
 
+      const endBlock = Number(pool.endBlock)
+      const active = (blockNumber ?? 0) > endBlock
+
       mappedPools.push({
         id,
         stakeToken,
@@ -69,7 +74,8 @@ export function useMappedPools(props: {
         createdAtBlock,
         annualPercentageRate,
         totalStaked,
-        endBlock: Number(pool.endBlock),
+        endBlock,
+        active,
       })
     }
 
@@ -111,6 +117,10 @@ export function useFilteredPools<T extends Pool>(
 
 function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): number {
   switch (sorting) {
+    case Sorting.Hot:
+      if (poolA.active && !poolB.active) return 1
+      else if (poolB.active && !poolA.active) return -1
+      else return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.AnnualPercentageRate:
       return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.Earned:
