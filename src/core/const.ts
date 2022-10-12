@@ -1,5 +1,6 @@
 import Percent from './entities/Percent'
-import type { Token, Address, TokenSymbol, Network } from './types'
+import Currency from './entities/Currency'
+import type { Token, Address, CurrencySymbol, Network } from './types'
 
 export const MAX_UINT256 = 2n ** 256n - 1n
 
@@ -9,13 +10,14 @@ export const MAX_UINT256 = 2n ** 256n - 1n
 export const NATIVE_TOKEN = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address
 export const NATIVE_TOKEN_DECIMALS = 18
 
+export const DEX_TOKEN = '0x825e1ba886c90f15a921a7ac9b19b6d645fa2429' as Address
+export const DEX_TOKEN_DECIMALS = 18
+
 export const ADDRESS_ROUTER = '0xB0B695584234F2CC16266588b2b951F3d2885705' as Address
 export const ADDRESS_FACTORY = '0xEB487a3A623E25cAa668B6D199F1aBa9D2380456' as Address
 export const ADDRESS_WETH = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address
 export const ADDRESS_MULTICALL = '0xc88098CEaE07D1FE443372a0accC464A5fb94668' as Address
 export const ADDRESS_FARMING = '0x32bE07FB9dBf294c2e92715F562f7aBA02b7443A' as Address
-
-export const ADDRESS_REWARD_TOKEN = '0x825e1ba886c90f15a921a7ac9b19b6d645fa2429' as Address
 
 /**
  * We totally sure that all our LP tokens have this decimals value
@@ -33,7 +35,7 @@ export const NETWORK: Network = Object.freeze({
   blockExplorerUrl: 'https://baobab.scope.klaytn.com/',
   nativeToken: {
     name: 'KLAY',
-    symbol: 'KLAY' as TokenSymbol,
+    symbol: 'KLAY' as CurrencySymbol,
     decimals: NATIVE_TOKEN_DECIMALS,
   },
 })
@@ -48,6 +50,8 @@ export const TRADE_MAX_HOPS = 3
 export const TRADE_MAX_NUM_RESULTS = 3
 
 export const TRADE_MAX_PRICE_IMPACT = new Percent(1, 10)
+
+export const CURRENCY_USD = new Currency(2, 'USD' as CurrencySymbol, 'US Dollars')
 
 const EXPLORER_BASE = `https://baobab.klaytnfinder.io`
 
@@ -129,6 +133,13 @@ export const WHITELIST_TOKENS = Object.freeze([
     decimals: 18,
   },
 ] as Token[])
+
+export const DEX_TOKEN_FULL: Token = {
+  address: DEX_TOKEN,
+  decimals: DEX_TOKEN_DECIMALS,
+  symbol: 'DEX' as CurrencySymbol,
+  name: 'DEX Token',
+}
 
 export function isNativeToken(address: Address): boolean {
   return address.toLowerCase() === NATIVE_TOKEN.toLowerCase()

@@ -18,7 +18,7 @@ export interface Kaikas {
         type: 'ERC20'
         options: {
           address: Address
-          symbol: TokenSymbol
+          symbol: CurrencySymbol
           decimals: number
           image?: string
         }
@@ -55,7 +55,7 @@ export interface Network {
 export interface Token {
   address: Address
   name: string
-  symbol: TokenSymbol
+  symbol: CurrencySymbol
   decimals: number
 }
 
@@ -67,7 +67,7 @@ export type Address = Opaque<string, 'Address'>
 /**
  * A ticker symbol or shorthand, up to 5 chars
  */
-export type TokenSymbol = Opaque<string, 'TokenSymbol'>
+export type CurrencySymbol = Opaque<string, 'CurrencySymbol'>
 
 /**
  * FIXME in liquidity store it is usually computed as:

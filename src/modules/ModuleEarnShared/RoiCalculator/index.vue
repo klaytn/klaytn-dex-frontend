@@ -1,5 +1,5 @@
 <script setup lang="ts" name="ModuleEarnSharedRoiCalculator">
-import { WeiAsToken } from '@/core'
+import { CURRENCY_USD, WeiAsToken } from '@/core'
 import { KlayIconSwitch } from '~klay-icons'
 import { SModal } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
@@ -10,8 +10,6 @@ import { StakeTabs, CompoundingTabs, StakeUnits } from './types'
 import { useFormattedCurrency, MaskSymbol, SYMBOL_USD as MASK_SYMBOL_USD } from '@/utils/composable.currency-input'
 import { Ref } from 'vue'
 import { MaybeRef } from '@vueuse/core'
-
-const DECIMALS_USD = 2
 
 const { t } = useI18n()
 
@@ -64,7 +62,7 @@ const rewardTokenSymbolAsMask = computed<MaskSymbol>(() => ({ str: props.rewardT
 const inputCurrencySymbol = useMaskSymbolOrUSD(stakeTokenSymbolAsMask)
 
 const inputDecimals = eagerComputed(() =>
-  stakeUnits.value === StakeUnits.USD ? DECIMALS_USD : props.stakeTokenDecimals,
+  stakeUnits.value === StakeUnits.USD ? CURRENCY_USD.decimals : props.stakeTokenDecimals,
 )
 
 // #endregion

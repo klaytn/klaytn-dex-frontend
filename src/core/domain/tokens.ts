@@ -1,5 +1,5 @@
 import { isEmptyAddress } from '../utils'
-import type { Address, Token, TokenSymbol } from '../types'
+import type { Address, Token, CurrencySymbol } from '../types'
 import { Wei } from '../entities'
 import CommonContracts from './CommonContracts'
 import invariant from 'tiny-invariant'
@@ -109,7 +109,7 @@ export class TokensPure {
     const tokens = addresses.map<Token>((a, i) => {
       const [nameRaw, symbolRaw, decimalsRaw] = returnData.slice(i * 3, i * 3 + 3)
       const [name] = defaultAbiCoder.decode(['string'], nameRaw) as [string]
-      const [symbol] = defaultAbiCoder.decode(['string'], symbolRaw) as [TokenSymbol]
+      const [symbol] = defaultAbiCoder.decode(['string'], symbolRaw) as [CurrencySymbol]
       const [decimals] = defaultAbiCoder.decode(['uint'], decimalsRaw) as [EthersBigNumber]
       return { address: a, name, symbol, decimals: decimals.toNumber() }
     })
@@ -121,7 +121,7 @@ export class TokensPure {
     const contract = await this.#agent.createContract(address, 'kip7')
     const [name, symbol, decimals] = await Promise.all([
       contract.name([]).call(),
-      contract.symbol([]).call() as Promise<TokenSymbol>,
+      contract.symbol([]).call() as Promise<CurrencySymbol>,
       contract
         .decimals([])
         .call()

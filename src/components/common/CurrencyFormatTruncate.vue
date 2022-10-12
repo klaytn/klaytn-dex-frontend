@@ -5,6 +5,7 @@ export default {
 </script>
 
 <script setup lang="ts">
+import { CURRENCY_USD } from '@/core'
 import { MaskSymbol, formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import BigNumber from 'bignumber.js'
 import { SetRequired } from 'type-fest'
@@ -45,8 +46,9 @@ const resolvedSymbol = computed<null | SetRequired<MaskSymbol, 'delimiter'>>(() 
 )
 
 const decimalsNum = eagerComputed(() => {
-  const value = props.decimals
-  return typeof value === 'string' ? Number(value) : typeof value === 'number' ? value : undefined
+  const d = props.decimals
+  const decimals = typeof d === 'string' ? Number(d) : typeof d === 'number' ? d : undefined
+  return decimals ?? (props.usd ? CURRENCY_USD.decimals : undefined)
 })
 
 const maxWidthPx = computed(() => `${props.maxWidth}px`)

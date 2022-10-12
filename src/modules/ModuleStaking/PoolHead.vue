@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { TokenSymbol } from '@/core'
+import { CurrencySymbol } from '@/core'
 import BigNumber from 'bignumber.js'
 import { KlayIconCalculator, KlayIconClock } from '~klay-icons'
 
 const props = defineProps<{
-  rewardTokenSymbol: TokenSymbol
-  stakeTokenSymbol: TokenSymbol
+  rewardTokenSymbol: CurrencySymbol
+  stakeTokenSymbol: CurrencySymbol
   earned: BigNumber | null
   totalStakedUsd: BigNumber
   annualPercentageRate: BigNumber

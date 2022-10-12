@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { TokenSymbol } from '@/core'
+import { CurrencySymbol } from '@/core'
 
 defineProps<{
-  tokenA: TokenSymbol
-  tokenB: TokenSymbol
+  tokenA: CurrencySymbol
+  tokenB: CurrencySymbol
 }>()
 </script>
 
