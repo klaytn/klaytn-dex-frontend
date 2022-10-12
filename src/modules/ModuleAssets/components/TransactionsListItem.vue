@@ -23,7 +23,7 @@ const kindFormatted = computed(() => {
   const {
     item: { kind },
   } = props
-  return kind === 'burn' ? 'Burn' : kind === 'mint' ? 'Mint' : 'Swap'
+  return kind === 'burn' ? 'Remove' : kind === 'mint' ? 'Receive' : 'Swap'
 })
 
 interface SwapAmountCooked {
@@ -54,6 +54,7 @@ const detailsParsed = computed(() => {
     }
   }
 
+  // eslint-disable-next-line no-unused-vars
   const ty: never = item
   throw new Error('unreachable')
 })
