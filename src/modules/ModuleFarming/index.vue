@@ -101,50 +101,9 @@ for (const [QueryName, Query] of Object.entries({
   })
 }
 
-/**
- * FIXME use "optimistic response" API for query result replacement
- */
-function updateStaked(poolId: Pool['id'], diff: BigNumber) {
-  if (!FarmingQuery.result.value) return
-
-  const diffAsWei = farmingToWei(diff.toFixed() as WeiAsToken)
-  const farmingQueryResultCloned = deepClone(FarmingQuery.result.value)
-  const pool = farmingQueryResultCloned.farming.pools.find((pool) => pool.id === poolId)
-  if (!pool) return
-
-  pool.totalTokensStaked = new BigNumber(pool.totalTokensStaked).plus(diffAsWei.asBigNum).toFixed(0) as WeiRaw<string>
-
-  const user = pool.users[0] ?? null
-  if (!user) return
-
-  user.amount = new BigNumber(user.amount).plus(diffAsWei.asBigNum).toFixed(0) as WeiRaw<string>
-  FarmingQuery.result.value = farmingQueryResultCloned
-}
-
-/**
- * FIXME use "optimistic response" API for query result replacement
- */
-function updateBalance(pairId: Pool['pairId'], diff: BigNumber) {
-  if (!LiquidityPositionsQuery.result.value) return
-
-  const liquidityPositionsQueryResultCloned = deepClone(LiquidityPositionsQuery.result.value)
-  const liquidityPosition =
-    liquidityPositionsQueryResultCloned.user.liquidityPositions.find(
-      (liquidityPosition) => liquidityPosition.pair.id === pairId,
-    ) ?? null
-  if (!liquidityPosition) return
-
-  liquidityPosition.liquidityTokenBalance = `${new BigNumber(liquidityPosition.liquidityTokenBalance).plus(diff)}`
-  LiquidityPositionsQuery.result.value = liquidityPositionsQueryResultCloned
-}
-
-function handleStaked(pool: Pool, amount: string) {
-  updateStaked(pool.id, new BigNumber(amount))
-  updateBalance(pool.pairId, new BigNumber(0).minus(amount))
-}
-function handleUnstaked(pool: Pool, amount: string) {
-  updateStaked(pool.id, new BigNumber(0).minus(amount))
-  updateBalance(pool.pairId, new BigNumber(amount))
+function handleStakedUnstaked() {
+  FarmingQuery.refetch()
+  LiquidityPositionsQuery.refetch()
 }
 
 // #region Pagination
@@ -181,8 +140,8 @@ const expandPools = computed(() => poolsPaginated.value?.length === 1)
           :key="pool.id"
           :pool="pool"
           :expanded="expandPools"
-          @staked="(value: string) => handleStaked(pool, value)"
-          @unstaked="(value: string) => handleUnstaked(pool, value)"
+          @staked="handleStakedUnstaked"
+          @unstaked="handleStakedUnstaked"
         />
       </div>
       <div
