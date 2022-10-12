@@ -82,6 +82,7 @@ declare module '@vue/runtime-core' {
     ModuleStaking: typeof import('./modules/ModuleStaking/index.vue')['default']
     ModuleStakingModalCard: typeof import('./modules/ModuleStaking/ModalCard.vue')['default']
     ModuleStakingPool: typeof import('./modules/ModuleStaking/Pool.vue')['default']
+    ModuleStakingPoolAddToWallet: typeof import('./modules/ModuleStaking/PoolAddToWallet.vue')['default']
     ModuleStakingPoolHead: typeof import('./modules/ModuleStaking/PoolHead.vue')['default']
     ModuleSwapDetails: typeof import('./modules/ModuleSwap/Details.vue')['default']
     ModuleSwapDetailsRowSlippage: typeof import('./modules/ModuleSwap/DetailsRowSlippage.vue')['default']

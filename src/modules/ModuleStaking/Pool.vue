@@ -1,5 +1,4 @@
 <script setup lang="ts" name="ModuleStakingPool">
-import { KlayIconKaikas } from '~klay-icons'
 import { ModalOperation, Pool } from './types'
 import { RouteName, RoiType } from '@/types'
 import BigNumber from 'bignumber.js'
@@ -11,6 +10,7 @@ import { formatCurrency } from '@/utils/composable.currency-input'
 import PoolHead from './PoolHead.vue'
 import WalletConnectButton from '@/components/WalletConnectButton.vue'
 import invariant from 'tiny-invariant'
+import AddToWallet from './PoolAddToWallet.vue'
 
 const dexStore = useDexStore()
 const { notify } = useNotify()
@@ -104,13 +104,21 @@ function unstake() {
   modalOperation.value = ModalOperation.Unstake
 }
 
-function addToKaikas(pool: Pool) {
-  dexStore.getNamedDexAnyway().agent.watchAsset({
-    address: pool.rewardToken.id,
-    symbol: pool.rewardToken.symbol,
-    decimals: pool.rewardToken.decimals,
-  })
+const { state: addToWalletState, set: setAddToWalletPromise } = usePromise()
+
+function addRewardTokenToWallet(pool: Pool) {
+  async function action() {
+    await dexStore.getNamedDexAnyway().agent.watchAsset({
+      address: pool.rewardToken.id,
+      symbol: pool.rewardToken.symbol,
+      decimals: pool.rewardToken.decimals,
+    })
+  }
+
+  setAddToWalletPromise(action())
 }
+
+usePromiseLog(addToWalletState, 'add-reward-token-to-wallet')
 
 const swapStore = useSwapStore()
 
@@ -232,14 +240,17 @@ function openRoiCalculator() {
                   Stake {{ pool.stakeToken.symbol }}
                 </KlayButton>
 
-                <template v-else>
+                <div
+                  v-else
+                  class="space-x-2"
+                >
                   <KlayButton @click="unstake()">
                     -
                   </KlayButton>
                   <KlayButton @click="stake()">
                     +
                   </KlayButton>
-                </template>
+                </div>
               </template>
             </InputCurrencyTemplate>
           </div>
@@ -284,13 +295,11 @@ function openRoiCalculator() {
         <KlayExternalLink :href="makeExplorerLinkToAccount(pool.id)">
           View Contract
         </KlayExternalLink>
-        <div
-          class="add-to-kaikas flex items-center space-x-1"
-          @click="addToKaikas(pool)"
-        >
-          <span> Add to Kaikas </span>
-          <KlayIconKaikas />
-        </div>
+        <AddToWallet
+          v-if="dexStore.active.kind === 'named'"
+          :connected="dexStore.active.wallet"
+          @click="addRewardTokenToWallet(pool)"
+        />
       </div>
     </template>
   </KlayAccordionItem>
