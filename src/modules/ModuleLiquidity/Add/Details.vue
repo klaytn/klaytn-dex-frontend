@@ -87,7 +87,6 @@ const formattedCommission = POOL_COMMISSION.toFormat()
           <span class="mr-1">Pool commission</span>
 
           <SPopover
-            show
             placement="bottom"
             distance="8"
           >
