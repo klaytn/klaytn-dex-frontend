@@ -13,6 +13,70 @@ import * as Contracts from ".";
 declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
     getContractFactory(
+      name: "AccessControl",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.AccessControl__factory>;
+    getContractFactory(
+      name: "IAccessControl",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAccessControl__factory>;
+    getContractFactory(
+      name: "Ownable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Ownable__factory>;
+    getContractFactory(
+      name: "IVotes",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IVotes__factory>;
+    getContractFactory(
+      name: "KAccessControl",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.KAccessControl__factory>;
+    getContractFactory(
+      name: "IKIP7Permit",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IKIP7Permit__factory>;
+    getContractFactory(
+      name: "KIP7Permit",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.KIP7Permit__factory>;
+    getContractFactory(
+      name: "IKIP7Metadata",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IKIP7Metadata__factory>;
+    getContractFactory(
+      name: "KIP7Votes",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.KIP7Votes__factory>;
+    getContractFactory(
+      name: "IKIP7",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IKIP7__factory>;
+    getContractFactory(
+      name: "IKIP7Receiver",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IKIP7Receiver__factory>;
+    getContractFactory(
+      name: "KIP7",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.KIP7__factory>;
+    getContractFactory(
+      name: "IKIP13",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IKIP13__factory>;
+    getContractFactory(
+      name: "KIP13",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.KIP13__factory>;
+    getContractFactory(
+      name: "ERC165",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ERC165__factory>;
+    getContractFactory(
+      name: "IERC165",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC165__factory>;
+    getContractFactory(
       name: "Farming",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Farming__factory>;
@@ -24,14 +88,6 @@ declare module "hardhat/types/runtime" {
       name: "StakingInitializable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.StakingInitializable__factory>;
-    getContractFactory(
-      name: "IKIP7Permit",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IKIP7Permit__factory>;
-    getContractFactory(
-      name: "IAccessControl",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IAccessControl__factory>;
     getContractFactory(
       name: "IDexCallee",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -53,37 +109,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IDexRouter__factory>;
     getContractFactory(
-      name: "IERC20",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC20__factory>;
-    getContractFactory(
-      name: "IKIP13",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IKIP13__factory>;
-    getContractFactory(
-      name: "IKIP7",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IKIP7__factory>;
-    getContractFactory(
-      name: "IKIP7Metadata",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IKIP7Metadata__factory>;
-    getContractFactory(
-      name: "IKIP7Receiver",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IKIP7Receiver__factory>;
-    getContractFactory(
-      name: "IKIP7TokenReceiver",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IKIP7TokenReceiver__factory>;
-    getContractFactory(
       name: "IPlatformToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IPlatformToken__factory>;
-    getContractFactory(
-      name: "IVotes",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IVotes__factory>;
     getContractFactory(
       name: "IWKLAY",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -97,9 +125,17 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.DexKIP7Test__factory>;
     getContractFactory(
+      name: "KIP7Holder",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.KIP7Holder__factory>;
+    getContractFactory(
       name: "KIP7Mock",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.KIP7Mock__factory>;
+    getContractFactory(
+      name: "MathMock",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MathMock__factory>;
     getContractFactory(
       name: "MultiSigWallet",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -121,18 +157,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.DexRouter__factory>;
     getContractFactory(
-      name: "KIP7Permit",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.KIP7Permit__factory>;
-    getContractFactory(
-      name: "KIP7Votes",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.KIP7Votes__factory>;
-    getContractFactory(
-      name: "KIP7",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.KIP7__factory>;
-    getContractFactory(
       name: "PlatformToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PlatformToken__factory>;
@@ -145,22 +169,90 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.WETH9__factory>;
     getContractFactory(
-      name: "AccessControl",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.AccessControl__factory>;
-    getContractFactory(
-      name: "Ownable",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Ownable__factory>;
-    getContractFactory(
-      name: "KIP13",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.KIP13__factory>;
-    getContractFactory(
       name: "Multicall",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Multicall__factory>;
 
+    getContractAt(
+      name: "AccessControl",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AccessControl>;
+    getContractAt(
+      name: "IAccessControl",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAccessControl>;
+    getContractAt(
+      name: "Ownable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Ownable>;
+    getContractAt(
+      name: "IVotes",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IVotes>;
+    getContractAt(
+      name: "KAccessControl",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.KAccessControl>;
+    getContractAt(
+      name: "IKIP7Permit",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IKIP7Permit>;
+    getContractAt(
+      name: "KIP7Permit",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.KIP7Permit>;
+    getContractAt(
+      name: "IKIP7Metadata",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IKIP7Metadata>;
+    getContractAt(
+      name: "KIP7Votes",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.KIP7Votes>;
+    getContractAt(
+      name: "IKIP7",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IKIP7>;
+    getContractAt(
+      name: "IKIP7Receiver",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IKIP7Receiver>;
+    getContractAt(
+      name: "KIP7",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.KIP7>;
+    getContractAt(
+      name: "IKIP13",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IKIP13>;
+    getContractAt(
+      name: "KIP13",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.KIP13>;
+    getContractAt(
+      name: "ERC165",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ERC165>;
+    getContractAt(
+      name: "IERC165",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC165>;
     getContractAt(
       name: "Farming",
       address: string,
@@ -176,16 +268,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.StakingInitializable>;
-    getContractAt(
-      name: "IKIP7Permit",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IKIP7Permit>;
-    getContractAt(
-      name: "IAccessControl",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IAccessControl>;
     getContractAt(
       name: "IDexCallee",
       address: string,
@@ -212,45 +294,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IDexRouter>;
     getContractAt(
-      name: "IERC20",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC20>;
-    getContractAt(
-      name: "IKIP13",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IKIP13>;
-    getContractAt(
-      name: "IKIP7",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IKIP7>;
-    getContractAt(
-      name: "IKIP7Metadata",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IKIP7Metadata>;
-    getContractAt(
-      name: "IKIP7Receiver",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IKIP7Receiver>;
-    getContractAt(
-      name: "IKIP7TokenReceiver",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IKIP7TokenReceiver>;
-    getContractAt(
       name: "IPlatformToken",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IPlatformToken>;
-    getContractAt(
-      name: "IVotes",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IVotes>;
     getContractAt(
       name: "IWKLAY",
       address: string,
@@ -267,10 +314,20 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.DexKIP7Test>;
     getContractAt(
+      name: "KIP7Holder",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.KIP7Holder>;
+    getContractAt(
       name: "KIP7Mock",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.KIP7Mock>;
+    getContractAt(
+      name: "MathMock",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MathMock>;
     getContractAt(
       name: "MultiSigWallet",
       address: string,
@@ -297,21 +354,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.DexRouter>;
     getContractAt(
-      name: "KIP7Permit",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.KIP7Permit>;
-    getContractAt(
-      name: "KIP7Votes",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.KIP7Votes>;
-    getContractAt(
-      name: "KIP7",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.KIP7>;
-    getContractAt(
       name: "PlatformToken",
       address: string,
       signer?: ethers.Signer
@@ -326,21 +368,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.WETH9>;
-    getContractAt(
-      name: "AccessControl",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.AccessControl>;
-    getContractAt(
-      name: "Ownable",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Ownable>;
-    getContractAt(
-      name: "KIP13",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.KIP13>;
     getContractAt(
       name: "Multicall",
       address: string,
