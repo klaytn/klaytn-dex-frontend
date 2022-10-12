@@ -87,7 +87,7 @@ const poolsMapped = useMappedPools({
   pools: PoolsQuery.result,
   rewards,
   tokens,
-  blockNumber
+  blockNumber,
 })
 
 const poolsFiltered = useFilteredPools(poolsMapped, { stakedOnly, searchQuery })
