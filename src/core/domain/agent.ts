@@ -194,15 +194,17 @@ export class Agent extends AgentPure {
     const ethers =
       this.provider.kind === 'caver'
         ? // by using `ethers` and not `Kaikas` directly, we uniform the interaction
-          // also we aren't need to generate random request id - `ethers` does it for us
+          // also we don't need to generate random request id - `ethers` does it for us
           this.provider.unstableEthers
         : this.provider.ethers
 
-    await ethers.send('wallet_watchAsset', [
+    await ethers.send(
+      'wallet_watchAsset',
+      // it doesn't work if pass it as a single-element array for a some reason
       {
         type: 'ERC20',
         options: asset,
-      },
-    ])
+      } as any,
+    )
   }
 }
