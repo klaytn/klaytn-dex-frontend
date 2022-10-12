@@ -1,19 +1,17 @@
 <script setup lang="ts">
-import { DEX_TOKEN, DEX_TOKEN_FULL, TokenAmount, TokenImpl } from '@/core'
+import { DEX_TOKEN, DEX_TOKEN_FULL } from '@/core'
 
 const tokensStore = useTokensStore()
 
 const dexDerivedUsd = computed(() => tokensStore.lookupDerivedUsd(DEX_TOKEN))
 
 const balanceInWei = computed(() => tokensStore.lookupUserBalance(DEX_TOKEN))
-const balance = computed(() => balanceInWei.value ? TokenAmount.fromWei(new TokenImpl(DEX_TOKEN_FULL), balanceInWei.value) : null)
-
-useIntervalFn(() => tokensStore.lookupUserBalance(DEX_TOKEN), 10_000)
+const balance = computed(() => balanceInWei.value?.decimals(DEX_TOKEN_FULL) ?? null)
 
 const balancePrice = computed(() => {
   const derived = dexDerivedUsd.value
-  const value = balance.value
-  return derived && value && value.quotient.times(derived)
+  const b = balance.value
+  return derived && b && b.times(derived)
 })
 </script>
 
@@ -24,7 +22,7 @@ const balancePrice = computed(() => {
   >
     <div class="balance">
       <CurrencyFormatTruncate
-        :amount="balance.quotient"
+        :amount="balance"
         :decimals="DEX_TOKEN_FULL.decimals"
         :symbol="DEX_TOKEN_FULL.symbol"
         symbol-position="left"
