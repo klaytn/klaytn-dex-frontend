@@ -126,12 +126,32 @@ class FocusedState {
 }
 
 /**
- * # Notes
- *
- * Masked value will not be updated automatically when any of props is updated
+ * Useful when the actual model could be not immediately updated on set.
+ * The model returned by this function updates immediately
  */
+function useBigNumModelReplication(model: Ref<BigNumber>): Ref<BigNumber> {
+  const replica = shallowRef(model.value)
+
+  const proxy = computed({
+    get: () => replica.value,
+    set: (v) => {
+      replica.value = model.value = v
+    },
+  })
+
+  watch(
+    model,
+    (v) => {
+      if (!v.eq(replica.value)) replica.value = v
+    },
+    { flush: 'sync' },
+  )
+
+  return proxy
+}
+
 export function useCurrencyInput(props: UseCurrencyInputProps): UseCurrencyInputReturn {
-  const model = props.writableModel
+  const model = useBigNumModelReplication(props.writableModel)
 
   const inputRef =
     props.input && isRef(props.input) ? props.input : shallowRef<null | HTMLInputElement>(props.input ?? null)
