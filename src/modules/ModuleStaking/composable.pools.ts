@@ -62,7 +62,7 @@ export function useMappedPools(props: {
       const createdAtBlock = Number(pool.createdAtBlock)
 
       const endBlock = Number(pool.endBlock)
-      const active = (blockNumber ?? 0) > endBlock
+      const active = (blockNumber ?? 0) < endBlock
 
       mappedPools.push({
         id,
@@ -118,8 +118,8 @@ export function useFilteredPools<T extends Pool>(
 function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): number {
   switch (sorting) {
     case Sorting.Hot:
-      if (poolA.active && !poolB.active) return 1
-      else if (poolB.active && !poolA.active) return -1
+      if (poolA.active && !poolB.active) return -1
+      else if (poolB.active && !poolA.active) return 1
       else return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.AnnualPercentageRate:
       return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
