@@ -33,6 +33,15 @@ export interface Kaikas {
     (event: 'networkChanged', cb: () => void): void
   }
   removeListener: (event: string, cb: (...args: any[]) => void) => void
+
+  /**
+   * https://docs.kaikas.io/02_api_reference/01_klaytn_provider#klaytn._kaikas
+   */
+  _kaikas: {
+    isEnabled: () => boolean
+    isApproved: () => Promise<boolean>
+    isUnlocked: () => Promise<boolean>
+  }
 }
 
 export interface Network {

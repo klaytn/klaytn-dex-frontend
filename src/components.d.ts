@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    AddressCopy: typeof import('./components/common/AddressCopy.vue')['default']
     CurrencyFormat: typeof import('./components/common/CurrencyFormat.vue')['default']
     CurrencyFormatTruncate: typeof import('./components/common/CurrencyFormatTruncate.vue')['default']
     CurrencyInput: typeof import('./components/common/CurrencyInput.vue')['default']

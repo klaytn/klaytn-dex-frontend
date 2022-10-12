@@ -7,7 +7,7 @@ import WalletConnectButton from './WalletConnectButton.vue'
 import WalletIcon from './WalletIcon.vue'
 
 const store = useDexStore()
-const { account, selectedWallet, isChainCorrect, isChainLoaded, isProviderSetupPending } = storeToRefs(store)
+const { account, selectedWallet, isChainCorrect, isChainLoaded, isProviderSetupPending, isEnabled } = storeToRefs(store)
 
 const wrongChain = and(isChainLoaded, not(isChainCorrect))
 
@@ -19,7 +19,7 @@ const addressFormatted = computed(() => account.value && formatAddress(account.v
 
   <SPopover
     v-else
-    placement="bottom"
+    placement="bottom-end"
     distance="8"
     hide-delay="400"
   >
@@ -39,6 +39,11 @@ const addressFormatted = computed(() => account.value && formatAddress(account.v
         />
 
         <span
+          v-else-if="!isEnabled"
+          class="not-enabled"
+        > Not enabled </span>
+
+        <span
           v-if="wrongChain"
           class="wrong-chain"
         > Wrong chain </span>
@@ -55,14 +60,43 @@ const addressFormatted = computed(() => account.value && formatAddress(account.v
     <template #popper="{ show }">
       <div
         v-if="show"
-        class="popper bg-white rounded-lg shadow-md p-4 z-10"
+        class="popper bg-white rounded-lg shadow-md p-4 z-10 space-y-4 flex flex-col"
       >
-        <KlayButton
-          type="primary"
-          @click="store.selectWallet(null)"
+        <h3>
+          {{ selectedWallet === 'kaikas' ? 'Kaikas' : 'MetaMask' }}
+        </h3>
+
+        <div
+          v-if="account"
+          class="connected-account flex items-center space-x-4"
         >
-          Log out
-        </KlayButton>
+          <div>Account:</div>
+          <AddressCopy
+            class="flex-1 overflow-hidden"
+            :address="account"
+          />
+        </div>
+
+        <div class="space-x-4">
+          <KlayButton
+            v-if="!isEnabled"
+            type="primary"
+            size="sm"
+            data-testid="wallet-enable"
+            @click="store.enable()"
+          >
+            Enable
+          </KlayButton>
+
+          <KlayButton
+            type="primary"
+            size="sm"
+            data-testid="wallet-disconnect"
+            @click="store.selectWallet(null)"
+          >
+            Disconnect
+          </KlayButton>
+        </div>
       </div>
     </template>
   </SPopover>
@@ -79,8 +113,8 @@ const addressFormatted = computed(() => account.value && formatAddress(account.v
   }
 }
 
+.not-enabled,
 .wrong-chain {
-  color: vars.$orange;
   font-weight: 600;
   font-size: 14px;
 }
@@ -90,7 +124,13 @@ const addressFormatted = computed(() => account.value && formatAddress(account.v
   font-weight: 700;
 }
 
+.connected-account {
+  font-weight: 500;
+  font-size: 12px;
+}
+
 .popper {
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
+  width: 240px;
 }
 </style>
