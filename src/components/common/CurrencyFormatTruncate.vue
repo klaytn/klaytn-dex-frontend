@@ -47,7 +47,7 @@ const resolvedSymbol = computed<null | SetRequired<MaskSymbol, 'delimiter'>>(() 
 
 const decimalsNum = eagerComputed(() => {
   const d = props.decimals
-  const decimals = typeof d === 'string' ? Number(d) : (typeof d === 'number' ? d : undefined)
+  const decimals = typeof d === 'string' ? Number(d) : typeof d === 'number' ? d : undefined
   return decimals ?? (props.usd ? CURRENCY_USD.decimals : undefined)
 })
 

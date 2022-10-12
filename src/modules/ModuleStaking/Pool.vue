@@ -144,7 +144,7 @@ wheneverDone(withdrawState, (result) => {
     })
     notify({ type: 'ok', description: `${formatted} tokens were withdrawn` })
     emit('withdrawn')
-    
+
     tokensStore.touchUserBalance()
   } else {
     notify({
