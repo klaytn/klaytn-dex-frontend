@@ -131,7 +131,8 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
   font-weight: 600;
   font-size: 16px;
   color: vars.$dark;
-  margin-top: 8px;
+  margin-top: 2px;
+  margin-bottom: 12px;
 }
 
 .valueEmpty {
