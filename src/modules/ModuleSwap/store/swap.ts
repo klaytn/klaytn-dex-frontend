@@ -301,9 +301,9 @@ export const useSwapStore = defineStore('swap', () => {
 
   const swapValidation = useSwapValidation({
     selected: reactive(buildPair((type) => computed(() => !!selection.addrs[type]))),
+    amounts: selection.weiFromTokens,
     tokenABalance: computed(() => selection.balance.tokenA as Wei | null),
-    tokenAInput: computed(() => selection.weiFromTokens.tokenA),
-    trade: computed(() => tradeResult.value?.kind ?? 'pending'),
+    trade: computed(() => tradeResult.value?.kind ?? null),
     wallet: computed(() => (dexStore.isWalletConnected ? 'connected' : 'anonymous')),
   })
 

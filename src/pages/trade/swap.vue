@@ -43,31 +43,30 @@ useTradeStore().useRefresh({
       size="lg"
       :type="isSwapDisabled ? 'secondary' : 'primary'"
       :disabled="isSwapDisabled"
-      :loading="prepareState?.pending"
+      :loading="prepareState?.pending ?? isValidationPending"
       @click="swapStore.prepare()"
     >
-      <template v-if="isValidationPending">
-        ...
-      </template>
-      <template v-else-if="validationError">
-        <template v-if="validationError === ValidationError.UnselectedTokens">
-          Select tokens
+      <template v-if="!isValidationPending">
+        <template v-if="validationError">
+          <template v-if="validationError === ValidationError.UnselectedTokens">
+            Select tokens
+          </template>
+          <template v-else-if="validationError === ValidationError.WalletIsNotConnected">
+            Connect wallet
+          </template>
+          <template v-else-if="validationError === ValidationError.InsufficientBalanceOfInputToken">
+            Insufficient {{ whoseBalanceIsInsufficient() }} balance
+          </template>
+          <template v-else-if="validationError === ValidationError.RouteNotFound">
+            Route {{ whichRouteNotFound() }} not found
+          </template>
+          <template v-else-if="validationError === ValidationError.PriceImpactIsTooHigh">
+            Too much impact
+          </template>
         </template>
-        <template v-else-if="validationError === ValidationError.WalletIsNotConnected">
-          Connect wallet
+        <template v-else>
+          Swap
         </template>
-        <template v-else-if="validationError === ValidationError.InsufficientBalanceOfInputToken">
-          Insufficient {{ whoseBalanceIsInsufficient() }} balance
-        </template>
-        <template v-else-if="validationError === ValidationError.RouteNotFound">
-          Route {{ whichRouteNotFound() }} not found
-        </template>
-        <template v-else-if="validationError === ValidationError.PriceImpactIsTooHigh">
-          Too much impact
-        </template>
-      </template>
-      <template v-else>
-        Swap
       </template>
     </KlayButton>
 
