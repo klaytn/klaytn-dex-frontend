@@ -50,6 +50,8 @@ export const useDexStore = defineStore('dex', () => {
     isChainLoaded,
     isProviderSetupPending,
     initialDelayActive,
+    isEnabled,
+    enable,
   } = useWeb3Provider({ network: NETWORK })
 
   const dexByProvider = computed(() => {
@@ -123,6 +125,9 @@ export const useDexStore = defineStore('dex', () => {
 
     openModal,
     initialDelayActive,
+
+    isEnabled,
+    enable,
   }
 })
 
