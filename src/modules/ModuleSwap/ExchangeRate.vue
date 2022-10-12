@@ -54,7 +54,7 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(swapStore.addr
           v-if="i === 0"
           class="w-full flex justify-center items-center h-0"
         >
-          <KlayIconArrowDown />
+          <KlayIconArrowDown class="shadow-md rounded-full" />
         </div>
       </template>
     </div>
