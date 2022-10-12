@@ -60,7 +60,6 @@ export class Farming {
       callData: encode(poolId, this.#agent.address),
     }))
     const { blockNumber, returnData } = await this.#multicall.aggregate(calls)
-    useTokensStore().touchUserBalance()
     const rewards = makeRewardsMap(pools, returnData)
 
     return { rewards, blockNumber }
@@ -73,7 +72,6 @@ export class Farming {
     await contract
       .deposit([props.poolId, props.amount.asStr], { from: this.#agent.address, gasPrice })
       .estimateAndSend()
-    useTokensStore().touchUserBalance()
   }
 
   public async withdraw(props: PropsFarming): Promise<void> {
@@ -83,7 +81,6 @@ export class Farming {
     await contract
       .withdraw([props.poolId, props.amount.asStr], { gasPrice, from: this.#agent.address })
       .estimateAndSend()
-    useTokensStore().touchUserBalance()
   }
 
   private async initContract() {
@@ -119,7 +116,6 @@ export class Staking {
       callData: encode(this.#agent.address),
     }))
     const { blockNumber, returnData } = await this.#multicall.aggregate(calls)
-    useTokensStore().touchUserBalance()
     const rewards = makeRewardsMap(pools, returnData)
 
     return { rewards, blockNumber }
@@ -130,7 +126,6 @@ export class Staking {
 
     const gasPrice = await this.#agent.getGasPrice()
     await contract.deposit([props.amount.asStr], { from: this.#agent.address, gasPrice }).estimateAndSend()
-    useTokensStore().touchUserBalance()
   }
 
   public async withdraw(props: PropsStaking): Promise<void> {
@@ -138,7 +133,6 @@ export class Staking {
 
     const gasPrice = await this.#agent.getGasPrice()
     await contract.withdraw([props.amount.asStr], { gasPrice, from: this.#agent.address }).estimateAndSend()
-    useTokensStore().touchUserBalance()
   }
 
   private async initContract(poolId: Address) {

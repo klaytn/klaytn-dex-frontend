@@ -19,6 +19,7 @@ const emit = defineEmits<(e: 'staked' | 'unstaked', amount: WeiAsToken<BigNumber
 
 const { notify } = useNotify()
 const dexStore = useDexStore()
+const tokensStore = useTokensStore()
 
 const inputAmount = shallowRef(new BigNumber(0) as WeiAsToken<BigNumber>)
 
@@ -73,6 +74,8 @@ wheneverFulfilled(operationState, ({ amount, operation }) => {
     notify({ type: 'ok', description: `${amountFormatted} LP tokens were unstaked` })
     emit('unstaked', amount)
   }
+
+  tokensStore.touchUserBalance()
 })
 
 useNotifyOnError(operationState, notify, 'Failed to confirm operation')

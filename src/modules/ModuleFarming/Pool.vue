@@ -14,6 +14,7 @@ import WalletConnectButton from '@/components/WalletConnectButton.vue'
 import invariant from 'tiny-invariant'
 
 const dexStore = useDexStore()
+const tokensStore = useTokensStore()
 const { notify } = useNotify()
 
 const router = useRouter()
@@ -120,6 +121,8 @@ wheneverDone(withdrawState, (result) => {
     const formatted = formatCurrency({ amount: earned })
     notify({ type: 'ok', description: `${formatted} DEX tokens were withdrawn` })
     emit('withdrawn')
+
+    tokensStore.touchUserBalance()
   } else {
     notify({ type: 'err', description: 'Withdraw DEX tokens error', error: result.rejected.reason })
   }

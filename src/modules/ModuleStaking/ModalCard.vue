@@ -6,6 +6,7 @@ import invariant from 'tiny-invariant'
 import { formatCurrency } from '@/utils/composable.currency-input'
 
 const dexStore = useDexStore()
+const tokensStore = useTokensStore()
 const { notify } = useNotify()
 
 const { t } = useI18n()
@@ -88,6 +89,8 @@ wheneverDone(operationState, (result) => {
       notify({ type: 'ok', description: `${formatted} tokens were unstaked` })
       emit('unstaked', amount)
     }
+
+    tokensStore.touchUserBalance()
   } else {
     notify({ type: 'err', description: `Failed to confirm operation` })
   }
