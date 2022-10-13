@@ -238,6 +238,7 @@ function openRoiCalculator() {
                 <KlayButton
                   v-if="pool.staked.isZero()"
                   type="primary"
+                  :disabled="!pool.active"
                   @click="stake()"
                 >
                   Stake {{ pool.stakeToken.symbol }}
@@ -250,7 +251,10 @@ function openRoiCalculator() {
                   <KlayButton @click="unstake()">
                     -
                   </KlayButton>
-                  <KlayButton @click="stake()">
+                  <KlayButton
+                    :disabled="!pool.active"
+                    @click="stake()"
+                  >
                     +
                   </KlayButton>
                 </div>
