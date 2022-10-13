@@ -285,7 +285,10 @@ function openRoiCalculator() {
               </template>
 
               <template #right>
-                <KlayButton @click="withdraw()">
+                <KlayButton
+                  :disabled="pool.earned?.isZero() ?? true"
+                  @click="withdraw()"
+                >
                   Withdraw
                 </KlayButton>
               </template>
