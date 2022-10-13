@@ -241,7 +241,6 @@ function openRoiCalculator() {
 
             <div class="input-label flex items-center">
               <span class="flex-1">Earned DEX Tokens</span>
-              <span>Earned for all time: <i>TODO</i></span>
             </div>
 
             <span />
