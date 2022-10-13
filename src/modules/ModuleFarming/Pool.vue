@@ -6,7 +6,7 @@ import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 import { CONSTANT_FARMING_DECIMALS } from './utils'
-import { Wei, ADDRESS_FARMING, WeiAsToken, CurrencySymbol, makeExplorerLinkToAccount } from '@/core'
+import { Wei, ADDRESS_FARMING, WeiAsToken, CurrencySymbol, makeExplorerLinkToAccount, LP_TOKEN_DECIMALS } from '@/core'
 import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import { TokensPair } from '@/utils/pair'
 import StakeUnstakeModal from './Modal.vue'
@@ -42,6 +42,40 @@ const modalOperation = ref<ModalOperation | null>(null)
 const showRoiCalculator = ref(false)
 const roiType = RoiType.Farming
 const roiPool = ref<Pool | null>(null)
+
+const balanceScope = useParamScope(
+  () => {
+    const activeDex = dexStore.active
+
+    const id = props.pool.pairId
+    const decimals = LP_TOKEN_DECIMALS
+
+    return (
+      activeDex.kind === 'named' &&
+      (unref(modalOperation) || unref(showRoiCalculator)) && {
+        key: `dex-${activeDex.wallet}-${id}`,
+        payload: { dex: activeDex.dex(), token: { id, decimals } },
+      }
+    )
+  },
+  ({ dex, token }) => {
+    const { state } = useTask(
+      async () => {
+        const balance = await dex.tokens.getTokenBalanceOfUser(token.id)
+        return balance.decimals(token)
+      },
+      { immediate: true },
+    )
+
+    usePromiseLog(state, 'get-staked-token-balance')
+
+    return state
+  },
+)
+
+const balance = computed(() => {
+  return balanceScope.value?.expose?.fulfilled?.value ?? null
+})
 
 const poolSymbols = computed<TokensPair<CurrencySymbol>>(() => {
   const [a, b] = props.pool.name.split('-') as CurrencySymbol[]
@@ -328,7 +362,7 @@ function openRoiCalculator() {
     :pool-id="pool.id"
     :operation="modalOperation"
     :staked="pool.staked"
-    :balance="pool.balance"
+    :balance="balance"
     :symbols="poolSymbols"
     @close="modalOperation = null"
     @staked="handleStaked"
@@ -339,7 +373,6 @@ function openRoiCalculator() {
     v-if="roiPool"
     v-model:show="showRoiCalculator"
     :type="roiType"
-    :balance="roiPool.balance"
     :staked="roiPool.staked"
     :apr="roiPool.annualPercentageRate"
     :lp-apr="roiPool.lpAnnualPercentageRate"

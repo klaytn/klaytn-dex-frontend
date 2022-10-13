@@ -4,6 +4,7 @@ export const FORMATTED_BIG_INT_DECIMALS = 6
 
 /** Defines the update interval of the pool list in milliseconds */
 export const REFETCH_FARMING_INTERVAL = 10_000
+export const REFETCH_FARMING_INTERVAL_QUICK = 2_000
 
 /** Defines the update interval of rewards in milliseconds */
 export const REFETCH_REWARDS_INTERVAL = 10_000

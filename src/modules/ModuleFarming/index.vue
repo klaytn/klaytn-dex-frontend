@@ -1,18 +1,15 @@
 <script setup lang="ts" name="ModuleFarming">
 import { Pool } from './types'
 import { PAGE_SIZE } from './const'
-import BigNumber from 'bignumber.js'
-import { WeiAsToken, WeiRaw, Address } from '@/core'
-import { deepClone } from '@/utils/common'
-import { or, not } from '@vueuse/core'
+import { Address } from '@/core'
+import { or } from '@vueuse/core'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { useFetchFarmingRewards } from './composable.fetch-rewards'
 import { useFarmingQuery } from './query.farming'
-import { useLiquidityPositionsQuery } from './query.liquidity-positions'
 import { usePairsAndRewardTokenQuery } from './query.pairs-and-reward-token'
-import { farmingToWei } from './utils'
 import { storeToRefs } from 'pinia'
 import { useFilteredPools, useMappedPools, useSortedPools } from './composable.pools'
+import { REFETCH_FARMING_INTERVAL, REFETCH_FARMING_INTERVAL_QUICK } from './const'
 
 const vBem = useBemClass()
 
@@ -28,7 +25,13 @@ function updateBlockNumber(value: number) {
   blockNumber.value = value
 }
 
-const FarmingQuery = useFarmingQuery(toRef(dexStore, 'account'))
+const quickFarmingPoll = ref(false)
+const quickFarmingPollTimeout = ref<ReturnType<typeof useTimeoutFn> | null>(null) 
+const farmingPollInterval = computed(() => {
+  return (quickFarmingPoll.value && REFETCH_FARMING_INTERVAL_QUICK) || REFETCH_FARMING_INTERVAL
+})
+
+const FarmingQuery = useFarmingQuery(toRef(dexStore, 'account'), farmingPollInterval)
 
 const farming = computed(() => FarmingQuery.result.value?.farming ?? null)
 
@@ -69,30 +72,21 @@ const { rewards, areRewardsFetched } = useFetchFarmingRewards({
   updateBlockNumber,
 })
 
-const LiquidityPositionsQuery = useLiquidityPositionsQuery(toRef(dexStore, 'account'))
-
-const liquidityPositions = computed(() => {
-  if (!LiquidityPositionsQuery.result.value) return null
-  return LiquidityPositionsQuery.result.value.user?.liquidityPositions ?? []
-})
-
 const poolsMapped = useMappedPools({
   farming: FarmingQuery.result,
   blockNumber,
   pairsAndRewardToken: PairsAndRewardTokenQuery.result,
   rewards,
-  liquidityPositions,
 })
 
 const poolsFiltered = useFilteredPools(poolsMapped, { stakedOnly, searchQuery })
 
 const poolsSorted = useSortedPools(poolsFiltered, sorting)
 
-const isLoading = or(FarmingQuery.loading, LiquidityPositionsQuery.loading, PairsAndRewardTokenQuery.loading)
+const isLoading = or(FarmingQuery.loading, PairsAndRewardTokenQuery.loading)
 
 for (const [QueryName, Query] of Object.entries({
   FarmingQuery,
-  LiquidityPositionsQuery,
   PairsAndRewardTokenQuery,
 })) {
   Query.onError((param) => {
@@ -102,8 +96,11 @@ for (const [QueryName, Query] of Object.entries({
 }
 
 function handleStakedUnstaked() {
-  FarmingQuery.refetch()
-  LiquidityPositionsQuery.refetch()
+  if (quickFarmingPollTimeout.value) quickFarmingPollTimeout.value.stop()
+  quickFarmingPollTimeout.value = useTimeoutFn(() => {
+    quickFarmingPoll.value = false
+  }, 10_000) as any
+  quickFarmingPoll.value = true
 }
 
 // #region Pagination

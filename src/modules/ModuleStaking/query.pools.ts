@@ -25,7 +25,7 @@ export interface PoolsQueryResult {
   }[]
 }
 
-export function usePoolsQuery(userId: Ref<Address | null>) {
+export function usePoolsQuery(userId: Ref<Address | null>, pollInterval: Ref<number>) {
   return useQuery<PoolsQueryResult>(
     gql`
       query PoolsQuery($userId: String!) {
@@ -58,7 +58,7 @@ export function usePoolsQuery(userId: Ref<Address | null>) {
     }),
     () => ({
       clientId: ApolloClientId.Staking,
-      pollInterval: REFETCH_POOLS_INTERVAL,
+      pollInterval: pollInterval.value,
     }),
   )
 }
