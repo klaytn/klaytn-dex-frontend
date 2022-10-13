@@ -141,8 +141,8 @@ function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): num
   switch (sorting) {
     case Sorting.Hot:
       if (poolA.active && !poolB.active) return -1
-      else if (poolB.active && !poolA.active) return 1
-      else return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
+      if (poolB.active && !poolA.active) return 1
+      return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.AnnualPercentageRate:
       return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.Earned:
