@@ -20,7 +20,7 @@ export function useMappedPools(props: {
     } = props
     if (!poolsResult) return null
 
-    return poolsResult.pools.map((pool) => Number(pool.endBlock)).sort((a, b) => a - b)
+    return poolsResult.pools.map((pool) => Number(pool.endBlock)).sort((a, b) => b - a)
   })
 
   // Needed to avoid unnecessary recalculations in main computed function
@@ -32,7 +32,7 @@ export function useMappedPools(props: {
     if (!blocks?.length || !blockNumber) return null
     let rounded = blockNumber
     blocks.forEach((block) => {
-      if (block <= blockNumber) rounded = block
+      if (block >= blockNumber) rounded = block
     })
     return rounded
   })
@@ -84,7 +84,7 @@ export function useMappedPools(props: {
       const createdAtBlock = Number(pool.createdAtBlock)
 
       const endBlock = Number(pool.endBlock)
-      const active = (roundedBlockNumber.value ?? 0) < endBlock
+      const active = (roundedBlockNumber.value ?? 0) <= endBlock
 
       mappedPools.push({
         id,
