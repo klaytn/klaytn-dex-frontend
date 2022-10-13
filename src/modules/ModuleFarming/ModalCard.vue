@@ -59,7 +59,7 @@ const { state: operationState, run: confirm } = useTask(async () => {
   const amountWei = farmingToWei(amount)
 
   if (operation === 'stake') await dex.earn.farming.deposit({ poolId: props.poolId, amount: amountWei })
-  else dex.earn.farming.withdraw({ poolId, amount: amountWei })
+  else await dex.earn.farming.withdraw({ poolId, amount: amountWei })
 
   return { amount, operation }
 })
