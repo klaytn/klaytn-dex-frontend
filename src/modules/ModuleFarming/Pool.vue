@@ -155,7 +155,6 @@ function openRoiCalculator() {
         <div
           v-for="(value, label) in stats"
           :key="label"
-          class="space-y-1"
         >
           <div class="stats-item-label">
             {{ t(`ModuleFarmingPool.stats.${label}`) }}
@@ -181,12 +180,12 @@ function openRoiCalculator() {
             <CurrencyFormatTruncate :amount="value" />
           </div>
 
-          <span
+          <div
             v-else
             class="stats-item-value"
           >
             {{ value }}
-          </span>
+          </div>
         </div>
       </div>
     </template>
@@ -372,12 +371,15 @@ function openRoiCalculator() {
     font-weight: 500;
     font-size: 12px;
     color: vars.$gray2;
-    line-height: 1rem;
+    line-height: 100%;
   }
 
   &-value {
-    line-height: 1rem;
+    font-weight: 600;
     font-size: 16px;
+    color: vars.$dark;
+    margin-top: 2px;
+    margin-bottom: 12px;
   }
 }
 
