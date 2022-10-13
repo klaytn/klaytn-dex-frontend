@@ -48,10 +48,6 @@ const poolSymbols = computed<TokensPair<CurrencySymbol>>(() => {
   return { tokenA: a, tokenB: b }
 })
 
-const formattedEarned = computed(() => {
-  return formatCurrency({ amount: new BigNumber(pool.value.earned ?? 0), decimals: FORMATTED_BIG_INT_DECIMALS })
-})
-
 const formattedAnnualPercentageRate = computed(() => {
   return '%' + new BigNumber(pool.value.annualPercentageRate.toFixed(2, BigNumber.ROUND_UP))
 })
@@ -69,7 +65,7 @@ const formattedMultiplier = computed(() => {
 
 const stats = computed(() => {
   return {
-    earned: formattedEarned.value,
+    earned: pool.value.earned,
     annualPercentageRate: formattedAnnualPercentageRate.value,
     liquidity: formattedLiquidity.value,
     multiplier: formattedMultiplier.value,
@@ -178,6 +174,13 @@ function openRoiCalculator() {
             />
           </div>
 
+          <div
+            v-else-if="label === 'earned'"
+            class="stats-item-value"
+          >
+            <CurrencyFormatTruncate :amount="value" />
+          </div>
+
           <span
             v-else
             class="stats-item-value"
@@ -248,7 +251,6 @@ function openRoiCalculator() {
                 <CurrencyFormat
                   v-slot="{ formatted }"
                   :amount="pool.staked"
-                  decimals="6"
                 >
                   <input
                     :value="formatted"
