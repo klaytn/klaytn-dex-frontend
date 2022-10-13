@@ -24,7 +24,7 @@ export function useMappedPools(props: {
   })
 
   // Needed to avoid unnecessary recalculations in main computed function
-  const roundedBlockNumber = computed(() => {
+  const roundedBlockNumber = computedEager(() => {
     const {
       blockNumber: { value: blockNumber },
     } = props
