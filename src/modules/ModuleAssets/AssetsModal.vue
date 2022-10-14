@@ -12,7 +12,8 @@ const tokensStore = useTokensStore()
 
 const { notify } = useNotify()
 
-const { instant: search, debounced: searchDebounced } = refAndDebounced('', 500)
+const search = ref('')
+const { debounced: searchDebounced } = refAndDebounced(search, 500)
 
 const { tokensFiltered, isImportPending, tokenToImport, noResults } = useTokensSearchAndImport({
   tokens,
