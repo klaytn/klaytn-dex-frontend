@@ -3,12 +3,11 @@ import { SButton } from '@soramitsu-ui/ui'
 import { Pool } from './types'
 import { usePoolsQuery } from './query.pools'
 import { useTokensQuery } from '@/query/tokens-derived-usd'
-import { PAGE_SIZE, REFETCH_TOKENS_INTERVAL } from './const'
+import { PAGE_SIZE, REFETCH_TOKENS_INTERVAL, POLL_INTERVAL, POLL_INTERVAL_QUICK, POLL_INTERVAL_QUICK_TIMEOUT } from './const'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { useFetchStakingRewards } from './composable.fetch-rewards'
 import { Address } from '@/core'
 import { useFilteredPools, useMappedPools, useSortedPools } from './composable.pools'
-import { REFETCH_POOLS_INTERVAL, REFETCH_POOLS_INTERVAL_QUICK } from './const'
 
 const dexStore = useDexStore()
 
@@ -21,13 +20,12 @@ const page = ref(1)
 
 const blockNumber = useBlockNumber(computed(() => dexStore.anyDex.dex().agent))
 
-const quickPoolsPoll = ref(false)
-const quickPoolsPollTimeout = ref<ReturnType<typeof useTimeoutFn> | null>(null) 
-const poolsPollInterval = computed(() => {
-  return (quickPoolsPoll.value && REFETCH_POOLS_INTERVAL_QUICK) || REFETCH_POOLS_INTERVAL
+const quickPoll = refAutoReset(false, POLL_INTERVAL_QUICK_TIMEOUT)
+const pollInterval = computed(() => {
+  return (quickPoll.value && POLL_INTERVAL_QUICK) || POLL_INTERVAL
 })
 
-const PoolsQuery = usePoolsQuery(toRef(dexStore, 'account'), poolsPollInterval)
+const PoolsQuery = usePoolsQuery(toRef(dexStore, 'account'), pollInterval)
 const pools = computed(() => {
   return PoolsQuery.result.value?.pools ?? null
 })
@@ -76,6 +74,7 @@ const { rewards, areRewardsFetched } = useFetchStakingRewards({
   updateBlockNumber: (v) => {
     blockNumber.value = v
   },
+  pollInterval,
 })
 
 const showViewMore = computed(() => {
@@ -109,11 +108,7 @@ const poolsFinal = poolsPaginated
 const isLoading = PoolsQuery.loading
 
 function handleStakedUnstaked() {
-  if (quickPoolsPollTimeout.value) quickPoolsPollTimeout.value.stop()
-  quickPoolsPollTimeout.value = useTimeoutFn(() => {
-    quickPoolsPoll.value = false
-  }, 10_000) as any
-  quickPoolsPoll.value = true
+  quickPoll.value = true
 }
 </script>
 

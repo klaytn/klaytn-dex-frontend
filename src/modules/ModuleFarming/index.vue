@@ -9,7 +9,7 @@ import { useFarmingQuery } from './query.farming'
 import { usePairsAndRewardTokenQuery } from './query.pairs-and-reward-token'
 import { storeToRefs } from 'pinia'
 import { useFilteredPools, useMappedPools, useSortedPools } from './composable.pools'
-import { REFETCH_FARMING_INTERVAL, REFETCH_FARMING_INTERVAL_QUICK } from './const'
+import { POLL_INTERVAL, POLL_INTERVAL_QUICK } from './const'
 
 const vBem = useBemClass()
 
@@ -25,13 +25,12 @@ function updateBlockNumber(value: number) {
   blockNumber.value = value
 }
 
-const quickFarmingPoll = ref(false)
-const quickFarmingPollTimeout = ref<ReturnType<typeof useTimeoutFn> | null>(null) 
-const farmingPollInterval = computed(() => {
-  return (quickFarmingPoll.value && REFETCH_FARMING_INTERVAL_QUICK) || REFETCH_FARMING_INTERVAL
+const quickPoll = refAutoReset(false, 10_000)
+const pollInterval = computed(() => {
+  return (quickPoll.value && POLL_INTERVAL_QUICK) || POLL_INTERVAL
 })
 
-const FarmingQuery = useFarmingQuery(toRef(dexStore, 'account'), farmingPollInterval)
+const FarmingQuery = useFarmingQuery(toRef(dexStore, 'account'), pollInterval)
 
 const farming = computed(() => FarmingQuery.result.value?.farming ?? null)
 
@@ -70,6 +69,7 @@ FarmingQuery.onResult(() => {
 const { rewards, areRewardsFetched } = useFetchFarmingRewards({
   poolIds: farmingPoolIds,
   updateBlockNumber,
+  pollInterval,
 })
 
 const poolsMapped = useMappedPools({
@@ -96,11 +96,7 @@ for (const [QueryName, Query] of Object.entries({
 }
 
 function handleStakedUnstaked() {
-  if (quickFarmingPollTimeout.value) quickFarmingPollTimeout.value.stop()
-  quickFarmingPollTimeout.value = useTimeoutFn(() => {
-    quickFarmingPoll.value = false
-  }, 10_000) as any
-  quickFarmingPoll.value = true
+  quickPoll.value = true
 }
 
 // #region Pagination

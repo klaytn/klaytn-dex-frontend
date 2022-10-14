@@ -4,7 +4,6 @@ import { useQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
 import { Ref } from 'vue'
-import { REFETCH_FARMING_INTERVAL } from './const'
 import { PoolId } from './types'
 
 export interface FarmingQueryResult {

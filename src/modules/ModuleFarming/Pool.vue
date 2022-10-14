@@ -12,6 +12,8 @@ import { TokensPair } from '@/utils/pair'
 import StakeUnstakeModal from './Modal.vue'
 import WalletConnectButton from '@/components/WalletConnectButton.vue'
 import invariant from 'tiny-invariant'
+import { or } from '@vueuse/core'
+import { useBalance } from '../ModuleEarnShared/composable.balance'
 
 const dexStore = useDexStore()
 const tokensStore = useTokensStore()
@@ -43,38 +45,9 @@ const showRoiCalculator = ref(false)
 const roiType = RoiType.Farming
 const roiPool = ref<Pool | null>(null)
 
-const balanceScope = useParamScope(
-  () => {
-    const activeDex = dexStore.active
-
-    const id = props.pool.pairId
-    const decimals = LP_TOKEN_DECIMALS
-
-    return (
-      activeDex.kind === 'named' &&
-      (unref(modalOperation) || unref(showRoiCalculator)) && {
-        key: `dex-${activeDex.wallet}-${id}`,
-        payload: { dex: activeDex.dex(), token: { id, decimals } },
-      }
-    )
-  },
-  ({ dex, token }) => {
-    const { state } = useTask(
-      async () => {
-        const balance = await dex.tokens.getTokenBalanceOfUser(token.id)
-        return balance.decimals(token)
-      },
-      { immediate: true },
-    )
-
-    usePromiseLog(state, 'get-staked-token-balance')
-
-    return state
-  },
-)
-
-const balance = computed(() => {
-  return balanceScope.value?.expose?.fulfilled?.value ?? null
+const balance = useBalance(or(modalOperation, showRoiCalculator), {
+  address: props.pool.pairId,
+  decimals: LP_TOKEN_DECIMALS,
 })
 
 const poolSymbols = computed<TokensPair<CurrencySymbol>>(() => {
@@ -373,6 +346,7 @@ function openRoiCalculator() {
     v-if="roiPool"
     v-model:show="showRoiCalculator"
     :type="roiType"
+    :balance="balance"
     :staked="roiPool.staked"
     :apr="roiPool.annualPercentageRate"
     :lp-apr="roiPool.lpAnnualPercentageRate"

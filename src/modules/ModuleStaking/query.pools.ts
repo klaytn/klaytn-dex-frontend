@@ -4,7 +4,6 @@ import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { Except } from 'type-fest'
 import { Ref } from 'vue'
-import { REFETCH_POOLS_INTERVAL } from './const'
 
 type ApolloToken = Except<Token, 'address'> & { id: Address }
 

@@ -3,7 +3,7 @@ import { ApolloClientId } from '@/types'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
-import { REFETCH_FARMING_INTERVAL } from './const'
+import { POLL_INTERVAL } from './const'
 
 export interface PairsAndRewardTokenQueryResult {
   pairs: {
@@ -41,7 +41,7 @@ export function usePairsAndRewardTokenQuery(pairIds: MaybeRef<Address[]>) {
     () => ({ pairIds: unref(pairIds) }),
     {
       clientId: ApolloClientId.Exchange,
-      pollInterval: REFETCH_FARMING_INTERVAL,
+      pollInterval: POLL_INTERVAL,
     },
   )
 }
