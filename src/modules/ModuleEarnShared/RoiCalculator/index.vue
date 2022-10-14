@@ -251,7 +251,15 @@ const detailsList = computed(() => {
           </div>
 
           <div class="space-y-2">
-            <span class="label"> You will receive (APY = {{ apy.toFixed(2) }}%) </span>
+            <span class="flex label">
+              You will receive (APY =
+              <CurrencyFormatTruncate
+                class="ml-1"
+                :amount="apy"
+                :decimals="2"
+                symbol="%"
+              />)
+            </span>
             <InputCurrencyTemplate bottom>
               <template #input>
                 <input
