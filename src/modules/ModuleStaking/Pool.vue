@@ -11,6 +11,8 @@ import PoolHead from './PoolHead.vue'
 import WalletConnectButton from '@/components/WalletConnectButton.vue'
 import invariant from 'tiny-invariant'
 import AddToWallet from './PoolAddToWallet.vue'
+import { useBalance } from '../ModuleEarnShared/composable.balance'
+import { or } from '@vueuse/core'
 
 const dexStore = useDexStore()
 const tokensStore = useTokensStore()
@@ -42,41 +44,9 @@ const modalOpen = computed({
   },
 })
 
-const balanceScope = useParamScope(
-  () => {
-    const activeDex = dexStore.active
-
-    const {
-      pool: {
-        stakeToken: { id, decimals },
-      },
-    } = props
-
-    return (
-      activeDex.kind === 'named' &&
-      (unref(modalOpen) || unref(showRoiCalculator)) && {
-        key: `dex-${activeDex.wallet}-${id}`,
-        payload: { dex: activeDex.dex(), token: { id, decimals } },
-      }
-    )
-  },
-  ({ dex, token }) => {
-    const { state } = useTask(
-      async () => {
-        const balance = await dex.tokens.getTokenBalanceOfUser(token.id)
-        return balance.decimals(token)
-      },
-      { immediate: true },
-    )
-
-    usePromiseLog(state, 'get-staked-token-balance')
-
-    return state
-  },
-)
-
-const balance = computed(() => {
-  return balanceScope.value?.expose?.fulfilled?.value ?? null
+const balance = useBalance(or(modalOpen, showRoiCalculator), {
+  address: props.pool.stakeToken.id,
+  decimals: props.pool.stakeToken.decimals,
 })
 
 const endsIn = computedEager<number>(() => {
@@ -238,7 +208,6 @@ function openRoiCalculator() {
                 <KlayButton
                   v-if="pool.staked.isZero()"
                   type="primary"
-                  :disabled="!pool.active"
                   @click="stake()"
                 >
                   Stake {{ pool.stakeToken.symbol }}

@@ -4,7 +4,6 @@ import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { Except } from 'type-fest'
 import { Ref } from 'vue'
-import { REFETCH_POOLS_INTERVAL } from './const'
 
 type ApolloToken = Except<Token, 'address'> & { id: Address }
 
@@ -25,7 +24,7 @@ export interface PoolsQueryResult {
   }[]
 }
 
-export function usePoolsQuery(userId: Ref<Address | null>) {
+export function usePoolsQuery(userId: Ref<Address | null>, pollInterval: Ref<number>) {
   return useQuery<PoolsQueryResult>(
     gql`
       query PoolsQuery($userId: String!) {
@@ -58,7 +57,7 @@ export function usePoolsQuery(userId: Ref<Address | null>) {
     }),
     () => ({
       clientId: ApolloClientId.Staking,
-      pollInterval: REFETCH_POOLS_INTERVAL,
+      pollInterval: pollInterval.value,
     }),
   )
 }

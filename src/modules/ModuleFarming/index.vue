@@ -1,18 +1,15 @@
 <script setup lang="ts" name="ModuleFarming">
 import { Pool } from './types'
 import { PAGE_SIZE } from './const'
-import BigNumber from 'bignumber.js'
-import { WeiAsToken, WeiRaw, Address } from '@/core'
-import { deepClone } from '@/utils/common'
-import { or, not } from '@vueuse/core'
+import { Address } from '@/core'
+import { or } from '@vueuse/core'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { useFetchFarmingRewards } from './composable.fetch-rewards'
 import { useFarmingQuery } from './query.farming'
-import { useLiquidityPositionsQuery } from './query.liquidity-positions'
 import { usePairsAndRewardTokenQuery } from './query.pairs-and-reward-token'
-import { farmingToWei } from './utils'
 import { storeToRefs } from 'pinia'
 import { useFilteredPools, useMappedPools, useSortedPools } from './composable.pools'
+import { POLL_INTERVAL, POLL_INTERVAL_QUICK } from './const'
 
 const vBem = useBemClass()
 
@@ -28,7 +25,12 @@ function updateBlockNumber(value: number) {
   blockNumber.value = value
 }
 
-const FarmingQuery = useFarmingQuery(toRef(dexStore, 'account'))
+const quickPoll = refAutoReset(false, 10_000)
+const pollInterval = computed(() => {
+  return (quickPoll.value && POLL_INTERVAL_QUICK) || POLL_INTERVAL
+})
+
+const FarmingQuery = useFarmingQuery(toRef(dexStore, 'account'), pollInterval)
 
 const farming = computed(() => FarmingQuery.result.value?.farming ?? null)
 
@@ -67,13 +69,7 @@ FarmingQuery.onResult(() => {
 const { rewards, areRewardsFetched } = useFetchFarmingRewards({
   poolIds: farmingPoolIds,
   updateBlockNumber,
-})
-
-const LiquidityPositionsQuery = useLiquidityPositionsQuery(toRef(dexStore, 'account'))
-
-const liquidityPositions = computed(() => {
-  if (!LiquidityPositionsQuery.result.value) return null
-  return LiquidityPositionsQuery.result.value.user?.liquidityPositions ?? []
+  pollInterval,
 })
 
 const poolsMapped = useMappedPools({
@@ -81,18 +77,16 @@ const poolsMapped = useMappedPools({
   blockNumber,
   pairsAndRewardToken: PairsAndRewardTokenQuery.result,
   rewards,
-  liquidityPositions,
 })
 
 const poolsFiltered = useFilteredPools(poolsMapped, { stakedOnly, searchQuery })
 
 const poolsSorted = useSortedPools(poolsFiltered, sorting)
 
-const isLoading = or(FarmingQuery.loading, LiquidityPositionsQuery.loading, PairsAndRewardTokenQuery.loading)
+const isLoading = or(FarmingQuery.loading, PairsAndRewardTokenQuery.loading)
 
 for (const [QueryName, Query] of Object.entries({
   FarmingQuery,
-  LiquidityPositionsQuery,
   PairsAndRewardTokenQuery,
 })) {
   Query.onError((param) => {
@@ -102,8 +96,7 @@ for (const [QueryName, Query] of Object.entries({
 }
 
 function handleStakedUnstaked() {
-  FarmingQuery.refetch()
-  LiquidityPositionsQuery.refetch()
+  quickPoll.value = true
 }
 
 // #region Pagination

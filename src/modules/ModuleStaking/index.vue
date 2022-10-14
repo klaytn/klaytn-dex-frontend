@@ -1,10 +1,15 @@
 <script setup lang="ts" name="ModuleStaking">
 import { SButton } from '@soramitsu-ui/ui'
-import BigNumber from 'bignumber.js'
 import { Pool } from './types'
 import { usePoolsQuery } from './query.pools'
 import { useTokensQuery } from '@/query/tokens-derived-usd'
-import { PAGE_SIZE, REFETCH_TOKENS_INTERVAL } from './const'
+import {
+  PAGE_SIZE,
+  REFETCH_TOKENS_INTERVAL,
+  POLL_INTERVAL,
+  POLL_INTERVAL_QUICK,
+  POLL_INTERVAL_QUICK_TIMEOUT,
+} from './const'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { useFetchStakingRewards } from './composable.fetch-rewards'
 import { Address } from '@/core'
@@ -21,7 +26,12 @@ const page = ref(1)
 
 const blockNumber = useBlockNumber(computed(() => dexStore.anyDex.dex().agent))
 
-const PoolsQuery = usePoolsQuery(toRef(dexStore, 'account'))
+const quickPoll = refAutoReset(false, POLL_INTERVAL_QUICK_TIMEOUT)
+const pollInterval = computed(() => {
+  return (quickPoll.value && POLL_INTERVAL_QUICK) || POLL_INTERVAL
+})
+
+const PoolsQuery = usePoolsQuery(toRef(dexStore, 'account'), pollInterval)
 const pools = computed(() => {
   return PoolsQuery.result.value?.pools ?? null
 })
@@ -70,6 +80,7 @@ const { rewards, areRewardsFetched } = useFetchStakingRewards({
   updateBlockNumber: (v) => {
     blockNumber.value = v
   },
+  pollInterval,
 })
 
 const showViewMore = computed(() => {
@@ -103,7 +114,7 @@ const poolsFinal = poolsPaginated
 const isLoading = PoolsQuery.loading
 
 function handleStakedUnstaked() {
-  PoolsQuery.refetch()
+  quickPoll.value = true
 }
 </script>
 

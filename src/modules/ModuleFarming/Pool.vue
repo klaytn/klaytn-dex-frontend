@@ -6,12 +6,14 @@ import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 import { CONSTANT_FARMING_DECIMALS } from './utils'
-import { Wei, ADDRESS_FARMING, WeiAsToken, CurrencySymbol, makeExplorerLinkToAccount, Address } from '@/core'
+import { Wei, ADDRESS_FARMING, WeiAsToken, CurrencySymbol, makeExplorerLinkToAccount, LP_TOKEN_DECIMALS, Address } from '@/core'
 import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import { TokensPair } from '@/utils/pair'
 import StakeUnstakeModal from './Modal.vue'
 import WalletConnectButton from '@/components/WalletConnectButton.vue'
 import invariant from 'tiny-invariant'
+import { or } from '@vueuse/core'
+import { useBalance } from '../ModuleEarnShared/composable.balance'
 import { PromiseStateAtomic } from '@vue-kakuyaku/core'
 
 const dexStore = useDexStore()
@@ -43,6 +45,11 @@ const modalOperation = ref<ModalOperation | null>(null)
 const showRoiCalculator = ref(false)
 const roiType = RoiType.Farming
 const roiPool = ref<Pool | null>(null)
+
+const balance = useBalance(or(modalOperation, showRoiCalculator), {
+  address: props.pool.pairId,
+  decimals: LP_TOKEN_DECIMALS,
+})
 
 const poolSymbols = computed<TokensPair<CurrencySymbol>>(() => {
   const [a, b] = props.pool.name.split('-') as CurrencySymbol[]
@@ -359,7 +366,7 @@ function openRoiCalculator() {
     :pool-id="pool.id"
     :operation="modalOperation"
     :staked="pool.staked"
-    :balance="pool.balance"
+    :balance="balance"
     :symbols="poolSymbols"
     @close="modalOperation = null"
     @staked="handleStaked"
@@ -370,7 +377,7 @@ function openRoiCalculator() {
     v-if="roiPool"
     v-model:show="showRoiCalculator"
     :type="roiType"
-    :balance="roiPool.balance"
+    :balance="balance"
     :staked="roiPool.staked"
     :apr="roiPool.annualPercentageRate"
     :lp-apr="roiPool.lpAnnualPercentageRate"
