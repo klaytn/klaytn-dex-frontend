@@ -54,7 +54,12 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(swapStore.addr
           v-if="i === 0"
           class="w-full flex justify-center items-center h-0"
         >
-          <KlayIconArrowDown class="shadow-md rounded-full" />
+          <button
+            class="shadow-md rounded-full overflow-hidden"
+            @click="swapStore.swapTokensWithEachOther()"
+          >
+            <KlayIconArrowDown />
+          </button>
         </div>
       </template>
     </div>

@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia'
 import { ValidationError } from '@/modules/ModuleSwap/composable.validation'
 import invariant from 'tiny-invariant'
 import { useTradeStore } from '@/modules/ModuleTradeShared/trade-store'
+import { match, P } from 'ts-pattern'
 
 const swapStore = useSwapStore()
 const { isValid, validationError, isValidationPending, prepareState, gotAmountFor, tokens, isRefreshing } =
@@ -30,6 +31,22 @@ useTradeStore().useRefresh({
   run: () => swapStore.refresh(),
   pending: isRefreshing,
 })
+
+const buttonLabel = computed<string | null>(() =>
+  isValidationPending.value
+    ? null
+    : match(validationError.value)
+        .with(P.nullish, ValidationError.JustNotReady, () => 'Swap')
+        .with(ValidationError.UnselectedTokens, () => 'Select tokens')
+        .with(ValidationError.RouteNotFound, () => `Route ${whichRouteNotFound()} not found`)
+        .with(ValidationError.WalletIsNotConnected, () => 'Connect wallet')
+        .with(ValidationError.PriceImpactIsTooHigh, () => 'Too much impact')
+        .with(
+          ValidationError.InsufficientBalanceOfInputToken,
+          () => `Insufficient ${whoseBalanceIsInsufficient()} balance`,
+        )
+        .exhaustive(),
+)
 </script>
 
 <template>
@@ -46,28 +63,7 @@ useTradeStore().useRefresh({
       :loading="prepareState?.pending ?? isValidationPending"
       @click="swapStore.prepare()"
     >
-      <template v-if="!isValidationPending">
-        <template v-if="validationError">
-          <template v-if="validationError === ValidationError.UnselectedTokens">
-            Select tokens
-          </template>
-          <template v-else-if="validationError === ValidationError.WalletIsNotConnected">
-            Connect wallet
-          </template>
-          <template v-else-if="validationError === ValidationError.InsufficientBalanceOfInputToken">
-            Insufficient {{ whoseBalanceIsInsufficient() }} balance
-          </template>
-          <template v-else-if="validationError === ValidationError.RouteNotFound">
-            Route {{ whichRouteNotFound() }} not found
-          </template>
-          <template v-else-if="validationError === ValidationError.PriceImpactIsTooHigh">
-            Too much impact
-          </template>
-        </template>
-        <template v-else>
-          Swap
-        </template>
-      </template>
+      {{ buttonLabel }}
     </KlayButton>
 
     <ModuleSwapDetails />

@@ -11,6 +11,7 @@ export const ValidationError = {
   InsufficientBalanceOfInputToken: 'insufficient-balance',
   WalletIsNotConnected: 'unconnected-wallet',
   PriceImpactIsTooHigh: 'high-price-impact',
+  JustNotReady: 'just-not-ready',
 } as const
 
 export type ValidationError = typeof ValidationError[keyof typeof ValidationError]
@@ -48,8 +49,10 @@ export function useSwapValidation({
 
     if (!tokenABalance.value) return resultPending()
 
-    if (tokenABalance.value.asBigInt < amounts.tokenA!.asBigInt)
+    if (amounts.tokenA && amounts.tokenA.asBigInt > tokenABalance.value.asBigInt)
       return resultErr(ValidationError.InsufficientBalanceOfInputToken)
+
+    if (!amounts.tokenA || !amounts.tokenB) return resultErr(ValidationError.JustNotReady)
 
     return resultOk()
   })
@@ -168,6 +171,18 @@ if (import.meta.vitest) {
       })
 
       expect(validation.value).toEqual(resultErr(ValidationError.RouteNotFound))
+    })
+
+    test('When tokens are selected and tokenA balance is known, but there is no value of tokenA, then WHAT?', () => {
+      const validation = useSwapValidation({
+        selected: buildPair(() => true),
+        amounts: { tokenA: null, tokenB: new Wei(4) },
+        tokenABalance: shallowRef(new Wei(100)),
+        trade: ref(null),
+        wallet: ref('connected'),
+      })
+
+      expect(validation.value).toEqual(resultErr(ValidationError.JustNotReady))
     })
   })
 }
