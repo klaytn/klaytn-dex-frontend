@@ -4,19 +4,46 @@ import { Token, Address } from '@/core'
 import invariant from 'tiny-invariant'
 import { useTokensSearchAndImport } from '@/utils/composable.tokens-search-and-import'
 import TokenSelectModalListItem from './TokenSelectModalListItem.vue'
+import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
 
 const props = defineProps<{
   show: boolean
-  selected: Set<Address> | null
-  tokens: Token[]
+  selected: Set<Address>
+  unknownSelectedAddress?: Address | null
+  tokensImportedAddresses: Address[]
+  tokensWhitelist: Token[]
+  areImportedTokensPending?: boolean
 }>()
 
-const emit = defineEmits(['select', 'update:show', 'import-token'])
+interface Emits {
+  (event: 'close' | 'drop-unknown-selection'): void
+  (event: 'select', token: Address): void
+  (event: 'import-token', token: Token): void
+}
 
-const showModel = useVModel(props, 'show', emit)
-const tokens = toRef(props, 'tokens')
+const emit = defineEmits<Emits>()
 
-const selectedSetWithLowerAddresses = computed(() => new Set([...(props.selected ?? [])].map((x) => x.toLowerCase())))
+const showModel = computed({
+  get: () => props.show,
+  set: (v) => !v && emit('close'),
+})
+
+const { lookupToken } = useMinimalTokensApi()
+
+const lookupTokensAssertive = (items: Address[]): Token[] =>
+  items.map((x) => {
+    const token = lookupToken(x)
+    invariant(token)
+    return token
+  })
+
+const tokens = computed((): Token[] => {
+  const whitelist = props.tokensWhitelist
+  if (props.areImportedTokensPending) return whitelist
+  return [...lookupTokensAssertive(props.tokensImportedAddresses), ...whitelist]
+})
+
+const selectedSetWithLowerAddresses = computed(() => new Set([...props.selected].map((x) => x.toLowerCase())))
 
 function isSelected(addr: Address): boolean {
   return selectedSetWithLowerAddresses.value.has(addr.toLowerCase()) ?? false
@@ -24,11 +51,24 @@ function isSelected(addr: Address): boolean {
 
 const { notify } = useNotify()
 
-const { instant: search, debounced: searchDebounced } = refAndDebounced('', 500)
+const search = ref('')
 
-const { tokensFiltered, isImportPending, noResults, tokenToImport } = useTokensSearchAndImport({ tokens, search })
+const searchOrUnknownAddr = computed({
+  get: () => props.unknownSelectedAddress ?? search.value,
+  set: (v) => {
+    if (props.unknownSelectedAddress) emit('drop-unknown-selection')
+    search.value = v
+  },
+})
 
-const recentTokens = computed(() => tokens.value.slice(0, 6))
+const { debounced: searchDebounced } = refAndDebounced(searchOrUnknownAddr, 500)
+
+const { tokensFiltered, isImportPending, noResults, tokenToImport } = useTokensSearchAndImport({
+  tokens,
+  search: searchOrUnknownAddr,
+})
+
+const recentTokens = computed(() => tokens.value.slice(0, 6) ?? null)
 
 function resetSearch() {
   search.value = ''
@@ -96,8 +136,9 @@ function doImport() {
               />
 
               <div
-                v-if="isImportPending"
+                v-if="isImportPending || areImportedTokensPending"
                 class="p-8 flex items-center justify-center"
+                data-testid="modal-imported-loader"
               >
                 <KlayLoader />
               </div>

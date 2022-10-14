@@ -132,5 +132,6 @@ const addressFormatted = computed(() => account.value && formatAddress(account.v
 .popper {
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
   width: 240px;
+  z-index: 1000;
 }
 </style>

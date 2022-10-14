@@ -75,6 +75,7 @@ specifiers:
   sass: ^1.54.5
   sort-es: ^1.5.2
   tiny-invariant: ^1.2.0
+  ts-pattern: ^4.0.5
   type-fest: ^2.19.0
   typescript: ~4.7.4
   unocss: ^0.45.12
@@ -129,6 +130,7 @@ dependencies:
   round-to: 6.0.0
   sort-es: 1.5.2
   tiny-invariant: 1.2.0
+  ts-pattern: 4.0.5
   type-fest: 2.19.0
   vue: 3.2.37
   vue-i18n: 9.2.2_vue@3.2.37
@@ -8126,6 +8128,10 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       tslib: 2.4.0
+    dev: false
+
+  /ts-pattern/4.0.5:
+    resolution: {integrity: sha512-Bq44KCEt7JVaNLa148mBCJkcQf4l7jtLEBDuDdeuLynWDA+1a60P4D0rMkqSM9mOKLQbIWUddE9h3XKyKwBeqA==}
     dev: false
 
   /tslib/1.14.1:

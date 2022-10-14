@@ -63,6 +63,13 @@ export function makeExplorerLinkToTransaction(address: Address): string {
   return `${EXPLORER_BASE}/tx/${address}`
 }
 
+export const DEX_TOKEN_FULL: Token = {
+  address: DEX_TOKEN,
+  decimals: DEX_TOKEN_DECIMALS,
+  symbol: 'DEX' as CurrencySymbol,
+  name: 'DEX Token',
+}
+
 export const WHITELIST_TOKENS = Object.freeze([
   {
     address: NATIVE_TOKEN,
@@ -72,6 +79,7 @@ export const WHITELIST_TOKENS = Object.freeze([
     symbol: 'KLAY',
     decimals: NATIVE_TOKEN_DECIMALS,
   },
+  DEX_TOKEN_FULL,
   {
     address: '0xb9920BD871e39C6EF46169c32e7AC4C698688881',
     name: 'Mercury',
@@ -133,13 +141,6 @@ export const WHITELIST_TOKENS = Object.freeze([
     decimals: 18,
   },
 ] as Token[])
-
-export const DEX_TOKEN_FULL: Token = {
-  address: DEX_TOKEN,
-  decimals: DEX_TOKEN_DECIMALS,
-  symbol: 'DEX' as CurrencySymbol,
-  name: 'DEX Token',
-}
 
 export function isNativeToken(address: Address): boolean {
   return address.toLowerCase() === NATIVE_TOKEN.toLowerCase()

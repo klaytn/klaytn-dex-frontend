@@ -6,7 +6,7 @@ import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 import { CONSTANT_FARMING_DECIMALS } from './utils'
-import { Wei, ADDRESS_FARMING, WeiAsToken, CurrencySymbol, makeExplorerLinkToAccount, LP_TOKEN_DECIMALS } from '@/core'
+import { Wei, ADDRESS_FARMING, WeiAsToken, CurrencySymbol, makeExplorerLinkToAccount, LP_TOKEN_DECIMALS, Address } from '@/core'
 import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import { TokensPair } from '@/utils/pair'
 import StakeUnstakeModal from './Modal.vue'
@@ -14,6 +14,7 @@ import WalletConnectButton from '@/components/WalletConnectButton.vue'
 import invariant from 'tiny-invariant'
 import { or } from '@vueuse/core'
 import { useBalance } from '../ModuleEarnShared/composable.balance'
+import { PromiseStateAtomic } from '@vue-kakuyaku/core'
 
 const dexStore = useDexStore()
 const tokensStore = useTokensStore()
@@ -79,8 +80,37 @@ const stats = computed(() => {
   }
 })
 
-function goToLiquidityAddPage() {
-  router.push({ name: RouteName.LiquidityAdd, params: { id: pool.value.pairId } })
+const liquidityAddStore = useLiquidityAddStore()
+
+const prepareLpAddNavigationScope = useDeferredScope<PromiseStateAtomic<TokensPair<Address>>>()
+
+whenever(
+  () => prepareLpAddNavigationScope.scope.value?.expose.fulfilled?.value,
+  (tokens) => {
+    liquidityAddStore.setBothAddresses(tokens)
+    router.push({ name: RouteName.LiquidityAdd })
+  },
+)
+
+const isLpAddNavigationPending = computed(() => prepareLpAddNavigationScope.scope.value?.expose.pending ?? false)
+
+function triggerLpAddNavigation() {
+  prepareLpAddNavigationScope.setup(() => {
+    const dex = dexStore.anyDex.dex()
+    const pairId = pool.value.pairId
+
+    const { state } = useTask(
+      async () => {
+        const pair = dex.tokens.pairAddressToTokensPair(pairId)
+        return pair
+      },
+      { immediate: true },
+    )
+
+    useNotifyOnError(state, notify, 'Failed to derive tokens')
+
+    return state
+  })
 }
 
 const {
@@ -233,7 +263,8 @@ function openRoiCalculator() {
 
             <KlayButton
               class="w-50"
-              @click="goToLiquidityAddPage()"
+              :loading="isLpAddNavigationPending"
+              @click="triggerLpAddNavigation()"
             >
               Get {{ pool.name }} LP
             </KlayButton>
@@ -302,7 +333,7 @@ function openRoiCalculator() {
 
             <KlayButton
               class="w-50"
-              @click="goToLiquidityAddPage()"
+              @click="triggerLpAddNavigation()"
             >
               Get {{ pool.name }} LP
             </KlayButton>

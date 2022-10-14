@@ -145,6 +145,18 @@ export const useSwapStore = defineStore('swap', () => {
 
   const { estimatedFor, setEstimated, setMainToken } = useEstimatedLayer(selection)
 
+  function swapTokensWithEachOther() {
+    const currentMain = estimatedFor.value && mirrorTokenType(estimatedFor.value)
+    selection.setBothAddrs({ tokenA: addrsReadonly.tokenB, tokenB: addrsReadonly.tokenA })
+    if (currentMain) {
+      const newMain = mirrorTokenType(currentMain)
+      const mainValue = tokenValues[currentMain]
+      invariant(mainValue)
+      tokenValues[currentMain] = null
+      setMainToken(newMain, mainValue)
+    }
+  }
+
   // #endregion
 
   // #region Pair data
@@ -358,6 +370,7 @@ export const useSwapStore = defineStore('swap', () => {
     setToken: setMainToken,
     setBothTokens,
     resetInput,
+    swapTokensWithEachOther,
 
     slippageTolerance,
     multihops,
