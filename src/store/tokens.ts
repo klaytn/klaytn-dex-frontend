@@ -233,7 +233,6 @@ export const useTokensStore = defineStore('tokens', () => {
     isDerivedUSDPending,
 
     importedAddresses,
-    whitelistTokens: WHITELIST_TOKENS,
     importedAndWhitelistTokens,
 
     importToken,
