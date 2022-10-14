@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { roundTo } from 'round-to'
-import cssRows from '../../ModuleTradeShared/rows.module.scss'
+import cssRows from '../../ModuleTradeShared/rows.module.scss.types'
 import { buildPair, TOKEN_TYPES, nonNullPair } from '@/utils/pair'
-import { NATIVE_TOKEN_DECIMALS, Wei, POOL_COMMISSION } from '@/core'
-import { Ref } from 'vue'
+import { NATIVE_TOKEN_DECIMALS, POOL_COMMISSION } from '@/core'
 import { KlayIconImportant } from '~klay-icons'
+import { SPopover } from '@soramitsu-ui/ui'
 
 const props = defineProps<{
   inModal?: boolean
@@ -84,9 +83,30 @@ const formattedCommission = POOL_COMMISSION.toFormat()
       </div>
 
       <div :class="cssRowClassForBottomLines">
-        <div class="flex items-center space-x-1">
-          <span>Pool commission</span>
-          <KlayIconImportant />
+        <div class="flex items-center">
+          <span class="mr-1">Pool commission</span>
+
+          <SPopover
+            placement="bottom"
+            distance="8"
+          >
+            <template #trigger>
+              <span>
+                <KlayIconImportant class="commission-info-icon" />
+              </span>
+            </template>
+
+            <template #popper="{ show }">
+              <div
+                v-if="show"
+                class="commission-card bg-white z-10 rounded-lg shadow-lg p-4 w-[305px]"
+              >
+                By adding liquidity you'll earn <b>{{ formattedCommission }}</b> of all trades on this pair proportional
+                to your share of the pool. Fees are added to the pool, accrue in real time and can be claimed by
+                withdrawing your liquidity.
+              </div>
+            </template>
+          </SPopover>
         </div>
         <span>{{ formattedCommission }}</span>
       </div>
@@ -111,7 +131,7 @@ const formattedCommission = POOL_COMMISSION.toFormat()
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .details {
   border: 1px solid #dfe4ed;
@@ -122,6 +142,22 @@ h3 {
   font-style: normal;
   font-weight: 700;
   font-size: 14px;
-  color: $dark2;
+  color: vars.$dark2;
+}
+
+.commission-info-icon {
+  color: vars.$gray4;
+}
+
+.commission-card {
+  color: vars.$gray2;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 150%;
+
+  b {
+    color: vars.$dark;
+    font-weight: 600;
+  }
 }
 </style>

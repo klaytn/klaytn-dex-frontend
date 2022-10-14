@@ -4,7 +4,7 @@ import { Sorting } from '../types'
 export const useStakingStore = defineStore('staking', () => {
   const stakedOnly = ref(false)
   const searchQuery = ref('')
-  const sorting = ref<Sorting>(Sorting.Default)
+  const sorting = ref<Sorting>(Sorting.Hot)
 
   return { stakedOnly, searchQuery, sorting }
 })

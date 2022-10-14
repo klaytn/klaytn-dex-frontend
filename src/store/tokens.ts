@@ -1,4 +1,4 @@
-import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { Address, DexPure, Dex, Token, Wei, isNativeToken, NATIVE_TOKEN } from '@/core'
 import { WHITELIST_TOKENS } from '@/core'
 import { Ref } from 'vue'
@@ -53,22 +53,24 @@ async function loadBalances(dex: Dex, tokens: Address[]): Promise<Map<Address, W
 
 function useImportedTokens() {
   const dexStore = useDexStore()
-  const { active: activeDex } = storeToRefs(dexStore)
 
   const tokens = useLocalStorage<Address[]>('klaytn-dex-imported-tokens', [])
-  const { state, run } = useTask(
-    async () => {
-      const dex = activeDex.value.dex()
-      return loadTokens(dex, tokens.value)
+
+  const scope = useParamScope(
+    () => ({
+      key: dexStore.anyDex.key,
+      payload: dexStore.anyDex.dex(),
+    }),
+    (dex) => {
+      const { state, run } = useTask(() => loadTokens(dex, tokens.value), { immediate: true })
+      usePromiseLog(state, 'imported-tokens')
+      useErrorRetry(state, run)
+      return state
     },
-    { immediate: true },
   )
 
-  usePromiseLog(state, 'imported-tokens')
-  useErrorRetry(state, run)
-
-  const isPending = toRef(state, 'pending')
-  const result = computed(() => state.fulfilled?.value ?? null)
+  const isPending = computed(() => scope.value.expose.pending)
+  const result = computed(() => scope.value.expose.fulfilled?.value ?? null)
   const isLoaded = computed(() => !!result.value)
 
   const tokensFetched = computed<null | Token[]>(() => {
@@ -88,7 +90,7 @@ function useImportedTokens() {
   }
 
   return {
-    tokens,
+    tokens: readonly(tokens),
     tokensFetched,
     isPending,
     isLoaded,
@@ -172,51 +174,45 @@ function useTokensIndex(tokens: Ref<null | readonly Token[]>) {
   return { findTokenData }
 }
 
+/**
+ * The general store for tokens and their information related to user.
+ *
+ * It has:
+ *
+ * - Imported and whitelist tokens; DEX token
+ * - Tokens balances
+ * - Tokens derived USD
+ */
 export const useTokensStore = defineStore('tokens', () => {
   const {
+    tokens: importedAddresses,
     tokensFetched: importedFetched,
     isLoaded: isImportedLoaded,
     isPending: isImportedPending,
     importToken,
   } = useImportedTokens()
 
-  const tokensLoaded = computed(() => {
-    return importedFetched.value ? [...importedFetched.value, ...WHITELIST_TOKENS] : WHITELIST_TOKENS
-  })
-  const tokensLoadedAddrs = computed(() => tokensLoaded.value?.map((x) => x.address) ?? null)
+  /**
+   * Does not depend on loading states
+   */
+  const allTokensAddresses = computed(() => [...importedAddresses.value, ...WHITELIST_TOKENS.map((x) => x.address)])
 
-  const { findTokenData } = useTokensIndex(tokensLoaded)
+  const importedAndWhitelistTokens = computed(() =>
+    importedFetched.value ? [...importedFetched.value, ...WHITELIST_TOKENS] : WHITELIST_TOKENS,
+  )
+
+  const allTokensInUse = importedAndWhitelistTokens
+
+  const { findTokenData } = useTokensIndex(allTokensInUse)
 
   const {
     lookup: lookupUserBalance,
     isPending: isBalancePending,
     touch: touchUserBalance,
-  } = useUserBalance(tokensLoadedAddrs)
+  } = useUserBalance(allTokensAddresses)
 
-  const tokensWithBalance = computed(() => {
-    return (
-      tokensLoaded.value?.map<TokenWithOptionBalance>((x) => {
-        return {
-          ...x,
-          balance: lookupUserBalance(x.address),
-        }
-      }) ?? null
-    )
-  })
+  const Query = useTokensQuery(allTokensAddresses, { pollInterval: 10_000 })
 
-  function* tokenIdsForQuery() {
-    for (const x of importedFetched.value ?? []) {
-      yield x.address
-    }
-    for (const x of WHITELIST_TOKENS) {
-      yield x.address
-    }
-  }
-
-  const Query = useTokensQuery(
-    computed(() => [...tokenIdsForQuery()]),
-    { pollInterval: 10_000 },
-  )
   whenever(
     () => !!importedFetched.value,
     () => Query.load(),
@@ -234,9 +230,11 @@ export const useTokensStore = defineStore('tokens', () => {
     isBalancePending,
     isImportedPending,
     isImportedLoaded,
-    tokensLoaded,
-    tokensWithBalance,
     isDerivedUSDPending,
+
+    importedAddresses,
+    whitelistTokens: WHITELIST_TOKENS,
+    importedAndWhitelistTokens,
 
     importToken,
     findTokenData,

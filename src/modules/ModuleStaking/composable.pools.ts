@@ -12,7 +12,31 @@ export function useMappedPools(props: {
   pools: Ref<undefined | null | PoolsQueryResult>
   rewards: Ref<undefined | null | Rewards<Address>>
   tokens: Ref<undefined | null | Tokens>
+  blockNumber: Ref<number | null>
 }) {
+  const sortedPoolEndBlocks = computed(() => {
+    const {
+      pools: { value: poolsResult },
+    } = props
+    if (!poolsResult) return null
+
+    return poolsResult.pools.map((pool) => Number(pool.endBlock)).sort((a, b) => b - a)
+  })
+
+  // Needed to avoid unnecessary recalculations in main computed function
+  const roundedBlockNumber = computedEager(() => {
+    const {
+      blockNumber: { value: blockNumber },
+    } = props
+    const blocks = sortedPoolEndBlocks.value
+    if (!blocks?.length || !blockNumber) return null
+    let rounded = blockNumber
+    blocks.forEach((block) => {
+      if (block >= blockNumber) rounded = block
+    })
+    return rounded
+  })
+
   return computed((): null | Pool[] => {
     const {
       pools: { value: poolsResult },
@@ -59,6 +83,9 @@ export function useMappedPools(props: {
 
       const createdAtBlock = Number(pool.createdAtBlock)
 
+      const endBlock = Number(pool.endBlock)
+      const active = (roundedBlockNumber.value ?? 0) <= endBlock
+
       mappedPools.push({
         id,
         stakeToken,
@@ -69,7 +96,8 @@ export function useMappedPools(props: {
         createdAtBlock,
         annualPercentageRate,
         totalStaked,
-        endBlock: Number(pool.endBlock),
+        endBlock,
+        active,
       })
     }
 
@@ -111,6 +139,10 @@ export function useFilteredPools<T extends Pool>(
 
 function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): number {
   switch (sorting) {
+    case Sorting.Hot:
+      if (poolA.active && !poolB.active) return -1
+      if (poolB.active && !poolA.active) return 1
+      return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.AnnualPercentageRate:
       return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.Earned:

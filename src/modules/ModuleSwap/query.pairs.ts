@@ -1,4 +1,4 @@
-import { Address, TokenSymbol, WeiAsToken } from '@/core'
+import { Address, CurrencySymbol, WeiAsToken } from '@/core'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { REFETCH_PAIRS_INTERVAL } from './const'
@@ -9,13 +9,13 @@ export interface PairsQueryResult {
     token0: {
       id: Address
       decimals: string
-      symbol: TokenSymbol
+      symbol: CurrencySymbol
       name: string
     }
     token1: {
       id: Address
       decimals: string
-      symbol: TokenSymbol
+      symbol: CurrencySymbol
       name: string
     }
     reserve0: WeiAsToken

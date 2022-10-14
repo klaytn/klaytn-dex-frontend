@@ -1,4 +1,4 @@
-import { Address, TokenSymbol, WeiAsToken } from '@/core'
+import { Address, CurrencySymbol, WeiAsToken } from '@/core'
 import BigNumber from 'bignumber.js'
 import { TokenPriceInUSD, AmountInUSD, PercentageRate } from '../ModuleEarnShared/types'
 export * from '../ModuleEarnShared/types'
@@ -8,13 +8,13 @@ export interface Pool {
   stakeToken: {
     id: Address
     decimals: number
-    symbol: TokenSymbol
+    symbol: CurrencySymbol
     name: string
   }
   rewardToken: {
     id: Address
     decimals: number
-    symbol: TokenSymbol
+    symbol: CurrencySymbol
     name: string
   }
   staked: WeiAsToken<BigNumber>
@@ -24,10 +24,11 @@ export interface Pool {
   totalStaked: AmountInUSD
   annualPercentageRate: PercentageRate
   endBlock: number
+  active: boolean
 }
 
 export const Sorting = {
-  Default: 'default',
+  Hot: 'hot',
   AnnualPercentageRate: 'annualPercentageRate',
   Earned: 'earned',
   TotalStaked: 'totalStaked',

@@ -2,8 +2,10 @@ export { MAX_UINT256 } from '@/core'
 
 export const FORMATTED_BIG_INT_DECIMALS = 6
 
-/** Defines the update interval of the pool list in milliseconds */
-export const REFETCH_FARMING_INTERVAL = 10_000
+/** Defines the update interval of the pool list and rewards in milliseconds */
+export const POLL_INTERVAL = 10_000
+export const POLL_INTERVAL_QUICK = 1_000
+export const POLL_INTERVAL_QUICK_TIMEOUT = 5_000
 
 /** Defines the update interval of rewards in milliseconds */
 export const REFETCH_REWARDS_INTERVAL = 10_000

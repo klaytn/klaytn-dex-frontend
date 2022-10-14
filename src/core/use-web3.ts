@@ -9,6 +9,8 @@ import type { AgentProvider } from './domain/agent'
 
 const INITIAL_DELAY_TIMEOUT = 300
 
+const KAIKAS_STATE_POLL_INTERVAL = 1000
+
 // function patchKaikas(
 //   kaikas: Kaikas,
 //   props: {
@@ -151,11 +153,16 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
 
   interface ProviderScope {
     provider: () => AgentProvider
+    /**
+     * It may be `null` if the provider is not connected yet
+     * or if it locked
+     */
     account: null | Address
     isChainLoaded: boolean
     isChainCorrect: boolean
     isSetupPending: boolean
     enableState: PromiseStateAtomic<void>
+    enable: () => void
   }
 
   const providerScope = useParamScope<ProviderScope, SupportedWallet, RawProvider>(
@@ -181,7 +188,7 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
           unstableEthers: new Web3Provider(kaikas as any),
         }
 
-        const { state: enableState } = useTask(
+        const { state: enableState, run: enable } = useTask(
           async () => {
             await kaikas.enable()
           },
@@ -195,6 +202,34 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
         }
         kaikas.on('accountsChanged', onAccountsChange)
         onScopeDispose(() => kaikas.removeListener('accountsChanged', onAccountsChange))
+
+        const { state: kaikasTrueState, run: updateKaikasTrueState } = useTask(
+          async () => {
+            const [isEnabled, isApproved, isUnlocked] = await Promise.all([
+              kaikas._kaikas.isEnabled(),
+              kaikas._kaikas.isApproved(),
+              kaikas._kaikas.isUnlocked(),
+            ])
+            return { isEnabled, isApproved, isUnlocked }
+          },
+          { immediate: true },
+        )
+
+        useIntervalFn(updateKaikasTrueState, KAIKAS_STATE_POLL_INTERVAL)
+        // usePromiseLog(kaikasTrueState, 'kaikas-true-state')
+
+        const isKaikasTrulyEnabled = computed<boolean>(() => {
+          if (kaikasTrueState.fulfilled) {
+            const { value: state } = kaikasTrueState.fulfilled
+            return state.isApproved && state.isEnabled && state.isUnlocked
+          }
+          return false
+        })
+
+        wheneverFulfilled(kaikasTrueState, () => {
+          const isEnabled = isKaikasTrulyEnabled.value
+          account.value = isEnabled ? kaikas.selectedAddress : null
+        })
 
         const getChainId = () => Number(kaikas.networkVersion)
         const chainId = ref<null | number>(null)
@@ -222,6 +257,7 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
           isChainLoaded,
           enableState,
           isSetupPending,
+          enable,
         })
       } else {
         const { ethereum } = wallet
@@ -231,7 +267,7 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
           provider.value = providerFactory()
         }
 
-        const { state: enableState } = useTask(
+        const { state: enableState, run: enable } = useTask(
           async () => {
             await provider.value.ethers.send('eth_requestAccounts', [])
           },
@@ -246,7 +282,10 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
         const onAccountsChanged = (accounts: Address[]) => {
           account.value = getFirstAddress(accounts)
         }
+
+        // Thanks to MetaMask - when it locks, it emits the event with an empty account list
         ethereum.on('accountsChanged', onAccountsChanged)
+
         onScopeDispose(() => ethereum.removeListener('accountsChanged', onAccountsChanged))
 
         const {
@@ -278,6 +317,7 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
           isChainLoaded,
           enableState,
           isSetupPending,
+          enable,
         })
       }
     },
@@ -306,6 +346,9 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
   const isChainLoaded = computed(() => providerScope.value?.expose.isChainLoaded ?? false)
   const isChainCorrect = computed(() => providerScope.value?.expose.isChainCorrect ?? false)
   const isProviderSetupPending = computed(() => providerScope.value?.expose.isSetupPending ?? false)
+  const isEnabled = computed<boolean>(() => !!providerScope.value?.expose.account)
+
+  const enable = () => providerScope.value?.expose.enable()
 
   const initialDelayActive = ref(!!selectedWallet.value)
   if (initialDelayActive.value) {
@@ -330,5 +373,8 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
     isProviderSetupPending,
 
     initialDelayActive,
+
+    isEnabled,
+    enable,
   }
 }

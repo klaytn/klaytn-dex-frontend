@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { WeiAsToken, LP_TOKEN_DECIMALS, TokenSymbol } from '@/core'
+import { WeiAsToken, LP_TOKEN_DECIMALS, CurrencySymbol } from '@/core'
 import { TokensPair } from '@/utils/pair'
 import BigNumber from 'bignumber.js'
 import { Ref } from 'vue'
 
 const props = defineProps<{
   modelValue: WeiAsToken<BigNumber>
-  symbols?: null | TokensPair<TokenSymbol>
+  symbols?: null | TokensPair<CurrencySymbol>
 }>()
 
 const emit = defineEmits(['update:modelValue', 'click:max'])

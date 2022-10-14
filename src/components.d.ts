@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    AddressCopy: typeof import('./components/common/AddressCopy.vue')['default']
     CurrencyFormat: typeof import('./components/common/CurrencyFormat.vue')['default']
     CurrencyFormatTruncate: typeof import('./components/common/CurrencyFormatTruncate.vue')['default']
     CurrencyInput: typeof import('./components/common/CurrencyInput.vue')['default']
@@ -82,6 +83,7 @@ declare module '@vue/runtime-core' {
     ModuleStaking: typeof import('./modules/ModuleStaking/index.vue')['default']
     ModuleStakingModalCard: typeof import('./modules/ModuleStaking/ModalCard.vue')['default']
     ModuleStakingPool: typeof import('./modules/ModuleStaking/Pool.vue')['default']
+    ModuleStakingPoolAddToWallet: typeof import('./modules/ModuleStaking/PoolAddToWallet.vue')['default']
     ModuleStakingPoolHead: typeof import('./modules/ModuleStaking/PoolHead.vue')['default']
     ModuleSwapDetails: typeof import('./modules/ModuleSwap/Details.vue')['default']
     ModuleSwapDetailsRowSlippage: typeof import('./modules/ModuleSwap/DetailsRowSlippage.vue')['default']

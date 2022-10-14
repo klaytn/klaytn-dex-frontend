@@ -3,7 +3,6 @@ import { isAddress } from '@ethersproject/address'
 import BigNumber from 'bignumber.js'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Ref } from 'vue'
 
 export const useAssetsStore = defineStore('assets', () => {
   const tokensStore = useTokensStore()
@@ -23,12 +22,12 @@ export const useAssetsStore = defineStore('assets', () => {
     hidden ? hiddenAssets.value.add(token) : hiddenAssets.value.delete(token)
   }
 
+  const allTokens = computed(() => tokensStore.importedAndWhitelistTokens)
+
   const tokensFilteredByHidden = computed(() => {
-    const items = tokensStore.tokensLoaded
+    const items = allTokens.value
     return items.filter((x) => !hiddenAssets.value.has(x.address))
   })
-
-  const allTokens = computed(() => tokensStore.tokensLoaded)
 
   const totalUsd = computed<BigNumber | null>(() => {
     let sum = new BigNumber(0)

@@ -20,7 +20,7 @@ EarnWrap:
   sorting:
     label: Sort by
     options:
-      default: Hot
+      hot: Hot
       liquidity: Liquidity
       annualPercentageRate: APR
       multiplier: Multiplier

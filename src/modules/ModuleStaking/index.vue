@@ -1,14 +1,18 @@
 <script setup lang="ts" name="ModuleStaking">
 import { SButton } from '@soramitsu-ui/ui'
-import BigNumber from 'bignumber.js'
 import { Pool } from './types'
 import { usePoolsQuery } from './query.pools'
 import { useTokensQuery } from '@/query/tokens-derived-usd'
-import { PAGE_SIZE, REFETCH_TOKENS_INTERVAL } from './const'
+import {
+  PAGE_SIZE,
+  REFETCH_TOKENS_INTERVAL,
+  POLL_INTERVAL,
+  POLL_INTERVAL_QUICK,
+  POLL_INTERVAL_QUICK_TIMEOUT,
+} from './const'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { useFetchStakingRewards } from './composable.fetch-rewards'
-import { Wei, WeiAsToken, WeiRaw, Address } from '@/core'
-import { deepClone } from '@/utils/common'
+import { Address } from '@/core'
 import { useFilteredPools, useMappedPools, useSortedPools } from './composable.pools'
 
 const dexStore = useDexStore()
@@ -22,7 +26,12 @@ const page = ref(1)
 
 const blockNumber = useBlockNumber(computed(() => dexStore.anyDex.dex().agent))
 
-const PoolsQuery = usePoolsQuery(toRef(dexStore, 'account'))
+const quickPoll = refAutoReset(false, POLL_INTERVAL_QUICK_TIMEOUT)
+const pollInterval = computed(() => {
+  return (quickPoll.value && POLL_INTERVAL_QUICK) || POLL_INTERVAL
+})
+
+const PoolsQuery = usePoolsQuery(toRef(dexStore, 'account'), pollInterval)
 const pools = computed(() => {
   return PoolsQuery.result.value?.pools ?? null
 })
@@ -71,6 +80,7 @@ const { rewards, areRewardsFetched } = useFetchStakingRewards({
   updateBlockNumber: (v) => {
     blockNumber.value = v
   },
+  pollInterval,
 })
 
 const showViewMore = computed(() => {
@@ -87,6 +97,7 @@ const poolsMapped = useMappedPools({
   pools: PoolsQuery.result,
   rewards,
   tokens,
+  blockNumber,
 })
 
 const poolsFiltered = useFilteredPools(poolsMapped, { stakedOnly, searchQuery })
@@ -102,29 +113,8 @@ const poolsFinal = poolsPaginated
 
 const isLoading = PoolsQuery.loading
 
-function updateStaked(poolId: Pool['id'], diff: BigNumber) {
-  if (!PoolsQuery.result.value) return
-
-  const clonedQueryResult = deepClone(PoolsQuery.result.value)
-  const pool = clonedQueryResult.pools.find((pool) => pool.id === poolId)
-  if (!pool) return
-
-  const diffInWei = Wei.fromToken(pool.stakeToken, diff.toFixed() as WeiAsToken)
-
-  pool.totalTokensStaked = new BigNumber(pool.totalTokensStaked).plus(diffInWei.asBigNum).toFixed(0) as WeiRaw<string>
-
-  const user = pool.users[0] ?? null
-  if (!user) return
-
-  user.amount = new BigNumber(user.amount).plus(diffInWei.asBigNum).toFixed(0) as WeiRaw<string>
-  PoolsQuery.result.value = clonedQueryResult
-}
-
-function handleStaked(pool: Pool, amount: string) {
-  updateStaked(pool.id, new BigNumber(amount))
-}
-function handleUnstaked(pool: Pool, amount: string) {
-  updateStaked(pool.id, new BigNumber(0).minus(amount))
+function handleStakedUnstaked() {
+  quickPoll.value = true
 }
 </script>
 
@@ -137,8 +127,8 @@ function handleUnstaked(pool: Pool, amount: string) {
           :key="pool.id"
           :pool="pool"
           :block-number="blockNumber"
-          @staked="(value: string) => handleStaked(pool, value)"
-          @unstaked="(value: string) => handleUnstaked(pool, value)"
+          @staked="handleStakedUnstaked"
+          @unstaked="handleStakedUnstaked"
         />
       </div>
       <div
