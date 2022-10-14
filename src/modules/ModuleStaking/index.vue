@@ -3,7 +3,13 @@ import { SButton } from '@soramitsu-ui/ui'
 import { Pool } from './types'
 import { usePoolsQuery } from './query.pools'
 import { useTokensQuery } from '@/query/tokens-derived-usd'
-import { PAGE_SIZE, REFETCH_TOKENS_INTERVAL, POLL_INTERVAL, POLL_INTERVAL_QUICK, POLL_INTERVAL_QUICK_TIMEOUT } from './const'
+import {
+  PAGE_SIZE,
+  REFETCH_TOKENS_INTERVAL,
+  POLL_INTERVAL,
+  POLL_INTERVAL_QUICK,
+  POLL_INTERVAL_QUICK_TIMEOUT,
+} from './const'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { useFetchStakingRewards } from './composable.fetch-rewards'
 import { Address } from '@/core'
