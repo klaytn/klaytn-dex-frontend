@@ -37,14 +37,14 @@ export interface AbiContractEthers {
 }
 
 export interface AbiContractWeb3 {
-  kip7: TypechainWeb3.tokens.KIP7
-  pair: TypechainWeb3.swap.DexPair
-  router: TypechainWeb3.swap.DexRouter
-  factory: TypechainWeb3.swap.DexFactory
-  weth: TypechainWeb3.tokens.wklaySol.WETH9
-  farming: TypechainWeb3.farming.Farming
-  staking: TypechainWeb3.farming.stakingFactoryPoolSol.StakingInitializable
-  multicall: TypechainWeb3.farming.multiCallSol.Multicall
+  kip7: TypechainWeb3.klaytn.contracts.kip.token.kip7.KIP7
+  pair: TypechainWeb3.contracts.swap.DexPair
+  router: TypechainWeb3.contracts.swap.DexRouter
+  factory: TypechainWeb3.contracts.swap.DexFactory
+  weth: TypechainWeb3.contracts.tokens.wklaySol.WETH9
+  farming: TypechainWeb3.contracts.farming.Farming
+  staking: TypechainWeb3.contracts.farming.stakingFactoryPoolSol.StakingInitializable
+  multicall: TypechainWeb3.contracts.utils.multiCallSol.Multicall
   erc20: ContractWeb3
 }
 

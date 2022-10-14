@@ -10,14 +10,14 @@ export const MAX_UINT256 = 2n ** 256n - 1n
 export const NATIVE_TOKEN = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address
 export const NATIVE_TOKEN_DECIMALS = 18
 
-export const DEX_TOKEN = '0x825e1ba886c90f15a921a7ac9b19b6d645fa2429' as Address
+export const DEX_TOKEN = '0x42f127458246b1db8d8a58d31a22b307408439e4' as Address
 export const DEX_TOKEN_DECIMALS = 18
 
-export const ADDRESS_ROUTER = '0xB0B695584234F2CC16266588b2b951F3d2885705' as Address
-export const ADDRESS_FACTORY = '0xEB487a3A623E25cAa668B6D199F1aBa9D2380456' as Address
-export const ADDRESS_WETH = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address
-export const ADDRESS_MULTICALL = '0xc88098CEaE07D1FE443372a0accC464A5fb94668' as Address
-export const ADDRESS_FARMING = '0x32bE07FB9dBf294c2e92715F562f7aBA02b7443A' as Address
+export const ADDRESS_ROUTER = '0xce12c887fae83a5f94f6cf3c8d4c1cee8b1c7786' as Address
+export const ADDRESS_FACTORY = '0x339ba51a3d65ad5418aee14b0546088bfe99403c' as Address
+export const ADDRESS_WETH = '0x73365f8f27de98d7634be67a167f229b32e7bf6c' as Address
+export const ADDRESS_MULTICALL = '0x4d25d48f8a072446c3aa84ba482092a0bea0bf5d' as Address
+export const ADDRESS_FARMING = '0xf68b8d3fae7feb747cb4dce0a4c91a100b140245' as Address
 
 /**
  * We totally sure that all our LP tokens have this decimals value

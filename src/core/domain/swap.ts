@@ -184,7 +184,7 @@ export class Swap extends SwapPure {
         break
       }
       case 'exact-tokens-for-eth': {
-        tx = router.swapExactTokensForETH(
+        tx = router.swapExactTokensForKLAY(
           [props.amountIn.asStr, props.amountOutMin.asStr, path, address, deadline],
           baseOverrides,
         )
@@ -192,7 +192,7 @@ export class Swap extends SwapPure {
         break
       }
       case 'exact-eth-for-tokens': {
-        tx = router.swapExactETHForTokens([props.amountOutMin.asStr, path, address, deadline], {
+        tx = router.swapExactKLAYForTokens([props.amountOutMin.asStr, path, address, deadline], {
           ...baseOverrides,
           value: props.amountIn,
         })
@@ -200,7 +200,7 @@ export class Swap extends SwapPure {
         break
       }
       case 'eth-for-exact-tokens': {
-        tx = router.swapETHForExactTokens([props.amountOut.asStr, path, address, deadline], {
+        tx = router.swapKLAYForExactTokens([props.amountOut.asStr, path, address, deadline], {
           ...baseOverrides,
           value: props.amountInMax,
         })
@@ -208,7 +208,7 @@ export class Swap extends SwapPure {
         break
       }
       case 'tokens-for-exact-eth': {
-        tx = router.swapTokensForExactETH(
+        tx = router.swapTokensForExactKLAY(
           [props.amountOut.asStr, props.amountInMax.asStr, path, address, deadline],
           baseOverrides,
         )
