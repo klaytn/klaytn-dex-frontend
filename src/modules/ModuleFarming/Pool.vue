@@ -6,7 +6,15 @@ import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 import { CONSTANT_FARMING_DECIMALS } from './utils'
-import { Wei, ADDRESS_FARMING, WeiAsToken, CurrencySymbol, makeExplorerLinkToAccount, LP_TOKEN_DECIMALS, Address } from '@/core'
+import {
+  Wei,
+  ADDRESS_FARMING,
+  WeiAsToken,
+  CurrencySymbol,
+  makeExplorerLinkToAccount,
+  LP_TOKEN_DECIMALS,
+  Address,
+} from '@/core'
 import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import { TokensPair } from '@/utils/pair'
 import StakeUnstakeModal from './Modal.vue'
