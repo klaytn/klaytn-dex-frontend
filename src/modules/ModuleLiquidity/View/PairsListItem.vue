@@ -48,7 +48,7 @@ const formattedPoolShare = useFormattedPercent(
     </template>
 
     <template #main>
-      <div class="space-y-4 pt-4">
+      <div class="space-y-4 mt-2">
         <div :class="cssRowMd">
           <span>Pooled {{ pair.token0.name }}</span>
           <span>
