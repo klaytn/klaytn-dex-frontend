@@ -157,6 +157,15 @@ export class TokensPure {
     return this.#agent.createContract(pairAddr, 'pair')
   }
 
+  public async pairAddressToTokensPair(pair: Address): Promise<TokensPair<Address>> {
+    const contract = await this.#agent.createContract(pair, 'pair')
+    const [tokenA, tokenB] = (await Promise.all([contract.token0([]).call(), contract.token1([]).call()])) as [
+      Address,
+      Address,
+    ]
+    return { tokenA, tokenB }
+  }
+
   private async initKip7FunctionData() {
     const fragments = this.#agent.abi.get('kip7') || (await this.#agent.abi.load('kip7'))
     const iface = new Interface(fragments as JsonFragment[])
