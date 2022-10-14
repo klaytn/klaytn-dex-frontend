@@ -235,5 +235,13 @@ describe('TokenSelectPure', () => {
       cy.get(TESTID_CLOSE_MODAL_BTN).click()
       cy.get(TESTID_SELECT).contains('Select Token')
     })
+
+    it('If user select some token from the recent ones, then the token is selected', () => {
+      mountFactoryWithImportedAndUnknown()
+
+      openModal()
+      cy.get(TESTID_RECENT_TOKEN).first().click()
+      cy.get(TESTID_SELECT).contains('KlayLP1')
+    })
   })
 })
