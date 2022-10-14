@@ -1,8 +1,7 @@
 import { Ref } from 'vue'
 
-export function refAndDebounced<T>(value: T, debounce: number): { instant: Ref<T>; debounced: Ref<T> } {
-  const instant = shallowRef(value)
-  const debounced = shallowRef(value)
+export function refAndDebounced<T>(instant: Ref<T>, debounce: number): { instant: Ref<T>; debounced: Ref<T> } {
+  const debounced = shallowRef(instant.value)
 
   syncRef(instant, debounced, { direction: 'ltr' })
 

@@ -52,6 +52,7 @@
     "round-to": "^6.0.0",
     "sort-es": "^1.5.2",
     "tiny-invariant": "^1.2.0",
+    "ts-pattern": "^4.0.5",
     "type-fest": "^2.19.0",
     "vue": "3.2.37",
     "vue-i18n": "^9.2.2",
