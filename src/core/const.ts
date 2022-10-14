@@ -10,7 +10,7 @@ export const MAX_UINT256 = 2n ** 256n - 1n
 export const NATIVE_TOKEN = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address
 export const NATIVE_TOKEN_DECIMALS = 18
 
-export const DEX_TOKEN = '0x825e1ba886c90f15a921a7ac9b19b6d645fa2429' as Address
+export const DEX_TOKEN = '0x42f127458246b1db8d8a58d31a22b307408439e4' as Address
 export const DEX_TOKEN_DECIMALS = 18
 
 export const ADDRESS_ROUTER = '0xce12c887fae83a5f94f6cf3c8d4c1cee8b1c7786' as Address
