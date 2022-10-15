@@ -1,10 +1,10 @@
 import { Wei, WeiAsToken } from '@/core'
 import BigNumber from 'bignumber.js'
 import escapeStringRegexp from 'escape-string-regexp'
+import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 import { BLOCKS_PER_YEAR } from './const'
 import { FarmingQueryResult } from './query.farming'
-import { LiquidityPositionsQueryResult } from './query.liquidity-positions'
 import { PairsAndRewardTokenQueryResult } from './query.pairs-and-reward-token'
 import { PercentageRate, Pool, PoolId, Rewards, Sorting, TokenPriceInUSD } from './types'
 import { farmingFromWei } from './utils'
@@ -14,7 +14,6 @@ export function useMappedPools(props: {
   pairsAndRewardToken: Ref<undefined | null | PairsAndRewardTokenQueryResult>
   farming: Ref<undefined | null | FarmingQueryResult>
   rewards: Ref<undefined | null | Rewards<PoolId>>
-  liquidityPositions: Ref<undefined | null | LiquidityPositionsQueryResult['user']['liquidityPositions']>
 }) {
   return computed((): null | Pool[] => {
     const {
@@ -22,9 +21,8 @@ export function useMappedPools(props: {
       blockNumber: { value: blockNumber },
       pairsAndRewardToken: { value: pairsAndRewardToken },
       rewards: { value: rewards },
-      liquidityPositions: { value: liquidityPositions },
     } = props
-    if (!farmingResult || !blockNumber || !pairsAndRewardToken || !rewards) return null
+    if (!farmingResult || !blockNumber || !pairsAndRewardToken) return null
     const { token: rewardToken, pairs } = pairsAndRewardToken
     const { farming } = farmingResult
 
@@ -34,18 +32,15 @@ export function useMappedPools(props: {
       const id = pool.id
       const pair = pairs.find((pair) => pair.id === pool.pair) ?? null
 
-      const reward = rewards.get(pool.id)
+      const reward = rewards?.get(pool.id) ?? null
       const earned = reward ? farmingFromWei(reward) : null
 
-      if (pair === null || earned === null) continue
+      if (pair === null) continue
 
       const pairId = pair.id
       const name = pair.name
 
       const staked = farmingFromWei(new Wei(pool.users[0]?.amount ?? '0'))
-
-      const liquidityPosition = liquidityPositions?.find((position) => position.pair.id === pairId) ?? null
-      const balance = new BigNumber(liquidityPosition?.liquidityTokenBalance ?? 0) as WeiAsToken<BigNumber>
 
       const reserveUSD = new BigNumber(pair.reserveUSD)
       const totalSupply = new BigNumber(pair.totalSupply)
@@ -76,7 +71,6 @@ export function useMappedPools(props: {
         pairId,
         earned,
         staked,
-        balance,
         annualPercentageRate,
         lpAnnualPercentageRate,
         stakeTokenPrice,
@@ -132,6 +126,8 @@ export function useFilteredPools<T extends Pool>(
 
 function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): number {
   switch (sorting) {
+    case Sorting.Hot:
+      return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.Liquidity:
       return poolB.liquidity.comparedTo(poolA.liquidity)
     case Sorting.AnnualPercentageRate:
@@ -139,6 +135,7 @@ function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): num
     case Sorting.Multiplier:
       return poolB.multiplier.comparedTo(poolA.multiplier)
     case Sorting.Earned:
+      invariant(poolB.earned && poolA.earned)
       return poolB.earned.comparedTo(poolA.earned)
     case Sorting.Latest:
       return poolB.createdAtBlock - poolA.createdAtBlock

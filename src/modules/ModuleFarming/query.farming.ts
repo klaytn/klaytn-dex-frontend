@@ -3,7 +3,7 @@ import { ApolloClientId } from '@/types'
 import { useQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
-import { REFETCH_FARMING_INTERVAL } from './const'
+import { Ref } from 'vue'
 import { PoolId } from './types'
 
 export interface FarmingQueryResult {
@@ -27,7 +27,7 @@ export interface FarmingQueryResult {
   }
 }
 
-export function useFarmingQuery(userId: MaybeRef<Address | null>) {
+export function useFarmingQuery(userId: MaybeRef<Address | null>, pollInterval: Ref<number>) {
   return useQuery<FarmingQueryResult>(
     gql`
         query FarmingQuery($userId: String!) {
@@ -52,12 +52,11 @@ export function useFarmingQuery(userId: MaybeRef<Address | null>) {
         }
       `,
     () => ({
-      userId: unref(userId),
+      userId: unref(userId) ?? '',
     }),
     () => ({
       clientId: ApolloClientId.Farming,
-      enabled: !!unref(userId),
-      pollInterval: REFETCH_FARMING_INTERVAL,
+      pollInterval: pollInterval.value,
     }),
   )
 }

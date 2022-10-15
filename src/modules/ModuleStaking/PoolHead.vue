@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { TokenSymbol } from '@/core'
+import { CurrencySymbol } from '@/core'
 import BigNumber from 'bignumber.js'
 import { KlayIconCalculator, KlayIconClock } from '~klay-icons'
 
 const props = defineProps<{
-  rewardTokenSymbol: TokenSymbol
-  stakeTokenSymbol: TokenSymbol
-  earned: BigNumber
+  rewardTokenSymbol: CurrencySymbol
+  stakeTokenSymbol: CurrencySymbol
+  earned: BigNumber | null
   totalStakedUsd: BigNumber
   annualPercentageRate: BigNumber
   endsIn: number
@@ -50,8 +50,8 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
       <div :class="$style.title">
         Earned
       </div>
-      <div :class="[$style.value, { [$style.valueEmpty]: earned.isEqualTo(0) }]">
-        <CurrencyFormat :amount="earned" />
+      <div :class="[$style.value, { [$style.valueEmpty]: !earned || earned.isEqualTo(0) }]">
+        <CurrencyFormatTruncate :amount="earned" />
       </div>
     </div>
 
@@ -131,7 +131,8 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
   font-weight: 600;
   font-size: 16px;
   color: vars.$dark;
-  margin-top: 8px;
+  margin-top: 2px;
+  margin-bottom: 12px;
 }
 
 .valueEmpty {

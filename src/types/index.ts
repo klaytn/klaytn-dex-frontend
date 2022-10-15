@@ -72,3 +72,12 @@ export type OnlyLast<T extends any[]> = T extends [maybe?: infer T]
   : T extends [any, ...infer Tail]
   ? OnlyLast<Tail>
   : never
+
+export interface EnvGit {
+  revision: string
+  branch: string
+  /**
+   * ISO
+   */
+  date: string
+}

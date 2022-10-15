@@ -144,7 +144,7 @@ export class Liquidity extends LiquidityPure {
         eth: { desired: desiredEth },
       } = detectedEth
 
-      const tx = router.addLiquidityETH(
+      const tx = router.addLiquidityKLAY(
         [
           token.addr,
           token.desired.asStr,
@@ -181,7 +181,7 @@ export class Liquidity extends LiquidityPure {
   }
 
   /**
-   * - Approves that pair has enought amount for `lpTokenValue`
+   * - Approves that pair has enough amount for `lpTokenValue`
    */
   public async prepareRmLiquidity(props: PrepareRemoveLiquidityProps): Promise<PrepareTransactionResult> {
     await this.#agent.approveAmount(props.pair, props.lpTokenValue)
@@ -200,7 +200,7 @@ export class Liquidity extends LiquidityPure {
       })),
     )
     const tx = detectedEth
-      ? router.removeLiquidityETH(
+      ? router.removeLiquidityKLAY(
           [
             detectedEth.token.addr,
             props.lpTokenValue.asStr,

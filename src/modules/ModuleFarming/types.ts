@@ -8,8 +8,7 @@ export interface Pool {
   name: string
   pairId: Address
   staked: WeiAsToken<BigNumber>
-  earned: WeiAsToken<BigNumber>
-  balance: WeiAsToken<BigNumber>
+  earned: WeiAsToken<BigNumber> | null
   annualPercentageRate: PercentageRate
   lpAnnualPercentageRate: PercentageRate
   stakeTokenPrice: TokenPriceInUSD
@@ -19,7 +18,7 @@ export interface Pool {
 }
 
 export const Sorting = {
-  Default: 'default',
+  Hot: 'hot',
   Liquidity: 'liquidity',
   AnnualPercentageRate: 'annualPercentageRate',
   Multiplier: 'multiplier',

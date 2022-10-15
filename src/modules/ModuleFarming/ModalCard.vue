@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PoolId, TokenSymbol, WeiAsToken } from '@/core'
+import { PoolId, CurrencySymbol, WeiAsToken } from '@/core'
 import { formatCurrency } from '@/utils/composable.currency-input'
 import BigNumber from 'bignumber.js'
 import { ModalOperation } from './types'
@@ -12,13 +12,14 @@ const props = defineProps<{
   poolId: PoolId
   staked: WeiAsToken<BigNumber>
   balance: WeiAsToken<BigNumber>
-  symbols: null | TokensPair<TokenSymbol>
+  symbols: null | TokensPair<CurrencySymbol>
 }>()
 
 const emit = defineEmits<(e: 'staked' | 'unstaked', amount: WeiAsToken<BigNumber>) => void>()
 
 const { notify } = useNotify()
 const dexStore = useDexStore()
+const tokensStore = useTokensStore()
 
 const inputAmount = shallowRef(new BigNumber(0) as WeiAsToken<BigNumber>)
 
@@ -58,7 +59,7 @@ const { state: operationState, run: confirm } = useTask(async () => {
   const amountWei = farmingToWei(amount)
 
   if (operation === 'stake') await dex.earn.farming.deposit({ poolId: props.poolId, amount: amountWei })
-  else dex.earn.farming.withdraw({ poolId, amount: amountWei })
+  else await dex.earn.farming.withdraw({ poolId, amount: amountWei })
 
   return { amount, operation }
 })
@@ -73,6 +74,8 @@ wheneverFulfilled(operationState, ({ amount, operation }) => {
     notify({ type: 'ok', description: `${amountFormatted} LP tokens were unstaked` })
     emit('unstaked', amount)
   }
+
+  tokensStore.touchUserBalance()
 })
 
 useNotifyOnError(operationState, notify, 'Failed to confirm operation')

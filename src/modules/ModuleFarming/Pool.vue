@@ -6,12 +6,26 @@ import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 import { CONSTANT_FARMING_DECIMALS } from './utils'
-import { Wei, ADDRESS_FARMING, WeiAsToken, TokenSymbol, makeExplorerLinkToAccount } from '@/core'
+import {
+  Wei,
+  ADDRESS_FARMING,
+  WeiAsToken,
+  CurrencySymbol,
+  makeExplorerLinkToAccount,
+  LP_TOKEN_DECIMALS,
+  Address,
+} from '@/core'
 import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import { TokensPair } from '@/utils/pair'
 import StakeUnstakeModal from './Modal.vue'
+import WalletConnectButton from '@/components/WalletConnectButton.vue'
+import invariant from 'tiny-invariant'
+import { or } from '@vueuse/core'
+import { useBalance } from '../ModuleEarnShared/composable.balance'
+import { PromiseStateAtomic } from '@vue-kakuyaku/core'
 
 const dexStore = useDexStore()
+const tokensStore = useTokensStore()
 const { notify } = useNotify()
 
 const router = useRouter()
@@ -40,13 +54,14 @@ const showRoiCalculator = ref(false)
 const roiType = RoiType.Farming
 const roiPool = ref<Pool | null>(null)
 
-const poolSymbols = computed<TokensPair<TokenSymbol>>(() => {
-  const [a, b] = props.pool.name.split('-') as TokenSymbol[]
-  return { tokenA: a, tokenB: b }
+const balance = useBalance(or(modalOperation, showRoiCalculator), {
+  address: props.pool.pairId,
+  decimals: LP_TOKEN_DECIMALS,
 })
 
-const formattedEarned = computed(() => {
-  return formatCurrency({ amount: new BigNumber(pool.value.earned), decimals: FORMATTED_BIG_INT_DECIMALS })
+const poolSymbols = computed<TokensPair<CurrencySymbol>>(() => {
+  const [a, b] = props.pool.name.split('-') as CurrencySymbol[]
+  return { tokenA: a, tokenB: b }
 })
 
 const formattedAnnualPercentageRate = computed(() => {
@@ -66,15 +81,44 @@ const formattedMultiplier = computed(() => {
 
 const stats = computed(() => {
   return {
-    earned: formattedEarned.value,
+    earned: pool.value.earned,
     annualPercentageRate: formattedAnnualPercentageRate.value,
     liquidity: formattedLiquidity.value,
     multiplier: formattedMultiplier.value,
   }
 })
 
-function goToLiquidityAddPage() {
-  router.push({ name: RouteName.LiquidityAdd, params: { id: pool.value.pairId } })
+const liquidityAddStore = useLiquidityAddStore()
+
+const prepareLpAddNavigationScope = useDeferredScope<PromiseStateAtomic<TokensPair<Address>>>()
+
+whenever(
+  () => prepareLpAddNavigationScope.scope.value?.expose.fulfilled?.value,
+  (tokens) => {
+    liquidityAddStore.setBothAddresses(tokens)
+    router.push({ name: RouteName.LiquidityAdd })
+  },
+)
+
+const isLpAddNavigationPending = computed(() => prepareLpAddNavigationScope.scope.value?.expose.pending ?? false)
+
+function triggerLpAddNavigation() {
+  prepareLpAddNavigationScope.setup(() => {
+    const dex = dexStore.anyDex.dex()
+    const pairId = pool.value.pairId
+
+    const { state } = useTask(
+      async () => {
+        const pair = dex.tokens.pairAddressToTokensPair(pairId)
+        return pair
+      },
+      { immediate: true },
+    )
+
+    useNotifyOnError(state, notify, 'Failed to derive tokens')
+
+    return state
+  })
 }
 
 const {
@@ -114,9 +158,12 @@ usePromiseLog(withdrawState, 'farming-pool-withdraw')
 wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
     const { earned } = result.fulfilled.value
+    invariant(earned)
     const formatted = formatCurrency({ amount: earned })
     notify({ type: 'ok', description: `${formatted} DEX tokens were withdrawn` })
     emit('withdrawn')
+
+    tokensStore.touchUserBalance()
   } else {
     notify({ type: 'err', description: 'Withdraw DEX tokens error', error: result.rejected.reason })
   }
@@ -153,7 +200,6 @@ function openRoiCalculator() {
         <div
           v-for="(value, label) in stats"
           :key="label"
-          class="space-y-1"
         >
           <div class="stats-item-label">
             {{ t(`ModuleFarmingPool.stats.${label}`) }}
@@ -172,12 +218,19 @@ function openRoiCalculator() {
             />
           </div>
 
-          <span
+          <div
+            v-else-if="label === 'earned'"
+            class="stats-item-value"
+          >
+            <CurrencyFormatTruncate :amount="value" />
+          </div>
+
+          <div
             v-else
             class="stats-item-value"
           >
             {{ value }}
-          </span>
+          </div>
         </div>
       </div>
     </template>
@@ -196,7 +249,16 @@ function openRoiCalculator() {
           class="space-y-4"
         >
           <div
-            v-if="!enabled"
+            v-if="!dexStore.isWalletConnected"
+            class="flex items-center space-x-6"
+          >
+            <WalletConnectButton
+              v-if="!dexStore.isWalletConnected"
+              size="md"
+            />
+          </div>
+          <div
+            v-else-if="!enabled"
             class="flex items-center space-x-6"
           >
             <KlayButton
@@ -209,7 +271,8 @@ function openRoiCalculator() {
 
             <KlayButton
               class="w-50"
-              @click="goToLiquidityAddPage()"
+              :loading="isLpAddNavigationPending"
+              @click="triggerLpAddNavigation()"
             >
               Get {{ pool.name }} LP
             </KlayButton>
@@ -223,7 +286,6 @@ function openRoiCalculator() {
 
             <div class="input-label flex items-center">
               <span class="flex-1">Earned DEX Tokens</span>
-              <span>Earned for all time: <i>TODO</i></span>
             </div>
 
             <span />
@@ -233,7 +295,6 @@ function openRoiCalculator() {
                 <CurrencyFormat
                   v-slot="{ formatted }"
                   :amount="pool.staked"
-                  decimals="6"
                 >
                   <input
                     :value="formatted"
@@ -269,7 +330,10 @@ function openRoiCalculator() {
               </template>
 
               <template #right>
-                <KlayButton @click="withdraw()">
+                <KlayButton
+                  :disabled="pool.earned?.isZero() ?? true"
+                  @click="withdraw()"
+                >
                   Withdraw
                 </KlayButton>
               </template>
@@ -277,7 +341,7 @@ function openRoiCalculator() {
 
             <KlayButton
               class="w-50"
-              @click="goToLiquidityAddPage()"
+              @click="triggerLpAddNavigation()"
             >
               Get {{ pool.name }} LP
             </KlayButton>
@@ -310,7 +374,7 @@ function openRoiCalculator() {
     :pool-id="pool.id"
     :operation="modalOperation"
     :staked="pool.staked"
-    :balance="pool.balance"
+    :balance="balance"
     :symbols="poolSymbols"
     @close="modalOperation = null"
     @staked="handleStaked"
@@ -321,7 +385,7 @@ function openRoiCalculator() {
     v-if="roiPool"
     v-model:show="showRoiCalculator"
     :type="roiType"
-    :balance="roiPool.balance"
+    :balance="balance"
     :staked="roiPool.staked"
     :apr="roiPool.annualPercentageRate"
     :lp-apr="roiPool.lpAnnualPercentageRate"
@@ -353,12 +417,15 @@ function openRoiCalculator() {
     font-weight: 500;
     font-size: 12px;
     color: vars.$gray2;
-    line-height: 1rem;
+    line-height: 100%;
   }
 
   &-value {
-    line-height: 1rem;
+    font-weight: 600;
     font-size: 16px;
+    color: vars.$dark;
+    margin-top: 2px;
+    margin-bottom: 12px;
   }
 }
 

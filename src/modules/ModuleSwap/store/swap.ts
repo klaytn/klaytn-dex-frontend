@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, TokenSymbol, WeiAsToken, Wei, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS, Percent } from '@/core'
+import { Address, CurrencySymbol, WeiAsToken, Wei, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS } from '@/core'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
 import { useSwapAmounts, GetAmountsProps, useSlippage, useSlippageParsed } from '../composable.get-amounts'
@@ -145,6 +145,18 @@ export const useSwapStore = defineStore('swap', () => {
 
   const { estimatedFor, setEstimated, setMainToken } = useEstimatedLayer(selection)
 
+  function swapTokensWithEachOther() {
+    const currentMain = estimatedFor.value && mirrorTokenType(estimatedFor.value)
+    selection.setBothAddrs({ tokenA: addrsReadonly.tokenB, tokenB: addrsReadonly.tokenA })
+    if (currentMain) {
+      const newMain = mirrorTokenType(currentMain)
+      const mainValue = tokenValues[currentMain]
+      invariant(mainValue)
+      tokenValues[currentMain] = null
+      setMainToken(newMain, mainValue)
+    }
+  }
+
   // #endregion
 
   // #region Pair data
@@ -166,7 +178,7 @@ export const useSwapStore = defineStore('swap', () => {
           decimals: Number(pair.token1.decimals),
           symbol: pair.token1.symbol,
         })
-        const pairSymbol = (token0.symbol + '-' + token1.symbol) as TokenSymbol
+        const pairSymbol = (token0.symbol + '-' + token1.symbol) as CurrencySymbol
         return new Pair({
           liquidityToken: new TokenImpl({
             address: pair.id,
@@ -301,9 +313,9 @@ export const useSwapStore = defineStore('swap', () => {
 
   const swapValidation = useSwapValidation({
     selected: reactive(buildPair((type) => computed(() => !!selection.addrs[type]))),
+    amounts: selection.weiFromTokens,
     tokenABalance: computed(() => selection.balance.tokenA as Wei | null),
-    tokenAInput: computed(() => selection.weiFromTokens.tokenA),
-    trade: computed(() => tradeResult.value?.kind ?? 'pending'),
+    trade: computed(() => tradeResult.value?.kind ?? null),
     wallet: computed(() => (dexStore.isWalletConnected ? 'connected' : 'anonymous')),
   })
 
@@ -358,6 +370,7 @@ export const useSwapStore = defineStore('swap', () => {
     setToken: setMainToken,
     setBothTokens,
     resetInput,
+    swapTokensWithEachOther,
 
     slippageTolerance,
     multihops,

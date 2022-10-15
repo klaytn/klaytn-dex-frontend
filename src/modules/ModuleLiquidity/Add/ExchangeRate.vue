@@ -50,7 +50,7 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(addrs.value)))
           v-if="i === 0"
           class="w-full flex justify-center items-center h-0"
         >
-          <KlayIconPlus />
+          <KlayIconPlus class="shadow-md rounded-full" />
         </div>
       </template>
     </div>

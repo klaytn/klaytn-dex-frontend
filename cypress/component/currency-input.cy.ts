@@ -1,44 +1,45 @@
 /* eslint-disable max-nested-callbacks */
 import { MaskSymbol, useCurrencyInput, UseCurrencyInputProps } from '@/utils/composable.currency-input'
+import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import BigNumber from 'bignumber.js'
 
-function mountFactory(props?: Partial<UseCurrencyInputProps>) {
-  return cy.mount({
-    setup() {
-      const writableModel = props?.writableModel ?? shallowRef(new BigNumber(0))
-      const actual = computed(() => writableModel.value.toFixed())
-
-      const { inputRef } = useCurrencyInput({
-        writableModel,
-        symbol: props?.symbol ?? { str: 'TST', position: 'right' },
-        decimals: props?.decimals ?? 18,
-      })
-
-      return {
-        inputRef,
-        actual,
-      }
-    },
-    template: `
-      <div class="p-4 space-y-2">
-        <input
-          ref="inputRef"
-          class="border-2 rounded p-2"
-        >
-
-        <p>
-          Actual: {{ actual }}
-        </p>
-      </div>
-    `,
-  })
-}
-
-const actualShouldBe = (strBigNumber: string) => cy.contains(`Actual: ${strBigNumber}`)
-
-const getInput = () => cy.get('input')
-
 describe('useCurrencyInput()', () => {
+  function mountFactory(props?: Partial<UseCurrencyInputProps>) {
+    return cy.mount({
+      setup() {
+        const writableModel = props?.writableModel ?? shallowRef(new BigNumber(0))
+        const actual = computed(() => writableModel.value.toFixed())
+
+        const { inputRef } = useCurrencyInput({
+          writableModel,
+          symbol: props?.symbol ?? { str: 'TST', position: 'right' },
+          decimals: props?.decimals ?? 18,
+        })
+
+        return {
+          inputRef,
+          actual,
+        }
+      },
+      template: `
+        <div class="p-4 space-y-2">
+          <input
+            ref="inputRef"
+            class="border-2 rounded p-2"
+          >
+  
+          <p>
+            Actual: {{ actual }}
+          </p>
+        </div>
+      `,
+    })
+  }
+
+  const actualShouldBe = (strBigNumber: string) => cy.contains(`Actual: ${strBigNumber}`)
+
+  const getInput = () => cy.get('input')
+
   it('playground', () => {
     mountFactory()
   })
@@ -250,5 +251,23 @@ describe('useCurrencyInput()', () => {
     mountFactory({ symbol: ref(null), writableModel: shallowRef(new BigNumber(1_234_567)) })
 
     getInput().should('have.value', '1,234,567')
+  })
+})
+
+describe('<CurrencyInput> component', () => {
+  it('"1.007{backspace}" leads to "1.00"', () => {
+    cy.mount({
+      components: { CurrencyInput },
+      setup() {
+        const model = shallowRef(new BigNumber(0))
+
+        return { model }
+      },
+      template: `
+        <CurrencyInput v-model="model" :decimals="6" />
+      `,
+    })
+
+    cy.get('input').type('1.007{backspace}').should('have.value', '1.00')
   })
 })

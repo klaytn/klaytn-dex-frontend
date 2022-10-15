@@ -1,5 +1,4 @@
 <script setup lang="ts" name="ModuleStakingPool">
-import { KlayIconKaikas } from '~klay-icons'
 import { ModalOperation, Pool } from './types'
 import { RouteName, RoiType } from '@/types'
 import BigNumber from 'bignumber.js'
@@ -9,8 +8,14 @@ import ModalCard from './ModalCard.vue'
 import { SModal } from '@soramitsu-ui/ui'
 import { formatCurrency } from '@/utils/composable.currency-input'
 import PoolHead from './PoolHead.vue'
+import WalletConnectButton from '@/components/WalletConnectButton.vue'
+import invariant from 'tiny-invariant'
+import AddToWallet from './PoolAddToWallet.vue'
+import { useBalance } from '../ModuleEarnShared/composable.balance'
+import { or } from '@vueuse/core'
 
 const dexStore = useDexStore()
+const tokensStore = useTokensStore()
 const { notify } = useNotify()
 
 const router = useRouter()
@@ -22,7 +27,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'staked' | 'unstaked', value: WeiAsToken): void
+  (e: 'staked' | 'unstaked', value: WeiAsToken<BigNumber>): void
   (e: 'withdrawn'): void
 }>()
 
@@ -39,41 +44,9 @@ const modalOpen = computed({
   },
 })
 
-const balanceScope = useParamScope(
-  () => {
-    const activeDex = dexStore.active
-
-    const {
-      pool: {
-        stakeToken: { id, decimals },
-      },
-    } = props
-
-    return (
-      activeDex.kind === 'named' &&
-      (unref(modalOpen) || unref(showRoiCalculator)) && {
-        key: `dex-${activeDex.wallet}-${id}`,
-        payload: { dex: activeDex.dex(), token: { id, decimals } },
-      }
-    )
-  },
-  ({ payload: { dex, token } }) => {
-    const { state } = useTask(
-      async () => {
-        const balance = await dex.tokens.getTokenBalanceOfUser(token.id)
-        return balance.decimals(token)
-      },
-      { immediate: true },
-    )
-
-    usePromiseLog(state, 'get-staked-token-balance')
-
-    return state
-  },
-)
-
-const balance = computed(() => {
-  return balanceScope.value?.expose?.fulfilled?.value ?? null
+const balance = useBalance(or(modalOpen, showRoiCalculator), {
+  address: props.pool.stakeToken.id,
+  decimals: props.pool.stakeToken.decimals,
 })
 
 const endsIn = computedEager<number>(() => {
@@ -102,13 +75,21 @@ function unstake() {
   modalOperation.value = ModalOperation.Unstake
 }
 
-function addToKaikas(pool: Pool) {
-  dexStore.getNamedDexAnyway().agent.watchAsset({
-    address: pool.rewardToken.id,
-    symbol: pool.rewardToken.symbol,
-    decimals: pool.rewardToken.decimals,
-  })
+const { state: addToWalletState, set: setAddToWalletPromise } = usePromise()
+
+function addRewardTokenToWallet(pool: Pool) {
+  async function action() {
+    await dexStore.getNamedDexAnyway().agent.watchAsset({
+      address: pool.rewardToken.id,
+      symbol: pool.rewardToken.symbol,
+      decimals: pool.rewardToken.decimals,
+    })
+  }
+
+  setAddToWalletPromise(action())
 }
+
+usePromiseLog(addToWalletState, 'add-reward-token-to-wallet')
 
 const swapStore = useSwapStore()
 
@@ -134,12 +115,15 @@ usePromiseLog(withdrawState, 'staking-pool-withdraw')
 wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
     const { earned } = result.fulfilled.value
+    invariant(earned)
     const formatted = formatCurrency({
       amount: earned,
       symbol: { str: props.pool.rewardToken.symbol, position: 'right' },
     })
     notify({ type: 'ok', description: `${formatted} tokens were withdrawn` })
     emit('withdrawn')
+
+    tokensStore.touchUserBalance()
   } else {
     notify({
       type: 'err',
@@ -151,12 +135,12 @@ wheneverDone(withdrawState, (result) => {
 
 function handleStaked(amount: WeiAsToken<BigNumber>) {
   modalOperation.value = null
-  emit('staked', amount.toFixed() as WeiAsToken)
+  emit('staked', amount)
 }
 
 function handleUnstaked(amount: WeiAsToken<BigNumber>) {
   modalOperation.value = null
-  emit('unstaked', amount.toFixed() as WeiAsToken)
+  emit('unstaked', amount)
 }
 
 function openRoiCalculator() {
@@ -184,7 +168,11 @@ function openRoiCalculator() {
 
     <template v-else>
       <div class="flex items-center space-x-6">
-        <template v-if="!enabled">
+        <WalletConnectButton
+          v-if="!dexStore.isWalletConnected"
+          size="md"
+        />
+        <template v-else-if="!enabled">
           <KlayButton
             type="primary"
             @click="enable()"
@@ -225,14 +213,20 @@ function openRoiCalculator() {
                   Stake {{ pool.stakeToken.symbol }}
                 </KlayButton>
 
-                <template v-else>
+                <div
+                  v-else
+                  class="space-x-2"
+                >
                   <KlayButton @click="unstake()">
                     -
                   </KlayButton>
-                  <KlayButton @click="stake()">
+                  <KlayButton
+                    :disabled="!pool.active"
+                    @click="stake()"
+                  >
                     +
                   </KlayButton>
-                </template>
+                </div>
               </template>
             </InputCurrencyTemplate>
           </div>
@@ -257,7 +251,7 @@ function openRoiCalculator() {
 
               <template #right>
                 <KlayButton
-                  :disabled="pool.earned.isZero()"
+                  :disabled="!pool.earned || pool.earned.isZero()"
                   @click="withdraw()"
                 >
                   Withdraw
@@ -277,13 +271,11 @@ function openRoiCalculator() {
         <KlayExternalLink :href="makeExplorerLinkToAccount(pool.id)">
           View Contract
         </KlayExternalLink>
-        <div
-          class="add-to-kaikas flex items-center space-x-1"
-          @click="addToKaikas(pool)"
-        >
-          <span> Add to Kaikas </span>
-          <KlayIconKaikas />
-        </div>
+        <AddToWallet
+          v-if="dexStore.active.kind === 'named'"
+          :connected="dexStore.active.wallet"
+          @click="addRewardTokenToWallet(pool)"
+        />
       </div>
     </template>
   </KlayAccordionItem>

@@ -1,15 +1,15 @@
 import BigNumber from 'bignumber.js'
 import { Except } from 'type-fest'
-import { BigNumberIsh, Token, TokenSymbol } from '../types'
+import { BigNumberIsh, Token, CurrencySymbol } from '../types'
 import { parseBigNumberIsh } from '../utils'
 import Fraction from './Fraction'
 
 export default class Currency implements Except<Token, 'address'> {
   public readonly decimals: number
-  public readonly symbol: TokenSymbol
+  public readonly symbol: CurrencySymbol
   public readonly name: string
 
-  protected constructor(decimals: number, symbol: TokenSymbol, name: string) {
+  public constructor(decimals: number, symbol: CurrencySymbol, name: string) {
     this.decimals = decimals
     this.symbol = symbol
     this.name = name

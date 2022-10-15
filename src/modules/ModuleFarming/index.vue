@@ -1,18 +1,15 @@
 <script setup lang="ts" name="ModuleFarming">
 import { Pool } from './types'
 import { PAGE_SIZE } from './const'
-import BigNumber from 'bignumber.js'
-import { WeiAsToken, WeiRaw, Address } from '@/core'
-import { deepClone } from '@/utils/common'
-import { or, not } from '@vueuse/core'
+import { Address } from '@/core'
+import { or } from '@vueuse/core'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { useFetchFarmingRewards } from './composable.fetch-rewards'
 import { useFarmingQuery } from './query.farming'
-import { useLiquidityPositionsQuery } from './query.liquidity-positions'
 import { usePairsAndRewardTokenQuery } from './query.pairs-and-reward-token'
-import { farmingToWei } from './utils'
 import { storeToRefs } from 'pinia'
 import { useFilteredPools, useMappedPools, useSortedPools } from './composable.pools'
+import { POLL_INTERVAL, POLL_INTERVAL_QUICK } from './const'
 
 const vBem = useBemClass()
 
@@ -28,7 +25,12 @@ function updateBlockNumber(value: number) {
   blockNumber.value = value
 }
 
-const FarmingQuery = useFarmingQuery(toRef(dexStore, 'account'))
+const quickPoll = refAutoReset(false, 10_000)
+const pollInterval = computed(() => {
+  return (quickPoll.value && POLL_INTERVAL_QUICK) || POLL_INTERVAL
+})
+
+const FarmingQuery = useFarmingQuery(toRef(dexStore, 'account'), pollInterval)
 
 const farming = computed(() => FarmingQuery.result.value?.farming ?? null)
 
@@ -67,37 +69,24 @@ FarmingQuery.onResult(() => {
 const { rewards, areRewardsFetched } = useFetchFarmingRewards({
   poolIds: farmingPoolIds,
   updateBlockNumber,
-})
-
-const LiquidityPositionsQuery = useLiquidityPositionsQuery(toRef(dexStore, 'account'))
-
-const liquidityPositions = computed(() => {
-  if (!LiquidityPositionsQuery.result.value) return null
-  return LiquidityPositionsQuery.result.value.user?.liquidityPositions ?? []
+  pollInterval,
 })
 
 const poolsMapped = useMappedPools({
-  rewards,
-  pairsAndRewardToken: PairsAndRewardTokenQuery.result,
-  liquidityPositions,
-  blockNumber,
   farming: FarmingQuery.result,
+  blockNumber,
+  pairsAndRewardToken: PairsAndRewardTokenQuery.result,
+  rewards,
 })
 
 const poolsFiltered = useFilteredPools(poolsMapped, { stakedOnly, searchQuery })
 
 const poolsSorted = useSortedPools(poolsFiltered, sorting)
 
-const isLoading = or(
-  FarmingQuery.loading,
-  LiquidityPositionsQuery.loading,
-  PairsAndRewardTokenQuery.loading,
-  not(areRewardsFetched),
-)
+const isLoading = or(FarmingQuery.loading, PairsAndRewardTokenQuery.loading)
 
 for (const [QueryName, Query] of Object.entries({
   FarmingQuery,
-  LiquidityPositionsQuery,
   PairsAndRewardTokenQuery,
 })) {
   Query.onError((param) => {
@@ -106,50 +95,8 @@ for (const [QueryName, Query] of Object.entries({
   })
 }
 
-/**
- * FIXME use "optimistic response" API for query result replacement
- */
-function updateStaked(poolId: Pool['id'], diff: BigNumber) {
-  if (!FarmingQuery.result.value) return
-
-  const diffAsWei = farmingToWei(diff.toFixed() as WeiAsToken)
-  const farmingQueryResultCloned = deepClone(FarmingQuery.result.value)
-  const pool = farmingQueryResultCloned.farming.pools.find((pool) => pool.id === poolId)
-  if (!pool) return
-
-  pool.totalTokensStaked = new BigNumber(pool.totalTokensStaked).plus(diffAsWei.asBigNum).toFixed(0) as WeiRaw<string>
-
-  const user = pool.users[0] ?? null
-  if (!user) return
-
-  user.amount = new BigNumber(user.amount).plus(diffAsWei.asBigNum).toFixed(0) as WeiRaw<string>
-  FarmingQuery.result.value = farmingQueryResultCloned
-}
-
-/**
- * FIXME use "optimistic response" API for query result replacement
- */
-function updateBalance(pairId: Pool['pairId'], diff: BigNumber) {
-  if (!LiquidityPositionsQuery.result.value) return
-
-  const liquidityPositionsQueryResultCloned = deepClone(LiquidityPositionsQuery.result.value)
-  const liquidityPosition =
-    liquidityPositionsQueryResultCloned.user.liquidityPositions.find(
-      (liquidityPosition) => liquidityPosition.pair.id === pairId,
-    ) ?? null
-  if (!liquidityPosition) return
-
-  liquidityPosition.liquidityTokenBalance = `${new BigNumber(liquidityPosition.liquidityTokenBalance).plus(diff)}`
-  LiquidityPositionsQuery.result.value = liquidityPositionsQueryResultCloned
-}
-
-function handleStaked(pool: Pool, amount: string) {
-  updateStaked(pool.id, new BigNumber(amount))
-  updateBalance(pool.pairId, new BigNumber(0).minus(amount))
-}
-function handleUnstaked(pool: Pool, amount: string) {
-  updateStaked(pool.id, new BigNumber(0).minus(amount))
-  updateBalance(pool.pairId, new BigNumber(amount))
+function handleStakedUnstaked() {
+  quickPoll.value = true
 }
 
 // #region Pagination
@@ -186,8 +133,8 @@ const expandPools = computed(() => poolsPaginated.value?.length === 1)
           :key="pool.id"
           :pool="pool"
           :expanded="expandPools"
-          @staked="(value: string) => handleStaked(pool, value)"
-          @unstaked="(value: string) => handleUnstaked(pool, value)"
+          @staked="handleStakedUnstaked"
+          @unstaked="handleStakedUnstaked"
         />
       </div>
       <div

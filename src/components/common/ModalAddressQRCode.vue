@@ -21,7 +21,7 @@ const qr = useQRCode(
   computed(() => props.address ?? ''),
   {
     width: 195,
-    margin: 0,
+    margin: 2,
     type: 'image/png',
   },
 )
@@ -49,7 +49,7 @@ async function download() {
 
       <div class="flex items-end space-x-6 justify-center">
         <img
-          class="image-render-pixel"
+          class="image-render-pixel -m-2"
           :src="qr"
           alt="QR Code"
         >

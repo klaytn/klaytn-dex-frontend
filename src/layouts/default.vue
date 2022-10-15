@@ -5,7 +5,9 @@ import { SToastsDisplay } from '@soramitsu-ui/ui'
 import HeaderMenu from '@/components/HeaderMenu.vue'
 
 // Good for tree-shaking
-const TheWalletConnect = defineAsyncComponent(() => import('@/components/TheWalletConnect.vue'))
+const TheHeaderDexToken = defineAsyncComponent(() => import('@/components/TheHeaderDexToken.vue'))
+const TheWalletConnectModal = defineAsyncComponent(() => import('@/components/TheWalletConnectModal.vue'))
+const TheHeaderWallet = defineAsyncComponent(() => import('@/components/TheHeaderWallet.vue'))
 const DexInitGuard = defineAsyncComponent(() => import('@/components/DexInitGuard.vue'))
 
 const { t } = useI18n()
@@ -33,6 +35,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
       label: t('DefaultLayout.menu.voting'),
       routeName: RouteName.Voting,
       kind: 'route',
+      activeWith: [RouteName.VotingProposal],
     },
     {
       label: t('DefaultLayout.menu.charts'),
@@ -45,6 +48,8 @@ const menu = computed<HeaderMenuItem[]>(() => {
 
 <template>
   <DexInitGuard>
+    <TheWalletConnectModal />
+
     <main class="layout">
       <header class="relative">
         <div class="col">
@@ -57,7 +62,8 @@ const menu = computed<HeaderMenuItem[]>(() => {
         </div>
 
         <div class="col col-right">
-          <TheWalletConnect />
+          <TheHeaderDexToken />
+          <TheHeaderWallet />
         </div>
 
         <div class="toasts-mount absolute right-0 bottom-0 w-full">

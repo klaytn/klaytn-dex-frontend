@@ -1,4 +1,4 @@
-import { Address, TokenSymbol, WeiAsToken } from '@/core'
+import { Address, CurrencySymbol, WeiAsToken } from '@/core'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
@@ -6,8 +6,6 @@ import { Opaque } from 'type-fest'
 import { Ref } from 'vue'
 import { byValue, byString } from 'sort-es'
 import { ApolloClientId } from '@/types'
-import { TokensPair } from '@/utils/pair'
-import { DocumentNode } from '@apollo/client/core'
 
 export type TimestampEpochSec = Opaque<string, 'timestamp-unix-epoch-sec'>
 
@@ -43,7 +41,7 @@ interface FragmentPair {
 interface FragmentToken {
   id: Address
   name: string
-  symbol: TokenSymbol
+  symbol: CurrencySymbol
   decimals: string
 }
 

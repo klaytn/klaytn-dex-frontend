@@ -32,6 +32,7 @@ const api = useModalApi()
       <button
         class="close"
         type="button"
+        data-testid="klay-modal-card-close-button"
         @click="api.close()"
       >
         <MaterialSymbolsClose />
