@@ -61,7 +61,7 @@ function useImportedTokens() {
       key: dexStore.anyDex.key,
       payload: dexStore.anyDex.dex(),
     }),
-    (dex) => {
+    ({ payload: dex }) => {
       const { state, run } = useTask(() => loadTokens(dex, tokens.value), { immediate: true })
       usePromiseLog(state, 'imported-tokens')
       useErrorRetry(state, run)
