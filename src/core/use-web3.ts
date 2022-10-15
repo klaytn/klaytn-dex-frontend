@@ -1,7 +1,7 @@
 import detectEthereumProvider from '@metamask/detect-provider'
 import { type ExternalProvider, Web3Provider, JsonRpcProvider } from '@ethersproject/providers'
 import type { Address, Kaikas, Network as AppNetwork } from './types'
-import { and, type MaybeRef, not } from '@vueuse/core'
+import { type MaybeRef } from '@vueuse/core'
 import { type Ref } from 'vue'
 import { type PromiseStateAtomic } from '@vue-kakuyaku/core'
 import type Caver from 'caver-js'
@@ -306,7 +306,7 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
         usePromiseLog(switchNetworkState, 'ethereum-switch-network')
 
         wheneverFulfilled(switchNetworkState, updateProvider)
-        whenever(and(isChainLoaded, not(isChainCorrect)), trySwitchNetwork, { immediate: true })
+        whenever(logicAnd(isChainLoaded, logicNot(isChainCorrect)), trySwitchNetwork, { immediate: true })
 
         const isSetupPending = computed(() => enableState.pending || switchNetworkState.pending || isChainPending.value)
 

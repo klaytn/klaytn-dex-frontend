@@ -62,6 +62,7 @@ export default defineConfig({
         'vue/macros',
         '@vueuse/head',
         '@vueuse/core',
+        '@vueuse/math',
         {
           '@vue-kakuyaku/core': [
             'useParamScope',

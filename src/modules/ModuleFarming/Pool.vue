@@ -20,7 +20,6 @@ import { TokensPair } from '@/utils/pair'
 import StakeUnstakeModal from './Modal.vue'
 import WalletConnectButton from '@/components/WalletConnectButton.vue'
 import invariant from 'tiny-invariant'
-import { or } from '@vueuse/core'
 import { useBalance } from '../ModuleEarnShared/composable.balance'
 import { PromiseStateAtomic } from '@vue-kakuyaku/core'
 
@@ -54,7 +53,7 @@ const showRoiCalculator = ref(false)
 const roiType = RoiType.Farming
 const roiPool = ref<Pool | null>(null)
 
-const balance = useBalance(or(modalOperation, showRoiCalculator), {
+const balance = useBalance(logicOr(modalOperation, showRoiCalculator), {
   address: props.pool.pairId,
   decimals: LP_TOKEN_DECIMALS,
 })

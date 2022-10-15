@@ -12,7 +12,6 @@ import WalletConnectButton from '@/components/WalletConnectButton.vue'
 import invariant from 'tiny-invariant'
 import AddToWallet from './PoolAddToWallet.vue'
 import { useBalance } from '../ModuleEarnShared/composable.balance'
-import { or } from '@vueuse/core'
 
 const dexStore = useDexStore()
 const tokensStore = useTokensStore()
@@ -44,7 +43,7 @@ const modalOpen = computed({
   },
 })
 
-const balance = useBalance(or(modalOpen, showRoiCalculator), {
+const balance = useBalance(logicOr(modalOpen, showRoiCalculator), {
   address: props.pool.stakeToken.id,
   decimals: props.pool.stakeToken.decimals,
 })

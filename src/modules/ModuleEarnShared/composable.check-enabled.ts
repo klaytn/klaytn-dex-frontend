@@ -1,6 +1,6 @@
 import { Address, Wei } from '@/core'
 import { MAX_UINT256 } from './const'
-import { MaybeRef, or } from '@vueuse/core'
+import { MaybeRef } from '@vueuse/core'
 
 export function useEnableState(props: {
   contract: MaybeRef<Address>
@@ -51,7 +51,7 @@ export function useEnableState(props: {
   const isEnablePending = toRef(enableState, 'pending')
 
   return {
-    pending: or(isAllowancePending, isEnablePending),
+    pending: logicOr(isAllowancePending, isEnablePending),
     enable,
     enabled: isEnabled,
   }

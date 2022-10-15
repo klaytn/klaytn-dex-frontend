@@ -20,9 +20,11 @@ declare global {
   const controlledRef: typeof import('@vueuse/core')['controlledRef']
   const createApp: typeof import('vue')['createApp']
   const createEventHook: typeof import('@vueuse/core')['createEventHook']
+  const createGenericProjection: typeof import('@vueuse/math')['createGenericProjection']
   const createGlobalState: typeof import('@vueuse/core')['createGlobalState']
   const createInjectionState: typeof import('@vueuse/core')['createInjectionState']
   const createMinimalTokenApiWithStores: typeof import('./store/tokens')['createMinimalTokenApiWithStores']
+  const createProjection: typeof import('@vueuse/math')['createProjection']
   const createReactiveFn: typeof import('@vueuse/core')['createReactiveFn']
   const createSharedComposable: typeof import('@vueuse/core')['createSharedComposable']
   const createUnrefFn: typeof import('@vueuse/core')['createUnrefFn']
@@ -45,9 +47,9 @@ declare global {
   const isReactive: typeof import('vue')['isReactive']
   const isReadonly: typeof import('vue')['isReadonly']
   const isRef: typeof import('vue')['isRef']
-  const logicAnd: typeof import('@vueuse/core')['logicAnd']
-  const logicNot: typeof import('@vueuse/core')['logicNot']
-  const logicOr: typeof import('@vueuse/core')['logicOr']
+  const logicAnd: typeof import('@vueuse/math')['logicAnd']
+  const logicNot: typeof import('@vueuse/math')['logicNot']
+  const logicOr: typeof import('@vueuse/math')['logicOr']
   const makeDestructurable: typeof import('@vueuse/core')['makeDestructurable']
   const markRaw: typeof import('vue')['markRaw']
   const nextTick: typeof import('vue')['nextTick']
@@ -86,6 +88,8 @@ declare global {
   const refThrottled: typeof import('@vueuse/core')['refThrottled']
   const refWithControl: typeof import('@vueuse/core')['refWithControl']
   const resolveComponent: typeof import('vue')['resolveComponent']
+  const resolveRef: typeof import('@vueuse/core')['resolveRef']
+  const resolveUnref: typeof import('@vueuse/core')['resolveUnref']
   const shallowReactive: typeof import('vue')['shallowReactive']
   const shallowReadonly: typeof import('vue')['shallowReadonly']
   const shallowRef: typeof import('vue')['shallowRef']
@@ -107,20 +111,33 @@ declare global {
   const unref: typeof import('vue')['unref']
   const unrefElement: typeof import('@vueuse/core')['unrefElement']
   const until: typeof import('@vueuse/core')['until']
+  const useAbs: typeof import('@vueuse/math')['useAbs']
   const useActiveElement: typeof import('@vueuse/core')['useActiveElement']
+  const useArrayEvery: typeof import('@vueuse/core')['useArrayEvery']
+  const useArrayFilter: typeof import('@vueuse/core')['useArrayFilter']
+  const useArrayFind: typeof import('@vueuse/core')['useArrayFind']
+  const useArrayFindIndex: typeof import('@vueuse/core')['useArrayFindIndex']
+  const useArrayJoin: typeof import('@vueuse/core')['useArrayJoin']
+  const useArrayMap: typeof import('@vueuse/core')['useArrayMap']
+  const useArrayReduce: typeof import('@vueuse/core')['useArrayReduce']
+  const useArraySome: typeof import('@vueuse/core')['useArraySome']
   const useAssetsStore: typeof import('./modules/ModuleAssets/store/assets')['useAssetsStore']
   const useAsyncQueue: typeof import('@vueuse/core')['useAsyncQueue']
   const useAsyncState: typeof import('@vueuse/core')['useAsyncState']
   const useAttrs: typeof import('vue')['useAttrs']
+  const useAverage: typeof import('@vueuse/math')['useAverage']
   const useBase64: typeof import('@vueuse/core')['useBase64']
   const useBattery: typeof import('@vueuse/core')['useBattery']
   const useBemClass: typeof import('./composables/directives')['useBemClass']
+  const useBluetooth: typeof import('@vueuse/core')['useBluetooth']
   const useBreakpoints: typeof import('@vueuse/core')['useBreakpoints']
   const useBroadcastChannel: typeof import('@vueuse/core')['useBroadcastChannel']
   const useBrowserLocation: typeof import('@vueuse/core')['useBrowserLocation']
   const useCached: typeof import('@vueuse/core')['useCached']
-  const useClamp: typeof import('@vueuse/core')['useClamp']
+  const useCeil: typeof import('@vueuse/math')['useCeil']
+  const useClamp: typeof import('@vueuse/math')['useClamp']
   const useClipboard: typeof import('@vueuse/core')['useClipboard']
+  const useCloned: typeof import('@vueuse/core')['useCloned']
   const useColorMode: typeof import('@vueuse/core')['useColorMode']
   const useConfirmDialog: typeof import('@vueuse/core')['useConfirmDialog']
   const useCounter: typeof import('@vueuse/core')['useCounter']
@@ -157,7 +174,9 @@ declare global {
   const useFarmingStore: typeof import('./modules/ModuleFarming/store/farming')['useFarmingStore']
   const useFavicon: typeof import('@vueuse/core')['useFavicon']
   const useFetch: typeof import('@vueuse/core')['useFetch']
+  const useFileDialog: typeof import('@vueuse/core')['useFileDialog']
   const useFileSystemAccess: typeof import('@vueuse/core')['useFileSystemAccess']
+  const useFloor: typeof import('@vueuse/math')['useFloor']
   const useFocus: typeof import('@vueuse/core')['useFocus']
   const useFocusWithin: typeof import('@vueuse/core')['useFocusWithin']
   const useFormattedPercent: typeof import('./composables/format')['useFormattedPercent']
@@ -170,6 +189,7 @@ declare global {
   const useHead: typeof import('@vueuse/head')['useHead']
   const useI18n: typeof import('vue-i18n')['useI18n']
   const useIdle: typeof import('@vueuse/core')['useIdle']
+  const useImage: typeof import('@vueuse/core')['useImage']
   const useInfiniteScroll: typeof import('@vueuse/core')['useInfiniteScroll']
   const useIntersectionObserver: typeof import('@vueuse/core')['useIntersectionObserver']
   const useInterval: typeof import('@vueuse/core')['useInterval']
@@ -182,10 +202,13 @@ declare global {
   const useLocalStorage: typeof import('@vueuse/core')['useLocalStorage']
   const useMagicKeys: typeof import('@vueuse/core')['useMagicKeys']
   const useManualRefHistory: typeof import('@vueuse/core')['useManualRefHistory']
+  const useMath: typeof import('@vueuse/math')['useMath']
+  const useMax: typeof import('@vueuse/math')['useMax']
   const useMediaControls: typeof import('@vueuse/core')['useMediaControls']
   const useMediaQuery: typeof import('@vueuse/core')['useMediaQuery']
   const useMemoize: typeof import('@vueuse/core')['useMemoize']
   const useMemory: typeof import('@vueuse/core')['useMemory']
+  const useMin: typeof import('@vueuse/math')['useMin']
   const useMounted: typeof import('@vueuse/core')['useMounted']
   const useMouse: typeof import('@vueuse/core')['useMouse']
   const useMouseInElement: typeof import('@vueuse/core')['useMouseInElement']
@@ -196,6 +219,7 @@ declare global {
   const useNotify: typeof import('./composables/notifications')['useNotify']
   const useNotifyOnError: typeof import('./composables/kakuyaku')['useNotifyOnError']
   const useNow: typeof import('@vueuse/core')['useNow']
+  const useObjectUrl: typeof import('@vueuse/core')['useObjectUrl']
   const useOffsetPagination: typeof import('@vueuse/core')['useOffsetPagination']
   const useOnline: typeof import('@vueuse/core')['useOnline']
   const usePageLeave: typeof import('@vueuse/core')['usePageLeave']
@@ -204,14 +228,19 @@ declare global {
   const usePermission: typeof import('@vueuse/core')['usePermission']
   const usePointer: typeof import('@vueuse/core')['usePointer']
   const usePointerSwipe: typeof import('@vueuse/core')['usePointerSwipe']
+  const usePrecision: typeof import('@vueuse/math')['usePrecision']
   const usePreferredColorScheme: typeof import('@vueuse/core')['usePreferredColorScheme']
+  const usePreferredContrast: typeof import('@vueuse/core')['usePreferredContrast']
   const usePreferredDark: typeof import('@vueuse/core')['usePreferredDark']
   const usePreferredLanguages: typeof import('@vueuse/core')['usePreferredLanguages']
+  const usePreferredReducedMotion: typeof import('@vueuse/core')['usePreferredReducedMotion']
+  const useProjection: typeof import('@vueuse/math')['useProjection']
   const usePromise: typeof import('@vue-kakuyaku/core')['usePromise']
   const usePromiseLog: typeof import('./composables/kakuyaku')['usePromiseLog']
   const useRafFn: typeof import('@vueuse/core')['useRafFn']
   const useRefHistory: typeof import('@vueuse/core')['useRefHistory']
   const useResizeObserver: typeof import('@vueuse/core')['useResizeObserver']
+  const useRound: typeof import('@vueuse/math')['useRound']
   const useRoute: typeof import('vue-router')['useRoute']
   const useRouter: typeof import('vue-router')['useRouter']
   const useScreenOrientation: typeof import('@vueuse/core')['useScreenOrientation']
@@ -226,14 +255,19 @@ declare global {
   const useSpeechSynthesis: typeof import('@vueuse/core')['useSpeechSynthesis']
   const useStakingStore: typeof import('./modules/ModuleStaking/store/staking')['useStakingStore']
   const useStaleState: typeof import('@vue-kakuyaku/core')['useStaleState']
+  const useStepper: typeof import('@vueuse/core')['useStepper']
   const useStorage: typeof import('@vueuse/core')['useStorage']
   const useStorageAsync: typeof import('@vueuse/core')['useStorageAsync']
   const useStyleTag: typeof import('@vueuse/core')['useStyleTag']
+  const useSum: typeof import('@vueuse/math')['useSum']
+  const useSupported: typeof import('@vueuse/core')['useSupported']
   const useSwapStore: typeof import('./modules/ModuleSwap/store/swap')['useSwapStore']
   const useSwipe: typeof import('@vueuse/core')['useSwipe']
   const useTask: typeof import('@vue-kakuyaku/core')['useTask']
   const useTemplateRefsList: typeof import('@vueuse/core')['useTemplateRefsList']
+  const useTextDirection: typeof import('@vueuse/core')['useTextDirection']
   const useTextSelection: typeof import('@vueuse/core')['useTextSelection']
+  const useTextareaAutosize: typeof import('@vueuse/core')['useTextareaAutosize']
   const useThrottle: typeof import('@vueuse/core')['useThrottle']
   const useThrottleFn: typeof import('@vueuse/core')['useThrottleFn']
   const useThrottledRefHistory: typeof import('@vueuse/core')['useThrottledRefHistory']
@@ -243,9 +277,13 @@ declare global {
   const useTimeoutPoll: typeof import('@vueuse/core')['useTimeoutPoll']
   const useTimestamp: typeof import('@vueuse/core')['useTimestamp']
   const useTitle: typeof import('@vueuse/core')['useTitle']
+  const useToFixed: typeof import('@vueuse/math')['useToFixed']
+  const useToNumber: typeof import('@vueuse/core')['useToNumber']
+  const useToString: typeof import('@vueuse/core')['useToString']
   const useToggle: typeof import('@vueuse/core')['useToggle']
   const useTokensStore: typeof import('./store/tokens')['useTokensStore']
   const useTransition: typeof import('@vueuse/core')['useTransition']
+  const useTrunc: typeof import('@vueuse/math')['useTrunc']
   const useUrlSearchParams: typeof import('@vueuse/core')['useUrlSearchParams']
   const useUserMedia: typeof import('@vueuse/core')['useUserMedia']
   const useVModel: typeof import('@vueuse/core')['useVModel']
@@ -261,6 +299,7 @@ declare global {
   const useWindowScroll: typeof import('@vueuse/core')['useWindowScroll']
   const useWindowSize: typeof import('@vueuse/core')['useWindowSize']
   const watch: typeof import('vue')['watch']
+  const watchArray: typeof import('@vueuse/core')['watchArray']
   const watchAtMost: typeof import('@vueuse/core')['watchAtMost']
   const watchDebounced: typeof import('@vueuse/core')['watchDebounced']
   const watchEffect: typeof import('vue')['watchEffect']
@@ -270,6 +309,7 @@ declare global {
   const watchPostEffect: typeof import('vue')['watchPostEffect']
   const watchSyncEffect: typeof import('vue')['watchSyncEffect']
   const watchThrottled: typeof import('@vueuse/core')['watchThrottled']
+  const watchTriggerable: typeof import('@vueuse/core')['watchTriggerable']
   const watchWithFilter: typeof import('@vueuse/core')['watchWithFilter']
   const whenever: typeof import('@vueuse/core')['whenever']
   const wheneverDone: typeof import('@vue-kakuyaku/core')['wheneverDone']
@@ -299,9 +339,11 @@ declare module '@vue/runtime-core' {
     readonly controlledRef: UnwrapRef<typeof import('@vueuse/core')['controlledRef']>
     readonly createApp: UnwrapRef<typeof import('vue')['createApp']>
     readonly createEventHook: UnwrapRef<typeof import('@vueuse/core')['createEventHook']>
+    readonly createGenericProjection: UnwrapRef<typeof import('@vueuse/math')['createGenericProjection']>
     readonly createGlobalState: UnwrapRef<typeof import('@vueuse/core')['createGlobalState']>
     readonly createInjectionState: UnwrapRef<typeof import('@vueuse/core')['createInjectionState']>
     readonly createMinimalTokenApiWithStores: UnwrapRef<typeof import('./store/tokens')['createMinimalTokenApiWithStores']>
+    readonly createProjection: UnwrapRef<typeof import('@vueuse/math')['createProjection']>
     readonly createReactiveFn: UnwrapRef<typeof import('@vueuse/core')['createReactiveFn']>
     readonly createSharedComposable: UnwrapRef<typeof import('@vueuse/core')['createSharedComposable']>
     readonly createUnrefFn: UnwrapRef<typeof import('@vueuse/core')['createUnrefFn']>
@@ -324,9 +366,9 @@ declare module '@vue/runtime-core' {
     readonly isReactive: UnwrapRef<typeof import('vue')['isReactive']>
     readonly isReadonly: UnwrapRef<typeof import('vue')['isReadonly']>
     readonly isRef: UnwrapRef<typeof import('vue')['isRef']>
-    readonly logicAnd: UnwrapRef<typeof import('@vueuse/core')['logicAnd']>
-    readonly logicNot: UnwrapRef<typeof import('@vueuse/core')['logicNot']>
-    readonly logicOr: UnwrapRef<typeof import('@vueuse/core')['logicOr']>
+    readonly logicAnd: UnwrapRef<typeof import('@vueuse/math')['logicAnd']>
+    readonly logicNot: UnwrapRef<typeof import('@vueuse/math')['logicNot']>
+    readonly logicOr: UnwrapRef<typeof import('@vueuse/math')['logicOr']>
     readonly makeDestructurable: UnwrapRef<typeof import('@vueuse/core')['makeDestructurable']>
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
@@ -365,6 +407,8 @@ declare module '@vue/runtime-core' {
     readonly refThrottled: UnwrapRef<typeof import('@vueuse/core')['refThrottled']>
     readonly refWithControl: UnwrapRef<typeof import('@vueuse/core')['refWithControl']>
     readonly resolveComponent: UnwrapRef<typeof import('vue')['resolveComponent']>
+    readonly resolveRef: UnwrapRef<typeof import('@vueuse/core')['resolveRef']>
+    readonly resolveUnref: UnwrapRef<typeof import('@vueuse/core')['resolveUnref']>
     readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>
     readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
     readonly shallowRef: UnwrapRef<typeof import('vue')['shallowRef']>
@@ -386,20 +430,33 @@ declare module '@vue/runtime-core' {
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly unrefElement: UnwrapRef<typeof import('@vueuse/core')['unrefElement']>
     readonly until: UnwrapRef<typeof import('@vueuse/core')['until']>
+    readonly useAbs: UnwrapRef<typeof import('@vueuse/math')['useAbs']>
     readonly useActiveElement: UnwrapRef<typeof import('@vueuse/core')['useActiveElement']>
+    readonly useArrayEvery: UnwrapRef<typeof import('@vueuse/core')['useArrayEvery']>
+    readonly useArrayFilter: UnwrapRef<typeof import('@vueuse/core')['useArrayFilter']>
+    readonly useArrayFind: UnwrapRef<typeof import('@vueuse/core')['useArrayFind']>
+    readonly useArrayFindIndex: UnwrapRef<typeof import('@vueuse/core')['useArrayFindIndex']>
+    readonly useArrayJoin: UnwrapRef<typeof import('@vueuse/core')['useArrayJoin']>
+    readonly useArrayMap: UnwrapRef<typeof import('@vueuse/core')['useArrayMap']>
+    readonly useArrayReduce: UnwrapRef<typeof import('@vueuse/core')['useArrayReduce']>
+    readonly useArraySome: UnwrapRef<typeof import('@vueuse/core')['useArraySome']>
     readonly useAssetsStore: UnwrapRef<typeof import('./modules/ModuleAssets/store/assets')['useAssetsStore']>
     readonly useAsyncQueue: UnwrapRef<typeof import('@vueuse/core')['useAsyncQueue']>
     readonly useAsyncState: UnwrapRef<typeof import('@vueuse/core')['useAsyncState']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
+    readonly useAverage: UnwrapRef<typeof import('@vueuse/math')['useAverage']>
     readonly useBase64: UnwrapRef<typeof import('@vueuse/core')['useBase64']>
     readonly useBattery: UnwrapRef<typeof import('@vueuse/core')['useBattery']>
     readonly useBemClass: UnwrapRef<typeof import('./composables/directives')['useBemClass']>
+    readonly useBluetooth: UnwrapRef<typeof import('@vueuse/core')['useBluetooth']>
     readonly useBreakpoints: UnwrapRef<typeof import('@vueuse/core')['useBreakpoints']>
     readonly useBroadcastChannel: UnwrapRef<typeof import('@vueuse/core')['useBroadcastChannel']>
     readonly useBrowserLocation: UnwrapRef<typeof import('@vueuse/core')['useBrowserLocation']>
     readonly useCached: UnwrapRef<typeof import('@vueuse/core')['useCached']>
-    readonly useClamp: UnwrapRef<typeof import('@vueuse/core')['useClamp']>
+    readonly useCeil: UnwrapRef<typeof import('@vueuse/math')['useCeil']>
+    readonly useClamp: UnwrapRef<typeof import('@vueuse/math')['useClamp']>
     readonly useClipboard: UnwrapRef<typeof import('@vueuse/core')['useClipboard']>
+    readonly useCloned: UnwrapRef<typeof import('@vueuse/core')['useCloned']>
     readonly useColorMode: UnwrapRef<typeof import('@vueuse/core')['useColorMode']>
     readonly useConfirmDialog: UnwrapRef<typeof import('@vueuse/core')['useConfirmDialog']>
     readonly useCounter: UnwrapRef<typeof import('@vueuse/core')['useCounter']>
@@ -436,7 +493,9 @@ declare module '@vue/runtime-core' {
     readonly useFarmingStore: UnwrapRef<typeof import('./modules/ModuleFarming/store/farming')['useFarmingStore']>
     readonly useFavicon: UnwrapRef<typeof import('@vueuse/core')['useFavicon']>
     readonly useFetch: UnwrapRef<typeof import('@vueuse/core')['useFetch']>
+    readonly useFileDialog: UnwrapRef<typeof import('@vueuse/core')['useFileDialog']>
     readonly useFileSystemAccess: UnwrapRef<typeof import('@vueuse/core')['useFileSystemAccess']>
+    readonly useFloor: UnwrapRef<typeof import('@vueuse/math')['useFloor']>
     readonly useFocus: UnwrapRef<typeof import('@vueuse/core')['useFocus']>
     readonly useFocusWithin: UnwrapRef<typeof import('@vueuse/core')['useFocusWithin']>
     readonly useFormattedPercent: UnwrapRef<typeof import('./composables/format')['useFormattedPercent']>
@@ -449,6 +508,7 @@ declare module '@vue/runtime-core' {
     readonly useHead: UnwrapRef<typeof import('@vueuse/head')['useHead']>
     readonly useI18n: UnwrapRef<typeof import('vue-i18n')['useI18n']>
     readonly useIdle: UnwrapRef<typeof import('@vueuse/core')['useIdle']>
+    readonly useImage: UnwrapRef<typeof import('@vueuse/core')['useImage']>
     readonly useInfiniteScroll: UnwrapRef<typeof import('@vueuse/core')['useInfiniteScroll']>
     readonly useIntersectionObserver: UnwrapRef<typeof import('@vueuse/core')['useIntersectionObserver']>
     readonly useInterval: UnwrapRef<typeof import('@vueuse/core')['useInterval']>
@@ -461,10 +521,13 @@ declare module '@vue/runtime-core' {
     readonly useLocalStorage: UnwrapRef<typeof import('@vueuse/core')['useLocalStorage']>
     readonly useMagicKeys: UnwrapRef<typeof import('@vueuse/core')['useMagicKeys']>
     readonly useManualRefHistory: UnwrapRef<typeof import('@vueuse/core')['useManualRefHistory']>
+    readonly useMath: UnwrapRef<typeof import('@vueuse/math')['useMath']>
+    readonly useMax: UnwrapRef<typeof import('@vueuse/math')['useMax']>
     readonly useMediaControls: UnwrapRef<typeof import('@vueuse/core')['useMediaControls']>
     readonly useMediaQuery: UnwrapRef<typeof import('@vueuse/core')['useMediaQuery']>
     readonly useMemoize: UnwrapRef<typeof import('@vueuse/core')['useMemoize']>
     readonly useMemory: UnwrapRef<typeof import('@vueuse/core')['useMemory']>
+    readonly useMin: UnwrapRef<typeof import('@vueuse/math')['useMin']>
     readonly useMounted: UnwrapRef<typeof import('@vueuse/core')['useMounted']>
     readonly useMouse: UnwrapRef<typeof import('@vueuse/core')['useMouse']>
     readonly useMouseInElement: UnwrapRef<typeof import('@vueuse/core')['useMouseInElement']>
@@ -475,6 +538,7 @@ declare module '@vue/runtime-core' {
     readonly useNotify: UnwrapRef<typeof import('./composables/notifications')['useNotify']>
     readonly useNotifyOnError: UnwrapRef<typeof import('./composables/kakuyaku')['useNotifyOnError']>
     readonly useNow: UnwrapRef<typeof import('@vueuse/core')['useNow']>
+    readonly useObjectUrl: UnwrapRef<typeof import('@vueuse/core')['useObjectUrl']>
     readonly useOffsetPagination: UnwrapRef<typeof import('@vueuse/core')['useOffsetPagination']>
     readonly useOnline: UnwrapRef<typeof import('@vueuse/core')['useOnline']>
     readonly usePageLeave: UnwrapRef<typeof import('@vueuse/core')['usePageLeave']>
@@ -483,14 +547,19 @@ declare module '@vue/runtime-core' {
     readonly usePermission: UnwrapRef<typeof import('@vueuse/core')['usePermission']>
     readonly usePointer: UnwrapRef<typeof import('@vueuse/core')['usePointer']>
     readonly usePointerSwipe: UnwrapRef<typeof import('@vueuse/core')['usePointerSwipe']>
+    readonly usePrecision: UnwrapRef<typeof import('@vueuse/math')['usePrecision']>
     readonly usePreferredColorScheme: UnwrapRef<typeof import('@vueuse/core')['usePreferredColorScheme']>
+    readonly usePreferredContrast: UnwrapRef<typeof import('@vueuse/core')['usePreferredContrast']>
     readonly usePreferredDark: UnwrapRef<typeof import('@vueuse/core')['usePreferredDark']>
     readonly usePreferredLanguages: UnwrapRef<typeof import('@vueuse/core')['usePreferredLanguages']>
+    readonly usePreferredReducedMotion: UnwrapRef<typeof import('@vueuse/core')['usePreferredReducedMotion']>
+    readonly useProjection: UnwrapRef<typeof import('@vueuse/math')['useProjection']>
     readonly usePromise: UnwrapRef<typeof import('@vue-kakuyaku/core')['usePromise']>
     readonly usePromiseLog: UnwrapRef<typeof import('./composables/kakuyaku')['usePromiseLog']>
     readonly useRafFn: UnwrapRef<typeof import('@vueuse/core')['useRafFn']>
     readonly useRefHistory: UnwrapRef<typeof import('@vueuse/core')['useRefHistory']>
     readonly useResizeObserver: UnwrapRef<typeof import('@vueuse/core')['useResizeObserver']>
+    readonly useRound: UnwrapRef<typeof import('@vueuse/math')['useRound']>
     readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
     readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
     readonly useScreenOrientation: UnwrapRef<typeof import('@vueuse/core')['useScreenOrientation']>
@@ -505,14 +574,19 @@ declare module '@vue/runtime-core' {
     readonly useSpeechSynthesis: UnwrapRef<typeof import('@vueuse/core')['useSpeechSynthesis']>
     readonly useStakingStore: UnwrapRef<typeof import('./modules/ModuleStaking/store/staking')['useStakingStore']>
     readonly useStaleState: UnwrapRef<typeof import('@vue-kakuyaku/core')['useStaleState']>
+    readonly useStepper: UnwrapRef<typeof import('@vueuse/core')['useStepper']>
     readonly useStorage: UnwrapRef<typeof import('@vueuse/core')['useStorage']>
     readonly useStorageAsync: UnwrapRef<typeof import('@vueuse/core')['useStorageAsync']>
     readonly useStyleTag: UnwrapRef<typeof import('@vueuse/core')['useStyleTag']>
+    readonly useSum: UnwrapRef<typeof import('@vueuse/math')['useSum']>
+    readonly useSupported: UnwrapRef<typeof import('@vueuse/core')['useSupported']>
     readonly useSwapStore: UnwrapRef<typeof import('./modules/ModuleSwap/store/swap')['useSwapStore']>
     readonly useSwipe: UnwrapRef<typeof import('@vueuse/core')['useSwipe']>
     readonly useTask: UnwrapRef<typeof import('@vue-kakuyaku/core')['useTask']>
     readonly useTemplateRefsList: UnwrapRef<typeof import('@vueuse/core')['useTemplateRefsList']>
+    readonly useTextDirection: UnwrapRef<typeof import('@vueuse/core')['useTextDirection']>
     readonly useTextSelection: UnwrapRef<typeof import('@vueuse/core')['useTextSelection']>
+    readonly useTextareaAutosize: UnwrapRef<typeof import('@vueuse/core')['useTextareaAutosize']>
     readonly useThrottle: UnwrapRef<typeof import('@vueuse/core')['useThrottle']>
     readonly useThrottleFn: UnwrapRef<typeof import('@vueuse/core')['useThrottleFn']>
     readonly useThrottledRefHistory: UnwrapRef<typeof import('@vueuse/core')['useThrottledRefHistory']>
@@ -522,9 +596,13 @@ declare module '@vue/runtime-core' {
     readonly useTimeoutPoll: UnwrapRef<typeof import('@vueuse/core')['useTimeoutPoll']>
     readonly useTimestamp: UnwrapRef<typeof import('@vueuse/core')['useTimestamp']>
     readonly useTitle: UnwrapRef<typeof import('@vueuse/core')['useTitle']>
+    readonly useToFixed: UnwrapRef<typeof import('@vueuse/math')['useToFixed']>
+    readonly useToNumber: UnwrapRef<typeof import('@vueuse/core')['useToNumber']>
+    readonly useToString: UnwrapRef<typeof import('@vueuse/core')['useToString']>
     readonly useToggle: UnwrapRef<typeof import('@vueuse/core')['useToggle']>
     readonly useTokensStore: UnwrapRef<typeof import('./store/tokens')['useTokensStore']>
     readonly useTransition: UnwrapRef<typeof import('@vueuse/core')['useTransition']>
+    readonly useTrunc: UnwrapRef<typeof import('@vueuse/math')['useTrunc']>
     readonly useUrlSearchParams: UnwrapRef<typeof import('@vueuse/core')['useUrlSearchParams']>
     readonly useUserMedia: UnwrapRef<typeof import('@vueuse/core')['useUserMedia']>
     readonly useVModel: UnwrapRef<typeof import('@vueuse/core')['useVModel']>
@@ -540,6 +618,7 @@ declare module '@vue/runtime-core' {
     readonly useWindowScroll: UnwrapRef<typeof import('@vueuse/core')['useWindowScroll']>
     readonly useWindowSize: UnwrapRef<typeof import('@vueuse/core')['useWindowSize']>
     readonly watch: UnwrapRef<typeof import('vue')['watch']>
+    readonly watchArray: UnwrapRef<typeof import('@vueuse/core')['watchArray']>
     readonly watchAtMost: UnwrapRef<typeof import('@vueuse/core')['watchAtMost']>
     readonly watchDebounced: UnwrapRef<typeof import('@vueuse/core')['watchDebounced']>
     readonly watchEffect: UnwrapRef<typeof import('vue')['watchEffect']>
@@ -549,6 +628,7 @@ declare module '@vue/runtime-core' {
     readonly watchPostEffect: UnwrapRef<typeof import('vue')['watchPostEffect']>
     readonly watchSyncEffect: UnwrapRef<typeof import('vue')['watchSyncEffect']>
     readonly watchThrottled: UnwrapRef<typeof import('@vueuse/core')['watchThrottled']>
+    readonly watchTriggerable: UnwrapRef<typeof import('@vueuse/core')['watchTriggerable']>
     readonly watchWithFilter: UnwrapRef<typeof import('@vueuse/core')['watchWithFilter']>
     readonly whenever: UnwrapRef<typeof import('@vueuse/core')['whenever']>
     readonly wheneverDone: UnwrapRef<typeof import('@vue-kakuyaku/core')['wheneverDone']>
