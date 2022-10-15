@@ -1,7 +1,6 @@
 import { Address, isEmptyAddress, Wei } from '@/core'
 import { ActiveDex, AnyDex } from '@/store/dex'
 import { TokensPair } from '@/utils/pair'
-import { PromiseStateAtomic } from '@vue-kakuyaku/core'
 import { MaybeRef } from '@vueuse/core'
 import { Ref } from 'vue'
 
@@ -62,8 +61,8 @@ export function usePairAddress(tokens: NullableReactiveTokens): {
   const dexStore = useDexStore()
 
   const scope = useParamScope(
-    computed(() => composeKeyWithAnyDex(tokens, dexStore.anyDex)),
-    ({ tokens, dex }) => {
+    () => composeKeyWithAnyDex(tokens, dexStore.anyDex),
+    ({ payload: { tokens, dex } }) => {
       const { state, run } = useTask<PairAddressResult>(
         async () => {
           const addr = await dex.tokens.getPairAddress(tokens)
@@ -101,8 +100,8 @@ export function usePairReserves(tokens: NullableReactiveTokens, pairExists: Mayb
   const dexStore = useDexStore()
 
   const scope = useParamScope(
-    computed(() => composeKeyWithNamedDexAndExistingPair(tokens, dexStore.active, pairExists)),
-    ({ tokens, dex }) => {
+    () => composeKeyWithNamedDexAndExistingPair(tokens, dexStore.active, pairExists),
+    ({ payload: { tokens, dex } }) => {
       const { state, run } = useTask(() => dex.tokens.getPairReserves(tokens), { immediate: true })
       usePromiseLog(state, 'pair-reserves')
       return { state: flattenState(state), run }
@@ -133,8 +132,8 @@ export function usePairBalance(
   const dexStore = useDexStore()
 
   const scope = useParamScope(
-    computed(() => composeKeyWithNamedDexAndExistingPair(tokens, dexStore.active, pairExists)),
-    ({ tokens, dex }) => {
+    () => composeKeyWithNamedDexAndExistingPair(tokens, dexStore.active, pairExists),
+    ({ payload: { tokens, dex } }) => {
       const { state, run } = useTask(
         async () => {
           const { totalSupply, userBalance } = await dex.tokens.getPairBalanceOfUser(tokens)

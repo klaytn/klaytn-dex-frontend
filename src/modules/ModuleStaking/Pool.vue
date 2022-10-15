@@ -57,7 +57,7 @@ const balanceScope = useParamScope(
       }
     )
   },
-  ({ dex, token }) => {
+  ({ payload: { dex, token } }) => {
     const { state } = useTask(
       async () => {
         const balance = await dex.tokens.getTokenBalanceOfUser(token.id)

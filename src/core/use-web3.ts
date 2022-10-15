@@ -158,8 +158,8 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
     enableState: PromiseStateAtomic<void>
   }
 
-  const providerScope = useParamScope<ProviderScope, SupportedWallet, RawProvider>(
-    computed(() => {
+  const providerScope = useParamScope(
+    () => {
       const wallet = selectedWallet.value
 
       return (
@@ -170,8 +170,8 @@ export function useWeb3Provider(props: { network: AppNetwork }) {
           ? { key: wallet, payload: { kind: wallet, ethereum: detectedMetamask.value } }
           : null)
       )
-    }),
-    (wallet): ProviderScope => {
+    },
+    ({ payload: wallet }): ProviderScope => {
       if (wallet.kind === 'kaikas') {
         const { kaikas, caver } = wallet
         const provider: AgentProvider = {

@@ -50,7 +50,7 @@ function usePrepareSupply(props: {
 
   const isReadyToPrepareSupply = computed(() => !!scopeKey.value)
 
-  const scope = useParamScope(filteredKey, ({ tokens, pair, liquidity: lpTokenValue, amounts, dex }) => {
+  const scope = useParamScope(filteredKey, ({ payload: { tokens, pair, liquidity: lpTokenValue, amounts, dex } }) => {
     const { state: prepareState, run: prepare } = useTask(
       () =>
         dex.liquidity.prepareRmLiquidity({
@@ -131,7 +131,7 @@ function useRemoveAmounts(
         payload: { pair: pairAddr, lpTokenValue, tokens: tokens.value, dex: activeDex.dex() },
       }
     }),
-    ({ pair, lpTokenValue, tokens, dex }) => {
+    ({ payload: { pair, lpTokenValue, tokens, dex } }) => {
       const { state, run } = useTask(
         async () => {
           const { amounts } = await dex.liquidity.computeRmLiquidityAmounts({

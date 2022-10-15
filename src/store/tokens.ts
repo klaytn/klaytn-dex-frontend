@@ -100,10 +100,8 @@ function useUserBalance(tokens: Ref<null | Address[]>) {
   const dexStore = useDexStore()
 
   const fetchScope = useParamScope(
-    computed(
-      () => !!tokens.value && dexStore.active.kind === 'named' && { key: 'active', payload: dexStore.active.dex() },
-    ),
-    (dex) => {
+    () => !!tokens.value && dexStore.active.kind === 'named' && { key: 'active', payload: dexStore.active.dex() },
+    ({ payload: dex }) => {
       const { state, run } = useTask<Map<Address, Wei>>(() => loadBalances(dex, tokens.value ?? []), {
         immediate: true,
       })

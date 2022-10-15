@@ -25,7 +25,7 @@
     "@soramitsu-ui/ui": "^0.6.1",
     "@uniswap/sdk-core": "3.0.2",
     "@uniswap/v2-sdk": "3.0.1",
-    "@vue-kakuyaku/core": "^0.3.0",
+    "@vue-kakuyaku/core": "^0.4.2",
     "@vue/apollo-composable": "4.0.0-alpha.19",
     "@vueuse/core": "^8.6.0",
     "@vueuse/head": "^0.7.6",

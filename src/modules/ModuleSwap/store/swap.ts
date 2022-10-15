@@ -60,7 +60,7 @@ function useSwap(
 
   const { filteredKey, setActive } = useControlledComposedKey(swapKey)
 
-  const scope = useParamScope(filteredKey, ({ props, swap: swapAgent }) => {
+  const scope = useParamScope(filteredKey, ({ payload: { props, swap: swapAgent } }) => {
     const { state: prepareState, run: prepare } = useTask(
       async () => {
         const swapProps = buildSwapProps(props)
