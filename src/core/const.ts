@@ -7,7 +7,7 @@ export const MAX_UINT256 = 2n ** 256n - 1n
 /**
  * Klay token address
  */
-export const NATIVE_TOKEN = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address
+export const NATIVE_TOKEN = '0x73365f8f27de98d7634be67a167f229b32e7bf6c' as Address
 export const NATIVE_TOKEN_DECIMALS = 18
 
 export const DEX_TOKEN = '0x42f127458246b1db8d8a58d31a22b307408439e4' as Address
