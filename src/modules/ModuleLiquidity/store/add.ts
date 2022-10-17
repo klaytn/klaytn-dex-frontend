@@ -30,7 +30,7 @@ function useQuoting(props: { pair: Ref<null | PairAddressResult>; mainInput: Ref
   const dexStore = useDexStore()
 
   const scope = useParamScope(
-    computed(() => {
+    () => {
       if (props.pair.value?.kind !== 'exist') return null
       const { tokens, addr: pair } = props.pair.value
 
@@ -42,8 +42,14 @@ function useQuoting(props: { pair: Ref<null | PairAddressResult>; mainInput: Ref
         key: `${pair}-${quoteFor}-${value}`,
         payload: { tokens, quoteFor, quoteFrom, value },
       }
-    }),
-    ({ tokens: { tokenA, tokenB }, quoteFor, value }) => {
+    },
+    ({
+      payload: {
+        tokens: { tokenA, tokenB },
+        quoteFor,
+        value,
+      },
+    }) => {
       const { state, run } = useTask(
         () =>
           dexStore.anyDex
@@ -100,7 +106,7 @@ function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null> }) {
 
   const { filteredKey, setActive } = useControlledComposedKey(scopeKey)
 
-  const scope = useParamScope(filteredKey, ({ tokens, dex }) => {
+  const scope = useParamScope(filteredKey, ({ payload: { tokens, dex } }) => {
     const { state: statePrepare, run: runPrepare } = useTask(
       async () => {
         const { send, fee } = await dex.liquidity.prepareAddLiquidity({
