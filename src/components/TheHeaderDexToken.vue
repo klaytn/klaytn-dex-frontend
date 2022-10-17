@@ -5,19 +5,18 @@ const tokensStore = useTokensStore()
 
 const dexDerivedUsd = computed(() => tokensStore.lookupDerivedUsd(DEX_TOKEN))
 
-const balanceInWei = computed(() => tokensStore.lookupUserBalance(DEX_TOKEN))
-const balance = computed(() => balanceInWei.value?.decimals(DEX_TOKEN_FULL) ?? null)
+const balance = computed(() => tokensStore.lookupUserBalance(DEX_TOKEN)?.decimals(DEX_TOKEN_FULL) ?? null)
 
 const balancePrice = computed(() => {
-  const derived = dexDerivedUsd.value
-  const b = balance.value
-  return derived && b && b.times(derived)
+  const usd = dexDerivedUsd.value
+  const token = balance.value
+  return usd && token && token.times(usd)
 })
 </script>
 
 <template>
   <div
-    v-if="balance && balancePrice"
+    v-if="balance"
     class="token rounded-lg p-3 flex items-center space-x-1 mr-2"
   >
     <div class="balance">
@@ -29,7 +28,10 @@ const balancePrice = computed(() => {
         :max-width="56"
       />
     </div>
-    <div class="price">
+    <div
+      v-if="balancePrice"
+      class="price"
+    >
       (<CurrencyFormatTruncate
         :amount="balancePrice"
         usd
