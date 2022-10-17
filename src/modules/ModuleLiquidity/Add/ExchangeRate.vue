@@ -63,7 +63,7 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(addrs.value)))
         <KlayIconImportant class="warning-icon" />
       </div>
       <p class="warning-text">
-        This pool must be initialized before you can add liquidity. To initialize, select a starting price for the pool.
+        Pair doesn't exist. You will create one. Its rates will be equal to the rates you set.
       </p>
     </div>
   </div>
