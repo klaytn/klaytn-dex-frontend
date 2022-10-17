@@ -237,6 +237,11 @@
           "internalType": "uint256",
           "name": "_amount",
           "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_recipient",
+          "type": "address"
         }
       ],
       "name": "emergencyRewardWithdraw",
