@@ -251,19 +251,14 @@ const detailsList = computed(() => {
           </div>
 
           <div class="space-y-2">
-            <span class="label flex items-center">
-              <span class="whitespace-pre">You will receive (APY = </span>
-              <CurrencyFormat
-                v-slot="{ formatted }"
+            <span class="flex label">
+              You will receive (APY =
+              <CurrencyFormatTruncate
+                class="ml-1"
                 :amount="apy"
                 :decimals="2"
-              >
-                <span
-                  class="max-w-20 inline-block truncate"
-                  :title="formatted! + '%'"
-                >{{ formatted }}</span>
-              </CurrencyFormat>
-              <span>%)</span>
+                symbol="%"
+              />)
             </span>
             <InputCurrencyTemplate bottom>
               <template #input>
