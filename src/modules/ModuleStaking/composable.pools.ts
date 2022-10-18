@@ -70,7 +70,7 @@ export function useMappedPools(props: {
       if (!stakeTokenFromTokensQuery || !rewardTokenFromTokensQuery) continue
 
       const stakeTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
-      const rewardTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
+      const rewardTokenPrice = new BigNumber(rewardTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
 
       const totalTokensStaked = new Wei(pool.totalTokensStaked).decimals(stakeToken)
       const totalStaked = stakeTokenPrice.times(totalTokensStaked) as AmountInUSD
