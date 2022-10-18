@@ -55,11 +55,11 @@ describe('LiquidityViewPairsList.cy.ts', () => {
       .first()
       .within(() => {
         cy.get(TESTID_ITEM_HEADER_VALUE).should('have.text', '0.56515')
-        cy.get(TESTID_ITEM_HEADER_VALUE_USD).should('have.text', '($0.15)')
+        cy.get(TESTID_ITEM_HEADER_VALUE_USD).should('have.text', '($0.84)')
       })
   })
 
-  it('When reserveKLAY and reserveUsd are 0, then USD balance is not shown', () => {
+  it('When totalSupply and reserveUsd are 0, then USD balance is not shown', () => {
     cy.fixture('liquidity-positions-zero-usd').then((positions) => {
       mountFactory(positions)
     })
