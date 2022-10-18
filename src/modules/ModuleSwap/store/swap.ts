@@ -1,12 +1,27 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, CurrencySymbol, WeiAsToken, Wei, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS } from '@/core'
+import {
+  Address,
+  CurrencySymbol,
+  WeiAsToken,
+  Wei,
+  TokenImpl,
+  Pair,
+  TokenAmount,
+  LP_TOKEN_DECIMALS,
+  Trade,
+} from '@/core'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
-import { useSwapAmounts, GetAmountsProps, computeSlippage, useSlippageParsed } from '../composable.get-amounts'
+import {
+  useSwapAmounts,
+  GetAmountsProps,
+  computeSlippage,
+  useSlippageParsed,
+  AmountsAdjusted,
+} from '../composable.get-amounts'
 import { useTrade } from '../composable.trade'
 import { useSwapValidation } from '../composable.validation'
-import { buildSwapProps, PropsToBuildSwapProps } from '../util.swap-props'
 import {
   usePairInput,
   useEstimatedLayer,
@@ -24,8 +39,14 @@ const SLIPPAGE_PRECISION = 5
 
 const debugModule = Debug('swap-store')
 
+export interface SwapPropsLocal {
+  trade: Trade
+  amounts: AmountsAdjusted
+  expertMode: boolean
+}
+
 function useSwap(
-  props: Ref<null | PropsToBuildSwapProps>,
+  props: Ref<null | SwapPropsLocal>,
   options: {
     onSuccess: () => void
   },
@@ -64,8 +85,8 @@ function useSwap(
   const scope = useParamScope(filteredKey, ({ props, swap: swapAgent }) => {
     const { state: prepareState, run: prepare } = useTask(
       async () => {
-        const swapProps = buildSwapProps(props)
-        const { send, fee } = await swapAgent.prepareSwap(swapProps)
+        const { amounts, ...rest } = props
+        const { send, fee } = await swapAgent.prepareSwap({ ...amounts, ...rest })
         return { send, fee }
       },
       { immediate: true },
@@ -291,7 +312,7 @@ export const useSwapStore = defineStore('swap', () => {
 
   // #region Action
 
-  const propsForSwap = computed<null | PropsToBuildSwapProps>(() => {
+  const propsForSwap = computed<null | SwapPropsLocal>(() => {
     const slipResult = amountsWithSlippage.value
     if (!slipResult) return null
 
