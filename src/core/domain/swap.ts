@@ -108,9 +108,15 @@ export function applySlippageForExactOutput(amountIn: Wei, slippage: SlippagePer
   return { amountInMax: new Wei(adjusted) }
 }
 
-function amountsTupleToWei(tuple: (string | BigNumber | EthersBigNumber)[]): { amountIn: Wei; amountOut: Wei } {
-  const [a, b] = tuple
-  return { amountIn: new Wei(a), amountOut: new Wei(b) }
+/**
+ * Consists of amounts on each swap stage during the path.
+ * We need only the first (input) and the last (output).
+ */
+function amountsArrayToWeiInOut(array: (string | BigNumber | EthersBigNumber)[]): { amountIn: Wei; amountOut: Wei } {
+  const first = array.at(0)
+  const last = array.at(-1)
+  invariant(first && last)
+  return { amountIn: new Wei(first), amountOut: new Wei(last) }
 }
 
 export class SwapPure {
@@ -128,12 +134,12 @@ export class SwapPure {
     const router = await this.routerContract()
     const path = props.trade.routePath()
 
-    const raw =
+    const amountsArray =
       props.mode === 'exact-in'
         ? await router.getAmountsOut([props.amountIn.asStr, path]).call()
         : await router.getAmountsIn([props.amountOut.asStr, path]).call()
 
-    return amountsTupleToWei(raw)
+    return amountsArrayToWeiInOut(amountsArray)
   }
 
   private async routerContract() {
@@ -276,6 +282,18 @@ if (import.meta.vitest) {
           "amountInMax": "1",
         }
       `)
+    })
+  })
+
+  describe('Parse amounts array', () => {
+    const serde = (x: any) => JSON.parse(JSON.stringify(x))
+
+    test.each([
+      [['1', '2', '3'], { amountIn: new Wei(1), amountOut: new Wei(3) }],
+      [['1', '2'], { amountIn: new Wei(1), amountOut: new Wei(2) }],
+      [['1', '2', '3', '4', '5'], { amountIn: new Wei(1), amountOut: new Wei(5) }],
+    ])('Amounts from %o extracted to %O', (array, result) => {
+      expect(serde(amountsArrayToWeiInOut(array))).toEqual(serde(result))
     })
   })
 }
