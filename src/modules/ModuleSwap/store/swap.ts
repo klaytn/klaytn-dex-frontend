@@ -3,7 +3,7 @@ import invariant from 'tiny-invariant'
 import { Address, CurrencySymbol, WeiAsToken, Wei, TokenImpl, Pair, TokenAmount, LP_TOKEN_DECIMALS } from '@/core'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
-import { useSwapAmounts, GetAmountsProps, useSlippage, useSlippageParsed } from '../composable.get-amounts'
+import { useSwapAmounts, GetAmountsProps, computeSlippage, useSlippageParsed } from '../composable.get-amounts'
 import { useTrade } from '../composable.trade'
 import { useSwapValidation } from '../composable.validation'
 import { buildSwapProps, PropsToBuildSwapProps } from '../util.swap-props'
@@ -18,6 +18,7 @@ import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { usePairsQuery } from '../query.pairs'
 import { numberToPercent } from '@/utils/common'
+import { match, P } from 'ts-pattern'
 
 const SLIPPAGE_PRECISION = 5
 
@@ -244,12 +245,19 @@ export const useSwapStore = defineStore('swap', () => {
     }),
   )
 
-  const amountsWithSlippage = useSlippage(
-    computed(() => gotAmountsResult.value?.amountsResult ?? null),
-    computed(() => numberToPercent(slippageTolerance.value, SLIPPAGE_PRECISION)),
+  const amountsWithSlippage = computed(() =>
+    match(gotAmountsResult.value)
+      .with(P.not(P.nullish), ({ amountsResult, props }) => {
+        const adjusted = computeSlippage(amountsResult, numberToPercent(slippageTolerance.value, SLIPPAGE_PRECISION))
+        return { adjusted, props }
+      })
+      .otherwise(() => null),
   )
 
-  const slippageDataParsed = useSlippageParsed({ tokens, amounts: amountsWithSlippage })
+  const slippageDataParsed = useSlippageParsed({
+    tokens,
+    amounts: computed(() => amountsWithSlippage.value?.adjusted ?? null),
+  })
 
   watch(
     [gotAmountFor, selection.tokens],
@@ -284,12 +292,13 @@ export const useSwapStore = defineStore('swap', () => {
   // #region Action
 
   const propsForSwap = computed<null | PropsToBuildSwapProps>(() => {
-    const amountsProps = gotAmountsResult.value?.props
-    if (!amountsProps) return null
+    const slipResult = amountsWithSlippage.value
+    if (!slipResult) return null
 
-    const { trade } = amountsProps
-    const amounts = amountsWithSlippage.value
-    invariant(amounts, 'Amounts with slippage must exist if `gotAmountsResult` are not null')
+    const {
+      adjusted: amounts,
+      props: { trade },
+    } = slipResult
 
     return { trade, amounts, expertMode: expertMode.value }
   })

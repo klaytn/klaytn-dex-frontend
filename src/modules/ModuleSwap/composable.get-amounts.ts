@@ -10,6 +10,7 @@ import {
   applySlippageForExactOutput,
   parseSlippage,
 } from '@/core/domain/swap'
+import { match } from 'ts-pattern'
 
 const debug = Debug('swap-amounts')
 
@@ -106,24 +107,19 @@ export function useSwapAmounts(props: Ref<null | GetAmountsProps>) {
 
 export type AmountsAdjusted = ({ mode: 'exact-in' } & AmountsExactIn) | ({ mode: 'exact-out' } & AmountsExactOut)
 
-export function useSlippage(
-  amounts: Ref<null | undefined | GetAmountsResult>,
-  slippage: Ref<Percent>,
-): Ref<null | AmountsAdjusted> {
-  return computed((): null | AmountsAdjusted => {
-    const result = amounts.value
-    if (!result) return null
+export function computeSlippage(result: GetAmountsResult, slippage: Percent): AmountsAdjusted {
+  const slippageParsed = parseSlippage(slippage)
 
-    const slippageParsed = parseSlippage(slippage.value)
-
-    if (result.mode === 'exact-in') {
-      const { amountOutMin } = applySlippageForExactInput(result.amountOut, slippageParsed)
-      return { mode: 'exact-in', amountIn: result.amountIn, amountOutMin }
-    }
-
-    const { amountInMax } = applySlippageForExactOutput(result.amountIn, slippageParsed)
-    return { mode: 'exact-out', amountOut: result.amountOut, amountInMax }
-  })
+  return match(result)
+    .with({ mode: 'exact-in' }, ({ mode, amountIn, amountOut }): AmountsAdjusted => {
+      const { amountOutMin } = applySlippageForExactInput(amountOut, slippageParsed)
+      return { mode, amountIn, amountOutMin }
+    })
+    .with({ mode: 'exact-out' }, ({ mode, amountIn, amountOut }): AmountsAdjusted => {
+      const { amountInMax } = applySlippageForExactOutput(amountIn, slippageParsed)
+      return { mode, amountOut, amountInMax }
+    })
+    .exhaustive()
 }
 
 export type SlippageParsed =
