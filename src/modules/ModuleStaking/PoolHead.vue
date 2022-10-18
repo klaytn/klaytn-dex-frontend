@@ -7,16 +7,16 @@ const props = defineProps<{
   rewardTokenSymbol: CurrencySymbol
   stakeTokenSymbol: CurrencySymbol
   earned: BigNumber | null
-  totalStakedUsd: BigNumber
-  annualPercentageRate: BigNumber
+  totalStakedUsd: BigNumber | null
+  annualPercentageRate: BigNumber | null
   endsIn: number
 }>()
 
 const emit = defineEmits(['click:roi-calculator'])
 
-const aprRounded = computed(() => props.annualPercentageRate.decimalPlaces(2, BigNumber.ROUND_UP))
+const aprRounded = computed(() => props.annualPercentageRate?.decimalPlaces(2, BigNumber.ROUND_UP))
 
-const totalRounded = computed(() => props.totalStakedUsd.decimalPlaces(0, BigNumber.ROUND_UP))
+const totalRounded = computed(() => props.totalStakedUsd?.decimalPlaces(0, BigNumber.ROUND_UP))
 
 const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
 </script>
@@ -88,6 +88,7 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
         </span>
 
         <KlayIconCalculator
+          v-if="aprRounded !== undefined"
           :class="$style.iconCalc"
           @click.stop="emit('click:roi-calculator')"
         />
