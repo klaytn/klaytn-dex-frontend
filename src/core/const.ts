@@ -17,7 +17,7 @@ export const ADDRESS_ROUTER = '0xce12c887fae83a5f94f6cf3c8d4c1cee8b1c7786' as Ad
 export const ADDRESS_FACTORY = '0x339ba51a3d65ad5418aee14b0546088bfe99403c' as Address
 export const ADDRESS_WETH = '0x73365f8f27de98d7634be67a167f229b32e7bf6c' as Address
 export const ADDRESS_MULTICALL = '0x4d25d48f8a072446c3aa84ba482092a0bea0bf5d' as Address
-export const ADDRESS_FARMING = '0xf68b8d3fae7feb747cb4dce0a4c91a100b140245' as Address
+export const ADDRESS_FARMING = '0xf68b8d3fae7FEB747cB4dCe0a4c91A100B140245' as Address
 
 /**
  * We totally sure that all our LP tokens have this decimals value
