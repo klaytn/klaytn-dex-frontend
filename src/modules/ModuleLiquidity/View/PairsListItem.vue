@@ -16,11 +16,13 @@ const emit = defineEmits(['click:add', 'click:remove', 'click:deposit'])
 const { liquidityTokenBalance, pair } = toRefs(toRef(props, 'data'))
 const pairReactive = toReactive(pair)
 
+/**
+ * https://github.com/soramitsu/klaytn-dex-frontend/pull/150#discussion_r998063300
+ */
 const balanceUsd = computed(() => {
-  const balance = liquidityTokenBalance.value
-  const { reserveUSD, reserveKLAY } = pairReactive
-  const price = new BigNumber(reserveUSD).dividedBy(reserveKLAY)
-  return price.isNaN() ? null : price.multipliedBy(balance)
+  const { reserveUSD, totalSupply } = pairReactive
+  const value = new BigNumber(reserveUSD).dividedBy(totalSupply).multipliedBy(liquidityTokenBalance.value)
+  return value.isNaN() ? null : value
 })
 
 const formattedPoolShare = useFormattedPercent(
