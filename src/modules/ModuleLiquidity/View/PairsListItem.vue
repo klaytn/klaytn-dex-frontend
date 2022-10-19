@@ -16,6 +16,15 @@ const emit = defineEmits(['click:add', 'click:remove', 'click:deposit'])
 const { liquidityTokenBalance, pair } = toRefs(toRef(props, 'data'))
 const pairReactive = toReactive(pair)
 
+/**
+ * https://github.com/soramitsu/klaytn-dex-frontend/pull/150#discussion_r998063300
+ */
+const balanceUsd = computed(() => {
+  const { reserveUSD, totalSupply } = pairReactive
+  const value = new BigNumber(reserveUSD).dividedBy(totalSupply).multipliedBy(liquidityTokenBalance.value)
+  return value.isNaN() ? null : value
+})
+
 const formattedPoolShare = useFormattedPercent(
   computed(() => new BigNumber(liquidityTokenBalance.value).dividedBy(pairReactive.totalSupply).toNumber()),
   7,
@@ -31,18 +40,18 @@ const formattedPoolShare = useFormattedPercent(
           :token-b="pair.token1.symbol"
         />
         <span>{{ pair.name }}</span>
-        <span>
-          <CurrencyFormat
-            :amount="pair.reserveKLAY"
-            :decimals="3"
-          />
-        </span>
-        <span class="reserve-usd">(<CurrencyFormat
-          :amount="pair.reserveUSD"
-          :decimals="2"
-          symbol="$"
-          symbol-delimiter=""
-          symbol-position="left"
+        <CurrencyFormatTruncate
+          :amount="liquidityTokenBalance"
+          :decimals="5"
+          data-testid="pair-list-item-header-value"
+        />
+        <span
+          v-if="balanceUsd"
+          class="reserve-usd"
+          data-testid="pair-list-item-header-value-usd"
+        >(<CurrencyFormatTruncate
+          :amount="balanceUsd"
+          usd
         />)</span>
       </div>
     </template>
