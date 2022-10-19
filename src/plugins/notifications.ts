@@ -10,6 +10,10 @@ interface NotifyProps {
   title?: string
   description?: string
   error?: unknown
+  action?: {
+    title: string
+    fn: () => void
+  }
 }
 
 export type NotifyFn = (props: NotifyProps) => void
@@ -20,8 +24,13 @@ function notify(toasts: ToastsApi, props: NotifyProps) {
   const unregister = toasts.register({
     slot: () =>
       h(KlayToast, {
-        ...props,
+        type: props.type,
+        title: props.title,
+        description: props.description,
+        error: props.error,
+        action: props.action?.title,
         'onClick:close': () => unregister(),
+        'onClick:action': () => props.action?.fn(),
       }),
   })
 

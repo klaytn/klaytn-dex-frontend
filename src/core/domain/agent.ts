@@ -200,7 +200,7 @@ export class Agent extends AgentPure {
 
     await ethers.send(
       'wallet_watchAsset',
-      // it doesn't work if pass it as a single-element array for a some reason
+      // it doesn't work if pass it as a single-element array for some reason
       {
         type: 'ERC20',
         options: asset,

@@ -63,6 +63,14 @@ export function makeExplorerLinkToTransaction(address: Address): string {
   return `${EXPLORER_BASE}/tx/${address}`
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+export const NATIVE_TOKEN_FULL = {
+  address: NATIVE_TOKEN,
+  name: 'KLAY',
+  symbol: 'KLAY',
+  decimals: NATIVE_TOKEN_DECIMALS,
+} as Token
+
 export const DEX_TOKEN_FULL: Token = {
   address: DEX_TOKEN,
   decimals: DEX_TOKEN_DECIMALS,
@@ -71,14 +79,7 @@ export const DEX_TOKEN_FULL: Token = {
 }
 
 export const WHITELIST_TOKENS = Object.freeze([
-  {
-    address: NATIVE_TOKEN,
-    // name: 'Wrapped KLAY',
-    // symbol: 'WKLAY',
-    name: 'KLAY',
-    symbol: 'KLAY',
-    decimals: NATIVE_TOKEN_DECIMALS,
-  },
+  NATIVE_TOKEN_FULL,
   DEX_TOKEN_FULL,
   {
     address: '0xb9920BD871e39C6EF46169c32e7AC4C698688881',
