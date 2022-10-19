@@ -10,27 +10,31 @@ import { SPopover } from '@soramitsu-ui/ui'
 import PopperInfo from './InputTokenPopperInfo.vue'
 import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
 
-const props = withDefaults(
-  defineProps<{
-    address?: Address
-    selected?: Set<Address>
-    modelValue?: WeiAsToken<BigNumber> | null
-    valueDebounce?: number
-    isLoading?: boolean
-    setByBalance?: boolean
-    // FIXME not by design
-    estimated?: boolean
-  }>(),
-  {
-    modelValue: null,
-    isLoading: false,
-    setByBalance: false,
-    estimated: false,
-    valueDebounce: 500,
-  },
-)
+interface Props {
+  address?: Address
+  selected?: Set<Address>
+  modelValue?: WeiAsToken<BigNumber> | null
+  valueDebounce?: number
+  isLoading?: boolean
+  setByBalance?: boolean
+  // FIXME not by design
+  estimated?: boolean
+}
 
-const emit = defineEmits(['update:modelValue', 'update:address'])
+interface Emits {
+  (event: 'update:modelValue', value: WeiAsToken<BigNumber>): void
+  (event: 'update:address', value: Address): void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: null,
+  isLoading: false,
+  setByBalance: false,
+  estimated: false,
+  valueDebounce: 500,
+})
+
+const emit = defineEmits<Emits>()
 
 // #region  Model
 
@@ -77,8 +81,8 @@ const showMaxButton = $computed(
 const addressModel = useVModel(props, 'address', emit)
 
 function setToMax() {
-  invariant(balance)
-  emit('update:modelValue', balanceAsToken)
+  invariant(balanceAsToken.value)
+  model.value = balanceAsToken.value
 }
 </script>
 
