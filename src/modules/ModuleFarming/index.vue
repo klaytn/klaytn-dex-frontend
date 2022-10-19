@@ -126,6 +126,12 @@ const expandPools = computed(() => poolsPaginated.value?.length === 1)
 
 <template>
   <div v-bem>
+    <div
+      v-if="!farming?.pools.length && !isLoading"
+      class="flex-1 flex items-center justify-center"
+    >
+      There are no farming pools at the moment
+    </div>
     <template v-if="farming">
       <div v-bem="'list'">
         <ModuleFarmingPool

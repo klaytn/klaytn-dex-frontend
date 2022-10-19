@@ -120,7 +120,13 @@ function handleStakedUnstaked() {
 
 <template>
   <div v-bem>
-    <template v-if="pools">
+    <div
+      v-if="!pools?.length && !isLoading"
+      class="flex-1 flex items-center justify-center"
+    >
+      There are no staking pools at the moment
+    </div>
+    <template v-if="pools?.length">
       <div v-bem="'list'">
         <ModuleStakingPool
           v-for="pool in poolsFinal"
