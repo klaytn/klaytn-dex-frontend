@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { NATIVE_TOKEN, Wei, NATIVE_TOKEN_FULL } from '@/core'
-import { match, P } from 'ts-pattern'
+import { NATIVE_TOKEN, NATIVE_TOKEN_FULL } from '@/core'
+import { match } from 'ts-pattern'
 import { SModal } from '@soramitsu-ui/ui'
 
 const tokensStore = useTokensStore()
@@ -17,8 +17,7 @@ const status = computed<Status>(() => {
 
 const [showDetailsModal, toggleModal] = useToggle(false)
 
-const DESCRIPTION =
-  `The wallet gave a balance of ${NATIVE_TOKEN_FULL.name} as negative number. ` + `It is probably a wallet's bug.`
+const DESCRIPTION = `The wallet gave a balance of ${NATIVE_TOKEN_FULL.name} as negative number. It is probably a wallet's bug.`
 
 watch(
   status,
