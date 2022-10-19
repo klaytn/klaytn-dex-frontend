@@ -10,8 +10,6 @@ import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
-import { JSON_SERIALIZER } from '@/utils/common'
-import { Serializer } from '@vueuse/core'
 import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 
@@ -156,25 +154,6 @@ function useRemoveAmounts(
     touch: () => scope.value?.expose.run(),
   }
 }
-
-/**
- * This store exists to be accessible within a router guard
- * `useLiquidityRmStore` is not accessible because it has dependencies to `dexStore`
- * and, in general, not implied to be used before dex initialization
- */
-export const useLiquidityRmSelectionStore = defineStore('liquidity-remove-selection', () => {
-  const [routeIsActive, setRouteIsActive] = useToggle(false)
-
-  const selectedRaw = useLocalStorage<null | TokensPair<Address>>('liquidity-remove-tokens', null, {
-    serializer: JSON_SERIALIZER as Serializer<any>,
-  })
-
-  const isThereSelectionStored = computed(() => !!selectedRaw.value)
-
-  const selectedFiltered = computed(() => (routeIsActive.value ? unref(selectedRaw) : null))
-
-  return { selected: selectedFiltered, selectedRaw, isThereSelectionStored, setRouteIsActive }
-})
 
 export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   const router = useRouter()

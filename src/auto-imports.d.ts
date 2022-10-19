@@ -177,7 +177,7 @@ declare global {
   const useKeyModifier: typeof import('@vueuse/core')['useKeyModifier']
   const useLastChanged: typeof import('@vueuse/core')['useLastChanged']
   const useLiquidityAddStore: typeof import('./modules/ModuleLiquidity/store/add')['useLiquidityAddStore']
-  const useLiquidityRmSelectionStore: typeof import('./modules/ModuleLiquidity/store/remove')['useLiquidityRmSelectionStore']
+  const useLiquidityRmSelectionStore: typeof import('./store/liquidity-rm-selection')['useLiquidityRmSelectionStore']
   const useLiquidityRmStore: typeof import('./modules/ModuleLiquidity/store/remove')['useLiquidityRmStore']
   const useLocalStorage: typeof import('@vueuse/core')['useLocalStorage']
   const useMagicKeys: typeof import('@vueuse/core')['useMagicKeys']
@@ -456,7 +456,7 @@ declare module '@vue/runtime-core' {
     readonly useKeyModifier: UnwrapRef<typeof import('@vueuse/core')['useKeyModifier']>
     readonly useLastChanged: UnwrapRef<typeof import('@vueuse/core')['useLastChanged']>
     readonly useLiquidityAddStore: UnwrapRef<typeof import('./modules/ModuleLiquidity/store/add')['useLiquidityAddStore']>
-    readonly useLiquidityRmSelectionStore: UnwrapRef<typeof import('./modules/ModuleLiquidity/store/remove')['useLiquidityRmSelectionStore']>
+    readonly useLiquidityRmSelectionStore: UnwrapRef<typeof import('./store/liquidity-rm-selection')['useLiquidityRmSelectionStore']>
     readonly useLiquidityRmStore: UnwrapRef<typeof import('./modules/ModuleLiquidity/store/remove')['useLiquidityRmStore']>
     readonly useLocalStorage: UnwrapRef<typeof import('@vueuse/core')['useLocalStorage']>
     readonly useMagicKeys: UnwrapRef<typeof import('@vueuse/core')['useMagicKeys']>
