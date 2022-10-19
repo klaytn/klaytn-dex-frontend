@@ -58,6 +58,19 @@ function composeSymbol(sym: MaybeRef<MaskSymbol>): Except<MaskSymbol, 'delimiter
   return { position, str: position === 'left' ? str + delimiter : delimiter + str }
 }
 
+function trimTrailingZerosWithPeriod(input: string): string {
+  let firstNonZeroIndex: undefined | number
+  let periodIndex: undefined | number
+  for (let i = input.length - 1, char = input[i]; i > 0; i--, char = input[i]) {
+    if (char === '.') {
+      periodIndex = i
+      break
+    }
+    if (!firstNonZeroIndex && char !== '0') firstNonZeroIndex = i
+  }
+  return periodIndex ? (firstNonZeroIndex ? input.slice(0, firstNonZeroIndex + 1) : input.slice(0, periodIndex)) : input
+}
+
 export function formatCurrency({
   amount,
   symbol,
@@ -68,7 +81,8 @@ export function formatCurrency({
   decimals?: number
 }) {
   const rounded = typeof decimals === 'number' ? new BigNumber(amount).toFixed(decimals) : amount
-  const num = formatNumberWithCommas(rounded)
+  let num = formatNumberWithCommas(rounded)
+  num = trimTrailingZerosWithPeriod(num)
   if (symbol) {
     const sym = composeSymbol(symbol)
     return sym.position === 'left' ? sym.str + num : num + sym.str
@@ -266,8 +280,22 @@ if (import.meta.vitest) {
         },
         '$17,515,543,584,957,517,221,508.27',
       ],
+      [{ amount: 10, decimals: 2 }, '10'],
     ])('Formats %o into %s', (input, output) => {
       expect(formatCurrency(input)).toEqual(output)
+    })
+  })
+
+  describe('Trim trailing zeros', () => {
+    test.each([
+      ['0.0', '0'],
+      ['12230000', '12230000'],
+      ['1.2000', '1.2'],
+      ['0', '0'],
+      ['7.001', '7.001'],
+      ['1.00000', '1'],
+    ])('%o is trimmed into %o', (a, b) => {
+      expect(trimTrailingZerosWithPeriod(a)).toEqual(b)
     })
   })
 }
