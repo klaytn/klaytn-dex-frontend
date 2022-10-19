@@ -8,7 +8,8 @@ import HeaderMenu from '@/components/HeaderMenu.vue'
 const TheHeaderDexToken = defineAsyncComponent(() => import('@/components/TheHeaderDexToken.vue'))
 const TheWalletConnectModal = defineAsyncComponent(() => import('@/components/TheWalletConnectModal.vue'))
 const TheHeaderWallet = defineAsyncComponent(() => import('@/components/TheHeaderWallet.vue'))
-const DexInitGuard = defineAsyncComponent(() => import('@/components/DexInitGuard.vue'))
+const TheDexInitGuard = defineAsyncComponent(() => import('@/components/TheDexInitGuard.vue'))
+const TheNegativeNativeTokenGuard = defineAsyncComponent(() => import('@/components/TheNegativeNativeTokenGuard.vue'))
 
 const { t } = useI18n()
 
@@ -47,8 +48,9 @@ const menu = computed<HeaderMenuItem[]>(() => {
 </script>
 
 <template>
-  <DexInitGuard>
+  <TheDexInitGuard>
     <TheWalletConnectModal />
+    <TheNegativeNativeTokenGuard />
 
     <main class="layout">
       <header class="relative">
@@ -78,7 +80,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
 
       <RouterView />
     </main>
-  </DexInitGuard>
+  </TheDexInitGuard>
 </template>
 
 <style scoped lang="scss">
