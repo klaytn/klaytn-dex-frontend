@@ -77,9 +77,10 @@ export function useMappedPools(props: {
 
       const rewardRate = new BigNumber(pool.rewardRate)
       const totalRewardPricePerYear = rewardRate.times(BLOCKS_PER_YEAR).times(rewardTokenPrice)
-      const annualPercentageRate = (
-        !totalStaked.isZero() ? totalRewardPricePerYear.div(totalStaked).times(100) : new BigNumber(0)
-      ) as PercentageRate
+      // If there is no total staked, we assume what APR will be if liquidity is equal to 1
+      const annualPercentageRate = totalRewardPricePerYear
+        .div(!totalStaked.isZero() ? totalStaked : new BigNumber(1))
+        .times(100) as PercentageRate
 
       const createdAtBlock = Number(pool.createdAtBlock)
 
