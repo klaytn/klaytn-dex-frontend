@@ -23,11 +23,10 @@ const feeParsed = computed(() =>
       v-for="({ fee, path }, i) in feeParsed"
       :key="i"
     >
-      <CurrencyFormatTruncate
+      <CurrencyFormat
         :amount="fee.quotient"
-        :decimals="fee.currency.decimals"
+        :decimals="4"
         :symbol="fee.currency.symbol"
-        max-width="65"
         class="place-self-end"
       />
 
