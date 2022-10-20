@@ -1,4 +1,5 @@
 import { Address, CurrencySymbol, WeiAsToken } from '@/core'
+import { ApolloClientId } from '@/types'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { REFETCH_PAIRS_INTERVAL } from './const'
@@ -48,7 +49,7 @@ export function usePairsQuery() {
     `,
     {},
     {
-      clientId: 'exchange',
+      clientId: ApolloClientId.Exchange,
       pollInterval: REFETCH_PAIRS_INTERVAL,
     },
   )

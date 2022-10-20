@@ -5,7 +5,7 @@ import { Trade, SwapPure, Wei, Percent, TokenAmount, TokenImpl, Token } from '@/
 import {
   AmountsExactIn,
   AmountsExactOut,
-  AmountsInOut,
+  GetAmountsReturn,
   applySlippageForExactInput,
   applySlippageForExactOutput,
   parseSlippage,
@@ -20,7 +20,7 @@ export interface GetAmountsProps {
   trade: Trade
 }
 
-export interface GetAmountsResult extends AmountsInOut {
+export interface GetAmountsResult extends GetAmountsReturn {
   mode: 'exact-in' | 'exact-out'
 }
 
