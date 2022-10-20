@@ -2,7 +2,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { Sorting } from '../types'
 
 export const useStakingStore = defineStore('staking', () => {
-  const stateFactory = () => ({ stakedOnly: false, searchQuery: '', sorting: Sorting.Hot })
+  const stateFactory = () => ({ stakedOnly: false, searchQuery: '', sorting: Sorting.Hot as Sorting })
 
   const state = ref(stateFactory())
 
