@@ -11,7 +11,7 @@ export function useEnableState(props: {
   const { notify } = useNotify()
 
   const checkAllowanceScope = useParamScope(
-    computed(() => {
+    () => {
       const activeDex = dexStore.active
       if (activeDex.kind !== 'named' || !(unref(props.active) ?? false)) return null
       const dex = activeDex.dex()
@@ -21,8 +21,8 @@ export function useEnableState(props: {
         key: `dex-${activeDex.wallet}-${spender}-${contract}`,
         payload: { spender, contract, dex },
       }
-    }),
-    ({ spender, contract, dex }) => {
+    },
+    ({ payload: { spender, contract, dex } }) => {
       const { state, run: touch } = useTask(() => dex.agent.getAllowance(contract, spender), { immediate: true })
       usePromiseLog(state, 'allowance')
       useNotifyOnError(state, notify, 'Failed to get allowance')

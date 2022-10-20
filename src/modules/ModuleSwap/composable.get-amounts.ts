@@ -59,7 +59,12 @@ export function useSwapAmounts(props: Ref<null | GetAmountsProps>) {
         }
       )
     }),
-    ({ props, dex: { swap } }) => {
+    ({
+      payload: {
+        props,
+        dex: { swap },
+      },
+    }) => {
       debug('setting amounts: %o', props)
 
       const { state, run } = useTask(() => getAmounts({ ...props, swap }), { immediate: true })
