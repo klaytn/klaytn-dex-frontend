@@ -9,6 +9,7 @@ const props = defineProps<{
   earned: BigNumber | null
   totalStakedUsd: BigNumber | null
   annualPercentageRate: BigNumber | null
+  startsIn: number
   endsIn: number
 }>()
 
@@ -18,6 +19,7 @@ const aprRounded = computed(() => props.annualPercentageRate?.decimalPlaces(2, B
 
 const totalRounded = computed(() => props.totalStakedUsd?.decimalPlaces(0, BigNumber.ROUND_UP))
 
+const nonNegativeStartsIn = computed(() => Math.max(0, props.startsIn))
 const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
 </script>
 
@@ -95,7 +97,23 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
       </div>
     </div>
 
-    <div>
+    <div v-if="nonNegativeStartsIn">
+      <div :class="$style.title">
+        Starts in
+      </div>
+      <div
+        :class="$style.value"
+        class="flex items-center"
+      >
+        <span class="mr-2">
+          <CurrencyFormat :amount="nonNegativeStartsIn" />
+        </span>
+
+        <KlayIconClock />
+      </div>
+    </div>
+
+    <div v-else>
       <div :class="$style.title">
         Ends in
       </div>

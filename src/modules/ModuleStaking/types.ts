@@ -23,6 +23,7 @@ export interface Pool {
   createdAtBlock: number
   totalStaked: AmountInUSD
   annualPercentageRate: PercentageRate | null
+  startBlock: number
   endBlock: number
   active: boolean
 }
