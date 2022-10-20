@@ -15,7 +15,7 @@ export const useFarmingStore = defineStore('farming', () => {
   }
 
   return {
-    ...toRefs(state),
+    ...toRefs(toReactive(state)),
     reset,
     setFilterByPairName,
   }

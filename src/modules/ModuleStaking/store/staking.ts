@@ -10,7 +10,7 @@ export const useStakingStore = defineStore('staking', () => {
     state.value = stateFactory()
   }
 
-  return { ...toRefs(state), reset }
+  return { ...toRefs(toReactive(state)), reset }
 })
 
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useStakingStore, import.meta.hot))
