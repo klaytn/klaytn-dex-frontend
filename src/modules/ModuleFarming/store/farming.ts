@@ -2,18 +2,21 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { Sorting } from '../types'
 
 export const useFarmingStore = defineStore('farming', () => {
-  const stakedOnly = ref(false)
-  const searchQuery = ref('')
-  const sorting = ref<Sorting>(Sorting.Hot)
+  const stateFactory = () => ({ stakedOnly: false, searchQuery: '', sorting: Sorting.Hot as Sorting })
+
+  const state = ref(stateFactory())
+
+  function reset() {
+    state.value = stateFactory()
+  }
 
   function setFilterByPairName(name: string) {
-    searchQuery.value = name
+    state.value.searchQuery = name
   }
 
   return {
-    stakedOnly,
-    searchQuery,
-    sorting,
+    ...toRefs(toReactive(state)),
+    reset,
     setFilterByPairName,
   }
 })
