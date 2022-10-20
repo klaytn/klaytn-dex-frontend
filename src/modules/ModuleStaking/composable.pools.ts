@@ -83,6 +83,7 @@ export function useMappedPools(props: {
 
       const createdAtBlock = Number(pool.createdAtBlock)
 
+      const startBlock = Number(pool.startBlock)
       const endBlock = Number(pool.endBlock)
       const active = (roundedBlockNumber.value ?? 0) <= endBlock
 
@@ -96,6 +97,7 @@ export function useMappedPools(props: {
         createdAtBlock,
         annualPercentageRate,
         totalStaked,
+        startBlock,
         endBlock,
         active,
       })

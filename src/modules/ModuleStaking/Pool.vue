@@ -49,6 +49,14 @@ const balance = useBalance(or(modalOpen, showRoiCalculator), {
   decimals: props.pool.stakeToken.decimals,
 })
 
+const startsIn = computedEager<number>(() => {
+  const {
+    pool: { startBlock },
+    blockNumber,
+  } = props
+  return blockNumber ? startBlock - blockNumber : 0
+})
+
 const endsIn = computedEager<number>(() => {
   const {
     pool: { endBlock },
@@ -157,6 +165,7 @@ function openRoiCalculator() {
         :earned="pool.earned"
         :total-staked-usd="pool.totalStaked"
         :annual-percentage-rate="pool.annualPercentageRate"
+        :starts-in="startsIn"
         :ends-in="endsIn"
         @click:roi-calculator="openRoiCalculator"
       />
