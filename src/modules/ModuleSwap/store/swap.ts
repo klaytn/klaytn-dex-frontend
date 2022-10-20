@@ -10,6 +10,7 @@ import {
   TokenAmount,
   LP_TOKEN_DECIMALS,
   Trade,
+  POOL_COMMISSION,
 } from '@/core'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
@@ -34,10 +35,11 @@ import { useControlledComposedKey } from '@/utils/composable.controlled-composed
 import { usePairsQuery } from '../query.pairs'
 import { numberToPercent } from '@/utils/common'
 import { match, P } from 'ts-pattern'
+import { computeFeesByAmounts, FeeItem } from '../utils'
 
 const SLIPPAGE_PRECISION = 5
 
-const debugModule = Debug('swap-store')
+const dbg = Debug('swap-store')
 
 export interface SwapPropsLocal {
   trade: Trade
@@ -287,7 +289,7 @@ export const useSwapStore = defineStore('swap', () => {
         const { amount, amountFor } = result
         const tokenData = selection.tokens[amountFor]
         if (tokenData) {
-          debugModule('Setting computed amount for %o: %o', amountFor, amount.asBigInt)
+          dbg('Setting computed amount for %o: %o', amountFor, amount.asBigInt)
           const raw = amount.decimals(tokenData)
           setEstimated(raw.toFixed(5) as WeiAsToken)
         }
@@ -308,21 +310,42 @@ export const useSwapStore = defineStore('swap', () => {
     }),
   )
 
+  const feeArray = computed((): null | FeeItem[] =>
+    match(gotAmountsResult.value)
+      .with(
+        {
+          amountsResult: { amounts: P.select('amounts') },
+          props: { trade: { route: { path: P.select('path') } } },
+        },
+        ({ amounts, path }) =>
+          computeFeesByAmounts({
+            amounts,
+            path,
+            commission: POOL_COMMISSION,
+          }),
+      )
+      .otherwise(() => null),
+  )
+
   // #endregion
 
   // #region Action
 
-  const propsForSwap = computed<null | SwapPropsLocal>(() => {
-    const slipResult = amountsWithSlippage.value
-    if (!slipResult) return null
-
-    const {
-      adjusted: amounts,
-      props: { trade },
-    } = slipResult
-
-    return { trade, amounts, expertMode: expertMode.value }
-  })
+  const propsForSwap = computed<null | SwapPropsLocal>(() =>
+    match(amountsWithSlippage.value)
+      .with(
+        {
+          adjusted: P.select('amounts'),
+          props: { trade: P.select('trade') },
+        },
+        ({ amounts, trade }) => ({
+          trade,
+          amounts,
+          expertMode: expertMode.value,
+        }),
+      )
+      .otherwise(() => null),
+  )
 
   const {
     prepare,
@@ -392,6 +415,7 @@ export const useSwapStore = defineStore('swap', () => {
     gotAmountsResult,
     estimatedFor: estimatedForAfterAmountsComputation,
     slippageDataParsed,
+    feeArray,
 
     prepare,
     swap,

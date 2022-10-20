@@ -3,9 +3,10 @@ import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import cssRows from '../ModuleTradeShared/rows.module.scss.types'
 import DetailsRowSlippage from './DetailsRowSlippage.vue'
+import DetailsRowFee from './DetailsRowFee.vue'
 
 const store = useSwapStore()
-const { finalRates: rates, symbols, trade, priceImpact, slippageDataParsed, tokens } = storeToRefs(store)
+const { finalRates: rates, symbols, trade, priceImpact, slippageDataParsed, feeArray: fee } = storeToRefs(store)
 
 const bothSymbols = computed(() => {
   const { tokenA, tokenB } = symbols.value || {}
@@ -34,6 +35,11 @@ const formattedPriceImpact = computed(() => {
             :symbols="bothSymbols"
           />
 
+          <DetailsRowSlippage
+            v-if="slippageDataParsed"
+            :data="slippageDataParsed"
+          />
+
           <div :class="[cssRows.rowSm, cssRows.rowSmDimmed]">
             <span>Price Impact</span>
             <span>
@@ -48,10 +54,9 @@ const formattedPriceImpact = computed(() => {
             </span>
           </div>
 
-          <DetailsRowSlippage
-            v-if="slippageDataParsed"
-            :data="slippageDataParsed"
-            dimmed
+          <DetailsRowFee
+            v-if="fee"
+            :data="fee"
           />
         </div>
       </template>

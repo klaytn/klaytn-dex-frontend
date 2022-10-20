@@ -86,6 +86,10 @@ export interface AmountsInOut {
   amountOut: Wei
 }
 
+export interface GetAmountsReturn extends AmountsInOut {
+  amounts: Wei[]
+}
+
 export function applySlippageForExactInput(amountOut: Wei, slippage: SlippagePercent): { amountOutMin: Wei } {
   const adjusted = ONE.plus(slippage).invert().multipliedBy(new Fraction(amountOut.asBigInt)).quotient.decimalPlaces(0)
 
@@ -102,11 +106,11 @@ export function applySlippageForExactOutput(amountIn: Wei, slippage: SlippagePer
  * Consists of amounts on each swap stage during the path.
  * We need only the first (input) and the last (output).
  */
-function amountsArrayToWeiInOut(array: (string | BigNumber | EthersBigNumber)[]): { amountIn: Wei; amountOut: Wei } {
+function amountsArrayToWeiInOut(array: Wei[]): { amountIn: Wei; amountOut: Wei } {
   const first = array.at(0)
   const last = array.at(-1)
   invariant(first && last)
-  return { amountIn: new Wei(first), amountOut: new Wei(last) }
+  return { amountIn: first, amountOut: last }
 }
 
 export class SwapPure {
@@ -120,16 +124,18 @@ export class SwapPure {
     return this.#contracts
   }
 
-  public async getAmounts(props: GetAmountsExactInputProps | GetAmountsExactOutputProps): Promise<AmountsInOut> {
+  public async getAmounts(props: GetAmountsExactInputProps | GetAmountsExactOutputProps): Promise<GetAmountsReturn> {
     const router = await this.routerContract()
     const path = props.trade.routePath()
 
-    const amountsArray =
+    const amountsArrayRaw =
       props.mode === 'exact-in'
         ? await router.getAmountsOut([props.amountIn.asStr, path]).call()
         : await router.getAmountsIn([props.amountOut.asStr, path]).call()
 
-    return amountsArrayToWeiInOut(amountsArray)
+    const amounts = amountsArrayRaw.map((x) => new Wei(x))
+
+    return { amounts, ...amountsArrayToWeiInOut(amounts) }
   }
 
   private async routerContract() {
@@ -270,7 +276,7 @@ if (import.meta.vitest) {
       [['1', '2'], { amountIn: new Wei(1), amountOut: new Wei(2) }],
       [['1', '2', '3', '4', '5'], { amountIn: new Wei(1), amountOut: new Wei(5) }],
     ])('Amounts from %o extracted to %O', (array, result) => {
-      expect(serde(amountsArrayToWeiInOut(array))).toEqual(serde(result))
+      expect(serde(amountsArrayToWeiInOut(array.map((x) => new Wei(x))))).toEqual(serde(result))
     })
   })
 }
