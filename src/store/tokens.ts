@@ -61,7 +61,7 @@ function useImportedTokens() {
       key: dexStore.anyDex.key,
       payload: dexStore.anyDex.dex(),
     }),
-    (dex) => {
+    ({ payload: dex }) => {
       const { state, run } = useTask(() => loadTokens(dex, tokens.value), { immediate: true })
       usePromiseLog(state, 'imported-tokens')
       useErrorRetry(state, run)
@@ -102,10 +102,8 @@ function useUserBalance(tokens: Ref<null | Address[]>) {
   const dexStore = useDexStore()
 
   const fetchScope = useParamScope(
-    computed(
-      () => !!tokens.value && dexStore.active.kind === 'named' && { key: 'active', payload: dexStore.active.dex() },
-    ),
-    (dex) => {
+    () => !!tokens.value && dexStore.active.kind === 'named' && { key: 'active', payload: dexStore.active.dex() },
+    ({ payload: dex }) => {
       const { state, run } = useTask<Map<Address, Wei>>(() => loadBalances(dex, tokens.value ?? []), {
         immediate: true,
       })
