@@ -1,5 +1,5 @@
 import { Address, Wei, WeiAsToken } from '@/core'
-import { JSON_SERIALIZER } from '@/utils/common'
+import { JSON_SERIALIZER } from '@/utils/json-serializer'
 import { emptyPair, buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
 import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'

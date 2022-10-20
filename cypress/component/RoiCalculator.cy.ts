@@ -8,8 +8,9 @@ const getInput = () => cy.get('input' + testid('input-staked'))
 const getInputAltUnits = () => cy.get(testid('input-staked-alt-units'))
 const getSwitchBtn = () => cy.get(testid('switch-units'))
 const getReceive = () => cy.get('input' + testid('receive-value'))
+const getReceiveAltUnits = () => cy.get(testid('receive-value-alt-units'))
 
-function mountFactory() {
+function mountFactory(props?: { stakeTokenPrice?: BigNumber }) {
   return cy.mount({
     setup() {
       return {
@@ -19,7 +20,7 @@ function mountFactory() {
           type: 'farming',
           staked: new BigNumber('10'),
           balance: new BigNumber('1754.807954103219468827'),
-          stakeTokenPrice: new BigNumber(200),
+          stakeTokenPrice: props?.stakeTokenPrice ?? new BigNumber(200),
           stakeTokenDecimals: 18,
           rewardTokenDecimals: 18,
           stakeTokenSymbol: 'VEN-ARS',
@@ -75,7 +76,7 @@ describe('RoiCalculator', () => {
     mountFactory()
 
     getInput().type('123').blur().should('have.value', '$10,123')
-    getReceive().should('have.value', '$1,047.91900973590953494249')
+    getReceive().should('have.value', '$1,047.92')
   })
 
   it('when "$10" is clicked, then value is set in dollars', () => {
@@ -90,13 +91,36 @@ describe('RoiCalculator', () => {
 
     getInput().should('have.value', '$10')
     getInputAltUnits().should('have.text', '0.05 VEN-ARS')
-    getReceive().should('have.value', '$1.0351862192392665563')
+    getReceive().should('have.value', '$1.04')
 
     getSwitchBtn().click()
 
     getInput().should('have.value', '0.05 VEN-ARS')
     getInputAltUnits().should('have.text', '$10')
-    getReceive().should('have.value', '0.0051759310961963327815 DEX')
+    getReceive().should('have.value', '0.005175931096196333 DEX')
+  })
+
+  it('Amounts precision is preserved on switch', () => {
+    mountFactory({ stakeTokenPrice: new BigNumber('6.21392439956') })
+
+    const USD = '$10'
+    const USD_RECEIVE = '$1.04'
+    const TOKEN = '1.609288970543009366 VEN-ARS'
+    const TOKEN_RECEIVE = '0.166591376507986927 DEX'
+
+    const assertValues = (init = true) => {
+      getInput().should('have.value', init ? USD : TOKEN)
+      getInputAltUnits().should('have.text', init ? TOKEN : USD)
+
+      getReceive().should('have.value', init ? USD_RECEIVE : TOKEN_RECEIVE)
+      getReceiveAltUnits().should('have.text', init ? TOKEN_RECEIVE : USD_RECEIVE)
+    }
+
+    assertValues()
+    getSwitchBtn().click()
+    assertValues(false)
+    getSwitchBtn().click()
+    assertValues()
   })
 
   it('assert value setting by clicking on preset amounts')

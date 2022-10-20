@@ -101,7 +101,7 @@ const stakeValueInAnotherUnits = computed(() => {
 const formattedStakeValueInAnotherUnits = useFormattedCurrency({
   amount: stakeValueInAnotherUnits,
   symbol: useMaskSymbolOrUSD(stakeTokenSymbolAsMask, true),
-  // decimals: stakeTokenDecimals
+  decimals: computed(() => (stakeUnits.value === StakeUnits.tokens ? CURRENCY_USD.decimals : props.stakeTokenDecimals)),
 })
 
 const useReceiveValue = (stake: Ref<BigNumber>) =>
@@ -117,7 +117,7 @@ const receiveValue = useReceiveValue(parsedStakeValue)
 const formattedReceiveValue = useFormattedCurrency({
   amount: receiveValue,
   symbol: useMaskSymbolOrUSD(rewardTokenSymbolAsMask),
-  // decimals: rewardTokenDecimals
+  decimals: computed(() => (stakeUnits.value === 'USD' ? CURRENCY_USD.decimals : props.rewardTokenDecimals)),
 })
 
 const receiveValueInAnotherUnits = useReceiveValue(stakeValueInAnotherUnits)
@@ -125,7 +125,7 @@ const receiveValueInAnotherUnits = useReceiveValue(stakeValueInAnotherUnits)
 const formattedReceiveValueInAnotherUnits = useFormattedCurrency({
   amount: receiveValueInAnotherUnits,
   symbol: useMaskSymbolOrUSD(rewardTokenSymbolAsMask, true),
-  // decimals: rewardTokenDecimals
+  decimals: computed(() => (stakeUnits.value === 'USD' ? props.rewardTokenDecimals : CURRENCY_USD.decimals)),
 })
 
 // #endregion
@@ -251,7 +251,15 @@ const detailsList = computed(() => {
           </div>
 
           <div class="space-y-2">
-            <span class="label"> You will receive (APY = {{ apy.toFixed(2) }}%) </span>
+            <span class="flex label">
+              You will receive (APY =
+              <CurrencyFormatTruncate
+                class="ml-1"
+                :amount="apy"
+                :decimals="2"
+                symbol="%"
+              />)
+            </span>
             <InputCurrencyTemplate bottom>
               <template #input>
                 <input
@@ -262,7 +270,10 @@ const detailsList = computed(() => {
               </template>
 
               <template #bottom-left>
-                <span class="input-alt-units">
+                <span
+                  class="input-alt-units"
+                  data-testid="receive-value-alt-units"
+                >
                   {{ formattedReceiveValueInAnotherUnits }}
                 </span>
               </template>

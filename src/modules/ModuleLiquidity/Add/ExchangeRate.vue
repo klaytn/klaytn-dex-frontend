@@ -57,33 +57,33 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(addrs.value)))
 
     <div
       v-if="liquidityStore.isEmptyPair"
-      class="warning-text"
+      class="empty-pair-alert p-4 space-x-2 rounded-lg flex items-start"
     >
-      <KlayIconImportant />
-      <span>Pair doesn't exist</span>
+      <div>
+        <KlayIconImportant class="warning-icon" />
+      </div>
+      <p class="warning-text">
+        Pair doesn't exist. You will create one. Its rates will be equal to the rates you set.
+      </p>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+@use '@/styles/vars';
+
+.empty-pair-alert {
+  border: 1px solid vars.$gray5;
+}
+
+.warning-icon {
+  color: vars.$orange;
+  font-size: 15px;
+}
+
 .warning-text {
-  margin-top: 16px;
-  font-style: normal;
-  font-weight: 700;
-  font-size: 14px;
-  line-height: 180%;
-  color: #2d2926;
-  margin-right: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  & .svg-icon {
-    height: 20px;
-  }
-
-  & span {
-    margin-left: 5px;
-  }
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 140%;
 }
 </style>

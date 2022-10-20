@@ -8,9 +8,10 @@ defineProps<{
   title?: string
   description?: string
   error?: unknown
+  action?: string
 }>()
 
-const emit = defineEmits(['click:close'])
+const emit = defineEmits(['click:close', 'click:action'])
 </script>
 
 <template>
@@ -46,7 +47,7 @@ const emit = defineEmits(['click:close'])
     </div>
 
     <div
-      v-if="description || !!$slots.description"
+      v-if="description || $slots.description"
       class="toast-desc"
     >
       <slot name="description">
@@ -63,6 +64,17 @@ const emit = defineEmits(['click:close'])
         </code>
       </div>
     </template>
+
+    <div v-if="action || $slots.action">
+      <KlayButton
+        size="sm"
+        @click="emit('click:action')"
+      >
+        <slot name="action">
+          {{ action }}
+        </slot>
+      </KlayButton>
+    </div>
   </div>
 </template>
 
@@ -103,7 +115,9 @@ const emit = defineEmits(['click:close'])
 }
 
 .toast-desc {
-  font-size: 14px;
+  font-size: 12px;
   color: vars.$gray2;
+  font-weight: 500;
+  line-height: 130%;
 }
 </style>

@@ -8,7 +8,8 @@ import invariant from 'tiny-invariant'
 import { Opaque, Simplify } from 'type-fest'
 import BigNumber from 'bignumber.js'
 import { BigNumber as EthersBigNumber } from 'ethers'
-import { MAX_UINT256 } from '../const'
+import { isNativeToken, MAX_UINT256 } from '../const'
+import { match } from 'ts-pattern'
 
 const ZERO = new Fraction(0)
 const ONE = new Fraction(1)
@@ -49,28 +50,17 @@ export interface AmountsExactOut {
   amountOut: Wei
 }
 
-export interface SwapExactAForB<A extends string, B extends string> extends AmountsExactIn {
-  mode: `exact-${A}-for-${B}`
+export interface SwapWithExactInput extends AmountsExactIn {
+  mode: `exact-in`
 }
 
-export interface SwapAForExactB<A extends string, B extends string> extends AmountsExactOut {
-  mode: `${A}-for-exact-${B}`
+export interface SwapWithExactOutput extends AmountsExactOut {
+  mode: `exact-out`
 }
-
-export type SwapExactForAndForExact<A extends string, B extends string> = SwapAForExactB<A, B> | SwapExactAForB<A, B>
 
 export type SwapProps = SwapPropsBase & SwapPropsAmounts
 
-type SwapPropsAmounts =
-  | SwapExactForAndForExact<'tokens', 'tokens'>
-  | SwapExactForAndForExact<'tokens', 'eth'>
-  | SwapExactForAndForExact<'eth', 'tokens'>
-
-function isSwapExactInput<A extends string, B extends string>(
-  props: SwapExactForAndForExact<A, B>,
-): props is SwapExactAForB<A, B> {
-  return props.mode.startsWith('exact-')
-}
+type SwapPropsAmounts = SwapWithExactInput | SwapWithExactOutput
 
 export interface SwapResult {
   fee: Wei
@@ -96,6 +86,10 @@ export interface AmountsInOut {
   amountOut: Wei
 }
 
+export interface GetAmountsReturn extends AmountsInOut {
+  amounts: Wei[]
+}
+
 export function applySlippageForExactInput(amountOut: Wei, slippage: SlippagePercent): { amountOutMin: Wei } {
   const adjusted = ONE.plus(slippage).invert().multipliedBy(new Fraction(amountOut.asBigInt)).quotient.decimalPlaces(0)
 
@@ -108,9 +102,15 @@ export function applySlippageForExactOutput(amountIn: Wei, slippage: SlippagePer
   return { amountInMax: new Wei(adjusted) }
 }
 
-function amountsTupleToWei(tuple: (string | BigNumber | EthersBigNumber)[]): { amountIn: Wei; amountOut: Wei } {
-  const [a, b] = tuple
-  return { amountIn: new Wei(a), amountOut: new Wei(b) }
+/**
+ * Consists of amounts on each swap stage during the path.
+ * We need only the first (input) and the last (output).
+ */
+function amountsArrayToWeiInOut(array: Wei[]): { amountIn: Wei; amountOut: Wei } {
+  const first = array.at(0)
+  const last = array.at(-1)
+  invariant(first && last)
+  return { amountIn: first, amountOut: last }
 }
 
 export class SwapPure {
@@ -124,16 +124,18 @@ export class SwapPure {
     return this.#contracts
   }
 
-  public async getAmounts(props: GetAmountsExactInputProps | GetAmountsExactOutputProps): Promise<AmountsInOut> {
+  public async getAmounts(props: GetAmountsExactInputProps | GetAmountsExactOutputProps): Promise<GetAmountsReturn> {
     const router = await this.routerContract()
     const path = props.trade.routePath()
 
-    const raw =
+    const amountsArrayRaw =
       props.mode === 'exact-in'
         ? await router.getAmountsOut([props.amountIn.asStr, path]).call()
         : await router.getAmountsIn([props.amountOut.asStr, path]).call()
 
-    return amountsTupleToWei(raw)
+    const amounts = amountsArrayRaw.map((x) => new Wei(x))
+
+    return { amounts, ...amountsArrayToWeiInOut(amounts) }
   }
 
   private async routerContract() {
@@ -164,63 +166,50 @@ export class Swap extends SwapPure {
       from: address,
     }
 
-    let tx: TransactionObject<unknown>
+    const isInputTokenNative = isNativeToken(props.trade.route.input.address)
+    const isOutputTokenNative = isNativeToken(props.trade.route.output.address)
 
-    switch (props.mode) {
-      case 'exact-tokens-for-tokens': {
-        tx = router.swapExactTokensForTokens(
-          [props.amountIn.asStr, props.amountOutMin.asStr, path, address, deadline],
-          baseOverrides,
-        )
-
-        break
-      }
-      case 'tokens-for-exact-tokens': {
-        tx = router.swapTokensForExactTokens(
-          [props.amountInMax.asStr, props.amountOut.asStr, path, address, deadline],
-          baseOverrides,
-        )
-
-        break
-      }
-      case 'exact-tokens-for-eth': {
-        tx = router.swapExactTokensForKLAY(
-          [props.amountIn.asStr, props.amountOutMin.asStr, path, address, deadline],
-          baseOverrides,
-        )
-
-        break
-      }
-      case 'exact-eth-for-tokens': {
-        tx = router.swapExactKLAYForTokens([props.amountOutMin.asStr, path, address, deadline], {
-          ...baseOverrides,
-          value: props.amountIn,
-        })
-
-        break
-      }
-      case 'eth-for-exact-tokens': {
-        tx = router.swapKLAYForExactTokens([props.amountOut.asStr, path, address, deadline], {
-          ...baseOverrides,
-          value: props.amountInMax,
-        })
-
-        break
-      }
-      case 'tokens-for-exact-eth': {
-        tx = router.swapTokensForExactKLAY(
-          [props.amountOut.asStr, props.amountInMax.asStr, path, address, deadline],
-          baseOverrides,
-        )
-
-        break
-      }
-
-      default: {
-        const badProps: never = props
-        throw new Error(`Bad props: ${String(badProps)}`)
-      }
-    }
+    const tx: TransactionObject<unknown> = match([isInputTokenNative, isOutputTokenNative] as [boolean, boolean])
+      .with([false, false], () =>
+        match(props)
+          .with({ mode: 'exact-in' }, ({ amountIn, amountOutMin }) =>
+            router.swapExactTokensForTokens([amountIn.asStr, amountOutMin.asStr, path, address, deadline]),
+          )
+          .with({ mode: 'exact-out' }, ({ amountInMax, amountOut }) =>
+            router.swapTokensForExactTokens([amountOut.asStr, amountInMax.asStr, path, address, deadline]),
+          )
+          .exhaustive(),
+      )
+      .with([false, true], () =>
+        match(props)
+          .with({ mode: 'exact-in' }, ({ amountIn, amountOutMin }) =>
+            router.swapExactTokensForKLAY([amountIn.asStr, amountOutMin.asStr, path, address, deadline]),
+          )
+          .with({ mode: 'exact-out' }, ({ amountInMax, amountOut }) =>
+            router.swapTokensForExactKLAY([amountOut.asStr, amountInMax.asStr, path, address, deadline]),
+          )
+          .exhaustive(),
+      )
+      .with([true, false], () =>
+        match(props)
+          .with({ mode: 'exact-in' }, ({ amountIn, amountOutMin }) =>
+            router.swapExactKLAYForTokens([amountOutMin.asStr, path, address, deadline], {
+              ...baseOverrides,
+              value: amountIn,
+            }),
+          )
+          .with({ mode: 'exact-out' }, ({ amountInMax, amountOut }) =>
+            router.swapKLAYForExactTokens([amountOut.asStr, path, address, deadline], {
+              ...baseOverrides,
+              value: amountInMax,
+            }),
+          )
+          .exhaustive(),
+      )
+      .with([true, true], () => {
+        throw new Error('unreachable')
+      })
+      .exhaustive()
 
     const { gas, send } = await tx.estimateAndPrepareSend()
     const fee = computeTransactionFee(gasPrice, gas)
@@ -233,7 +222,7 @@ export class Swap extends SwapPure {
 
     const amountForApprove = props.expertMode
       ? new Wei(MAX_UINT256)
-      : isSwapExactInput(props)
+      : props.mode === 'exact-in'
       ? props.amountIn
       : props.amountInMax
 
@@ -276,6 +265,18 @@ if (import.meta.vitest) {
           "amountInMax": "1",
         }
       `)
+    })
+  })
+
+  describe('Parse amounts array', () => {
+    const serde = (x: any) => JSON.parse(JSON.stringify(x))
+
+    test.each([
+      [['1', '2', '3'], { amountIn: new Wei(1), amountOut: new Wei(3) }],
+      [['1', '2'], { amountIn: new Wei(1), amountOut: new Wei(2) }],
+      [['1', '2', '3', '4', '5'], { amountIn: new Wei(1), amountOut: new Wei(5) }],
+    ])('Amounts from %o extracted to %O', (array, result) => {
+      expect(serde(amountsArrayToWeiInOut(array.map((x) => new Wei(x))))).toEqual(serde(result))
     })
   })
 }

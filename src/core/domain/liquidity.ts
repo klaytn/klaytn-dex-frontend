@@ -267,7 +267,7 @@ if (import.meta.vitest) {
       ).toMatchInlineSnapshot(`
         {
           "eth": {
-            "addr": "0xae3a8a1D877a446b22249D8676AFeB16F056B44e",
+            "addr": "0x73365f8f27de98d7634be67a167f229b32e7bf6c",
             "amount": "123",
           },
           "token": {
@@ -287,7 +287,7 @@ if (import.meta.vitest) {
       ).toMatchInlineSnapshot(`
         {
           "eth": {
-            "addr": "0xae3a8a1D877a446b22249D8676AFeB16F056B44e",
+            "addr": "0x73365f8f27de98d7634be67a167f229b32e7bf6c",
             "amount": "321",
           },
           "token": {
