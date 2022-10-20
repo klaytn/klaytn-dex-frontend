@@ -67,20 +67,25 @@ export function useMappedPools(props: {
       const stakeTokenFromTokensQuery = tokens.find((token) => token.id === pool.stakeToken.id)
       const rewardTokenFromTokensQuery = tokens.find((token) => token.id === pool.rewardToken.id)
 
-      if (!stakeTokenFromTokensQuery || !rewardTokenFromTokensQuery) continue
-
-      const stakeTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
-      const rewardTokenPrice = new BigNumber(rewardTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
+      const stakeTokenPrice = stakeTokenFromTokensQuery
+        ? (new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD)
+        : null
+      const rewardTokenPrice = rewardTokenFromTokensQuery
+        ? (new BigNumber(rewardTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD)
+        : null
 
       const totalTokensStaked = new Wei(pool.totalTokensStaked).decimals(stakeToken)
-      const totalStaked = stakeTokenPrice.times(totalTokensStaked) as AmountInUSD
+      const totalStaked = (stakeTokenPrice?.times(totalTokensStaked) as AmountInUSD) ?? null
 
       const rewardRate = new BigNumber(pool.rewardRate)
-      const totalRewardPricePerYear = rewardRate.times(BLOCKS_PER_YEAR).times(rewardTokenPrice)
-      // If there is no total staked, we assume what APR will be if liquidity is equal to 1
+      const totalRewardPricePerYear = rewardTokenPrice
+        ? rewardRate.times(BLOCKS_PER_YEAR).times(rewardTokenPrice)
+        : null
       const annualPercentageRate = totalRewardPricePerYear
-        .div(totalStaked.isZero() ? 1 : totalStaked)
-        .times(100) as PercentageRate
+        ? (totalRewardPricePerYear
+            .div(totalStaked.isZero() ? 1 : totalStaked)
+            .times(100) as PercentageRate)
+        : null
 
       const createdAtBlock = Number(pool.createdAtBlock)
 
@@ -143,8 +148,10 @@ function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): num
     case Sorting.Hot:
       if (poolA.active && !poolB.active) return -1
       if (poolB.active && !poolA.active) return 1
+      if (!poolB.annualPercentageRate || !poolA.annualPercentageRate) return 0
       return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.AnnualPercentageRate:
+      if (!poolB.annualPercentageRate || !poolA.annualPercentageRate) return 0
       return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.Earned:
       invariant(poolB.earned && poolA.earned)

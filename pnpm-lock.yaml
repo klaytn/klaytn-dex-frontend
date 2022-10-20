@@ -31,7 +31,7 @@ specifiers:
   '@uniswap/sdk-core': 3.0.2
   '@uniswap/v2-sdk': 3.0.1
   '@vitejs/plugin-vue': 3.0.3
-  '@vue-kakuyaku/core': ^0.3.0
+  '@vue-kakuyaku/core': ^0.4.2
   '@vue/apollo-composable': 4.0.0-alpha.19
   '@vue/test-utils': ^2.0.2
   '@vueuse/core': ^8.6.0
@@ -103,7 +103,7 @@ dependencies:
   '@soramitsu-ui/ui': 0.6.1
   '@uniswap/sdk-core': 3.0.2
   '@uniswap/v2-sdk': 3.0.1
-  '@vue-kakuyaku/core': 0.3.0
+  '@vue-kakuyaku/core': 0.4.2
   '@vue/apollo-composable': 4.0.0-alpha.19_p3gti3prznyki4yt3habg7ocpe
   '@vueuse/core': 8.6.0_vue@3.2.37
   '@vueuse/head': 0.7.6_vue@3.2.37
@@ -1865,11 +1865,11 @@ packages:
       '@vue/reactivity': 3.2.37
     dev: true
 
-  /@vue-kakuyaku/core/0.3.0:
-    resolution: {integrity: sha512-VjtNRZa1E7gG6+RmWpYmMCPGJuWsNBmVMLh1a2dJ8O6B3B+d01sy1HyovDfS6/W2UxBflzUyU0ffswnvWXJqUw==}
+  /@vue-kakuyaku/core/0.4.2:
+    resolution: {integrity: sha512-Blp3cuue+P5VSEg/oKqsaZuMiLADpW35LqpWcQDwPk+C23iBY+Ak0lJy12qQix+HzFIILrlToCVYHWBRC9IWWA==}
     dependencies:
       '@vueuse/core': 8.9.4_vue@3.2.37
-      type-fest: 2.19.0
+      type-fest: 3.1.0
       vue: 3.2.37
     transitivePeerDependencies:
       - '@vue/composition-api'
@@ -6080,7 +6080,7 @@ packages:
     resolution: {integrity: sha512-xTYd4JVHpSCW+aqDof6w/MebaMVNTVYBZhbB/vi513xXdiPT92JMVCo0Jq8W2UZnzYRFeVbQiQ+I25l13JuKvA==}
     hasBin: true
     optionalDependencies:
-      minimist: 1.2.6
+      minimist: 1.2.7
     dev: true
 
   /map-obj/4.3.0:
@@ -6240,6 +6240,10 @@ packages:
     resolution: {integrity: sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==}
     dev: true
 
+  /minimist/1.2.7:
+    resolution: {integrity: sha512-bzfL1YUZsP41gmu/qjrEk0Q6i2ix/cVeAhbCbqH9u3zYutS1cLg00qhrD0M2MVdCcx4Sc0UpP2eBWo9rotpq6g==}
+    dev: true
+
   /minipass/2.9.0:
     resolution: {integrity: sha512-wxfUjg9WebH+CUDX/CdbRlh5SmfZiy/hpkxaRI16Y9W56Pa75sWgd/rvFilSgrauD9NyFymP/+JFV3KwzIsJeg==}
     dependencies:
@@ -6265,7 +6269,7 @@ packages:
     resolution: {integrity: sha512-FP+p8RB8OWpF3YZBCrP5gtADmtXApB5AMLn+vdyA+PyxCjrCs00mjyUozssO33cwDeT3wNGdLxJ5M//YqtHAJw==}
     hasBin: true
     dependencies:
-      minimist: 1.2.6
+      minimist: 1.2.7
     dev: true
 
   /mkdirp/1.0.4:
@@ -8208,6 +8212,11 @@ packages:
   /type-fest/2.19.0:
     resolution: {integrity: sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA==}
     engines: {node: '>=12.20'}
+    dev: false
+
+  /type-fest/3.1.0:
+    resolution: {integrity: sha512-StmrZmK3eD9mDF9Vt7UhqthrDSk66O9iYl5t5a0TSoVkHjl0XZx/xuc/BRz4urAXXGHOY5OLsE0RdJFIApSFmw==}
+    engines: {node: '>=14.16'}
     dev: false
 
   /type-is/1.6.18:

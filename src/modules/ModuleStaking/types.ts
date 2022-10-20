@@ -19,10 +19,10 @@ export interface Pool {
   }
   staked: WeiAsToken<BigNumber>
   earned: WeiAsToken<BigNumber> | null
-  stakeTokenPrice: TokenPriceInUSD
+  stakeTokenPrice: TokenPriceInUSD | null
   createdAtBlock: number
   totalStaked: AmountInUSD
-  annualPercentageRate: PercentageRate
+  annualPercentageRate: PercentageRate | null
   endBlock: number
   active: boolean
 }
