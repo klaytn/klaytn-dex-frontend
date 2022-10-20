@@ -2,17 +2,15 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { Sorting } from '../types'
 
 export const useStakingStore = defineStore('staking', () => {
-  const stakedOnly = ref(false)
-  const searchQuery = ref('')
-  const sorting = ref<Sorting>(Sorting.Hot)
+  const stateFactory = () => ({ stakedOnly: false, searchQuery: '', sorting: Sorting.Hot })
 
-  function resetFilter() {
-    stakedOnly.value = false
-    searchQuery.value = ''
-    sorting.value = Sorting.Hot
+  const state = ref(stateFactory())
+
+  function reset() {
+    state.value = stateFactory()
   }
 
-  return { stakedOnly, searchQuery, sorting, resetFilter }
+  return { ...toRefs(state), reset }
 })
 
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useStakingStore, import.meta.hot))
