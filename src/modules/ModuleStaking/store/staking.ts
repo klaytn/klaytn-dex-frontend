@@ -6,7 +6,13 @@ export const useStakingStore = defineStore('staking', () => {
   const searchQuery = ref('')
   const sorting = ref<Sorting>(Sorting.Hot)
 
-  return { stakedOnly, searchQuery, sorting }
+  function resetFilter() {
+    stakedOnly.value = false
+    searchQuery.value = ''
+    sorting.value = Sorting.Hot
+  }
+
+  return { stakedOnly, searchQuery, sorting, resetFilter }
 })
 
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useStakingStore, import.meta.hot))

@@ -6,6 +6,12 @@ export const useFarmingStore = defineStore('farming', () => {
   const searchQuery = ref('')
   const sorting = ref<Sorting>(Sorting.Hot)
 
+  function resetFilter() {
+    stakedOnly.value = false
+    searchQuery.value = ''
+    sorting.value = Sorting.Hot
+  }
+
   function setFilterByPairName(name: string) {
     searchQuery.value = name
   }
@@ -14,6 +20,9 @@ export const useFarmingStore = defineStore('farming', () => {
     stakedOnly,
     searchQuery,
     sorting,
+
+    resetFilter,
+
     setFilterByPairName,
   }
 })
