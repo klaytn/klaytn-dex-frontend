@@ -82,9 +82,7 @@ export function useMappedPools(props: {
         ? rewardRate.times(BLOCKS_PER_YEAR).times(rewardTokenPrice)
         : null
       const annualPercentageRate = totalRewardPricePerYear
-        ? ((!totalStaked.isZero()
-            ? totalRewardPricePerYear.div(totalStaked).times(100)
-            : new BigNumber(0)) as PercentageRate)
+        ? (totalRewardPricePerYear.div(totalStaked.isZero() ? 1 : totalStaked).times(100) as PercentageRate)
         : null
 
       const createdAtBlock = Number(pool.createdAtBlock)
