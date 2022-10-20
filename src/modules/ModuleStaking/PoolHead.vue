@@ -112,7 +112,7 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
       </div>
     </div>
 
-    <div v-if="!nonNegativeStartsIn">
+    <div v-else>
       <div :class="$style.title">
         Ends in
       </div>
