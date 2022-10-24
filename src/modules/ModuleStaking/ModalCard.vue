@@ -101,7 +101,7 @@ const loading = toRef(operationState, 'pending')
 const showEquation = computed(() => props.operation === ModalOperation.Stake && !props.staked.isZero())
 
 const result = computed(() => props.staked.plus(inputAmount.value))
-const resultGreaterThenLimit = computed(() => props.userLimit && result.value.isGreaterThan(props.userLimit) )
+const resultGreaterThenLimit = computed(() => props.userLimit && result.value.isGreaterThan(props.userLimit))
 
 const disabled = logicOr(notEnough, lessThanOrEqualToZero, resultGreaterThenLimit)
 

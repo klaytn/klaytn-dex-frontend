@@ -17,9 +17,9 @@ const equationItemMaxWidth = 105
 
 const result = computed(() => props.staked.plus(props.stakeAmount))
 
-const isResultGreaterThenLimit = computed(() => props.userLimit && result.value.isGreaterThan(props.userLimit) )
+const isResultGreaterThenLimit = computed(() => props.userLimit && result.value.isGreaterThan(props.userLimit))
 
-const resultValueClass = computed(() => isResultGreaterThenLimit.value && 'too-many' )
+const resultValueClass = computed(() => isResultGreaterThenLimit.value && 'too-many')
 
 const reduce = () => emit('reduce')
 
@@ -35,9 +35,7 @@ const showReduceButton = computed(() => isResultGreaterThenLimit.value && !props
   >
     <div v-if="showEquation">
       <div class="equation-item">
-        <span class="equation-item-title">
-          Staked
-        </span>
+        <span class="equation-item-title"> Staked </span>
         <CurrencyFormatTruncate
           :amount="staked"
           :decimals="stakeToken.decimals"
@@ -46,9 +44,7 @@ const showReduceButton = computed(() => isResultGreaterThenLimit.value && !props
       </div>
       +
       <div class="equation-item">
-        <span class="equation-item-title">
-          Additional
-        </span>
+        <span class="equation-item-title"> Additional </span>
         <CurrencyFormatTruncate
           :amount="stakeAmount"
           :decimals="stakeToken.decimals"
@@ -57,9 +53,7 @@ const showReduceButton = computed(() => isResultGreaterThenLimit.value && !props
       </div>
       =
       <div class="equation-item">
-        <span class="equation-item-title">
-          Total
-        </span>
+        <span class="equation-item-title"> Total </span>
         <div :class="resultValueClass">
           <CurrencyFormatTruncate
             :class="resultValueClass"
