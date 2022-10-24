@@ -6,6 +6,8 @@ defineProps<{
   staked: WeiAsToken<BigNumber>
   stakeAmount: WeiAsToken<BigNumber>
 }>()
+
+const maxWidth = 105
 </script>
 
 <template>
@@ -17,7 +19,7 @@ defineProps<{
       <CurrencyFormatTruncate
         class="equation-item-value"
         :amount="staked"
-        :max-width="118"
+        :max-width="maxWidth"
       />
     </div>
     +
@@ -28,7 +30,7 @@ defineProps<{
       <CurrencyFormatTruncate
         class="equation-item-value"
         :amount="stakeAmount"
-        :max-width="118"
+        :max-width="maxWidth"
       />
     </div>
     =
@@ -39,7 +41,7 @@ defineProps<{
       <CurrencyFormatTruncate
         class="equation-item-value"
         :amount="staked.plus(stakeAmount)"
-        :max-width="118"
+        :max-width="maxWidth"
       />
     </div>
   </div>
