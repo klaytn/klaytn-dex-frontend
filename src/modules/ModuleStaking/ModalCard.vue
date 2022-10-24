@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js'
 import { Wei, WeiAsToken, Token, Address } from '@/core'
 import invariant from 'tiny-invariant'
 import { formatCurrency } from '@/utils/composable.currency-input'
-import StakeEquation from '../ModuleEarnShared/StakeEquation.vue'
+import StakeUserLimit from '../ModuleEarnShared/StakeUserLimit.vue'
 
 const dexStore = useDexStore()
 const tokensStore = useTokensStore()
@@ -18,6 +18,7 @@ const props = defineProps<{
   balance: WeiAsToken<BigNumber> | null
   staked: WeiAsToken<BigNumber>
   operation: ModalOperation
+  userLimit: WeiAsToken<BigNumber>
 }>()
 
 const emit = defineEmits<{
@@ -45,8 +46,6 @@ const notEnough = computed(() => {
 })
 
 const lessThanOrEqualToZero = computed(() => inputAmount.value.isLessThanOrEqualTo(0))
-
-const disabled = logicOr(notEnough, lessThanOrEqualToZero)
 
 function setPercent(percent: number) {
   let referenceValue: BigNumber
@@ -100,6 +99,17 @@ wheneverDone(operationState, (result) => {
 const loading = toRef(operationState, 'pending')
 
 const showEquation = computed(() => props.operation === ModalOperation.Stake && !props.staked.isZero())
+
+const result = computed(() => props.staked.plus(inputAmount.value))
+const resultGreaterThenLimit = computed(() => props.userLimit && result.value.isGreaterThan(props.userLimit) )
+
+const disabled = logicOr(notEnough, lessThanOrEqualToZero, resultGreaterThenLimit)
+
+const showUserLimit = computed(() => props.operation === ModalOperation.Stake)
+
+const reduce = () => {
+  inputAmount.value = props.userLimit.minus(props.staked) as WeiAsToken<BigNumber>
+}
 </script>
 
 <template>
@@ -168,10 +178,14 @@ const showEquation = computed(() => props.operation === ModalOperation.Stake && 
         </KlayButton>
       </div>
 
-      <StakeEquation
-        v-if="showEquation"
+      <StakeUserLimit
+        v-if="showUserLimit"
+        :show-equation="showEquation"
         :stake-amount="inputAmount"
         :staked="staked"
+        :stake-token="stakeToken"
+        :user-limit="userLimit"
+        @reduce="reduce"
       />
 
       <KlayButton

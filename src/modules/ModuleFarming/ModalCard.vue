@@ -6,7 +6,7 @@ import { ModalOperation } from './types'
 import InputTokenLp from '@/components/InputTokenLp.vue'
 import { TokensPair } from '@/utils/pair'
 import { farmingToWei } from './utils'
-import StakeEquation from '../ModuleEarnShared/StakeEquation.vue'
+import StakeEquation from '../ModuleEarnShared/StakeUserLimit.vue'
 
 const props = defineProps<{
   operation: ModalOperation

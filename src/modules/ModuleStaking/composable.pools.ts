@@ -14,13 +14,17 @@ export function useMappedPools(props: {
   tokens: Ref<undefined | null | Tokens>
   blockNumber: Ref<number | null>
 }) {
-  const sortedPoolEndBlocks = computed(() => {
+  const sortedBlockNumbers = computed(() => {
     const {
       pools: { value: poolsResult },
     } = props
     if (!poolsResult) return null
 
-    return poolsResult.pools.map((pool) => Number(pool.endBlock)).sort((a, b) => b - a)
+    const blockNumbers = poolsResult.pools
+      .map((pool) => [Number(pool.endBlock), Number(pool.startBlock) + Number(pool.blocksForUserLimit)])
+      .flat()
+
+    return blockNumbers.sort((a, b) => b - a)
   })
 
   // Needed to avoid unnecessary recalculations in main computed function
@@ -28,7 +32,7 @@ export function useMappedPools(props: {
     const {
       blockNumber: { value: blockNumber },
     } = props
-    const blocks = sortedPoolEndBlocks.value
+    const blocks = sortedBlockNumbers.value
     if (!blocks?.length || !blockNumber) return null
     let rounded = blockNumber
     blocks.forEach((block) => {
@@ -88,8 +92,12 @@ export function useMappedPools(props: {
       const createdAtBlock = Number(pool.createdAtBlock)
 
       const startBlock = Number(pool.startBlock)
+      const blocksForUserLimit = Number(pool.blocksForUserLimit)
       const endBlock = Number(pool.endBlock)
       const active = (roundedBlockNumber.value ?? 0) <= endBlock
+
+      const isUserLimitActive = (roundedBlockNumber.value ?? 0) <= startBlock + blocksForUserLimit
+      const userLimit = isUserLimitActive ? new Wei(pool.userLimit).decimals(pool.stakeToken) : null
 
       mappedPools.push({
         id,
@@ -97,6 +105,7 @@ export function useMappedPools(props: {
         rewardToken,
         earned,
         staked,
+        userLimit,
         stakeTokenPrice,
         createdAtBlock,
         annualPercentageRate,
