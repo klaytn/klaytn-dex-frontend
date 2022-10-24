@@ -4,6 +4,7 @@ import BigNumber from 'bignumber.js'
 import { Wei, WeiAsToken, Token, Address } from '@/core'
 import invariant from 'tiny-invariant'
 import { formatCurrency } from '@/utils/composable.currency-input'
+import StakeEquation from '../ModuleEarnShared/StakeEquation.vue'
 
 const dexStore = useDexStore()
 const tokensStore = useTokensStore()
@@ -97,6 +98,8 @@ wheneverDone(operationState, (result) => {
 })
 
 const loading = toRef(operationState, 'pending')
+
+const showEquation = computed(() => props.operation === ModalOperation.Stake && !props.staked.isZero())
 </script>
 
 <template>
@@ -104,7 +107,7 @@ const loading = toRef(operationState, 'pending')
     :title="label"
     class="w-[420px]"
   >
-    <div>
+    <div class="space-y-4">
       <InputCurrencyTemplate bottom>
         <template #input>
           <CurrencyInput
@@ -145,37 +148,43 @@ const loading = toRef(operationState, 'pending')
           </template>
         </template>
       </InputCurrencyTemplate>
-    </div>
 
-    <div class="grid grid-cols-5 gap-4 mt-2">
-      <KlayButton
-        v-for="percent in [10, 25, 50, 75]"
-        :key="percent"
-        size="sm"
-        @click="setPercent(percent)"
-      >
-        {{ percent }}%
-      </KlayButton>
+      <div class="grid grid-cols-5 gap-4 mt-2">
+        <KlayButton
+          v-for="percent in [10, 25, 50, 75]"
+          :key="percent"
+          size="sm"
+          @click="setPercent(percent)"
+        >
+          {{ percent }}%
+        </KlayButton>
+
+        <KlayButton
+          type="primary"
+          size="sm"
+          @click="setPercent(100)"
+        >
+          MAX
+        </KlayButton>
+      </div>
+
+      <StakeEquation
+        v-if="showEquation"
+        :stake-amount="inputAmount"
+        :staked="staked"
+      />
 
       <KlayButton
         type="primary"
-        size="sm"
-        @click="setPercent(100)"
+        size="lg"
+        class="w-full mt-4"
+        :disabled="disabled"
+        :loading="loading"
+        @click="confirm"
       >
-        MAX
+        Confirm
       </KlayButton>
     </div>
-
-    <KlayButton
-      type="primary"
-      size="lg"
-      class="w-full mt-4"
-      :disabled="disabled"
-      :loading="loading"
-      @click="confirm"
-    >
-      Confirm
-    </KlayButton>
   </KlayModalCard>
 </template>
 
