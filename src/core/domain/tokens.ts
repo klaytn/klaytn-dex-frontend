@@ -15,28 +15,14 @@ export interface GetTokenQuoteProps extends TokensPair<Address> {
   quoteFor: TokenType
 }
 
-export interface PairReserves {
-  reserve0: Wei
-  reserve1: Wei
-}
+export type PairReserves = TokensPair<Wei>
 
 /**
  * Depending on what token for we are going to compute `quote`,
  * we might swap reserves with each other
  */
-function sortReservesForQuote({
-  reserves,
-  token0,
-  tokenA,
-  quoteFor,
-}: {
-  reserves: PairReserves
-  token0: Address
-  tokenA: Address
-  quoteFor: TokenType
-}): PairReserves {
-  if (quoteFor === 'tokenB' && token0.toLowerCase() === tokenA.toLowerCase()) return reserves
-  return { reserve0: reserves.reserve1, reserve1: reserves.reserve0 }
+function sortReservesForQuote({ reserves, quoteFor }: { reserves: PairReserves; quoteFor: TokenType }): [Wei, Wei] {
+  return quoteFor === 'tokenB' ? [reserves.tokenA, reserves.tokenB] : [reserves.tokenB, reserves.tokenA]
 }
 
 /**
@@ -65,25 +51,25 @@ export class TokensPure {
 
   public async getTokenQuote({ tokenA, tokenB, value, quoteFor }: GetTokenQuoteProps): Promise<Wei> {
     const router = this.#contracts.get('router') || (await this.#contracts.init('router'))
-
-    const contract = await this.createPairContract({ tokenA, tokenB })
-    const token0 = (await contract.token0([]).call()) as Address
     const reserves = await this.getPairReserves({ tokenA, tokenB })
-
-    const sortedReserves = sortReservesForQuote({ reserves, token0, tokenA, quoteFor })
-
-    return new Wei(
-      await router.quote([value.asStr, sortedReserves.reserve0.asStr, sortedReserves.reserve1.asStr]).call(),
-    )
+    const sortedReserves = sortReservesForQuote({ reserves, quoteFor })
+    return new Wei(await router.quote([value.asStr, sortedReserves[0].asStr, sortedReserves[1].asStr]).call())
   }
 
   public async getPairReserves(tokens: TokensPair<Address>): Promise<PairReserves> {
     const contract = await this.createPairContract(tokens)
-    const reserves = await contract.getReserves([]).call()
-    return {
-      reserve0: new Wei(reserves[0]),
-      reserve1: new Wei(reserves[1]),
-    }
+    const [[reserve0, reserve1], token0] = await Promise.all([
+      contract
+        .getReserves([])
+        .call()
+        .then((reserves) => [new Wei(reserves[0]), new Wei(reserves[1])] as [Wei, Wei]),
+      contract.token0([]).call(),
+    ])
+
+    const [tokenA, tokenB] =
+      token0.toLowerCase() === tokens.tokenA.toLowerCase() ? [reserve0, reserve1] : [reserve1, reserve0]
+
+    return { tokenA, tokenB }
   }
 
   /**
@@ -208,30 +194,4 @@ export class Tokens extends TokensPure {
     const userBalance = new Wei(await contract.balanceOf([this.address]).call())
     return { totalSupply, userBalance }
   }
-}
-
-if (import.meta.vitest) {
-  const { describe, test, expect } = import.meta.vitest
-
-  describe('Sorting reserves for quote', () => {
-    const RESERVES: PairReserves = { reserve0: new Wei(1000), reserve1: new Wei(2000) }
-    // const RESERVES_REVERSED: PairReserves = { reserve0: RESERVES.reserve1, reserve1: RESERVES.reserve0 }
-    const token0 = '0x2486A551714F947C386Fe9c8b895C2A6b3275EC9' as Address
-    const tokenA = '0x2486a551714f947c386fe9c8b895c2a6b3275ec9' as Address
-
-    test.todo('When quote is for B and token A is first, returns reserves as-is')
-
-    test.todo('When quote is not for B, returns reversed')
-
-    test.todo('When quote is for A, but token A is second, returns reversed')
-
-    test('Returns reserves as is even when token A and first token have same addresses in different cases', () => {
-      expect(sortReservesForQuote({ reserves: RESERVES, token0, tokenA, quoteFor: 'tokenB' })).toMatchInlineSnapshot(`
-        {
-          "reserve0": "1000",
-          "reserve1": "2000",
-        }
-      `)
-    })
-  })
 }
