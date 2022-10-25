@@ -166,6 +166,14 @@ describe('useCurrencyInput()', () => {
     getInput().should('have.value', '533')
   })
 
+  it('when value has a lot of decimals, it is formatted as expected', () => {
+    mountFactory()
+
+    const NUMBER = '0.' + '0'.repeat(17) + '1'
+
+    getInput().type(NUMBER).blur().should('have.value', NUMBER + ' TST')
+  })
+
   describe('Decimals', () => {
     it('when decimal is set to 5, it is impossible to exceed it', () => {
       mountFactory({ decimals: 5 })
