@@ -17,6 +17,8 @@ export interface PoolsQueryResult {
     totalTokensStaked: WeiRaw<string>
     startBlock: string
     endBlock: string
+    blocksForUserLimit: string
+    userLimit: WeiRaw<string>
     users: [
       {
         amount: WeiRaw<string>
@@ -48,6 +50,8 @@ export function usePoolsQuery(userId: Ref<Address | null>, pollInterval: Ref<num
           totalTokensStaked
           startBlock
           endBlock
+          blocksForUserLimit
+          userLimit
           users(where: { address: $userId }) {
             amount
           }

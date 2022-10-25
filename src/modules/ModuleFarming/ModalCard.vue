@@ -6,6 +6,7 @@ import { ModalOperation } from './types'
 import InputTokenLp from '@/components/InputTokenLp.vue'
 import { TokensPair } from '@/utils/pair'
 import { farmingToWei } from './utils'
+import StakeUserLimit from '../ModuleEarnShared/StakeUserLimit.vue'
 
 const props = defineProps<{
   operation: ModalOperation
@@ -81,6 +82,8 @@ wheneverFulfilled(operationState, ({ amount, operation }) => {
 useNotifyOnError(operationState, notify, 'Failed to confirm operation')
 
 const loading = toRef(operationState, 'pending')
+
+const showEquation = computed(() => props.operation === ModalOperation.Stake && !props.staked.isZero())
 </script>
 
 <template>
@@ -112,6 +115,12 @@ const loading = toRef(operationState, 'pending')
         </template>
       </InputTokenLp>
 
+      <StakeUserLimit
+        v-if="showEquation"
+        :stake-amount="inputAmount"
+        :staked="staked"
+      />
+
       <KlayButton
         type="primary"
         size="lg"
@@ -128,6 +137,28 @@ const loading = toRef(operationState, 'pending')
 
 <style module lang="scss">
 @use '@/styles/vars';
+
+.equation {
+  font-weight: 600;
+  font-size: 16px;
+  padding: 16px;
+  border: 1px solid vars.$gray5;
+  border-radius: 8px;
+
+  &-item {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    vertical-align: bottom;
+    &-title {
+      top: 0;
+      margin-bottom: 6px;
+      font-weight: 500;
+      font-size: 12px;
+      color: vars.$gray2;
+    }
+  }
+}
 
 .bottom-line {
   font-size: 12px;
