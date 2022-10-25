@@ -1,5 +1,5 @@
 <script setup lang="ts" name="ModuleEarnSharedRoiCalculator">
-import { CURRENCY_USD, WeiAsToken } from '@/core'
+import { CURRENCY_USD, POOL_COMMISSION, WeiAsToken } from '@/core'
 import { KlayIconSwitch } from '~klay-icons'
 import { SModal } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
@@ -10,6 +10,7 @@ import { StakeTabs, CompoundingTabs, StakeUnits } from './types'
 import { useFormattedCurrency, MaskSymbol, SYMBOL_USD as MASK_SYMBOL_USD } from '@/utils/composable.currency-input'
 import { Ref } from 'vue'
 import { MaybeRef } from '@vueuse/core'
+import { trimTrailingZerosWithPeriod } from '@/utils/common'
 
 const { t } = useI18n()
 
@@ -148,18 +149,21 @@ watch(
 )
 
 const detailsList = computed(() => {
+  const percent = { decimals: 2, symbol: '%' }
   if (props.type === RoiType.Farming)
     return [
-      { label: 'APR (incl. LP rewards)', value: totalApr.value.toFixed(2) + '%' },
-      { label: 'Base APR (DEX-Tokens yield only)', value: props.apr.toFixed(2) + '%' },
-      { label: 'APY', value: apy.value.toFixed(2) + '%' },
+      { label: 'APR (incl. LP rewards)', value: totalApr.value, ...percent },
+      { label: 'Base APR (DEX-Tokens yield only)', value: props.apr, ...percent },
+      { label: 'APY', value: apy.value, ...percent },
     ]
   else
     return [
-      { label: 'APR', value: props.apr.toFixed(2) + '%' },
-      { label: 'APY', value: apy.value.toFixed(2) + '%' },
+      { label: 'APR', value: props.apr, ...percent },
+      { label: 'APY', value: apy.value, ...percent },
     ]
 })
+
+const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFixed()) + '%'
 </script>
 
 <template>
@@ -295,9 +299,11 @@ const detailsList = computed(() => {
                     <div>
                       {{ item.label }}
                     </div>
-                    <div>
-                      {{ item.value }}
-                    </div>
+                    <CurrencyFormatTruncate
+                      :amount="item.value"
+                      :decimals="item.decimals"
+                      :symbol="item.symbol"
+                    />
                   </div>
                 </div>
 
@@ -306,7 +312,7 @@ const detailsList = computed(() => {
                 <ul class="details-list">
                   <template v-if="type === RoiType.Farming">
                     <li>Calculated based on current rates.</li>
-                    <li>LP rewards: 0.17% trading fees, distributed proportionally among LP token holders.</li>
+                    <li>LP rewards: {{ poolCommissionFormatted }} trading fees, distributed proportionally among LP token holders.</li>
                     <li>
                       All figures are estimates provided for your convenience only, and by no means represent guaranteed
                       returns.

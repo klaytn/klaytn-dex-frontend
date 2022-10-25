@@ -8,7 +8,7 @@ const props = defineProps<{
   staked: WeiAsToken<BigNumber>
   stakeToken: Pick<Token, 'decimals' | 'symbol'>
   stakeAmount: WeiAsToken<BigNumber>
-  userLimit: WeiAsToken<BigNumber> | null
+  userLimit?: WeiAsToken<BigNumber> | null
 }>()
 
 const emit = defineEmits(['reduce'])

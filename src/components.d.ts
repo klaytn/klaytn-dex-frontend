@@ -52,6 +52,7 @@ declare module '@vue/runtime-core' {
     ModuleFarmingModal: typeof import('./modules/ModuleFarming/Modal.vue')['default']
     ModuleFarmingModalCard: typeof import('./modules/ModuleFarming/ModalCard.vue')['default']
     ModuleFarmingPool: typeof import('./modules/ModuleFarming/Pool.vue')['default']
+    ModuleFarmingPoolHead: typeof import('./modules/ModuleFarming/PoolHead.vue')['default']
     ModuleGovernanceList: typeof import('./modules/ModuleGovernance/List/index.vue')['default']
     ModuleGovernanceListProposal: typeof import('./modules/ModuleGovernance/List/Proposal.vue')['default']
     ModuleGovernanceListWrap: typeof import('./modules/ModuleGovernance/List/Wrap.vue')['default']
