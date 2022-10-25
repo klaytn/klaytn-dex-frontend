@@ -171,7 +171,10 @@ describe('useCurrencyInput()', () => {
 
     const NUMBER = '0.' + '0'.repeat(17) + '1'
 
-    getInput().type(NUMBER).blur().should('have.value', NUMBER + ' TST')
+    getInput()
+      .type(NUMBER)
+      .blur()
+      .should('have.value', NUMBER + ' TST')
   })
 
   describe('Decimals', () => {
