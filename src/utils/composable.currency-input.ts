@@ -80,7 +80,10 @@ export function formatCurrency({
   symbol?: MaskSymbol | null
   decimals?: number
 }) {
-  const rounded = typeof decimals === 'number' ? new BigNumber(amount).toFixed(decimals) : amount
+  const amountBigNumber = new BigNumber(amount)
+  const rounded =
+    // can't just pass `number | undefined` to `toFixed()` - typing error
+    typeof decimals === 'number' ? amountBigNumber.toFixed(decimals) : amountBigNumber.toFixed()
   let num = formatNumberWithCommas(rounded)
   num = trimTrailingZerosWithPeriod(num)
   if (symbol) {
