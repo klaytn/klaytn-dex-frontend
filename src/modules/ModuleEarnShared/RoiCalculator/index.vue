@@ -312,7 +312,10 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
                 <ul class="details-list">
                   <template v-if="type === RoiType.Farming">
                     <li>Calculated based on current rates.</li>
-                    <li>LP rewards: {{ poolCommissionFormatted }} trading fees, distributed proportionally among LP token holders.</li>
+                    <li>
+                      LP rewards: {{ poolCommissionFormatted }} trading fees, distributed proportionally among LP token
+                      holders.
+                    </li>
                     <li>
                       All figures are estimates provided for your convenience only, and by no means represent guaranteed
                       returns.

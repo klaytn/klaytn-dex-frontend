@@ -26,7 +26,7 @@ const inputAmount = shallowRef(new BigNumber(0) as WeiAsToken<BigNumber>)
 
 const stakeToken = computed(() => ({
   symbol: props.symbols?.tokenA + '-' + props.symbols?.tokenB,
-  decimals: LP_TOKEN_DECIMALS
+  decimals: LP_TOKEN_DECIMALS,
 }))
 
 const label = computed(() => {
