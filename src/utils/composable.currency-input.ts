@@ -272,17 +272,4 @@ if (import.meta.vitest) {
       expect(formatCurrency(input)).toEqual(output)
     })
   })
-
-  describe('Trim trailing zeros', () => {
-    test.each([
-      ['0.0', '0'],
-      ['12230000', '12230000'],
-      ['1.2000', '1.2'],
-      ['0', '0'],
-      ['7.001', '7.001'],
-      ['1.00000', '1'],
-    ])('%o is trimmed into %o', (a, b) => {
-      expect(trimTrailingZerosWithPeriod(a)).toEqual(b)
-    })
-  })
 }

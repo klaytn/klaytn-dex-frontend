@@ -88,3 +88,20 @@ export function trimTrailingZerosWithPeriod(input: string): string {
   }
   return periodIndex ? (firstNonZeroIndex ? input.slice(0, firstNonZeroIndex + 1) : input.slice(0, periodIndex)) : input
 }
+
+if (import.meta.vitest) {
+  const { describe, test, expect } = import.meta.vitest
+
+  describe('Trim trailing zeros', () => {
+    test.each([
+      ['0.0', '0'],
+      ['12230000', '12230000'],
+      ['1.2000', '1.2'],
+      ['0', '0'],
+      ['7.001', '7.001'],
+      ['1.00000', '1'],
+    ])('%o is trimmed into %o', (a, b) => {
+      expect(trimTrailingZerosWithPeriod(a)).toEqual(b)
+    })
+  })
+}
