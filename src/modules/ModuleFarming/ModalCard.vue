@@ -6,7 +6,7 @@ import { ModalOperation } from './types'
 import InputTokenLp from '@/components/InputTokenLp.vue'
 import { TokensPair } from '@/utils/pair'
 import { farmingToWei } from './utils'
-import StakeEquation from '../ModuleEarnShared/StakeUserLimit.vue'
+import StakeUserLimit from '../ModuleEarnShared/StakeUserLimit.vue'
 
 const props = defineProps<{
   operation: ModalOperation
@@ -115,7 +115,7 @@ const showEquation = computed(() => props.operation === ModalOperation.Stake && 
         </template>
       </InputTokenLp>
 
-      <StakeEquation
+      <StakeUserLimit
         v-if="showEquation"
         :stake-amount="inputAmount"
         :staked="staked"
