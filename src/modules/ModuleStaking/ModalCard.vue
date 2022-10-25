@@ -120,10 +120,12 @@ const reduce = () => {
     <div class="space-y-4">
       <InputCurrencyTemplate bottom>
         <template #input>
-          <CurrencyInput
-            v-model="inputAmount"
-            :decimals="stakeToken.decimals"
-          />
+          <div :class="resultGreaterThenLimit && $style.tooMany">
+            <CurrencyInput
+              v-model="inputAmount"
+              :decimals="stakeToken.decimals"
+            />
+          </div>
         </template>
 
         <template #top-right>
@@ -196,7 +198,7 @@ const reduce = () => {
         :loading="loading"
         @click="confirm"
       >
-        Confirm
+        {{ resultGreaterThenLimit ? 'The amount is too big' : 'Confirm' }}
       </KlayButton>
     </div>
   </KlayModalCard>
@@ -209,5 +211,9 @@ const reduce = () => {
   font-weight: 500;
   font-size: 12px;
   color: vars.$gray2;
+}
+
+.tooMany input {
+  color: vars.$red !important;
 }
 </style>
