@@ -54,6 +54,10 @@ export function useMappedPools(props: {
     for (const pool of poolsResult.pools) {
       const id = pool.id
 
+      const startBlock = Number(pool.startBlock)
+      const endBlock = Number(pool.endBlock)
+      const active = (roundedBlockNumber.value ?? 0) <= endBlock
+
       const reward = rewards?.get(pool.id) ?? null
       const earned = reward ? reward.decimals(pool.rewardToken) : null
 
@@ -85,17 +89,14 @@ export function useMappedPools(props: {
       const totalRewardPricePerYear = rewardTokenPrice
         ? rewardRate.times(BLOCKS_PER_YEAR).times(rewardTokenPrice)
         : null
-      const annualPercentageRate = totalRewardPricePerYear
-        ? (totalRewardPricePerYear.div(totalStaked.isZero() ? 1 : totalStaked).times(100) as PercentageRate)
-        : null
+      const annualPercentageRate =
+        totalRewardPricePerYear && active
+          ? (totalRewardPricePerYear.div(totalStaked.isZero() ? 1 : totalStaked).times(100) as PercentageRate)
+          : null
 
       const createdAtBlock = Number(pool.createdAtBlock)
-
-      const startBlock = Number(pool.startBlock)
+      
       const blocksForUserLimit = Number(pool.blocksForUserLimit)
-      const endBlock = Number(pool.endBlock)
-      const active = (roundedBlockNumber.value ?? 0) <= endBlock
-
       const isUserLimitActive = (roundedBlockNumber.value ?? 0) <= startBlock + blocksForUserLimit
       const userLimit = isUserLimitActive ? new Wei(pool.userLimit).decimals(pool.stakeToken) : null
 

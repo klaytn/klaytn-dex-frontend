@@ -19,7 +19,7 @@ const formattedReserves = computed(() => {
   const tokensData = unref(selectedTokensData)
   if (!reserves || !tokensData) return null
   return buildPair((type) => {
-    const wei = reserves[type === 'tokenA' ? 'reserve0' : 'reserve1']
+    const wei = reserves[type]
     const data = tokensData[type]!
     return formatCurrency({ amount: wei.decimals(data) })
   })

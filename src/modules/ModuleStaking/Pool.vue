@@ -112,23 +112,16 @@ function goToSwapPage() {
 
 const { state: withdrawState, run: withdraw } = useTask(async () => {
   const {
-    pool: { earned, id: poolId },
+    pool: { id: poolId },
   } = props
   await dexStore.getNamedDexAnyway().earn.staking.withdraw({ amount: new Wei(0), poolId })
-  return { earned }
 })
 
 usePromiseLog(withdrawState, 'staking-pool-withdraw')
 
 wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
-    const { earned } = result.fulfilled.value
-    invariant(earned)
-    const formatted = formatCurrency({
-      amount: earned,
-      symbol: { str: props.pool.rewardToken.symbol, position: 'right' },
-    })
-    notify({ type: 'ok', description: `${formatted} tokens were withdrawn` })
+    notify({ type: 'ok', description: `Tokens were withdrawn` })
     emit('withdrawn')
 
     tokensStore.touchUserBalance()

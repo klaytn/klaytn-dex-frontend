@@ -30,7 +30,7 @@ const reservesAsTokens = computed(() => {
   if (!bothTokens || !res) return null
 
   return buildPair((type) => {
-    const reserve = res[type === 'tokenA' ? 'reserve0' : 'reserve1']
+    const reserve = res[type]
     const num = reserve.decimals(bothTokens[type])
     return num
   })

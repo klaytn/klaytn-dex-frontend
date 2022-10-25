@@ -147,20 +147,14 @@ function unstake() {
 const { state: withdrawState, run: withdraw } = useTask(async () => {
   const dex = dexStore.getNamedDexAnyway()
 
-  const earned = pool.value.earned
   await dex.earn.farming.withdraw({ poolId: props.pool.id, amount: new Wei(0) })
-
-  return { earned }
 })
 
 usePromiseLog(withdrawState, 'farming-pool-withdraw')
 
 wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
-    const { earned } = result.fulfilled.value
-    invariant(earned)
-    const formatted = formatCurrency({ amount: earned })
-    notify({ type: 'ok', description: `${formatted} DEX tokens were withdrawn` })
+    notify({ type: 'ok', description: `Tokens were withdrawn` })
     emit('withdrawn')
 
     tokensStore.touchUserBalance()
