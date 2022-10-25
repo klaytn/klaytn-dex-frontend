@@ -2,7 +2,7 @@
 import BigNumber from 'bignumber.js'
 import { Token, WeiAsToken } from '@/core'
 import { KlayIconImportant } from '~klay-icons'
-import { ModalOperation } from './types';
+import { ModalOperation } from './types'
 
 const props = defineProps<{
   operation: ModalOperation
@@ -26,7 +26,9 @@ const reduce = () => emit('reduce')
 
 const showReduceButton = computed(() => isResultGreaterThenLimit.value && !props.stakeAmount.isZero())
 
-const showEquation = computed(() => props.operation === ModalOperation.Stake && !props.staked.isZero() && !props.stakeAmount.isZero())
+const showEquation = computed(
+  () => props.operation === ModalOperation.Stake && !props.staked.isZero() && !props.stakeAmount.isZero(),
+)
 
 const showLimit = computed(() => !!props.userLimit && isResultGreaterThenLimit.value)
 </script>
