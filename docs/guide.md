@@ -27,8 +27,26 @@ The guide covers the following operations available on Klaytn-DEX:
   - [Add liquidity](#add-liquidity)
   - [Remove liquidity](#remove-liquidity)
 - [Farming](#farming)
+  - [View farming pools](#view-farming-pools)
+  - [Expand details about a farming pool](#expand-details-about-a-farming-pool)
+  - [Calculate ROI (farming)](#calculate-roi-farming)
+  - [Sort farming pools](#sort-farming-pools)
+  - [Stake LP tokens](#stake-lp-tokens)
+  - [Add or remove staked LP tokens](#add-or-remove-staked-lp-tokens)
+  - [Withdraw earned DEX tokens](#withdraw-earned-dex-tokens)
 - [Staking](#staking)
+  - [View staking pools](#view-staking-pools)
+  - [Expand details about a staking pool](#expand-details-about-a-staking-pool)
+  - [Calculate ROI (staking)](#calculate-roi-staking)
+  - [Sort staking pools](#sort-staking-pools)
+  - [Stake tokens](#stake-tokens)
+  - [Add or remove staked tokens](#add-or-remove-staked-tokens)
+  - [Withdraw earned tokens](#withdraw-earned-tokens)
 - [Dashboard](#dashboard)
+  - [View all pools](#view-all-pools)
+  - [View pool info](#view-pool-info)
+  - [View all tokens](#view-all-tokens)
+  - [View token info](#view-token-info)
 - [Governance](#governance)
   - [View proposals](#view-proposals)
   - [Vote](#vote)
@@ -188,15 +206,210 @@ You can add and remove liquidity in the `Trade`>`Liquidity` tab:
 
 ## Farming
 
-<!-- copy from draft -->
+You can farm tokens in the `Earn`>`Farms` tab.
+
+- [View farming pools](#view-farming-pools)
+- [Expand details about a farming pool](#expand-details-about-a-farming-pool)
+- [Calculate ROI (farming)](#calculate-roi-farming)
+- [Sort farming pools](#sort-farming-pools)
+- [Stake LP tokens](#stake-lp-tokens)
+- [Add or remove staked LP tokens](#add-or-remove-staked-lp-tokens)
+- [Withdraw earned DEX tokens](#withdraw-earned-dex-tokens)
+
+### View farming pools
+
+On the `Earn`>`Farms` page, you will see the full list of farming pools. Switch `Staked only` button to view only the pools in which you have staked LP tokens.
+
+The pool icon and name indicate the pair of LP tokens. For each pool, you are shown:
+- how much tokens you have earned
+- the annual percentage rate (APR) for the pool
+- liquidity of the pool
+- pool multiplier
+
+### Expand details about a farming pool
+
+If you click on a pool, you will see more information about it. You will see how much LP tokens you've staked and how much DEX tokens you've earned.
+
+You will also be able to:
+
+- Change the amount of staked LP tokens
+- Withdraw earned DEX tokens
+- See information about the token pair on KlaytnFinder
+- View contract on KlaytnFinder
+
+### Calculate ROI (farming)
+
+Click on the calculator icon next to the APR value to open ROI calculator:
+
+![](./img/farming/roi-calculator.png)
+
+To calculate how much you will earn, specify the time period for which the tokens will be staked, how often to compound the earnings, and pick the amount of LP tokens to stake. The calculator will show you how much you will earn based on these conditions.
+
+Expand the details section to see APR (annual percentage rate) including LP rewards, base APR, and APY (annual percentage yield):
+
+![](./img/farming/roi-details.png)
+
+### Sort farming pools
+
+You can sort pools on the page:
+
+- `Hot`: show open pools with the most APR first
+- `Liquidity`: sort pools by their liquidity
+- `APR`: sort pools by their annual percentage rate
+- `Multiplier`: sort pools by their multiplier
+- `Earned`: sort pools by how much you have earned in them
+- `Latest`: show the newly created pools first
+
+### Stake LP tokens
+
+1. Choose the pool in which to stake tokens and click on it.
+
+   Note that if you don't have the LP tokens that are being staked in this pool, you will need to [get](#add-liquidity) them first.
+
+     ![](./img/farming/farm-get-tokens.png)
+
+2. Stake LP tokens and confirm the operation:
+
+     ![](./img/farming/stake-lp-tokens.png)
+
+### Add or remove staked LP tokens
+
+When you already have LP tokens staked in the pool, you will be able to stake additional LP tokens and unstake LP tokens.
+
+1. Click on the pool:
+
+   ![](./img/farming/farm-tokens.png)
+
+2. Choose whether to add or remove LP tokens:
+
+   - To stake additional LP tokens, click `+`.
+   - To unstake LP tokens, click `-`.
+
+   Note that you can only add more LP tokens if you have any.
+
+### Withdraw earned DEX tokens
+
+1. Click on the pool:
+
+   ![](./img/farming/farm-tokens.png)
+
+2. Press `Withdraw` to withdraw earned tokens and confirm the operation.
 
 ## Staking
 
-<!-- copy from draft -->
+You can stake tokens in the `Earn`>`Pools` tab.
+
+- [View staking pools](#view-staking-pools)
+- [Expand details about a staking pool](#expand-details-about-a-staking-pool)
+- [Calculate ROI (staking)](#calculate-roi-staking)
+- [Sort staking pools](#sort-staking-pools)
+- [Stake tokens](#stake-tokens)
+- [Add or remove staked tokens](#add-or-remove-staked-tokens)
+- [Withdraw earned tokens](#withdraw-earned-tokens)
+
+### View staking pools
+
+On the `Earn`>`Pools` page, you will see the full list of staking pools. Switch `Staked only` button to view only the pools in which you have staked tokens.
+
+The pool icon and name indicate which token is staked and which token is earned. For each pool, you are shown:
+- how much tokens you have earned
+- the USD equivalent of the total amount of tokens staked in this pool
+- the annual percentage rate (APR) for the pool
+- when the pool ends
+
+### Expand details about a staking pool
+
+If you click on a pool, you will see more information about it. You will see how much you've staked and earned.
+
+You will also be able to:
+
+- Change the amount of staked tokens
+- Withdraw earned tokens
+- See information about the token on KlaytnFinder
+- View contract on KlaytnFinder
+- Add the token to your wallet
+
+### Calculate ROI (staking)
+
+Click on the calculator icon next to the APR value to open ROI calculator:
+
+![](./img/staking/roi-calculator.png)
+
+To calculate how much you will earn, specify the time period for which the tokens will be staked, how often to compound the earnings, and pick the amount to stake. The calculator will show you how much you will earn based on these conditions.
+
+Expand the details section to see APR (annual percentage rate) and APY (annual percentage yield):
+
+![](./img/staking/roi-details.png)
+
+### Sort staking pools
+
+You can sort pools on the page:
+
+- `Hot`: show open pools with the most APR first
+- `APR`: sort pools by their annual percentage rate
+- `Earned`: sort pools by how much you have earned in them
+- `Total staked`: sort pools by how much is staked in them 
+- `Latest`: show the newly created pools first
+
+### Stake tokens
+
+1. Choose the pool in which to stake tokens and click on it.
+
+   - If you don't have the tokens that are being staked in this pool, you will need to [get](#swap) them first.
+
+     ![](./img/staking/stake-get-tokens.png)
+
+   - If you have the tokens that are being staked in this pool, you will see the stake button (e.g., `Stake KLAY` for the `KLAY` token):
+
+     ![](./img/staking/stake-tokens.png)
+
+2. After clicking the stake button, you need to specify how much of your tokens you'd want to stake and confirm staking:
+
+   ![](./img/staking/confirm-stake.png)
+
+### Add or remove staked tokens
+
+You can change the number of staked tokens by pressing either the `+` to add tokens or `-` to remove tokens from the staking pool:
+
+![](./img/staking/add-tokens.png)
+
+Note that you can only add more tokens if you have any.
+
+### Withdraw earned tokens
+
+Click `Withdraw` to withdraw the tokens you have earned:
+
+![](./img/staking/add-tokens.png)
 
 ## Dashboard
 
-<!-- copy from draft -->
+Go to the `Charts` tab to view DEX dashboard. You will land on the `Overview` page, where you can find the graphs showing the changes in total value locked (TVL) and 24-hour volume by days, weeks, or months. This page also features top tokens, top pools, and the latest transactions in DEX.
+
+### View all pools
+
+You can view top pools on the `Overview` page. From there, click `All pools` to see the full list of pools. Alternatively, you can go to the `Pools` tab at the top of the page.
+
+### View pool info
+
+Click on a pool to view the detailed information about it. The page for each pool features the list of transactions for this pool and a graph like this:
+
+![](./img/dashboard/pool-info.png)
+
+Depending on the settings, it can show you the changes in volume, total value locked (TVL), liquidity, or fees. You can also specify the time period, e.g. a month or year.
+
+From this overview page, you can go directly to this pool on DEX, trade, or [add liquidity](#add-liquidity).
+
+### View all tokens
+
+You can view top tokens on the `Overview` page. From there, click `All tokens` to see the full list of pools. Alternatively, you can go to the `Tokens` tab at the top of the page.
+
+### View token info
+
+Click on a token to view the detailed information about it.
+
+![](./img/dashboard/token-info.png)
+
+Depending on the settings, it can show you you the changes in price, volume, or total value locked (TVL). You can also specify the time period, e.g. a month or year.
 
 ## Governance
 
