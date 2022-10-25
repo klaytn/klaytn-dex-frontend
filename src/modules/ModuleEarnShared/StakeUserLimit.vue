@@ -75,7 +75,7 @@ const showReduceButton = computed(() => isResultGreaterThenLimit.value && !props
           :amount="userLimit"
           :decimals="stakeToken.decimals"
           :symbol="stakeToken.symbol"
-          :max-width="140"
+          :max-width="100"
         />
       </div>
     </div>
