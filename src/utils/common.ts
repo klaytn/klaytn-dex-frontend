@@ -75,3 +75,33 @@ export function numberToPercent(num: number, precision: number): Percent {
   const pow = 10 ** precision
   return new Percent(num * pow, pow)
 }
+
+export function trimTrailingZerosWithPeriod(input: string): string {
+  let firstNonZeroIndex: undefined | number
+  let periodIndex: undefined | number
+  for (let i = input.length - 1, char = input[i]; i > 0; i--, char = input[i]) {
+    if (char === '.') {
+      periodIndex = i
+      break
+    }
+    if (!firstNonZeroIndex && char !== '0') firstNonZeroIndex = i
+  }
+  return periodIndex ? (firstNonZeroIndex ? input.slice(0, firstNonZeroIndex + 1) : input.slice(0, periodIndex)) : input
+}
+
+if (import.meta.vitest) {
+  const { describe, test, expect } = import.meta.vitest
+
+  describe('Trim trailing zeros', () => {
+    test.each([
+      ['0.0', '0'],
+      ['12230000', '12230000'],
+      ['1.2000', '1.2'],
+      ['0', '0'],
+      ['7.001', '7.001'],
+      ['1.00000', '1'],
+    ])('%o is trimmed into %o', (a, b) => {
+      expect(trimTrailingZerosWithPeriod(a)).toEqual(b)
+    })
+  })
+}

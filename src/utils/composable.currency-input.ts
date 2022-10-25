@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js'
 import invariant from 'tiny-invariant'
 import { Except } from 'type-fest'
 import { Ref } from 'vue'
-import { formatNumberWithCommas } from './common'
+import { formatNumberWithCommas, trimTrailingZerosWithPeriod } from './common'
 
 type SymbolPosition = 'left' | 'right'
 
@@ -56,19 +56,6 @@ function parseInputValue(input: string, decimals: number): { kind: 'NaN' } | { k
 function composeSymbol(sym: MaybeRef<MaskSymbol>): Except<MaskSymbol, 'delimiter'> {
   const { str, position, delimiter = ' ' } = unref(sym)
   return { position, str: position === 'left' ? str + delimiter : delimiter + str }
-}
-
-function trimTrailingZerosWithPeriod(input: string): string {
-  let firstNonZeroIndex: undefined | number
-  let periodIndex: undefined | number
-  for (let i = input.length - 1, char = input[i]; i > 0; i--, char = input[i]) {
-    if (char === '.') {
-      periodIndex = i
-      break
-    }
-    if (!firstNonZeroIndex && char !== '0') firstNonZeroIndex = i
-  }
-  return periodIndex ? (firstNonZeroIndex ? input.slice(0, firstNonZeroIndex + 1) : input.slice(0, periodIndex)) : input
 }
 
 export function formatCurrency({
@@ -286,19 +273,6 @@ if (import.meta.vitest) {
       [{ amount: 10, decimals: 2 }, '10'],
     ])('Formats %o into %s', (input, output) => {
       expect(formatCurrency(input)).toEqual(output)
-    })
-  })
-
-  describe('Trim trailing zeros', () => {
-    test.each([
-      ['0.0', '0'],
-      ['12230000', '12230000'],
-      ['1.2000', '1.2'],
-      ['0', '0'],
-      ['7.001', '7.001'],
-      ['1.00000', '1'],
-    ])('%o is trimmed into %o', (a, b) => {
-      expect(trimTrailingZerosWithPeriod(a)).toEqual(b)
     })
   })
 }

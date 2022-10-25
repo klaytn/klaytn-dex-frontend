@@ -19,10 +19,10 @@ import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
 import { TokensPair } from '@/utils/pair'
 import StakeUnstakeModal from './Modal.vue'
 import WalletConnectButton from '@/components/WalletConnectButton.vue'
-import invariant from 'tiny-invariant'
 import { or } from '@vueuse/core'
 import { useBalance } from '../ModuleEarnShared/composable.balance'
 import { PromiseStateAtomic } from '@vue-kakuyaku/core'
+import PoolHead from './PoolHead.vue'
 
 const dexStore = useDexStore()
 const tokensStore = useTokensStore()
@@ -64,10 +64,6 @@ const poolSymbols = computed<TokensPair<CurrencySymbol>>(() => {
   return { tokenA: a, tokenB: b }
 })
 
-const formattedAnnualPercentageRate = computed(() => {
-  return '%' + new BigNumber(pool.value.annualPercentageRate.toFixed(2, BigNumber.ROUND_UP))
-})
-
 const formattedLiquidity = computed(() => {
   return formatCurrency({
     amount: pool.value.liquidity.decimalPlaces(0, BigNumber.ROUND_UP),
@@ -82,7 +78,7 @@ const formattedMultiplier = computed(() => {
 const stats = computed(() => {
   return {
     earned: pool.value.earned,
-    annualPercentageRate: formattedAnnualPercentageRate.value,
+    annualPercentageRate: pool.value.annualPercentageRate,
     liquidity: formattedLiquidity.value,
     multiplier: formattedMultiplier.value,
   }
@@ -182,51 +178,14 @@ function openRoiCalculator() {
 <template>
   <KlayAccordionItem v-model="expanded">
     <template #title>
-      <div class="grid grid-cols-5">
-        <div class="flex items-center space-x-2">
-          <KlaySymbolsPair v-bind="poolSymbols" />
-
-          <span class="title-name">
-            {{ pool.name }}
-          </span>
-        </div>
-
-        <div
-          v-for="(value, label) in stats"
-          :key="label"
-        >
-          <div class="stats-item-label">
-            {{ t(`ModuleFarmingPool.stats.${label}`) }}
-          </div>
-
-          <div
-            v-if="label === 'annualPercentageRate'"
-            class="stats-item-value flex items-center space-x-2"
-          >
-            <span>
-              {{ value }}
-            </span>
-            <KlayIconCalculator
-              class="calculator-icon"
-              @click.stop="openRoiCalculator()"
-            />
-          </div>
-
-          <div
-            v-else-if="label === 'earned'"
-            class="stats-item-value"
-          >
-            <CurrencyFormatTruncate :amount="value" />
-          </div>
-
-          <div
-            v-else
-            class="stats-item-value"
-          >
-            {{ value }}
-          </div>
-        </div>
-      </div>
+      <PoolHead
+        :name="pool.name"
+        :earned="pool.earned"
+        :annual-percentage-rate="pool.annualPercentageRate"
+        :liquidity="pool.liquidity"
+        :multiplier="pool.multiplier"
+        @click:roi-calculator="openRoiCalculator"
+      />
     </template>
 
     <div class="min-h-84px flex flex-col justify-center">

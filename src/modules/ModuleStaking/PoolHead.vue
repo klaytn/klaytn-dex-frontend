@@ -15,8 +15,6 @@ const props = defineProps<{
 
 const emit = defineEmits(['click:roi-calculator'])
 
-const aprRounded = computed(() => props.annualPercentageRate?.decimalPlaces(2, BigNumber.ROUND_UP))
-
 const totalRounded = computed(() => props.totalStakedUsd?.decimalPlaces(0, BigNumber.ROUND_UP))
 
 const nonNegativeStartsIn = computed(() => Math.max(0, props.startsIn))
@@ -81,16 +79,16 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
         class="flex items-center"
       >
         <span class="mr-2">
-          <CurrencyFormat
-            :amount="aprRounded"
+          <CurrencyFormatTruncate
+            :amount="annualPercentageRate"
+            :decimals="2"
             symbol="%"
-            symbol-delimiter=""
             symbol-position="right"
           />
         </span>
 
         <KlayIconCalculator
-          v-if="aprRounded !== undefined"
+          v-if="annualPercentageRate !== null"
           :class="$style.iconCalc"
           @click.stop="emit('click:roi-calculator')"
         />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PoolId, CurrencySymbol, WeiAsToken } from '@/core'
+import { PoolId, CurrencySymbol, WeiAsToken, LP_TOKEN_DECIMALS } from '@/core'
 import { formatCurrency } from '@/utils/composable.currency-input'
 import BigNumber from 'bignumber.js'
 import { ModalOperation } from './types'
@@ -23,6 +23,11 @@ const dexStore = useDexStore()
 const tokensStore = useTokensStore()
 
 const inputAmount = shallowRef(new BigNumber(0) as WeiAsToken<BigNumber>)
+
+const stakeToken = computed(() => ({
+  symbol: props.symbols?.tokenA + '-' + props.symbols?.tokenB,
+  decimals: LP_TOKEN_DECIMALS,
+}))
 
 const label = computed(() => {
   const { operation, staked } = props
@@ -116,9 +121,10 @@ const showEquation = computed(() => props.operation === ModalOperation.Stake && 
       </InputTokenLp>
 
       <StakeUserLimit
-        v-if="showEquation"
+        :show-equation="showEquation"
         :stake-amount="inputAmount"
         :staked="staked"
+        :stake-token="stakeToken"
       />
 
       <KlayButton
