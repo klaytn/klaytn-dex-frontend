@@ -95,7 +95,7 @@ export function useMappedPools(props: {
           : null
 
       const createdAtBlock = Number(pool.createdAtBlock)
-      
+
       const blocksForUserLimit = Number(pool.blocksForUserLimit)
       const isUserLimitActive = (roundedBlockNumber.value ?? 0) <= startBlock + blocksForUserLimit
       const userLimit = isUserLimitActive ? new Wei(pool.userLimit).decimals(pool.stakeToken) : null
