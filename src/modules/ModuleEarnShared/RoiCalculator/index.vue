@@ -4,7 +4,7 @@ import { KlayIconSwitch } from '~klay-icons'
 import { SModal } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
 import { RoiType } from '@/types'
-import { PERIOD_DAYS } from './const'
+import { PERIOD_DAYS, PERIOD_NAMES } from './const'
 import { makeTabsArray } from '@/utils/common'
 import { StakeTabs, CompoundingTabs, StakeUnits } from './types'
 import { useFormattedCurrency, MaskSymbol, SYMBOL_USD as MASK_SYMBOL_USD } from '@/utils/composable.currency-input'
@@ -84,12 +84,21 @@ const totalApr = computed(() => {
 })
 
 const compoundsPerYear = computed(() => {
-  return Math.floor(365 / PERIOD_DAYS[compoundingEvery.value])
+  return Math.ceil(365 / PERIOD_DAYS[compoundingEvery.value])
+})
+
+const compoundsPerStakingPeriod = computed(() => {
+  return Math.ceil(PERIOD_DAYS[stakeFor.value] / PERIOD_DAYS[compoundingEvery.value])
 })
 
 const apy = computed(() => {
   if (!compoundingEnabled.value) return totalApr.value
   return totalApr.value.div(100).div(compoundsPerYear.value).plus(1).pow(compoundsPerYear.value).minus(1).times(100)
+})
+
+const stakingPeriodPercentageYield = computed(() => {
+  if (!compoundingEnabled.value) return totalApr.value
+  return totalApr.value.div(100).div(compoundsPerYear.value).plus(1).pow(compoundsPerStakingPeriod.value).minus(1).times(100)
 })
 
 // #region Different values
@@ -107,10 +116,9 @@ const formattedStakeValueInAnotherUnits = useFormattedCurrency({
 
 const useReceiveValue = (stake: Ref<BigNumber>) =>
   computed(() =>
-    apy.value
+  stakingPeriodPercentageYield.value
       .div(100)
-      .times(stake.value)
-      .times(PERIOD_DAYS[stakeFor.value] / 365),
+      .times(stake.value),
   )
 
 const receiveValue = useReceiveValue(parsedStakeValue)
@@ -148,17 +156,23 @@ watch(
   { immediate: true },
 )
 
+const stakingPeriodPercentageYieldName = computed(() => {
+  return `${PERIOD_NAMES[stakeFor.value]} Percentage Yield`
+})
+
 const detailsList = computed(() => {
   const percent = { decimals: 2, symbol: '%' }
   if (props.type === RoiType.Farming)
     return [
       { label: 'APR (incl. LP rewards)', value: totalApr.value, ...percent },
       { label: 'Base APR (DEX-Tokens yield only)', value: props.apr, ...percent },
+      { label: stakingPeriodPercentageYieldName.value, value: stakingPeriodPercentageYield.value, ...percent },
       { label: 'APY', value: apy.value, ...percent },
     ]
   else
     return [
       { label: 'APR', value: props.apr, ...percent },
+      { label: stakingPeriodPercentageYieldName.value, value: stakingPeriodPercentageYield.value, ...percent },
       { label: 'APY', value: apy.value, ...percent },
     ]
 })
@@ -255,14 +269,17 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
           </div>
 
           <div class="space-y-2">
-            <span class="flex label">
-              You will receive (APY =
-              <CurrencyFormatTruncate
-                class="ml-1"
-                :amount="apy"
-                :decimals="2"
-                symbol="%"
-              />)
+            <span class="label">
+              You will receive
+              <div class="flex">
+                ({{ PERIOD_NAMES[stakeFor] }} Percentage Yield =
+                <CurrencyFormatTruncate
+                  class="ml-1"
+                  :amount="stakingPeriodPercentageYield"
+                  :decimals="2"
+                  symbol="%"
+                />)
+              </div>
             </span>
             <InputCurrencyTemplate bottom>
               <template #input>
