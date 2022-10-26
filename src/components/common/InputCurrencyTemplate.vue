@@ -5,9 +5,10 @@ export default {
 </script>
 
 <script setup lang="ts">
-const props = withDefaults(
+withDefaults(
   defineProps<{
     maxButton?: boolean
+    maxButtonDisabled?: boolean
     loading?: boolean
     bottom?: boolean
     right?: boolean
@@ -39,6 +40,7 @@ const emit = defineEmits(['update:modelValue', 'click:max'])
 
       <KlayButton
         v-if="maxButton"
+        :disabled="maxButtonDisabled"
         size="xs"
         type="primary"
         @click="emit('click:max')"

@@ -59,6 +59,11 @@ function setPercent(percent: number) {
   inputAmount.value = referenceValue.multipliedBy(percent * 0.01) as WeiAsToken<BigNumber>
 }
 
+const setPercentDisabled = computed(() => {
+  const { balance, operation } = props
+  return operation === ModalOperation.Stake && (balance === null || balance.isZero())
+})
+
 const { state: operationState, run: confirm } = useTask(async () => {
   const amount = inputAmount.value
   const dex = dexStore.getNamedDexAnyway()
@@ -98,14 +103,10 @@ wheneverDone(operationState, (result) => {
 
 const loading = toRef(operationState, 'pending')
 
-const showEquation = computed(() => props.operation === ModalOperation.Stake && !props.staked.isZero())
-
 const result = computed(() => props.staked.plus(inputAmount.value))
 const resultGreaterThenLimit = computed(() => props.userLimit && result.value.isGreaterThan(props.userLimit))
 
 const disabled = logicOr(notEnough, lessThanOrEqualToZero, resultGreaterThenLimit)
-
-const showUserLimit = computed(() => props.operation === ModalOperation.Stake)
 
 const reduce = () => {
   inputAmount.value = props.userLimit.minus(props.staked) as WeiAsToken<BigNumber>
@@ -166,6 +167,7 @@ const reduce = () => {
           v-for="percent in [10, 25, 50, 75]"
           :key="percent"
           size="sm"
+          :disabled="setPercentDisabled"
           @click="setPercent(percent)"
         >
           {{ percent }}%
@@ -174,6 +176,7 @@ const reduce = () => {
         <KlayButton
           type="primary"
           size="sm"
+          :disabled="setPercentDisabled"
           @click="setPercent(100)"
         >
           MAX
@@ -181,8 +184,7 @@ const reduce = () => {
       </div>
 
       <StakeUserLimit
-        v-if="showUserLimit"
-        :show-equation="showEquation"
+        :operation="operation"
         :stake-amount="inputAmount"
         :staked="staked"
         :stake-token="stakeToken"

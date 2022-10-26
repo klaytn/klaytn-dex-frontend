@@ -28,7 +28,7 @@ const resizeObserver = new ResizeObserver(() => {
 onMounted(() => {
   if (body.value === null) return
   bodyHeight.value = body.value.clientHeight
-  resizeObserver.observe(body.value)
+  resizeObserver.observe(body.value as Element)
 })
 
 const long = computed(() => {

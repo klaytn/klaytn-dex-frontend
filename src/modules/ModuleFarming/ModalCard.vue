@@ -7,12 +7,13 @@ import InputTokenLp from '@/components/InputTokenLp.vue'
 import { TokensPair } from '@/utils/pair'
 import { farmingToWei } from './utils'
 import StakeUserLimit from '../ModuleEarnShared/StakeUserLimit.vue'
+import invariant from 'tiny-invariant'
 
 const props = defineProps<{
   operation: ModalOperation
   poolId: PoolId
   staked: WeiAsToken<BigNumber>
-  balance: WeiAsToken<BigNumber>
+  balance: WeiAsToken<BigNumber> | null
   symbols: null | TokensPair<CurrencySymbol>
 }>()
 
@@ -43,7 +44,10 @@ const label = computed(() => {
 })
 
 const notEnough = computed(() => {
-  const compareValue = props.operation === ModalOperation.Stake ? props.balance : props.staked
+  const { balance, operation, staked } = props
+  if (!balance) return false
+
+  const compareValue = operation === ModalOperation.Stake ? balance : staked
   return new BigNumber(inputAmount.value).isGreaterThan(compareValue)
 })
 
@@ -54,8 +58,17 @@ const lessThanOrEqualToZero = computed(() => {
 const disabled = logicOr(notEnough, lessThanOrEqualToZero)
 
 function setMax() {
-  inputAmount.value = props.operation === ModalOperation.Stake ? props.balance : props.staked
+  const { balance, operation, staked } = props
+  if (operation === ModalOperation.Stake) {
+    invariant(balance)
+    inputAmount.value = balance
+  } else inputAmount.value = staked
 }
+
+const maxButtonDisabled = computed(() => {
+  const { balance, operation } = props
+  return operation === ModalOperation.Stake && (balance === null || balance.isZero())
+})
 
 const { state: operationState, run: confirm } = useTask(async () => {
   const dex = dexStore.getNamedDexAnyway()
@@ -87,8 +100,6 @@ wheneverFulfilled(operationState, ({ amount, operation }) => {
 useNotifyOnError(operationState, notify, 'Failed to confirm operation')
 
 const loading = toRef(operationState, 'pending')
-
-const showEquation = computed(() => props.operation === ModalOperation.Stake && !props.staked.isZero())
 </script>
 
 <template>
@@ -100,6 +111,7 @@ const showEquation = computed(() => props.operation === ModalOperation.Stake && 
       <InputTokenLp
         v-model="inputAmount"
         :symbols="symbols"
+        :max-button-disabled="maxButtonDisabled"
         @click:max="setMax"
       >
         <template #bottom-right>
@@ -121,7 +133,7 @@ const showEquation = computed(() => props.operation === ModalOperation.Stake && 
       </InputTokenLp>
 
       <StakeUserLimit
-        :show-equation="showEquation"
+        :operation="operation"
         :stake-amount="inputAmount"
         :staked="staked"
         :stake-token="stakeToken"

@@ -2,9 +2,10 @@
 import BigNumber from 'bignumber.js'
 import { Token, WeiAsToken } from '@/core'
 import { KlayIconImportant } from '~klay-icons'
+import { ModalOperation } from './types'
 
 const props = defineProps<{
-  showEquation: boolean
+  operation: ModalOperation
   staked: WeiAsToken<BigNumber>
   stakeToken: Pick<Token, 'decimals' | 'symbol'>
   stakeAmount: WeiAsToken<BigNumber>
@@ -15,17 +16,21 @@ const emit = defineEmits(['reduce'])
 
 const equationItemMaxWidth = 105
 
-const result = computed(() => props.staked.plus(props.stakeAmount))
+const result = computedEager(() => props.staked.plus(props.stakeAmount))
 
-const isResultGreaterThenLimit = computed(() => props.userLimit && result.value.isGreaterThan(props.userLimit))
+const isResultGreaterThenLimit = computedEager(() => props.userLimit && result.value.isGreaterThan(props.userLimit))
 
-const resultValueClass = computed(() => isResultGreaterThenLimit.value && 'too-many')
+const resultValueClass = computedEager(() => isResultGreaterThenLimit.value && 'too-many')
 
 const reduce = () => emit('reduce')
 
-const showLimit = computed(() => !!props.userLimit && isResultGreaterThenLimit.value)
+const showReduceButton = computedEager(() => isResultGreaterThenLimit.value && !props.stakeAmount.isZero())
 
-const showReduceButton = computed(() => isResultGreaterThenLimit.value && !props.stakeAmount.isZero())
+const showEquation = computedEager(
+  () => props.operation === ModalOperation.Stake && !props.staked.isZero() && !props.stakeAmount.isZero(),
+)
+
+const showLimit = computedEager(() => !!props.userLimit && isResultGreaterThenLimit.value)
 </script>
 
 <template>
@@ -33,7 +38,7 @@ const showReduceButton = computed(() => isResultGreaterThenLimit.value && !props
     v-if="showEquation || showLimit"
     class="container space-y-4"
   >
-    <div v-if="showEquation">
+    <div v-if="showEquation && !stakeAmount.isZero()">
       <div class="equation-item">
         <span class="equation-item-title"> Staked </span>
         <CurrencyFormatTruncate
