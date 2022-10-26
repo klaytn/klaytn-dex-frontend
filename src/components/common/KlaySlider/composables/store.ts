@@ -20,9 +20,9 @@ export interface Store {
 export function useStore(props: Props): Store {
   const { modelValue, units, min, max } = toRefs(props)
 
-  const slider = ref(document.createElement('div'))
+  const slider = ref(document.createElement('div')) as Ref<HTMLDivElement>
 
-  const thumb = ref(document.createElement('div'))
+  const thumb = ref(document.createElement('div')) as Ref<HTMLDivElement>
 
   const valueWithUnits = computed(() => {
     return `${modelValue} ${units}`
