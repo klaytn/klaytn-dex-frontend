@@ -98,7 +98,13 @@ const apy = computed(() => {
 
 const stakingPeriodPercentageYield = computed(() => {
   if (!compoundingEnabled.value) return totalApr.value
-  return totalApr.value.div(100).div(compoundsPerYear.value).plus(1).pow(compoundsPerStakingPeriod.value).minus(1).times(100)
+  return totalApr.value
+    .div(100)
+    .div(compoundsPerYear.value)
+    .plus(1)
+    .pow(compoundsPerStakingPeriod.value)
+    .minus(1)
+    .times(100)
 })
 
 // #region Different values
@@ -115,11 +121,7 @@ const formattedStakeValueInAnotherUnits = useFormattedCurrency({
 })
 
 const useReceiveValue = (stake: Ref<BigNumber>) =>
-  computed(() =>
-  stakingPeriodPercentageYield.value
-      .div(100)
-      .times(stake.value),
-  )
+  computed(() => stakingPeriodPercentageYield.value.div(100).times(stake.value))
 
 const receiveValue = useReceiveValue(parsedStakeValue)
 
