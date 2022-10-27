@@ -1,8 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router'
 import { RouteName } from './types'
 
 export default createRouter({
-  history: createWebHistory(),
+  history: import.meta.env.VITE_ROUTER_HASH_MODE === 'TRUE' ? createWebHashHistory() : createWebHistory(),
   routes: [
     {
       path: '/swap',
