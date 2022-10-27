@@ -7,9 +7,9 @@ import { KlayIconSearch } from '~klay-icons'
 const { t } = useI18n()
 const vBem = useBemClass()
 
-const kaikasStore = useKaikasStore()
 const farmingStore = useFarmingStore()
 const stakingStore = useStakingStore()
+const dexStore = useDexStore()
 
 const route = useRoute()
 
@@ -52,7 +52,14 @@ const searchQuery = computed({
 })
 
 const sortingOptions = computed(() => {
-  const values = route.name === RouteName.Farms ? Object.values(FarmingSorting) : Object.values(StakingSorting)
+  const filteredFarmingSortingOptions = Object.values(FarmingSorting).filter((option) => {
+    return dexStore.isWalletConnected || option !== FarmingSorting.Earned
+  })
+  const filteredStakingSortingOptions = Object.values(StakingSorting).filter((option) => {
+    return dexStore.isWalletConnected || option !== StakingSorting.Earned
+  })
+
+  const values = route.name === RouteName.Farms ? filteredFarmingSortingOptions : filteredStakingSortingOptions
 
   return values.map((option) => ({
     value: option,
@@ -69,14 +76,14 @@ const menuActiveClass = 'earn-wrap__head-button--active'
       <RouterLink
         v-bem="'head-button'"
         to="/farms"
-        :active-class="menuActiveClass"
+        :exact-active-class="menuActiveClass"
       >
         {{ t('EarnWrap.menu.farms') }}
       </RouterLink>
       <RouterLink
         v-bem="'head-button'"
         to="/pools"
-        :active-class="menuActiveClass"
+        :exact-active-class="menuActiveClass"
       >
         {{ t('EarnWrap.menu.pools') }}
       </RouterLink>
@@ -105,14 +112,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
       </KlayTextField>
     </div>
 
-    <slot v-if="kaikasStore.isConnected" />
-
-    <div
-      v-else
-      class="text-2xl font-bold flex-1 w-full flex items-center justify-center"
-    >
-      Connect kaikas first
-    </div>
+    <slot />
   </div>
 </template>
 

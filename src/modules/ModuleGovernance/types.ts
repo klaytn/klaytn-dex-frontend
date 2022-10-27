@@ -1,4 +1,4 @@
-import { Address } from '@/core/kaikas'
+import { Address } from '@/core'
 import { ProposalQueryResult } from './query.proposal'
 
 export const Sorting = {

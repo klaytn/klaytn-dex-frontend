@@ -1,67 +1,74 @@
 <script setup lang="ts">
-import { Token, Wei, WeiAsToken } from '@/core/kaikas'
-import { LP_TOKEN_DECIMALS } from '@/core/kaikas/const'
+import { WeiAsToken, LP_TOKEN_DECIMALS, CurrencySymbol } from '@/core'
 import { TokensPair } from '@/utils/pair'
-import { roundTo } from 'round-to'
+import BigNumber from 'bignumber.js'
+import { Ref } from 'vue'
 
-const props = defineProps<{
-  liquidityRaw?: WeiAsToken
-  balance?: null | Wei
-  tokens?: null | TokensPair<Token | null>
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: WeiAsToken<BigNumber>
+    symbols?: null | TokensPair<CurrencySymbol>
+    maxButton?: boolean
+    maxButtonDisabled?: boolean
+  }>(),
+  { maxButton: true },
+)
 
-const emit = defineEmits(['update:liquidityRaw', 'click:max'])
+const emit = defineEmits(['update:modelValue', 'click:max'])
 
-const model = useVModel(props, 'liquidityRaw', emit)
-const modelDebounced = ref(model.value)
-syncRef(model, modelDebounced, { direction: 'ltr' })
+const model = useVModel(props, 'modelValue', emit) as Ref<WeiAsToken<BigNumber>>
+const modelDebounced = shallowRef(model.value)
+
+watch(
+  model,
+  (value) => {
+    if (!value.eq(modelDebounced.value)) modelDebounced.value = value
+  },
+  { immediate: true },
+)
+
 watchDebounced(
   modelDebounced,
   (value) => {
-    model.value = value
+    if (!value.eq(model.value)) model.value = value
   },
   { debounce: 500 },
 )
-
-const tokensNormalized = computed(() => {
-  const { tokens } = props
-  if (!tokens?.tokenA || !tokens?.tokenB) return null
-  return tokens as TokensPair<Token>
-})
-
-const formattedBalance = computed(() => {
-  const value = props.balance
-  if (!value) return null
-  const num = Number(value.toToken({ decimals: LP_TOKEN_DECIMALS }))
-  return roundTo(num, 7)
-})
 </script>
 
 <template>
-  <InputTokenTemplate
+  <InputCurrencyTemplate
     v-model="modelDebounced"
-    max-button
+    :max-button="maxButton"
+    :max-button-disabled="maxButtonDisabled"
     bottom
     @click:max="emit('click:max')"
   >
+    <template #input>
+      <CurrencyInput
+        v-model="modelDebounced"
+        :decimals="LP_TOKEN_DECIMALS"
+      />
+    </template>
+
     <template #top-right>
       <div
-        v-if="tokensNormalized"
+        v-if="symbols"
         class="space-x-2 flex items-center"
       >
         <KlaySymbolsPair
-          :token-a="tokensNormalized.tokenA.symbol"
-          :token-b="tokensNormalized.tokenB.symbol"
+          :token-a="symbols.tokenA"
+          :token-b="symbols.tokenB"
         />
 
-        <span class="pair-symbols"> {{ tokensNormalized.tokenA.symbol }}-{{ tokensNormalized.tokenB.symbol }} </span>
+        <span class="pair-symbols"> {{ symbols.tokenA }}-{{ symbols.tokenB }} </span>
       </div>
     </template>
 
     <template #bottom-right>
-      <span class="balance"> Balance: <ValueOrDash :value="formattedBalance" /> </span>
+      <slot name="bottom-right" />
     </template>
-  </InputTokenTemplate>
+  </InputCurrencyTemplate>
 </template>
 
 <style lang="scss" scoped>

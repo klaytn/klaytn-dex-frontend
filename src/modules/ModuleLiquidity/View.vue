@@ -1,10 +1,55 @@
 <script setup lang="ts">
-import { useLiquidityPairsQuery } from './query.liquidity-pairs'
+import { Address } from '@/core'
+import { RouteName } from '@/types'
+import { TokensPair } from '@/utils/pair'
+import { useTradeStore } from '../ModuleTradeShared/trade-store'
+import { useLiquidityPairsQuery, LiquidityPairsPosition } from './query.liquidity-pairs'
 
-const { loading: isLoading, result } = useLiquidityPairsQuery()
+const { loading: isLoading, result, refetch } = useLiquidityPairsQuery()
+
+// Refetch if cached
+if (result.value && !isLoading.value) refetch()
 
 const isLoaded = computed(() => !!result.value)
 const isUserEmpty = computed(() => result.value && !result.value.user)
+
+const tradeStore = useTradeStore()
+
+tradeStore.useRefresh({
+  run: () => refetch(),
+  pending: isLoading,
+})
+
+const router = useRouter()
+const addLiquidityStore = useLiquidityAddStore()
+
+function positionToAddresses({
+  pair: {
+    token0: { id: tokenA },
+    token1: { id: tokenB },
+  },
+}: LiquidityPairsPosition): TokensPair<Address> {
+  return { tokenA, tokenB }
+}
+
+function goToAddLiquidity(position: LiquidityPairsPosition) {
+  addLiquidityStore.setBothAddresses(positionToAddresses(position))
+  router.push({ name: RouteName.LiquidityAdd })
+}
+
+const rmLiquidityStore = useLiquidityRmStore()
+
+function goToRemoveLiquidity(position: LiquidityPairsPosition) {
+  rmLiquidityStore.setTokens(positionToAddresses(position))
+  router.push({ name: RouteName.LiquidityRemove })
+}
+
+const farmingStore = useFarmingStore()
+
+function goToFarms({ pair: { name: pairName } }: LiquidityPairsPosition) {
+  farmingStore.setFilterByPairName(pairName)
+  router.push({ name: RouteName.Farms })
+}
 </script>
 
 <template>
@@ -14,14 +59,7 @@ const isUserEmpty = computed(() => result.value && !result.value.user)
     </h3>
 
     <div
-      v-if="isLoading"
-      class="flex items-center justify-center p-8"
-    >
-      <KlayLoader />
-    </div>
-
-    <div
-      v-else-if="isUserEmpty"
+      v-if="isUserEmpty"
       class="px-4"
     >
       Empty
@@ -30,6 +68,9 @@ const isUserEmpty = computed(() => result.value && !result.value.user)
     <ModuleLiquidityViewPairsList
       v-if="isLoaded && !isUserEmpty"
       :positions="result!.user?.liquidityPositions"
+      @click:add="goToAddLiquidity($event)"
+      @click:remove="goToRemoveLiquidity($event)"
+      @click:deposit="goToFarms($event)"
     />
   </div>
 </template>

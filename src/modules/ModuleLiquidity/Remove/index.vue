@@ -1,21 +1,26 @@
 <script lang="ts" setup>
-import { RouteName } from '@/types'
+import { useTradeStore } from '@/modules/ModuleTradeShared/trade-store'
 import { storeToRefs } from 'pinia'
 import { Tab } from './const'
 
 const active = useLocalStorage<Tab>('liquidity-remove-active-tab', 'amount')
 
-const store = useLiquidityRmStore()
-const { prepareSupplyState, isReadyToPrepareSupply } = storeToRefs(store)
+const rmStore = useLiquidityRmStore()
+const { prepareSupplyState, isReadyToPrepareSupply, isRefreshing } = storeToRefs(rmStore)
 
-const router = useRouter()
+useTradeStore().useRefresh({
+  run: () => rmStore.refresh(),
+  pending: isRefreshing,
+})
 
-if (!store.selected) {
-  // there is no point to stay here if there is no selection
-  router.push({ name: RouteName.Liquidity })
-}
+const rmSelectionStore = useLiquidityRmSelectionStore()
 
-onUnmounted(() => store.clear())
+rmSelectionStore.setRouteIsActive(true)
+
+onUnmounted(() => {
+  rmSelectionStore.setRouteIsActive(false)
+  rmStore.clear()
+})
 </script>
 
 <template>
@@ -31,7 +36,7 @@ onUnmounted(() => store.clear())
       class="w-full"
       :loading="prepareSupplyState?.pending"
       :disabled="!isReadyToPrepareSupply"
-      @click="store.prepareSupply()"
+      @click="rmStore.prepareSupply()"
     >
       Remove
     </KlayButton>

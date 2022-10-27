@@ -10,6 +10,11 @@
 
   & > :last-child {
     font-weight: 600;
+    max-width: 40%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
   }
 }
 

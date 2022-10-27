@@ -1,5 +1,4 @@
-import { Address, Token, Wei, WeiAsToken } from '@/core/kaikas'
-import { LP_TOKEN_DECIMALS as LP_TOKEN_DECIMALS_VALUE } from '@/core/kaikas/const'
+import { Address, Token, Wei } from '@/core'
 import {
   useNullablePairBalanceComponents,
   usePairAddress,
@@ -7,15 +6,12 @@ import {
   usePairReserves,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { buildPair, TokensPair, TOKEN_TYPES } from '@/utils/pair'
-import { acceptHMRUpdate, defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
-import { JSON_SERIALIZER } from '@/utils/common'
-import { Serializer } from '@vueuse/core'
 import { RouteName } from '@/types'
-
-const LP_TOKENS_DECIMALS = Object.freeze({ decimals: LP_TOKEN_DECIMALS_VALUE })
+import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 
 function usePrepareSupply(props: {
   tokens: Ref<null | TokensPair<Address>>
@@ -23,72 +19,70 @@ function usePrepareSupply(props: {
   liquidity: Ref<Wei | null>
   amounts: Ref<null | TokensPair<Wei>>
 }) {
-  const kaikasStore = useKaikasStore()
-  const tokensStore = useTokensStore()
+  const dexStore = useDexStore()
   const { notify } = useNotify()
-
-  const [active, setActive] = useToggle(false)
 
   const scopeKey = computed(() => {
     const tokens = props.tokens.value
     const pair = props.pairAddress.value
     const liquidity = props.liquidity.value
     const amounts = props.amounts.value
-    if (!(tokens && pair && liquidity && amounts)) return null
+    const activeDex = dexStore.active
 
-    return {
-      key:
-        // `pair` also represents both `tokenA` + `tokenB`
-        // `liquidity` also **should** strictly represent `amounts`
-        `${pair}-${liquidity}`,
-      payload: { tokens, pair, liquidity, amounts },
-    }
+    return (
+      tokens &&
+      pair &&
+      liquidity &&
+      amounts &&
+      activeDex.kind === 'named' && {
+        key:
+          // `pair` also represents both `tokenA` + `tokenB`
+          // `liquidity` also **should** strictly represent `amounts`
+          `dex-${activeDex.wallet}-${pair}-${liquidity}`,
+        payload: { tokens, pair, liquidity, amounts, dex: activeDex.dex() },
+      }
+    )
   })
-  watch(scopeKey, () => setActive(false))
+
+  const { filteredKey, setActive } = useControlledComposedKey(scopeKey)
 
   const isReadyToPrepareSupply = computed(() => !!scopeKey.value)
 
-  const scope = useParamScope(
-    computed(() => active.value && scopeKey.value),
-    ({ tokens, pair, liquidity: lpTokenValue, amounts }) => {
-      const { state: prepareState, run: prepare } = useTask(
-        () =>
-          kaikasStore.getKaikasAnyway().liquidity.prepareRmLiquidity({
-            tokens,
-            pair,
-            lpTokenValue,
-            // we want to burn it all for sure
-            minAmounts: amounts,
-          }),
-        { immediate: true },
-      )
+  const scope = useParamScope(filteredKey, ({ payload: { tokens, pair, liquidity: lpTokenValue, amounts, dex } }) => {
+    const { state: prepareState, run: prepare } = useTask(
+      () =>
+        dex.liquidity.prepareRmLiquidity({
+          tokens,
+          pair,
+          lpTokenValue,
+          // we want to burn it all for sure
+          minAmounts: amounts,
+        }),
+      { immediate: true },
+    )
 
-      usePromiseLog(prepareState, 'liquidity-remove-prepare-supply')
-      useNotifyOnError(prepareState, notify, 'Supply preparation failed')
+    usePromiseLog(prepareState, 'liquidity-remove-prepare-supply')
+    useNotifyOnError(prepareState, notify, 'Supply preparation failed')
 
-      const { state: supplyState, run: supply } = useTask(async () => {
-        const { send } = prepareState.fulfilled?.value ?? {}
-        invariant(send)
-        return send()
-      })
+    const { state: supplyState, run: supply } = useTask(async () => {
+      const { send } = prepareState.fulfilled?.value ?? {}
+      invariant(send)
+      return send()
+    })
 
-      usePromiseLog(supplyState, 'liquidity-remove-supply')
-      useNotifyOnError(supplyState, notify, 'Supply failed')
-      wheneverFulfilled(supplyState, () => {
-        tokensStore.touchUserBalance()
-      })
+    usePromiseLog(supplyState, 'liquidity-remove-supply')
+    useNotifyOnError(supplyState, notify, 'Supply failed')
 
-      const fee = computed(() => prepareState.fulfilled?.value?.fee)
+    const fee = computed(() => prepareState.fulfilled?.value?.fee)
 
-      return readonly({
-        prepare,
-        supply,
-        fee,
-        prepareState: promiseStateToFlags(prepareState),
-        supplyState: promiseStateToFlags(supplyState),
-      })
-    },
-  )
+    return readonly({
+      prepare,
+      supply,
+      fee,
+      prepareState: promiseStateToFlags(prepareState),
+      supplyState: promiseStateToFlags(supplyState),
+    })
+  })
 
   return {
     isReadyToPrepareSupply,
@@ -118,27 +112,27 @@ function useRemoveAmounts(
   amounts: Ref<null | TokensPair<Wei>>
   touch: () => void
 } {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
 
-  const taskScope = useParamScope(
+  const scope = useParamScope(
     computed(() => {
-      if (!kaikasStore.isConnected) return null
-      if (!tokens.value) return null
+      const activeDex = dexStore.active
+      if (!tokens.value || activeDex.kind !== 'named') return null
       const pairAddr = pair.value
       const lpTokenValue = liquidity.value
-      if (!pairAddr || !lpTokenValue) return null
+      if (!pairAddr || !lpTokenValue || !lpTokenValue.asBigInt) return null
 
-      const key = `${pairAddr}-${lpTokenValue.asStr}`
+      const key = `dex-${activeDex.wallet}-${pairAddr}-${lpTokenValue.asStr}`
 
       return {
         key,
-        payload: { pair: pairAddr, lpTokenValue, tokens: tokens.value, kaikas: kaikasStore.getKaikasAnyway() },
+        payload: { pair: pairAddr, lpTokenValue, tokens: tokens.value, dex: activeDex.dex() },
       }
     }),
-    ({ pair, lpTokenValue, tokens, kaikas }) => {
+    ({ payload: { pair, lpTokenValue, tokens, dex } }) => {
       const { state, run } = useTask(
         async () => {
-          const { amounts } = await kaikas.liquidity.computeRmLiquidityAmounts({
+          const { amounts } = await dex.liquidity.computeRmLiquidityAmounts({
             tokens,
             pair,
             lpTokenValue,
@@ -155,20 +149,23 @@ function useRemoveAmounts(
   )
 
   return {
-    pending: computed(() => taskScope.value?.expose.state.pending ?? false),
-    amounts: computed(() => taskScope.value?.expose.state.fulfilled ?? null),
-    touch: () => taskScope.value?.expose.run(),
+    pending: computed(() => scope.value?.expose.state.pending ?? false),
+    amounts: computed(() => scope.value?.expose.state.fulfilled ?? null),
+    touch: () => scope.value?.expose.run(),
   }
 }
 
 export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
-  const route = useRoute()
-  const isActiveRoute = computed(() => route.name === RouteName.LiquidityRemove)
+  const router = useRouter()
 
-  const selectedRaw = useLocalStorage<null | TokensPair<Address>>('liquidity-remove-tokens', null, {
-    serializer: JSON_SERIALIZER as Serializer<any>,
-  })
-  const selectedFiltered = computed(() => (isActiveRoute.value ? unref(selectedRaw) : null))
+  // #region Selection
+
+  const selectionStore = useLiquidityRmSelectionStore()
+  const { selected: selectedFiltered, selectedRaw } = storeToRefs(selectionStore)
+
+  function navigateToLiquidity() {
+    router.push({ name: RouteName.Liquidity })
+  }
 
   const tokensStore = useTokensStore()
   const selectedTokensData = computed(() => {
@@ -190,44 +187,48 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     return buildPair((type) => tokens[type].symbol)
   })
 
+  function setTokens(tokens: TokensPair<Address>) {
+    selectedRaw.value = tokens
+  }
+
+  // #endregion
+
+  // #region Pair
+
   const { pair: pairResult, pending: isPairPending } = usePairAddress(selectedFiltered)
   const existingPair = computed(() => (pairResult.value?.kind === 'exist' ? pairResult.value : null))
-  const isPairLoaded = computed(() => !!existingPair.value)
+  const doesPairExist = eagerComputed(() => !!existingPair.value)
 
   const {
     result: pairBalanceResult,
     pending: isPairBalancePending,
     touch: touchPairBalance,
-  } = usePairBalance(selectedFiltered, isPairLoaded)
+  } = usePairBalance(selectedFiltered, doesPairExist)
+
   const {
     totalSupply: pairTotalSupply,
     userBalance: pairUserBalance,
     poolShare: pairPoolShare,
   } = toRefs(useNullablePairBalanceComponents(pairBalanceResult))
+
   const formattedPoolShare = useFormattedPercent(pairPoolShare, 7)
 
   const {
     result: pairReserves,
     pending: isReservesPending,
     touch: touchPairReserves,
-  } = usePairReserves(selectedFiltered)
+  } = usePairReserves(selectedFiltered, doesPairExist)
 
-  const liquidityRaw = ref('' as WeiAsToken)
-  const liquidity = computed<Wei | null>({
-    get: () => {
-      const raw = liquidityRaw.value
-      if (!raw) return null
-      return Wei.fromToken(LP_TOKENS_DECIMALS, raw)
-    },
-    set: (wei) => {
-      if (wei) {
-        liquidityRaw.value = wei.toToken(LP_TOKENS_DECIMALS)
-      }
-    },
-  })
+  // #endregion
+
+  // #region Liquidity input
+
+  const liquidity = shallowRef<null | Wei>(null)
 
   /**
    * liquidity value relative to pair balance of user
+   *
+   * **note**: works only when `pairUserBalance` is computed
    */
   const liquidityRelative = computed<number | null>({
     get: () => {
@@ -244,6 +245,18 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     },
   })
 
+  function setLiquidityToMax() {
+    liquidityRelative.value = 1
+  }
+
+  function clear() {
+    liquidity.value = null
+  }
+
+  // #endregion
+
+  // #region Amounts
+
   const {
     amounts,
     pending: isAmountsPending,
@@ -256,17 +269,9 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
   const rates = useRates(amounts)
 
-  function setTokens(tokens: TokensPair<Address>) {
-    selectedRaw.value = tokens
-  }
+  // #endregion
 
-  function setLiquidityToMax() {
-    liquidityRelative.value = 1
-  }
-
-  function clear() {
-    liquidityRaw.value = '' as WeiAsToken
-  }
+  // #region Supply
 
   const {
     fee,
@@ -291,7 +296,33 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     }
 
     clearSupply()
+    navigateToLiquidity()
   }
+
+  // #endregion
+
+  // #region etc
+
+  /**
+   * **NOTE**: we ignore `isPairPending` here.
+   * We ignore it in "Refresh" logic in general.
+   * Is that an issue?
+   */
+  const isRefreshing = logicOr(
+    isAmountsPending,
+    isPairBalancePending,
+    isReservesPending,
+    toRef(tokensStore, 'isBalancePending'),
+  )
+
+  const refresh = () => {
+    touchAmounts()
+    touchPairBalance()
+    touchPairReserves()
+    tokensStore.touchUserBalance()
+  }
+
+  // #endregion
 
   return {
     selected: selectedFiltered,
@@ -306,10 +337,9 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     isReservesPending,
     isPairBalancePending,
     isPairPending,
-    isPairLoaded,
+    isPairLoaded: doesPairExist,
 
     liquidity,
-    liquidityRaw,
     liquidityRelative,
     amounts,
     rates,
@@ -326,6 +356,9 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     clear,
     supply,
     closeSupply,
+
+    isRefreshing,
+    refresh,
   }
 })
 

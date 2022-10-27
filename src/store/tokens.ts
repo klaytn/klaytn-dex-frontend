@@ -1,8 +1,13 @@
-import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
-import { Address, Kaikas, Token, Wei } from '@/core/kaikas'
-import { WHITELIST_TOKENS } from '@/core/kaikas/const'
-import invariant from 'tiny-invariant'
+import { acceptHMRUpdate, defineStore } from 'pinia'
+import { Address, DexPure, Dex, Token, Wei, isNativeToken, NATIVE_TOKEN } from '@/core'
+import { WHITELIST_TOKENS } from '@/core'
 import { Ref } from 'vue'
+import { TokensQueryResult, useTokensQuery } from '@/query/tokens-derived-usd'
+import BigNumber from 'bignumber.js'
+import Debug from 'debug'
+import { MinimalTokensApi } from '@/utils/minimal-tokens-api'
+
+const debug = Debug('store-tokens')
 
 export interface TokenWithOptionBalance extends Token {
   balance: null | Wei
@@ -20,51 +25,52 @@ function listItemsFromMapOrNull<K, V>(keys: K[], map: Map<K, V>): null | V[] {
   return fromMap
 }
 
-async function loadTokens(kaikas: Kaikas, addrs: Address[]): Promise<Map<Address, Token>> {
-  const pairs = await Promise.all(
-    addrs.map(async (addr) => {
-      const token = await kaikas.tokens.getToken(addr)
-      return [addr, token] as [Address, Token]
-    }),
-  )
-
-  return new Map(pairs)
+async function loadTokens(dex: DexPure, addrs: Address[]): Promise<Map<Address, Token>> {
+  return new Map((await dex.tokens.getTokensBunch(addrs)).map((token) => [token.address, token]))
 }
 
-async function loadBalances(kaikas: Kaikas, tokens: Address[]): Promise<Map<Address, Wei>> {
-  const entries = await Promise.all(
-    tokens.map(async (addr) => {
-      const balance = await kaikas.tokens.getTokenBalanceOfUser(addr)
-      return [addr, balance] as [Address, Wei]
-    }),
+async function loadBalances(dex: Dex, tokens: Address[]): Promise<Map<Address, Wei>> {
+  const { withoutKlay: tokensWithoutKlay, klay } = tokens.reduce(
+    (acc, a) => {
+      if (isNativeToken(a)) acc.klay = true
+      else acc.withoutKlay.push(a)
+      return acc
+    },
+    { withoutKlay: new Array<Address>(), klay: false },
   )
 
-  return new Map(entries)
+  const [balancesAll, balanceKlay] = await Promise.all([
+    dex.tokens
+      .getBalancesBunch(tokensWithoutKlay.map((a) => ({ address: a, balanceOf: dex.agent.address })))
+      .then((balances) => {
+        return balances.map<[Address, Wei]>((wei, i) => [tokensWithoutKlay[i], wei])
+      }),
+    klay ? dex.tokens.getKlayBalance().then((x) => [[NATIVE_TOKEN, x] as const]) : [],
+  ])
+
+  return new Map([...balanceKlay, ...balancesAll])
 }
 
 function useImportedTokens() {
-  const kaikasStore = useKaikasStore()
-  const { isConnected } = storeToRefs(kaikasStore)
+  const dexStore = useDexStore()
 
   const tokens = useLocalStorage<Address[]>('klaytn-dex-imported-tokens', [])
 
-  const fetchScope = useParamScope(isConnected, () => {
-    const { state, run } = useTask(
-      async () => {
-        const kaikas = kaikasStore.getKaikasAnyway()
-        return loadTokens(kaikas, tokens.value)
-      },
-      { immediate: true },
-    )
+  const scope = useParamScope(
+    () => ({
+      key: dexStore.anyDex.key,
+      payload: dexStore.anyDex.dex(),
+    }),
+    ({ payload: dex }) => {
+      const { state, run } = useTask(() => loadTokens(dex, tokens.value), { immediate: true })
+      usePromiseLog(state, 'imported-tokens')
+      useErrorRetry(state, run)
+      return state
+    },
+  )
 
-    usePromiseLog(state, 'imported-tokens')
-    useErrorRetry(state, run)
-
-    return useStaleState(state)
-  })
-
-  const isPending = computed(() => fetchScope.value?.expose.pending ?? false)
-  const result = computed(() => fetchScope.value?.expose.fulfilled?.value ?? null)
+  const isPending = computed(() => scope.value.expose.pending)
+  const result = computed(() => scope.value.expose.fulfilled?.value ?? null)
   const isLoaded = computed(() => !!result.value)
 
   const tokensFetched = computed<null | Token[]>(() => {
@@ -84,7 +90,7 @@ function useImportedTokens() {
   }
 
   return {
-    tokens,
+    tokens: readonly(tokens),
     tokensFetched,
     isPending,
     isLoaded,
@@ -93,34 +99,20 @@ function useImportedTokens() {
 }
 
 function useUserBalance(tokens: Ref<null | Address[]>) {
-  const kaikasStore = useKaikasStore()
+  const dexStore = useDexStore()
 
   const fetchScope = useParamScope(
-    computed(() => !!tokens.value && kaikasStore.isConnected),
-    () => {
-      const { state, run } = useTask<Map<Address, Wei>>(
-        async () => {
-          const kaikas = kaikasStore.getKaikasAnyway()
-          invariant(tokens.value)
-
-          return loadBalances(kaikas, tokens.value)
-        },
-        { immediate: true },
-      )
+    () => !!tokens.value && dexStore.active.kind === 'named' && { key: 'active', payload: dexStore.active.dex() },
+    ({ payload: dex }) => {
+      const { state, run } = useTask<Map<Address, Wei>>(() => loadBalances(dex, tokens.value ?? []), {
+        immediate: true,
+      })
 
       usePromiseLog(state, 'user-balance')
       useErrorRetry(state, run)
       watch(tokens, run)
-      whenever(() => kaikasStore.isConnected, run, { immediate: true })
 
-      /**
-       * Refetch balance
-       */
-      function touch() {
-        run()
-      }
-
-      return reactive({ ...toRefs(useStaleState(state)), touch })
+      return reactive({ ...toRefs(useStaleState(state)), touch: run })
     },
   )
 
@@ -141,6 +133,21 @@ function useUserBalance(tokens: Ref<null | Address[]>) {
   }
 
   return { isPending, isLoaded, lookup, touch }
+}
+
+function useDerivedUsdIndex(result: Ref<null | undefined | TokensQueryResult>): {
+  lookup: (address: Address) => null | BigNumber
+} {
+  const map = computed<null | Map<string, BigNumber>>(() => {
+    const items = result.value?.tokens ?? null
+    const map = items && new Map(items.map((x) => [x.id.toLowerCase(), new BigNumber(x.derivedUSD)]))
+    debug('computed derived usd map: %o', map, result.value)
+    return map
+  })
+
+  return {
+    lookup: (a) => map.value?.get(a.toLowerCase()) ?? null,
+  }
 }
 
 function useTokensIndex(tokens: Ref<null | readonly Token[]>) {
@@ -165,50 +172,87 @@ function useTokensIndex(tokens: Ref<null | readonly Token[]>) {
   return { findTokenData }
 }
 
+/**
+ * The general store for tokens and their information related to user.
+ *
+ * It has:
+ *
+ * - Imported and whitelist tokens; DEX token
+ * - Tokens balances
+ * - Tokens derived USD
+ */
 export const useTokensStore = defineStore('tokens', () => {
   const {
+    tokens: importedAddresses,
     tokensFetched: importedFetched,
     isLoaded: isImportedLoaded,
     isPending: isImportedPending,
     importToken,
   } = useImportedTokens()
 
-  const tokensLoaded = computed(() => {
-    return importedFetched.value ? [...importedFetched.value, ...WHITELIST_TOKENS] : WHITELIST_TOKENS
-  })
-  const tokensLoadedAddrs = computed(() => tokensLoaded.value?.map((x) => x.address) ?? null)
+  /**
+   * Does not depend on loading states
+   */
+  const allTokensAddresses = computed(() => [...importedAddresses.value, ...WHITELIST_TOKENS.map((x) => x.address)])
 
-  const { findTokenData } = useTokensIndex(tokensLoaded)
+  const importedAndWhitelistTokens = computed(() =>
+    importedFetched.value ? [...importedFetched.value, ...WHITELIST_TOKENS] : WHITELIST_TOKENS,
+  )
+
+  const allTokensInUse = importedAndWhitelistTokens
+
+  const { findTokenData } = useTokensIndex(allTokensInUse)
 
   const {
     lookup: lookupUserBalance,
     isPending: isBalancePending,
     touch: touchUserBalance,
-  } = useUserBalance(tokensLoadedAddrs)
+  } = useUserBalance(allTokensAddresses)
 
-  const tokensWithBalance = computed(() => {
-    return (
-      tokensLoaded.value?.map<TokenWithOptionBalance>((x) => {
-        return {
-          ...x,
-          balance: lookupUserBalance(x.address),
-        }
-      }) ?? null
-    )
-  })
+  const Query = useTokensQuery(allTokensAddresses, { pollInterval: 10_000 })
+
+  whenever(
+    () => !!importedFetched.value,
+    () => Query.load(),
+  )
+
+  function touchDerivedUsd() {
+    Query.refetch()
+  }
+
+  const isDerivedUSDPending = Query.loading
+
+  const { lookup: lookupDerivedUsd } = useDerivedUsdIndex(Query.result)
 
   return {
     isBalancePending,
     isImportedPending,
     isImportedLoaded,
-    tokensLoaded,
-    tokensWithBalance,
+    isDerivedUSDPending,
+
+    importedAddresses,
+    importedAndWhitelistTokens,
 
     importToken,
     findTokenData,
     lookupUserBalance,
     touchUserBalance,
+    lookupDerivedUsd,
+    touchDerivedUsd,
   }
 })
+
+export function createMinimalTokenApiWithStores(): MinimalTokensApi {
+  const tokens = useTokensStore()
+  const dex = useDexStore()
+
+  return {
+    isSmartContract: (a) => dex.anyDex.dex().agent.isSmartContract(a),
+    getToken: (a) => dex.anyDex.dex().tokens.getToken(a),
+    lookupToken: (a) => tokens.findTokenData(a),
+    lookupBalance: (a) => tokens.lookupUserBalance(a),
+    lookupDerivedUsd: (a) => tokens.lookupDerivedUsd(a),
+  }
+}
 
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useTokensStore, import.meta.hot))

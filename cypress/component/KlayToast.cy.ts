@@ -1,7 +1,6 @@
-import KlayToast from '@/common/KlayToast.vue'
+import KlayToast from '@/components/common/KlayToast.vue'
 import { VueTestUtils } from 'cypress/vue'
-
-const testid = (id: string) => `[data-testid=${id}]`
+import { testid } from './common'
 
 before(() => {
   VueTestUtils.config.global.components = { KlayToast }
@@ -15,8 +14,12 @@ describe('KlayToast', () => {
   it('playground', () => {
     cy.mount({
       setup() {
+        const { inc, count } = useCounter()
+
         return {
           someError: new Error('umm'),
+          count,
+          inc,
         }
       },
       template: `
@@ -58,6 +61,18 @@ describe('KlayToast', () => {
               Something went wrong
             </template>
           </KlayToast>
+
+          <KlayToast
+            type="ok"
+            title="Everything is fine"
+            action="Click me"
+            data-testid="with-action"
+            @click:action="inc"
+          >
+            <template #description>
+              Count: {{ count }}
+            </template>
+          </KlayToast>
         </div>
       `,
     })
@@ -67,6 +82,11 @@ describe('KlayToast', () => {
     cy.get(testid('default-err')).contains('Error')
     cy.get(testid('default-ok')).contains('Success')
     cy.get(testid('ok-description')).contains('Task succeeded')
+
+    cy.get(testid('with-action')).within(() => {
+      cy.get('button').contains('Click me').click()
+      cy.contains('Count: 1')
+    })
   })
 
   it('when type=err and error is provided, it is displayed', () => {

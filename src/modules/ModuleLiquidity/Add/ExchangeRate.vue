@@ -1,22 +1,28 @@
 <script lang="ts" setup>
+import { WeiAsToken } from '@/core'
 import { nonNullSet } from '@/utils/common'
 import { buildPair, TOKEN_TYPES } from '@/utils/pair'
+import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 import { KlayIconPlus, KlayIconImportant } from '~klay-icons'
+import InputToken from '@/components/InputToken.vue'
 
 const liquidityStore = useLiquidityAddStore()
-const { isQuotePendingFor, inputRates, addrs } = storeToRefs(liquidityStore)
+const { isQuotePendingFor, tokenValues, addrs, estimatedFor, isValuesDebounceWelcome } = storeToRefs(liquidityStore)
 
 const models = reactive(
   buildPair((type) => {
     return {
-      input: computed({
-        get: () => inputRates.value[type]?.value,
-        set: (v) => v && liquidityStore.input(type, v),
+      input: computed<WeiAsToken<BigNumber>>({
+        get: () => {
+          const val = tokenValues.value[type]
+          return new BigNumber(val ?? '0') as WeiAsToken<BigNumber>
+        },
+        set: (v) => v && liquidityStore.setToken(type, v.toFixed() as WeiAsToken),
       }),
       addr: computed({
         get: () => addrs.value[type],
-        set: (addr) => addr && liquidityStore.setToken(type, addr),
+        set: (addr) => addr && liquidityStore.setTokenAddress(type, addr),
       }),
     }
   }),
@@ -34,49 +40,50 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(addrs.value)))
       >
         <InputToken
           v-model="models[type].input"
-          v-model:token="models[type].addr"
+          v-model:address="models[type].addr"
           :is-loading="isQuotePendingFor === type"
-          :estimated="inputRates[type]?.type === 'estimated'"
+          :estimated="estimatedFor === type"
           :selected="allSelectedTokens"
+          :value-debounce="isValuesDebounceWelcome ? 500 : 0"
         />
         <div
           v-if="i === 0"
-          class="w-full flex justify-center h-0"
+          class="w-full flex justify-center items-center h-0"
         >
-          <KlayIconPlus class="-mt-3" />
+          <KlayIconPlus class="shadow-md rounded-full" />
         </div>
       </template>
     </div>
 
     <div
       v-if="liquidityStore.isEmptyPair"
-      class="warning-text"
+      class="empty-pair-alert p-4 space-x-2 rounded-lg flex items-start"
     >
-      <KlayIconImportant />
-      <span>Pair not exist</span>
+      <div>
+        <KlayIconImportant class="warning-icon" />
+      </div>
+      <p class="warning-text">
+        Pair doesn't exist. You will create one. Its rates will be equal to the rates you set.
+      </p>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+@use '@/styles/vars';
+
+.empty-pair-alert {
+  border: 1px solid vars.$gray5;
+}
+
+.warning-icon {
+  color: vars.$orange;
+  font-size: 15px;
+}
+
 .warning-text {
-  margin-top: 16px;
-  font-style: normal;
-  font-weight: 700;
-  font-size: 14px;
-  line-height: 180%;
-  color: #2d2926;
-  margin-right: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  & .svg-icon {
-    height: 20px;
-  }
-
-  & span {
-    margin-left: 5px;
-  }
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 140%;
 }
 </style>

@@ -6,6 +6,9 @@ const props = defineProps<{
   positions: LiquidityPairsPosition[]
 }>()
 
+const emit =
+  defineEmits<(event: 'click:add' | 'click:remove' | 'click:deposit', position: LiquidityPairsPosition) => void>()
+
 const filtered = computed(() =>
   props.positions.filter(
     (x) =>
@@ -27,6 +30,9 @@ const filtered = computed(() =>
       :data="item"
       :always-opened="positions.length === 1"
       data-testid="pair-list-item"
+      @click:add="emit('click:add', item)"
+      @click:remove="emit('click:remove', item)"
+      @click:deposit="emit('click:deposit', item)"
     />
   </div>
 </template>

@@ -1,6 +1,9 @@
 <script lang="ts" setup>
+import { RouteName } from '@/types'
 import { SModal } from '@soramitsu-ui/ui'
 import { storeToRefs } from 'pinia'
+
+const router = useRouter()
 
 const store = useLiquidityAddStore()
 const { supplyScope } = storeToRefs(store)
@@ -13,7 +16,12 @@ const show = computed({
   get: () => supplyScope.value?.prepareState.fulfilled ?? false,
   set: (flag) => {
     if (!flag) {
-      store.clearSupply()
+      store.closeSupply()
+
+      if (supplyScope.value?.supplyState.fulfilled) {
+        store.refresh()
+        router.push({ name: RouteName.Liquidity })
+      }
     }
   },
 })
@@ -35,10 +43,11 @@ const show = computed({
         <ModuleLiquidityAddDetails in-modal />
 
         <KlayButton
-          type="button"
+          type="primary"
           size="lg"
           class="w-full"
           :loading="supplyScope?.supplyState.pending"
+          data-testid="add-liquidity-modal-confirm"
           @click="supply()"
         >
           Confirm Supply

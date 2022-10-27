@@ -1,8 +1,9 @@
-import { Address, WeiRaw } from '@/core/kaikas'
+import { Address, ADDRESS_FARMING, WeiRaw } from '@/core'
+import { ApolloClientId } from '@/types'
 import { useQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
-import { FARMING_CONTRACT_ADDRESS, REFETCH_FARMING_INTERVAL } from './const'
+import { Ref } from 'vue'
 import { PoolId } from './types'
 
 export interface FarmingQueryResult {
@@ -26,11 +27,11 @@ export interface FarmingQueryResult {
   }
 }
 
-export function useFarmingQuery(userId: MaybeRef<Address>) {
+export function useFarmingQuery(userId: MaybeRef<Address | null>, pollInterval: Ref<number>) {
   return useQuery<FarmingQueryResult>(
     gql`
         query FarmingQuery($userId: String!) {
-          farming(id: "${FARMING_CONTRACT_ADDRESS}") {
+          farming(id: "${ADDRESS_FARMING}") {
             id
             poolCount
             totalAllocPoint
@@ -51,11 +52,11 @@ export function useFarmingQuery(userId: MaybeRef<Address>) {
         }
       `,
     () => ({
-      userId: unref(userId),
+      userId: unref(userId) ?? '',
     }),
-    {
-      clientId: 'farming',
-      pollInterval: REFETCH_FARMING_INTERVAL,
-    },
+    () => ({
+      clientId: ApolloClientId.Farming,
+      pollInterval: pollInterval.value,
+    }),
   )
 }
