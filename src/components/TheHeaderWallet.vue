@@ -8,7 +8,7 @@ import WalletIcon from './WalletIcon.vue'
 const store = useDexStore()
 const { account, selectedWallet, isChainCorrect, isChainLoaded, isProviderSetupPending, isEnabled } = storeToRefs(store)
 
-const wrongChain = logicOr(isChainLoaded, logicNot(isChainCorrect))
+const wrongChain = logicAnd(isChainLoaded, logicNot(isChainCorrect))
 
 const addressFormatted = computed(() => account.value && formatAddress(account.value))
 </script>
