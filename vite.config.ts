@@ -133,5 +133,9 @@ export default defineConfig({
 
   build: {
     target: 'esnext',
+    /**
+     * To avoid conflicts with the route "/assets"
+     */
+    assetsDir: '__assets',
   },
 })

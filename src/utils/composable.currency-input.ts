@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js'
 import invariant from 'tiny-invariant'
 import { Except } from 'type-fest'
 import { Ref } from 'vue'
-import { formatNumberWithCommas } from './common'
+import { formatNumberWithCommas, trimTrailingZerosWithPeriod } from './common'
 
 type SymbolPosition = 'left' | 'right'
 
@@ -67,8 +67,12 @@ export function formatCurrency({
   symbol?: MaskSymbol | null
   decimals?: number
 }) {
-  const rounded = typeof decimals === 'number' ? new BigNumber(amount).toFixed(decimals) : amount
-  const num = formatNumberWithCommas(rounded)
+  const amountBigNumber = new BigNumber(amount)
+  const rounded =
+    // can't just pass `number | undefined` to `toFixed()` - typing error
+    typeof decimals === 'number' ? amountBigNumber.toFixed(decimals) : amountBigNumber.toFixed()
+  let num = formatNumberWithCommas(rounded)
+  num = trimTrailingZerosWithPeriod(num)
   if (symbol) {
     const sym = composeSymbol(symbol)
     return sym.position === 'left' ? sym.str + num : num + sym.str
@@ -266,6 +270,7 @@ if (import.meta.vitest) {
         },
         '$17,515,543,584,957,517,221,508.27',
       ],
+      [{ amount: 10, decimals: 2 }, '10'],
     ])('Formats %o into %s', (input, output) => {
       expect(formatCurrency(input)).toEqual(output)
     })

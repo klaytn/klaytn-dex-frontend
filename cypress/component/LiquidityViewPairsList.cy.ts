@@ -1,27 +1,17 @@
+/* eslint-disable max-nested-callbacks */
 import PairsList from '@/modules/ModuleLiquidity/View/PairsList.vue'
-import { createTestingPinia } from '@pinia/testing'
-import { routerKey, routeLocationKey } from 'vue-router'
-import { install as installNotifications } from '@/plugins/notifications'
 import { LiquidityPairsPosition } from '@/modules/ModuleLiquidity/query.liquidity-pairs'
 import { deepClone } from '@/utils/common'
 import { WeiAsToken } from '@/core'
 import { testid } from './common'
 
 const TESTID_LIST_ITEM = testid('pair-list-item')
+const TESTID_ITEM_HEADER_VALUE = testid('pair-list-item-header-value')
+const TESTID_ITEM_HEADER_VALUE_USD = testid('pair-list-item-header-value-usd')
 
 function mountFactory(positions: LiquidityPairsPosition[]) {
   cy.mount(PairsList, {
     props: { positions },
-    global: {
-      plugins: [
-        createTestingPinia({ createSpy: () => cy.spy() }),
-        { install: (app: any) => installNotifications({ app } as any) },
-      ],
-      provide: {
-        [routerKey as symbol]: {},
-        [routeLocationKey as symbol]: {},
-      },
-    },
   })
 }
 
@@ -54,5 +44,27 @@ describe('LiquidityViewPairsList.cy.ts', () => {
     })
 
     cy.get(TESTID_LIST_ITEM).should('have.length', 1)
+  })
+
+  it("Values in the ListItem header are user's amounts, not full", () => {
+    cy.fixture('liquidity-positions').then((positions) => {
+      mountFactory(positions)
+    })
+
+    cy.get(TESTID_LIST_ITEM)
+      .first()
+      .within(() => {
+        cy.get(TESTID_ITEM_HEADER_VALUE).should('have.text', '0.56515')
+        cy.get(TESTID_ITEM_HEADER_VALUE_USD).should('have.text', '($0.84)')
+      })
+  })
+
+  it('When totalSupply and reserveUsd are 0, then USD balance is not shown', () => {
+    cy.fixture('liquidity-positions-zero-usd').then((positions) => {
+      mountFactory(positions)
+    })
+
+    cy.get(TESTID_ITEM_HEADER_VALUE).should('exist')
+    cy.get(TESTID_ITEM_HEADER_VALUE_USD).should('not.exist')
   })
 })

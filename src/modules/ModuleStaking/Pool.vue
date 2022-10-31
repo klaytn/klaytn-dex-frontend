@@ -6,10 +6,8 @@ import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { Wei, WeiAsToken, makeExplorerLinkToAccount } from '@/core'
 import ModalCard from './ModalCard.vue'
 import { SModal } from '@soramitsu-ui/ui'
-import { formatCurrency } from '@/utils/composable.currency-input'
 import PoolHead from './PoolHead.vue'
 import WalletConnectButton from '@/components/WalletConnectButton.vue'
-import invariant from 'tiny-invariant'
 import AddToWallet from './PoolAddToWallet.vue'
 import { useBalance } from '../ModuleEarnShared/composable.balance'
 
@@ -46,6 +44,14 @@ const modalOpen = computed({
 const balance = useBalance(logicOr(modalOpen, showRoiCalculator), {
   address: props.pool.stakeToken.id,
   decimals: props.pool.stakeToken.decimals,
+})
+
+const startsIn = computedEager<number>(() => {
+  const {
+    pool: { startBlock },
+    blockNumber,
+  } = props
+  return blockNumber ? startBlock - blockNumber : 0
 })
 
 const endsIn = computedEager<number>(() => {
@@ -103,23 +109,16 @@ function goToSwapPage() {
 
 const { state: withdrawState, run: withdraw } = useTask(async () => {
   const {
-    pool: { earned, id: poolId },
+    pool: { id: poolId },
   } = props
   await dexStore.getNamedDexAnyway().earn.staking.withdraw({ amount: new Wei(0), poolId })
-  return { earned }
 })
 
 usePromiseLog(withdrawState, 'staking-pool-withdraw')
 
 wheneverDone(withdrawState, (result) => {
   if (result.fulfilled) {
-    const { earned } = result.fulfilled.value
-    invariant(earned)
-    const formatted = formatCurrency({
-      amount: earned,
-      symbol: { str: props.pool.rewardToken.symbol, position: 'right' },
-    })
-    notify({ type: 'ok', description: `${formatted} tokens were withdrawn` })
+    notify({ type: 'ok', description: `Tokens were withdrawn` })
     emit('withdrawn')
 
     tokensStore.touchUserBalance()
@@ -156,6 +155,7 @@ function openRoiCalculator() {
         :earned="pool.earned"
         :total-staked-usd="pool.totalStaked"
         :annual-percentage-rate="pool.annualPercentageRate"
+        :starts-in="startsIn"
         :ends-in="endsIn"
         @click:roi-calculator="openRoiCalculator"
       />
@@ -206,6 +206,7 @@ function openRoiCalculator() {
               <template #right>
                 <KlayButton
                   v-if="pool.staked.isZero()"
+                  :disabled="!pool.active"
                   type="primary"
                   @click="stake()"
                 >
@@ -289,6 +290,7 @@ function openRoiCalculator() {
       :staked="pool.staked"
       :balance="balance"
       :stake-token="pool.stakeToken"
+      :user-limit="pool.userLimit"
       @staked="handleStaked"
       @unstaked="handleUnstaked"
     />

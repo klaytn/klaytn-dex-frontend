@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { PoolId, CurrencySymbol, WeiAsToken } from '@/core'
+import { PoolId, CurrencySymbol, WeiAsToken, LP_TOKEN_DECIMALS } from '@/core'
 import { formatCurrency } from '@/utils/composable.currency-input'
 import BigNumber from 'bignumber.js'
 import { ModalOperation } from './types'
 import InputTokenLp from '@/components/InputTokenLp.vue'
 import { TokensPair } from '@/utils/pair'
 import { farmingToWei } from './utils'
+import StakeUserLimit from '../ModuleEarnShared/StakeUserLimit.vue'
+import invariant from 'tiny-invariant'
 
 const props = defineProps<{
   operation: ModalOperation
   poolId: PoolId
   staked: WeiAsToken<BigNumber>
-  balance: WeiAsToken<BigNumber>
+  balance: WeiAsToken<BigNumber> | null
   symbols: null | TokensPair<CurrencySymbol>
 }>()
 
@@ -22,6 +24,11 @@ const dexStore = useDexStore()
 const tokensStore = useTokensStore()
 
 const inputAmount = shallowRef(new BigNumber(0) as WeiAsToken<BigNumber>)
+
+const stakeToken = computed(() => ({
+  symbol: props.symbols?.tokenA + '-' + props.symbols?.tokenB,
+  decimals: LP_TOKEN_DECIMALS,
+}))
 
 const label = computed(() => {
   const { operation, staked } = props
@@ -37,7 +44,10 @@ const label = computed(() => {
 })
 
 const notEnough = computed(() => {
-  const compareValue = props.operation === ModalOperation.Stake ? props.balance : props.staked
+  const { balance, operation, staked } = props
+  if (!balance) return false
+
+  const compareValue = operation === ModalOperation.Stake ? balance : staked
   return new BigNumber(inputAmount.value).isGreaterThan(compareValue)
 })
 
@@ -48,8 +58,17 @@ const lessThanOrEqualToZero = computed(() => {
 const disabled = logicOr(notEnough, lessThanOrEqualToZero)
 
 function setMax() {
-  inputAmount.value = props.operation === ModalOperation.Stake ? props.balance : props.staked
+  const { balance, operation, staked } = props
+  if (operation === ModalOperation.Stake) {
+    invariant(balance)
+    inputAmount.value = balance
+  } else inputAmount.value = staked
 }
+
+const maxButtonDisabled = computed(() => {
+  const { balance, operation } = props
+  return operation === ModalOperation.Stake && (balance === null || balance.isZero())
+})
 
 const { state: operationState, run: confirm } = useTask(async () => {
   const dex = dexStore.getNamedDexAnyway()
@@ -92,6 +111,7 @@ const loading = toRef(operationState, 'pending')
       <InputTokenLp
         v-model="inputAmount"
         :symbols="symbols"
+        :max-button-disabled="maxButtonDisabled"
         @click:max="setMax"
       >
         <template #bottom-right>
@@ -112,6 +132,13 @@ const loading = toRef(operationState, 'pending')
         </template>
       </InputTokenLp>
 
+      <StakeUserLimit
+        :operation="operation"
+        :stake-amount="inputAmount"
+        :staked="staked"
+        :stake-token="stakeToken"
+      />
+
       <KlayButton
         type="primary"
         size="lg"
@@ -128,6 +155,28 @@ const loading = toRef(operationState, 'pending')
 
 <style module lang="scss">
 @use '@/styles/vars';
+
+.equation {
+  font-weight: 600;
+  font-size: 16px;
+  padding: 16px;
+  border: 1px solid vars.$gray5;
+  border-radius: 8px;
+
+  &-item {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    vertical-align: bottom;
+    &-title {
+      top: 0;
+      margin-bottom: 6px;
+      font-weight: 500;
+      font-size: 12px;
+      color: vars.$gray2;
+    }
+  }
+}
 
 .bottom-line {
   font-size: 12px;

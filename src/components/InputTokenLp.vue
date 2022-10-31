@@ -4,10 +4,15 @@ import { TokensPair } from '@/utils/pair'
 import BigNumber from 'bignumber.js'
 import { Ref } from 'vue'
 
-const props = defineProps<{
-  modelValue: WeiAsToken<BigNumber>
-  symbols?: null | TokensPair<CurrencySymbol>
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: WeiAsToken<BigNumber>
+    symbols?: null | TokensPair<CurrencySymbol>
+    maxButton?: boolean
+    maxButtonDisabled?: boolean
+  }>(),
+  { maxButton: true },
+)
 
 const emit = defineEmits(['update:modelValue', 'click:max'])
 
@@ -34,7 +39,8 @@ watchDebounced(
 <template>
   <InputCurrencyTemplate
     v-model="modelDebounced"
-    max-button
+    :max-button="maxButton"
+    :max-button-disabled="maxButtonDisabled"
     bottom
     @click:max="emit('click:max')"
   >

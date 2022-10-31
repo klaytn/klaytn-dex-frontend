@@ -7,7 +7,7 @@ export const MAX_UINT256 = 2n ** 256n - 1n
 /**
  * Klay token address
  */
-export const NATIVE_TOKEN = '0xae3a8a1D877a446b22249D8676AFeB16F056B44e' as Address
+export const NATIVE_TOKEN = '0x73365f8f27de98d7634be67a167f229b32e7bf6c' as Address
 export const NATIVE_TOKEN_DECIMALS = 18
 
 export const DEX_TOKEN = '0x42f127458246b1db8d8a58d31a22b307408439e4' as Address
@@ -17,7 +17,7 @@ export const ADDRESS_ROUTER = '0xce12c887fae83a5f94f6cf3c8d4c1cee8b1c7786' as Ad
 export const ADDRESS_FACTORY = '0x339ba51a3d65ad5418aee14b0546088bfe99403c' as Address
 export const ADDRESS_WETH = '0x73365f8f27de98d7634be67a167f229b32e7bf6c' as Address
 export const ADDRESS_MULTICALL = '0x4d25d48f8a072446c3aa84ba482092a0bea0bf5d' as Address
-export const ADDRESS_FARMING = '0xf68b8d3fae7feb747cb4dce0a4c91a100b140245' as Address
+export const ADDRESS_FARMING = '0xf68b8d3fae7FEB747cB4dCe0a4c91A100B140245' as Address
 
 /**
  * We totally sure that all our LP tokens have this decimals value
@@ -63,6 +63,14 @@ export function makeExplorerLinkToTransaction(address: Address): string {
   return `${EXPLORER_BASE}/tx/${address}`
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+export const NATIVE_TOKEN_FULL = {
+  address: NATIVE_TOKEN,
+  name: 'KLAY',
+  symbol: 'KLAY',
+  decimals: NATIVE_TOKEN_DECIMALS,
+} as Token
+
 export const DEX_TOKEN_FULL: Token = {
   address: DEX_TOKEN,
   decimals: DEX_TOKEN_DECIMALS,
@@ -71,14 +79,7 @@ export const DEX_TOKEN_FULL: Token = {
 }
 
 export const WHITELIST_TOKENS = Object.freeze([
-  {
-    address: NATIVE_TOKEN,
-    // name: 'Wrapped KLAY',
-    // symbol: 'WKLAY',
-    name: 'KLAY',
-    symbol: 'KLAY',
-    decimals: NATIVE_TOKEN_DECIMALS,
-  },
+  NATIVE_TOKEN_FULL,
   DEX_TOKEN_FULL,
   {
     address: '0xb9920BD871e39C6EF46169c32e7AC4C698688881',

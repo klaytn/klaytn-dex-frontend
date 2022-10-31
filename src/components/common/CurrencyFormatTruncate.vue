@@ -122,5 +122,10 @@ const formattedAmount = computed(
 .popper {
   border: 1px solid vars.$gray5; // same as .klay-divider
   z-index: 10;
+  max-width: 300px;
+  word-wrap: break-word;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.3em;
 }
 </style>

@@ -4,6 +4,7 @@ import BigNumber from 'bignumber.js'
 import { Wei, WeiAsToken, Token, Address } from '@/core'
 import invariant from 'tiny-invariant'
 import { formatCurrency } from '@/utils/composable.currency-input'
+import StakeUserLimit from '../ModuleEarnShared/StakeUserLimit.vue'
 
 const dexStore = useDexStore()
 const tokensStore = useTokensStore()
@@ -17,6 +18,7 @@ const props = defineProps<{
   balance: WeiAsToken<BigNumber> | null
   staked: WeiAsToken<BigNumber>
   operation: ModalOperation
+  userLimit: WeiAsToken<BigNumber>
 }>()
 
 const emit = defineEmits<{
@@ -45,8 +47,6 @@ const notEnough = computed(() => {
 
 const lessThanOrEqualToZero = computed(() => inputAmount.value.isLessThanOrEqualTo(0))
 
-const disabled = logicOr(notEnough, lessThanOrEqualToZero)
-
 function setPercent(percent: number) {
   let referenceValue: BigNumber
 
@@ -58,6 +58,11 @@ function setPercent(percent: number) {
 
   inputAmount.value = referenceValue.multipliedBy(percent * 0.01) as WeiAsToken<BigNumber>
 }
+
+const setPercentDisabled = computed(() => {
+  const { balance, operation } = props
+  return operation === ModalOperation.Stake && (balance === null || balance.isZero())
+})
 
 const { state: operationState, run: confirm } = useTask(async () => {
   const amount = inputAmount.value
@@ -97,6 +102,15 @@ wheneverDone(operationState, (result) => {
 })
 
 const loading = toRef(operationState, 'pending')
+
+const result = computed(() => props.staked.plus(inputAmount.value))
+const resultGreaterThenLimit = computed(() => props.userLimit && result.value.isGreaterThan(props.userLimit))
+
+const disabled = logicOr(notEnough, lessThanOrEqualToZero, resultGreaterThenLimit)
+
+const reduce = () => {
+  inputAmount.value = props.userLimit.minus(props.staked) as WeiAsToken<BigNumber>
+}
 </script>
 
 <template>
@@ -104,13 +118,15 @@ const loading = toRef(operationState, 'pending')
     :title="label"
     class="w-[420px]"
   >
-    <div>
+    <div class="space-y-4">
       <InputCurrencyTemplate bottom>
         <template #input>
-          <CurrencyInput
-            v-model="inputAmount"
-            :decimals="stakeToken.decimals"
-          />
+          <div :class="resultGreaterThenLimit && $style.tooMany">
+            <CurrencyInput
+              v-model="inputAmount"
+              :decimals="stakeToken.decimals"
+            />
+          </div>
         </template>
 
         <template #top-right>
@@ -145,37 +161,48 @@ const loading = toRef(operationState, 'pending')
           </template>
         </template>
       </InputCurrencyTemplate>
-    </div>
 
-    <div class="grid grid-cols-5 gap-4 mt-2">
-      <KlayButton
-        v-for="percent in [10, 25, 50, 75]"
-        :key="percent"
-        size="sm"
-        @click="setPercent(percent)"
-      >
-        {{ percent }}%
-      </KlayButton>
+      <div class="grid grid-cols-5 gap-4 mt-2">
+        <KlayButton
+          v-for="percent in [10, 25, 50, 75]"
+          :key="percent"
+          size="sm"
+          :disabled="setPercentDisabled"
+          @click="setPercent(percent)"
+        >
+          {{ percent }}%
+        </KlayButton>
+
+        <KlayButton
+          type="primary"
+          size="sm"
+          :disabled="setPercentDisabled"
+          @click="setPercent(100)"
+        >
+          MAX
+        </KlayButton>
+      </div>
+
+      <StakeUserLimit
+        :operation="operation"
+        :stake-amount="inputAmount"
+        :staked="staked"
+        :stake-token="stakeToken"
+        :user-limit="userLimit"
+        @reduce="reduce"
+      />
 
       <KlayButton
         type="primary"
-        size="sm"
-        @click="setPercent(100)"
+        size="lg"
+        class="w-full mt-4"
+        :disabled="disabled"
+        :loading="loading"
+        @click="confirm"
       >
-        MAX
+        {{ resultGreaterThenLimit ? 'The amount is too big' : 'Confirm' }}
       </KlayButton>
     </div>
-
-    <KlayButton
-      type="primary"
-      size="lg"
-      class="w-full mt-4"
-      :disabled="disabled"
-      :loading="loading"
-      @click="confirm"
-    >
-      Confirm
-    </KlayButton>
   </KlayModalCard>
 </template>
 
@@ -186,5 +213,9 @@ const loading = toRef(operationState, 'pending')
   font-weight: 500;
   font-size: 12px;
   color: vars.$gray2;
+}
+
+.tooMany input {
+  color: vars.$red !important;
 }
 </style>

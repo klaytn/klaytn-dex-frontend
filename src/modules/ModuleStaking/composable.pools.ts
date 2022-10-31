@@ -14,13 +14,17 @@ export function useMappedPools(props: {
   tokens: Ref<undefined | null | Tokens>
   blockNumber: Ref<number | null>
 }) {
-  const sortedPoolEndBlocks = computed(() => {
+  const sortedBlockNumbers = computed(() => {
     const {
       pools: { value: poolsResult },
     } = props
     if (!poolsResult) return null
 
-    return poolsResult.pools.map((pool) => Number(pool.endBlock)).sort((a, b) => b - a)
+    const blockNumbers = poolsResult.pools
+      .map((pool) => [Number(pool.endBlock), Number(pool.startBlock) + Number(pool.blocksForUserLimit)])
+      .flat()
+
+    return blockNumbers.sort((a, b) => b - a)
   })
 
   // Needed to avoid unnecessary recalculations in main computed function
@@ -28,7 +32,7 @@ export function useMappedPools(props: {
     const {
       blockNumber: { value: blockNumber },
     } = props
-    const blocks = sortedPoolEndBlocks.value
+    const blocks = sortedBlockNumbers.value
     if (!blocks?.length || !blockNumber) return null
     let rounded = blockNumber
     blocks.forEach((block) => {
@@ -50,6 +54,10 @@ export function useMappedPools(props: {
     for (const pool of poolsResult.pools) {
       const id = pool.id
 
+      const startBlock = Number(pool.startBlock)
+      const endBlock = Number(pool.endBlock)
+      const active = (roundedBlockNumber.value ?? 0) <= endBlock
+
       const reward = rewards?.get(pool.id) ?? null
       const earned = reward ? reward.decimals(pool.rewardToken) : null
 
@@ -67,24 +75,30 @@ export function useMappedPools(props: {
       const stakeTokenFromTokensQuery = tokens.find((token) => token.id === pool.stakeToken.id)
       const rewardTokenFromTokensQuery = tokens.find((token) => token.id === pool.rewardToken.id)
 
-      if (!stakeTokenFromTokensQuery || !rewardTokenFromTokensQuery) continue
-
-      const stakeTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
-      const rewardTokenPrice = new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD
+      const stakeTokenPrice = stakeTokenFromTokensQuery
+        ? (new BigNumber(stakeTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD)
+        : null
+      const rewardTokenPrice = rewardTokenFromTokensQuery
+        ? (new BigNumber(rewardTokenFromTokensQuery.derivedUSD) as TokenPriceInUSD)
+        : null
 
       const totalTokensStaked = new Wei(pool.totalTokensStaked).decimals(stakeToken)
-      const totalStaked = stakeTokenPrice.times(totalTokensStaked) as AmountInUSD
+      const totalStaked = (stakeTokenPrice?.times(totalTokensStaked) as AmountInUSD) ?? null
 
       const rewardRate = new BigNumber(pool.rewardRate)
-      const totalRewardPricePerYear = rewardRate.times(BLOCKS_PER_YEAR).times(rewardTokenPrice)
-      const annualPercentageRate = (
-        !totalStaked.isZero() ? totalRewardPricePerYear.div(totalStaked).times(100) : new BigNumber(0)
-      ) as PercentageRate
+      const totalRewardPricePerYear = rewardTokenPrice
+        ? rewardRate.times(BLOCKS_PER_YEAR).times(rewardTokenPrice)
+        : null
+      const annualPercentageRate =
+        totalRewardPricePerYear && active
+          ? (totalRewardPricePerYear.div(totalStaked.isZero() ? 1 : totalStaked).times(100) as PercentageRate)
+          : null
 
       const createdAtBlock = Number(pool.createdAtBlock)
 
-      const endBlock = Number(pool.endBlock)
-      const active = (roundedBlockNumber.value ?? 0) <= endBlock
+      const blocksForUserLimit = Number(pool.blocksForUserLimit)
+      const isUserLimitActive = (roundedBlockNumber.value ?? 0) <= startBlock + blocksForUserLimit
+      const userLimit = isUserLimitActive ? new Wei(pool.userLimit).decimals(pool.stakeToken) : null
 
       mappedPools.push({
         id,
@@ -92,10 +106,12 @@ export function useMappedPools(props: {
         rewardToken,
         earned,
         staked,
+        userLimit,
         stakeTokenPrice,
         createdAtBlock,
         annualPercentageRate,
         totalStaked,
+        startBlock,
         endBlock,
         active,
       })
@@ -142,8 +158,10 @@ function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): num
     case Sorting.Hot:
       if (poolA.active && !poolB.active) return -1
       if (poolB.active && !poolA.active) return 1
+      if (!poolB.annualPercentageRate || !poolA.annualPercentageRate) return 0
       return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.AnnualPercentageRate:
+      if (!poolB.annualPercentageRate || !poolA.annualPercentageRate) return 0
       return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
     case Sorting.Earned:
       invariant(poolB.earned && poolA.earned)

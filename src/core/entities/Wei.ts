@@ -77,7 +77,7 @@ function setRepr(map: RepresentationMapNullable, value: WeiInputValue): void {
   if (typeof value === 'number') {
     invariant(Number.isInteger(value), () => `number should be an integer, got: ${value}`)
     invariant(Number.isSafeInteger(value), 'number should be a safe integer')
-    map.string = String(value)
+    map.bigint = BigInt(value)
   } else if (typeof value === 'string' || typeof value === 'bigint') {
     // it may be a number in a form like `0x4123`, so let BigInt parse it
     map.bigint = BigInt(value)
