@@ -95,7 +95,7 @@ jobs:
           build: pnpm run build
           start: npx vite --port 3333
 
-  build:
+  image-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
