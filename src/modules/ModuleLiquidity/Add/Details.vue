@@ -5,6 +5,7 @@ import { buildPair, TOKEN_TYPES, nonNullPair } from '@/utils/pair'
 import { NATIVE_TOKEN_DECIMALS, POOL_COMMISSION } from '@/core'
 import { KlayIconImportant } from '~klay-icons'
 import { SPopover } from '@soramitsu-ui/ui'
+import { POOL_SHARE_PERCENT_FORMAT_DECIMALS } from '../const'
 
 const props = defineProps<{
   inModal?: boolean
@@ -15,14 +16,7 @@ const cssRowClassForBottomLines = computed(() => {
 })
 
 const store = useLiquidityAddStore()
-const {
-  finalRates: rates,
-  symbols,
-  tokens,
-  formattedPoolShare,
-  pairReserves: reserves,
-  supplyScope,
-} = storeToRefs(store)
+const { finalRates: rates, symbols, tokens, poolShare, pairReserves: reserves, supplyScope } = storeToRefs(store)
 
 const reservesAsTokens = computed(() => {
   const bothTokens = nonNullPair(tokens.value)
@@ -77,9 +71,11 @@ const formattedCommission = POOL_COMMISSION.toFormat()
 
       <div :class="cssRowClassForBottomLines">
         <span>Share of pool</span>
-        <span>
-          <ValueOrDash :value="formattedPoolShare" />
-        </span>
+        <CurrencyFormatTruncate
+          :amount="poolShare?.quotient"
+          percent
+          :decimals="POOL_SHARE_PERCENT_FORMAT_DECIMALS"
+        />
       </div>
 
       <div :class="cssRowClassForBottomLines">

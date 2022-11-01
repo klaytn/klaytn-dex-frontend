@@ -1,11 +1,17 @@
 import type { Address, Deadline } from '../types'
 import { NATIVE_TOKEN, isNativeToken } from '../const'
-import { buildPair, buildPairAsync, TokensPair } from '@/utils/pair'
+import { buildPair, buildPairAsync, TokensPair, TokenType } from '@/utils/pair'
 import { computeTransactionFee, deadlineFiveMinutesFromNow } from '../utils'
 import { Wei } from '../entities'
 import { Agent, AgentPure } from './agent'
 import { TokensPure } from './tokens'
 import CommonContracts from './CommonContracts'
+import { IsomorphicContract } from '../isomorphic-contract'
+import BigNumber from 'bignumber.js'
+import { match } from 'ts-pattern'
+import invariant from 'tiny-invariant'
+
+const MINIMUM_LIQUIDITY = new Wei(1000)
 
 export interface PrepareAddLiquidityProps {
   tokens: TokensPair<TokenAddressAndDesiredValue>
@@ -20,7 +26,7 @@ export interface TokenAddressAndDesiredValue {
 export interface ComputeRemoveLiquidityAmountsProps {
   tokens: TokensPair<Address>
   pair: Address
-  lpTokenValue: Wei
+  liquidity: Wei
 }
 
 export interface ComputeRemoveLiquidityAmountsResult {
@@ -45,14 +51,14 @@ function minByDesired(desired: Wei): Wei {
   return new Wei(nDesired.sub(nDesired.divn(100)))
 }
 
-function detectEth<T extends { addr: Address }>(
+function detectKlay<T extends { addr: Address }>(
   pair: TokensPair<T>,
 ): null | {
   token: T
-  eth: T
+  klay: T
 } {
-  if (isNativeToken(pair.tokenA.addr)) return { token: pair.tokenB, eth: pair.tokenA }
-  if (isNativeToken(pair.tokenB.addr)) return { token: pair.tokenA, eth: pair.tokenB }
+  if (isNativeToken(pair.tokenA.addr)) return { token: pair.tokenB, klay: pair.tokenA }
+  if (isNativeToken(pair.tokenB.addr)) return { token: pair.tokenA, klay: pair.tokenB }
   return null
 }
 
@@ -75,11 +81,11 @@ export class LiquidityPure {
   ): Promise<ComputeRemoveLiquidityAmountsResult> {
     const pairContract = await this.#agent.createContract(props.pair, 'pair')
 
-    const totalSupply = new Wei(await pairContract.totalSupply([]).call())
+    const totalSupply = await this.pairTotalSupply(pairContract)
 
     const amounts = await buildPairAsync((type) =>
       this.tokenRmAmount({
-        lpToken: props.lpTokenValue,
+        liquidity: props.liquidity,
         totalSupply,
         pair: props.pair,
         token: props.tokens[type],
@@ -89,22 +95,114 @@ export class LiquidityPure {
     return { amounts }
   }
 
+  public async computeAddLiquidityAmountsForExistingPair(props: {
+    pair: Address
+    tokens: TokensPair<Address>
+    input: Wei
+    quoteFor: TokenType
+  }): Promise<{
+    quoted: Wei
+    liquidity: Wei
+  }> {
+    const quoted = await this.#tokens.getTokenQuote({ ...props.tokens, value: props.input, quoteFor: props.quoteFor })
+
+    const pairContract = await this.#agent.createContract(props.pair, 'pair')
+    const pairTotalSupply = await this.pairTotalSupply(pairContract)
+
+    const reserves = await this.#tokens.getPairReserves(props.tokens)
+    const balances = await buildPairAsync((type) => this.#tokens.getTokenBalanceOfAddr(props.tokens[type], props.pair))
+    const amounts = await buildPairAsync(async (type) => {
+      const balance = balances[type]
+      const reserve = reserves[type]
+      const inputOrQuoted = props.quoteFor === type ? quoted : props.input
+      return balance.asBigNum.plus(inputOrQuoted.asBigNum).minus(reserve.asBigNum)
+    })
+
+    const liquidity = this.computeLiquidityWithPreparedAmounts({
+      type: 'pair-exists',
+      amounts,
+      pairTotalSupply,
+      reserves,
+    })
+
+    return { quoted, liquidity }
+  }
+
+  public computeAddLiquidityAmountsForEmptyPair(props: { input: TokensPair<Wei> }): {
+    liquidity: Wei
+  } {
+    const liquidity = this.computeLiquidityWithPreparedAmounts({
+      type: 'pair-empty',
+      amounts: buildPair((t) => props.input[t].asBigNum),
+    })
+    return { liquidity }
+  }
+
   /**
    * amount = (lpTokenValue * tokenBalanceOfPair / totalSupply) - 1
    */
   protected async tokenRmAmount(props: {
     token: Address
     pair: Address
-    lpToken: Wei
+    liquidity: Wei
     totalSupply: Wei
   }): Promise<Wei> {
     const balance = await this.#tokens.getTokenBalanceOfAddr(props.token, props.pair)
-    const amount = props.lpToken.asBigNum
+    const amount = props.liquidity.asBigNum
       .multipliedBy(balance.asBigNum)
       .dividedBy(props.totalSupply.asBigNum)
       .minus(1)
       .decimalPlaces(0)
     return new Wei(amount)
+  }
+
+  /**
+   * ```
+   * balance0 = IKIP7(token0).balanceOf(address(this)); // текущий баланс
+   * balance1 = IKIP7(token1).balanceOf(address(this)); // текущий баланс
+   * amount0 = (balance0 + input/quoted amount) - _reserve1; // текущий + который ещё только собираемся добавить
+   * amount1 = (balance1 + input/quoted amount) - _reserve1; // текущий + который ещё только собираемся добавить
+   * if (_totalSupply == 0) {
+   *      liquidity = Math.sqrt(amount0 * amount1) - MINIMUM_LIQUIDITY;
+   * } else {
+   *       liquidity = Math.min((amount0 * _totalSupply) / _reserve0, (amount1 * _totalSupply) / _reserve1);
+   * }
+   * ```
+   */
+  protected computeLiquidityWithPreparedAmounts(
+    props:
+      | {
+          type: 'pair-exists'
+          amounts: TokensPair<BigNumber>
+          reserves: TokensPair<Wei>
+          pairTotalSupply: Wei
+        }
+      | {
+          type: 'pair-empty'
+          amounts: TokensPair<BigNumber>
+        },
+  ): Wei {
+    return match(props)
+      .with({ type: 'pair-empty' }, ({ amounts }): Wei => {
+        const liquidity = amounts.tokenA.multipliedBy(amounts.tokenB).sqrt().minus(MINIMUM_LIQUIDITY.asBigNum)
+        return new Wei(liquidity.decimalPlaces(0))
+      })
+      .with({ type: 'pair-exists' }, ({ amounts, reserves, pairTotalSupply }): Wei => {
+        invariant(
+          pairTotalSupply.asBigInt > 0,
+          () => `Pair is supposed to be not empty, but got balance ${pairTotalSupply.asBigInt}`,
+        )
+        const amountsMapped = buildPair((t) =>
+          amounts[t].multipliedBy(pairTotalSupply.asBigNum).dividedBy(reserves[t].asBigNum),
+        )
+        const liquidity = BigNumber.min(amountsMapped.tokenA, amountsMapped.tokenB)
+        return new Wei(liquidity.decimalPlaces(0))
+      })
+      .exhaustive()
+  }
+
+  protected async pairTotalSupply(contract: IsomorphicContract<'pair'>): Promise<Wei> {
+    return new Wei(await contract.totalSupply([]).call())
   }
 }
 
@@ -137,23 +235,23 @@ export class Liquidity extends LiquidityPure {
     const { address } = this
     const gasPrice = await this.#agent.getGasPrice()
 
-    const detectedEth = detectEth(props.tokens)
-    if (detectedEth) {
+    const detectedKlay = detectKlay(props.tokens)
+    if (detectedKlay) {
       const {
         token,
-        eth: { desired: desiredEth },
-      } = detectedEth
+        klay: { desired: desiredKlay },
+      } = detectedKlay
 
       const tx = router.addLiquidityKLAY(
         [
           token.addr,
           token.desired.asStr,
           minByDesired(token.desired).asStr,
-          minByDesired(desiredEth).asStr,
+          minByDesired(desiredKlay).asStr,
           address,
           props.deadline,
         ],
-        { gasPrice, value: desiredEth },
+        { gasPrice, value: desiredKlay },
       )
       const { gas, send } = await tx.estimateAndPrepareSend()
 
@@ -184,7 +282,7 @@ export class Liquidity extends LiquidityPure {
    * - Approves that pair has enough amount for `lpTokenValue`
    */
   public async prepareRmLiquidity(props: PrepareRemoveLiquidityProps): Promise<PrepareTransactionResult> {
-    await this.#agent.approveAmount(props.pair, props.lpTokenValue)
+    await this.#agent.approveAmount(props.pair, props.liquidity)
 
     const { minAmounts } = props
     const { address } = this
@@ -193,19 +291,19 @@ export class Liquidity extends LiquidityPure {
 
     const gasPrice = await this.#agent.getGasPrice()
 
-    const detectedEth = detectEth(
+    const detectedKlay = detectKlay(
       buildPair((type) => ({
         addr: props.tokens[type],
         minAmount: minAmounts[type],
       })),
     )
-    const tx = detectedEth
+    const tx = detectedKlay
       ? router.removeLiquidityKLAY(
           [
-            detectedEth.token.addr,
-            props.lpTokenValue.asStr,
-            detectedEth.token.minAmount.asStr,
-            detectedEth.eth.minAmount.asStr,
+            detectedKlay.token.addr,
+            props.liquidity.asStr,
+            detectedKlay.token.minAmount.asStr,
+            detectedKlay.klay.minAmount.asStr,
             address,
             deadlineFiveMinutesFromNow(),
           ],
@@ -215,7 +313,7 @@ export class Liquidity extends LiquidityPure {
           [
             props.tokens.tokenA,
             props.tokens.tokenB,
-            props.lpTokenValue.asStr,
+            props.liquidity.asStr,
             minAmounts.tokenA.asStr,
             minAmounts.tokenB.asStr,
             address,
@@ -251,7 +349,7 @@ if (import.meta.vitest) {
 
     test('no native tokens', () => {
       expect(
-        detectEth({
+        detectKlay({
           tokenA: { addr: tokens.test1, desired: new Wei('123') },
           tokenB: { addr: tokens.test2, desired: new Wei('321') },
         }),
@@ -260,7 +358,7 @@ if (import.meta.vitest) {
 
     test('native is the first', () => {
       expect(
-        detectEth({
+        detectKlay({
           tokenA: { addr: NATIVE_TOKEN, amount: new Wei('123') },
           tokenB: { addr: tokens.test2, amount: new Wei('321') },
         }),
@@ -280,7 +378,7 @@ if (import.meta.vitest) {
 
     test('native is the second', () => {
       expect(
-        detectEth({
+        detectKlay({
           tokenA: { addr: tokens.test2, computedAmount: new Wei('123') },
           tokenB: { addr: NATIVE_TOKEN, amount: new Wei('321') },
         }),

@@ -1,4 +1,4 @@
-import { Address, isEmptyAddress, Wei } from '@/core'
+import { Address, isEmptyAddress, Percent, Wei } from '@/core'
 import { ActiveDex, AnyDex } from '@/store/dex'
 import { TokensPair } from '@/utils/pair'
 import { MaybeRef } from '@vueuse/core'
@@ -118,7 +118,6 @@ export function usePairReserves(tokens: NullableReactiveTokens, pairExists: Mayb
 interface PairBalance {
   totalSupply: Wei
   userBalance: Wei
-  poolShare: number
 }
 
 export function usePairBalance(
@@ -137,12 +136,10 @@ export function usePairBalance(
       const { state, run } = useTask(
         async () => {
           const { totalSupply, userBalance } = await dex.tokens.getPairBalanceOfUser(tokens)
-          const poolShare = userBalance.asBigNum.dividedBy(totalSupply.asBigNum).toNumber()
 
           return {
             totalSupply,
             userBalance,
-            poolShare,
           }
         },
         { immediate: true },
@@ -165,8 +162,22 @@ export function useNullablePairBalanceComponents(balance: Ref<null | PairBalance
 } {
   return toReactive(
     computed(() => {
-      const { totalSupply = null, userBalance = null, poolShare = null } = balance.value ?? {}
-      return { totalSupply, userBalance, poolShare }
+      const { totalSupply = null, userBalance = null } = balance.value ?? {}
+      return { totalSupply, userBalance }
     }),
+  )
+}
+
+/**
+ * Estimated pool share is user's pool share after he will add (or remove)
+ * some amount of liquidity.
+ *
+ * @param currentBalance current pair balance of user
+ * @param addition how much amount user is willing to add
+ */
+export function computeEstimatedPoolShare(currentBalance: PairBalance, addition: Wei): Percent {
+  return new Percent(
+    currentBalance.userBalance.asBigInt + addition.asBigInt,
+    currentBalance.totalSupply.asBigInt + addition.asBigInt,
   )
 }

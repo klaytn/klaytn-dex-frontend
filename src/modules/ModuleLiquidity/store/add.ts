@@ -1,11 +1,13 @@
+/* eslint-disable max-nested-callbacks */
 import { deadlineFiveMinutesFromNow, Address, Wei, WeiAsToken } from '@/core'
 import {
   usePairAddress,
-  PairAddressResult,
   usePairBalance,
   usePairReserves,
+  useNullablePairBalanceComponents,
+  computeEstimatedPoolShare,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
-import { buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
+import { buildPair, mirrorTokenType, nonNullPair, TokensPair, TokenType } from '@/utils/pair'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -18,6 +20,7 @@ import {
 import { RouteName } from '@/types'
 import { TokenAddressAndDesiredValue } from '@/core/domain/liquidity'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
+import { match, P } from 'ts-pattern'
 
 type SupplyTokens = TokensPair<TokenAddressAndDesiredValue>
 
@@ -26,41 +29,31 @@ interface MainInput {
   wei: Wei
 }
 
-function useQuoting(props: { pair: Ref<null | PairAddressResult>; mainInput: Ref<null | MainInput> }) {
+function useAmounts(props: {
+  pairAndInput: Ref<null | {
+    pair: Address
+    input: MainInput
+    tokens: TokensPair<Address>
+  }>
+}) {
   const dexStore = useDexStore()
 
   const scope = useParamScope(
-    () => {
-      if (props.pair.value?.kind !== 'exist') return null
-      const { tokens, addr: pair } = props.pair.value
+    () =>
+      match(props.pairAndInput.value)
+        .with(P.not(P.nullish), ({ pair, tokens, input: { wei: input, type: quoteFrom } }) => {
+          const quoteFor = mirrorTokenType(quoteFrom)
 
-      const { type: quoteFrom, wei: value } = props.mainInput.value ?? {}
-      if (!quoteFrom || !value) return null
-      const quoteFor = mirrorTokenType(quoteFrom)
-
-      return {
-        key: `${pair}-${quoteFor}-${value}`,
-        payload: { tokens, quoteFor, quoteFrom, value },
-      }
-    },
-    ({
-      payload: {
-        tokens: { tokenA, tokenB },
-        quoteFor,
-        value,
-      },
-    }) => {
+          return {
+            key: `${dexStore.anyDex.key}-${pair}-${quoteFor}-${input}`,
+            payload: { pair, tokens, quoteFor, input, dex: dexStore.anyDex.dex() },
+          }
+        })
+        .with(null, () => null)
+        .exhaustive(),
+    ({ payload: { pair, tokens, quoteFor, input, dex } }) => {
       const { state, run } = useTask(
-        () =>
-          dexStore.anyDex
-            .dex()
-            .tokens.getTokenQuote({
-              tokenA,
-              tokenB,
-              value,
-              quoteFor,
-            })
-            .then((value) => ({ exchangeRate: value })),
+        async () => dex.liquidity.computeAddLiquidityAmountsForExistingPair({ pair, tokens, input, quoteFor }),
         { immediate: true },
       )
       usePromiseLog(state, 'add-liquidity-quoting')
@@ -69,21 +62,28 @@ function useQuoting(props: { pair: Ref<null | PairAddressResult>; mainInput: Ref
     },
   )
 
-  const pendingFor = computed(() => (scope.value?.expose.state.pending ? scope.value.payload.quoteFor : null))
-  const exchangeRate = computed(() => {
-    if (!scope.value) return null
-    const {
-      payload: props,
-      expose: {
-        state: { fulfilled },
-      },
-    } = scope.value
-    if (!fulfilled) return null
-    return { props, value: fulfilled.exchangeRate }
-  })
+  const quotePendingFor = computed(() => (scope.value?.expose.state.pending ? scope.value.payload.quoteFor : null))
+  const isPending = computed(() => scope.value?.expose.state.pending ?? false)
+
+  const result = computed(() =>
+    match(scope.value)
+      .with(
+        {
+          payload: P.select('props'),
+          expose: {
+            state: {
+              fulfilled: P.select('fulfilled', P.not(P.nullish)),
+            },
+          },
+        },
+        ({ props, fulfilled }) => ({ props, ...fulfilled }),
+      )
+      .otherwise(() => null),
+  )
+
   const touch = () => scope.value?.expose.run()
 
-  return { pendingFor, exchangeRate, touch }
+  return { quotePendingFor, isPending, result, touch }
 }
 
 function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null> }) {
@@ -164,6 +164,7 @@ function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null> }) {
 export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const route = useRoute()
   const tokensStore = useTokensStore()
+  const dexStore = useDexStore()
 
   const isActiveRoute = computed(() => route.name === RouteName.LiquidityAdd)
 
@@ -207,20 +208,9 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     pending: isPairReservesPending,
   } = usePairReserves(addrsReadonly, doesPairExist)
 
-  const {
-    userBalance: pairUserBalance,
-    totalSupply: pairTotalSupply,
-    poolShare,
-  } = toRefs(
-    toReactive(
-      computed(() => {
-        const { userBalance = null, totalSupply = null, poolShare = null } = pairBalance.value ?? {}
-        return { userBalance, totalSupply, poolShare }
-      }),
-    ),
+  const { userBalance: pairUserBalance, totalSupply: pairTotalSupply } = toRefs(
+    useNullablePairBalanceComponents(pairBalance),
   )
-
-  const formattedPoolShare = useFormattedPercent(poolShare, 7)
 
   // #endregion
 
@@ -248,38 +238,73 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   })
 
   const {
-    pendingFor: isQuotePendingFor,
-    exchangeRate: quoteExchangeRate,
+    quotePendingFor: isQuotePendingFor,
+    isPending: isAmountsPending,
+    result: quoteAndLiquidityResult,
     touch: touchQuote,
-  } = useQuoting({
-    pair: gotPair,
-    mainInput: quotingMainInput,
+  } = useAmounts({
+    pairAndInput: computed(() =>
+      match({ pair: gotPair.value, input: quotingMainInput.value })
+        .with(
+          {
+            pair: { kind: 'exist', addr: P.select('pair'), tokens: P.select('tokens') },
+            input: P.select('input', P.not(P.nullish)),
+          },
+          (x) => x,
+        )
+        .otherwise(() => null),
+    ),
   })
 
   watch(
-    [quoteExchangeRate, selection.tokens],
-    ([rate, tokens]) => {
-      if (rate && tokens[rate.props.quoteFor]) {
-        const token = rate.value.toToken(tokens[rate.props.quoteFor]!)
-        setEstimated(token)
+    [quoteAndLiquidityResult, selection.tokens],
+    ([result, tokens]) => {
+      if (result && tokens[result.props.quoteFor]) {
+        const token = result.quoted.decimals(tokens[result.props.quoteFor]!)
+        setEstimated(token.toFixed() as WeiAsToken)
       }
     },
     { immediate: true, deep: true },
   )
 
-  const supplyTokensFromQuoting = computed<null | SupplyTokens>(() => {
-    if (quoteExchangeRate.value) {
-      const {
-        value: amount,
-        props: { quoteFor, value: referenceValue, tokens },
-      } = quoteExchangeRate.value
-      return buildPair((type) => ({ addr: tokens[type], desired: quoteFor === type ? amount : referenceValue }))
-    }
-    return null
-  })
+  const supplyTokensFromQuoting = computed<null | SupplyTokens>(() =>
+    match(quoteAndLiquidityResult.value)
+      .with(P.not(P.nullish), ({ quoted: amount, props: { quoteFor, input: referenceValue, tokens } }) =>
+        buildPair((type) => ({ addr: tokens[type], desired: quoteFor === type ? amount : referenceValue })),
+      )
+      .with(null, () => null)
+      .exhaustive(),
+  )
 
   const estimatedForAfterQuoting = computed<null | TokenType>(() => {
-    return quoteExchangeRate.value?.props.quoteFor ?? null
+    return quoteAndLiquidityResult.value?.props.quoteFor ?? null
+  })
+
+  /**
+   * Computes liquidity even for empty pair
+   */
+  const liquidityByAmounts = computed<null | Wei>(() =>
+    match(gotPair.value)
+      .with({ kind: 'exist' }, (): null | Wei =>
+        match(quoteAndLiquidityResult.value)
+          .with({ liquidity: P.select() }, (x) => x)
+          .otherwise(() => null),
+      )
+      .with({ kind: 'empty' }, () =>
+        match(nonNullPair(selection.weiFromTokens))
+          .with(
+            P.not(P.nullish),
+            (input) => dexStore.anyDex.dex().liquidity.computeAddLiquidityAmountsForEmptyPair({ input }).liquidity,
+          )
+          .otherwise(() => null),
+      )
+      .otherwise(() => null),
+  )
+
+  const poolShare = computed(() => {
+    if (pairBalance.value && !isAmountsPending.value)
+      return computeEstimatedPoolShare(pairBalance.value, liquidityByAmounts.value ?? new Wei(0))
+    return null
   })
 
   // #endregion
@@ -347,11 +372,9 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     pairUserBalance,
     pairTotalSupply,
     poolShare,
-    formattedPoolShare,
     pairReserves,
 
     isQuotePendingFor,
-    quoteExchangeRate,
 
     isValuesDebounceWelcome,
     setToken: setMainToken,
