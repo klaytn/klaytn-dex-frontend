@@ -61,4 +61,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/klaytn-dex-frontend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/klaytn-dex-frontend:dev
