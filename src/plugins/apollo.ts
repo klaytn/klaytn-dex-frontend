@@ -6,22 +6,22 @@ const cache = new InMemoryCache()
 
 const apolloClientExchange = new ApolloClient({
   cache,
-  uri: import.meta.env.VITE_APP_GRAPHQL_URI_EXCHANGE,
+  uri: import.meta.env.VITE_GRAPHQL_URI_EXCHANGE,
 })
 
 const apolloClientFarming = new ApolloClient({
   cache,
-  uri: import.meta.env.VITE_APP_GRAPHQL_URI_FARMING,
+  uri: import.meta.env.VITE_GRAPHQL_URI_FARMING,
 })
 
 const apolloClientStaking = new ApolloClient({
   cache,
-  uri: import.meta.env.VITE_APP_GRAPHQL_URI_STAKING,
+  uri: import.meta.env.VITE_GRAPHQL_URI_STAKING,
 })
 
 const apolloClientSnapshot = new ApolloClient({
   cache,
-  uri: import.meta.env.VITE_APP_GRAPHQL_URI_SNAPSHOT,
+  uri: import.meta.env.VITE_GRAPHQL_URI_SNAPSHOT,
 })
 
 export const install: Plugin = ({ app }) => {
