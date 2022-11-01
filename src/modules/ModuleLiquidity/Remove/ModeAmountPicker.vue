@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { not } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
+import { Ref } from 'vue'
 
 const store = useLiquidityRmStore()
-const { liquidityRelative: relativeTo1, isPairLoaded } = storeToRefs(store)
+const { liquidityRelative, isPairLoaded } = storeToRefs(store)
 
 const isNotActive = not(isPairLoaded)
 
 const relativeTo100 = computed({
-  get: () => (relativeTo1.value ?? 0) * 100,
+  get: () => (liquidityRelative.value ?? 0) * 100,
   set: (num) => {
-    relativeTo1.value = num / 100
+    liquidityRelative.value = num * 0.01
   },
 })
 
@@ -19,9 +20,13 @@ watch(relativeTo100, (val) => {
   pickerValueDebounced.value = val
 })
 watchDebounced(
-  pickerValueDebounced,
-  (value) => {
-    relativeTo100.value = value
+  [
+    pickerValueDebounced,
+    // we watch it so when it become non-null, we will set it
+    liquidityRelative,
+  ] as [Ref<number>, Ref<number | null>],
+  ([value]) => {
+    if (!Number.isNaN(value)) relativeTo100.value = value
   },
   { debounce: 500 },
 )
@@ -54,7 +59,7 @@ function formatPercent(value: number): string {
         :key="i"
         size="sm"
         :disabled="isNotActive"
-        @click="relativeTo1 = i"
+        @click="liquidityRelative = i"
       >
         {{ formatPercent(i) }}
       </KlayButton>
@@ -63,7 +68,7 @@ function formatPercent(value: number): string {
         type="primary"
         size="sm"
         :disabled="isNotActive"
-        @click="relativeTo1 = 1"
+        @click="liquidityRelative = 1"
       >
         MAX
       </KlayButton>

@@ -1,96 +1,112 @@
 <script lang="ts" setup>
-import { Token, Address, Wei, WeiAsToken } from '@/core/kaikas'
+import { Address, WeiAsToken } from '@/core'
 import { storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
-import { roundTo } from 'round-to'
 import { KlayIconImportant } from '~klay-icons'
+import BigNumber from 'bignumber.js'
+import { Ref } from 'vue'
+import TokenSelect from './TokenSelect.vue'
+import { SPopover } from '@soramitsu-ui/ui'
+import PopperInfo from './InputTokenPopperInfo.vue'
+import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
 
-const props = withDefaults(
-  defineProps<{
-    token?: Address
-    selected?: Set<Address>
-    modelValue?: WeiAsToken
-    valueDebounce?: number
-    isLoading?: boolean
-    isDisabled?: boolean
-    setByBalance?: boolean
-    // FIXME not by design
-    estimated?: boolean
-  }>(),
-  {
-    isLoading: false,
-    isDisabled: false,
-    setByBalance: false,
-    estimated: false,
-    valueDebounce: 500,
-  },
-)
+interface Props {
+  address?: Address
+  selected?: Set<Address>
+  modelValue?: WeiAsToken<BigNumber> | null
+  valueDebounce?: number
+  isLoading?: boolean
+  setByBalance?: boolean
+  // FIXME not by design
+  estimated?: boolean
+}
 
-const emit = defineEmits(['update:modelValue', 'update:token'])
+interface Emits {
+  (event: 'update:modelValue', value: WeiAsToken<BigNumber>): void
+  (event: 'update:address', value: Address): void
+}
 
-const model = useVModel(props, 'modelValue', emit)
-
-const modelDebounced = ref(model.value)
-watch(model, (value) => {
-  modelDebounced.value = value
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: null,
+  isLoading: false,
+  setByBalance: false,
+  estimated: false,
+  valueDebounce: 500,
 })
+
+const emit = defineEmits<Emits>()
+
+// #region  Model
+
+const model = useVModel(props, 'modelValue', emit) as Ref<BigNumber | null>
+
+const modelDebounced = shallowRef<BigNumber | null>(model.value)
+
+watch(model, (value) => {
+  if (!value || (modelDebounced.value && !value.eq(modelDebounced.value))) modelDebounced.value = value
+})
+
 watchDebounced(
   modelDebounced,
   (value) => {
-    if (value !== model.value) {
-      model.value = value
-    }
+    if (!value || (model.value && !value.eq(model.value))) model.value = value
   },
   { debounce: toRef(props, 'valueDebounce') },
 )
 
-// const addrFormatted = $computed(() => {
-//   return props.token && formatAddress(props.token)
-// })
+// #endregion
 
-const kaikasStore = useKaikasStore()
-const { isConnected: isKaikasConnected } = $(storeToRefs(kaikasStore))
+// #region Stores
+
+const dexStore = useDexStore()
+const { isWalletConnected } = storeToRefs(dexStore)
 
 const tokensStore = useTokensStore()
-const { isBalancePending } = $(storeToRefs(tokensStore))
+const { isBalancePending } = storeToRefs(tokensStore)
 
-const tokenData = $computed<null | Token>(() => (props.token && tokensStore.findTokenData(props.token)) ?? null)
+const { lookupDerivedUsd, lookupBalance, lookupToken } = useMinimalTokensApi()
 
-const balance = $computed<null | Wei>(() => (props.token && tokensStore.lookupUserBalance(props.token)) ?? null)
-const balanceRaw = $computed(() => {
-  if (!balance || !tokenData) return null
-  return balance.toToken(tokenData)
-})
-const balanceFormatted = $computed(() => {
-  if (!balanceRaw) return null
-  return roundTo(Number(balanceRaw), 5)
-})
+const balance = computed(() => props.address && lookupBalance(props.address))
+const derivedUsd = computed(() => props.address && lookupDerivedUsd(props.address))
+const tokenData = computed(() => props.address && lookupToken(props.address))
 
-const showMaxButton = $computed(() => {
-  return props.setByBalance && balance && props.modelValue !== balanceRaw
-})
+const balanceAsToken = computed(() => balance.value && tokenData.value && balance.value.decimals(tokenData.value))
 
-const tokenModel = useVModel(props, 'token', emit)
+// #endregion
+
+const showMaxButton = $computed(
+  () => props.setByBalance && balance.value && model.value && !model.value.eq(balance.value.asBigNum),
+)
+
+const addressModel = useVModel(props, 'address', emit)
 
 function setToMax() {
-  invariant(balance)
-  emit('update:modelValue', balanceRaw)
+  invariant(balanceAsToken.value)
+  model.value = balanceAsToken.value
 }
 </script>
 
 <template>
-  <InputTokenTemplate
-    v-model="modelDebounced"
+  <InputCurrencyTemplate
     :class="{ 'pointer-events-none': isLoading }"
-    :input-disabled="isDisabled"
-    :input-loading="isLoading"
+    :loading="isLoading"
     bottom
+    size="lg"
     :max-button="showMaxButton"
     @click:max="setToMax()"
   >
+    <template #input>
+      <CurrencyInput
+        v-if="tokenData && modelDebounced"
+        v-model="modelDebounced"
+        :decimals="tokenData.decimals"
+        :disabled="isLoading"
+      />
+    </template>
+
     <template #top-right>
       <TokenSelect
-        v-model:token="tokenModel"
+        v-model:token="addressModel"
         v-bind="{ selected }"
         data-testid="token-select"
       />
@@ -104,41 +120,70 @@ function setToMax() {
     </template>
 
     <template #bottom-right>
-      <div
-        :title="balance?.asStr"
-        class="balance flex items-center space-x-2"
+      <SPopover
+        placement="bottom-end"
+        distance="8"
+        hide-delay="150"
       >
-        <span>
-          <template v-if="isKaikasConnected">
-            Balance:
-            <ValueOrDash :value="balanceFormatted" />
-          </template>
-          <template v-else> Balance: Connect Wallet </template>
-        </span>
-        <KlayLoader
-          v-if="isBalancePending"
-          color="gray"
-          size="14"
-        />
-        <KlayIconImportant />
-      </div>
+        <template #trigger>
+          <div class="balance flex items-center space-x-2">
+            <span class="flex items-center">
+              <span class="whitespace-pre">Balance: </span>
+              <span
+                v-if="isWalletConnected"
+                class="inline-block truncate max-w-20"
+              >
+                <CurrencyFormat :amount="balanceAsToken" />
+              </span>
+              <span v-else>Connect Wallet</span>
+            </span>
+
+            <KlayLoader
+              v-if="isBalancePending"
+              color="gray"
+              size="14"
+            />
+
+            <KlayIconImportant class="icon-info" />
+          </div>
+        </template>
+
+        <template #popper="{ show }">
+          <PopperInfo
+            v-if="show && tokenData && balance"
+            :token="tokenData"
+            :balance="balanceAsToken"
+            :derived-usd="derivedUsd"
+          />
+        </template>
+      </SPopover>
     </template>
-  </InputTokenTemplate>
+  </InputCurrencyTemplate>
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/vars';
-
-.balance {
-  max-width: 200px;
-}
+@use '@/styles/vars';
 
 .balance,
 .estimated {
   font-style: normal;
   font-weight: 500;
   font-size: 12px;
-  line-height: 15px;
+  line-height: 1em;
   color: #778294;
+  user-select: none;
+}
+
+.icon-info {
+  font-size: 16px;
+  color: #c2cbda;
+}
+
+.balance {
+  cursor: pointer;
+
+  &:hover .icon-info {
+    color: vars.$gray2;
+  }
 }
 </style>

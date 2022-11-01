@@ -1,5 +1,5 @@
 <script setup lang="ts" name="ModuleGovernanceProposalVotes">
-import { formatAddress } from '@/core/kaikas'
+import { formatAddress } from '@/core'
 import { PAGE_SIZE } from '../const'
 import { useVotesQuery } from '../query.votes'
 import { Proposal } from '../types'

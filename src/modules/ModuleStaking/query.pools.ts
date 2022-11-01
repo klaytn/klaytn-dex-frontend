@@ -1,9 +1,9 @@
-import { Address, Token, WeiRaw } from '@/core/kaikas'
+import { Address, Token, WeiRaw } from '@/core'
+import { ApolloClientId } from '@/types'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { Except } from 'type-fest'
 import { Ref } from 'vue'
-import { REFETCH_POOLS_INTERVAL } from './const'
 
 type ApolloToken = Except<Token, 'address'> & { id: Address }
 
@@ -15,14 +15,19 @@ export interface PoolsQueryResult {
     rewardRate: string
     createdAtBlock: string
     totalTokensStaked: WeiRaw<string>
+    startBlock: string
     endBlock: string
-    users: {
-      amount: WeiRaw<string>
-    }[]
+    blocksForUserLimit: string
+    userLimit: WeiRaw<string>
+    users: [
+      {
+        amount: WeiRaw<string>
+      }?,
+    ]
   }[]
 }
 
-export function usePoolsQuery(userId: Ref<Address | null>) {
+export function usePoolsQuery(userId: Ref<Address | null>, pollInterval: Ref<number>) {
   return useQuery<PoolsQueryResult>(
     gql`
       query PoolsQuery($userId: String!) {
@@ -43,7 +48,10 @@ export function usePoolsQuery(userId: Ref<Address | null>) {
           rewardRate
           createdAtBlock
           totalTokensStaked
+          startBlock
           endBlock
+          blocksForUserLimit
+          userLimit
           users(where: { address: $userId }) {
             amount
           }
@@ -51,11 +59,11 @@ export function usePoolsQuery(userId: Ref<Address | null>) {
       }
     `,
     () => ({
-      userId: userId.value,
+      userId: unref(userId) ?? '',
     }),
-    {
-      clientId: 'staking',
-      pollInterval: REFETCH_POOLS_INTERVAL,
-    },
+    () => ({
+      clientId: ApolloClientId.Staking,
+      pollInterval: pollInterval.value,
+    }),
   )
 }

@@ -1,33 +1,18 @@
-import { Wei } from '@/core/kaikas'
+import { Wei, Percent } from '@/core'
 import { Tab } from '@/types'
-import { Serializer } from '@vueuse/core'
 import BigNumber from 'bignumber.js'
 import rfdc from 'rfdc'
 import { roundTo } from 'round-to'
-import { JsonValue } from 'type-fest'
 import { TokensPair } from './pair'
 
 const reallyFastDeepClone = rfdc()
 
-// FIXME v1 & v2 values comes from `Token.value`. What type is it?
-
-export function formatRate(v1: string, v2: string) {
-  const bigNA = new BigNumber(v1)
-  const bigNB = new BigNumber(v2)
-
-  return bigNA.dividedBy(bigNB).toFixed(5)
-}
-
-export function formatPercent(v1: string, v2: string) {
-  const bigNA = new BigNumber(v1)
-  const bigNB = new BigNumber(v2)
-  const percent = bigNA.dividedToIntegerBy(100)
-
-  return `${bigNB.dividedBy(percent).toFixed(2)}%`
-}
-
 export function deepClone<T>(object: T): T {
   return reallyFastDeepClone(object)
+}
+
+export function arrayEquals<T>(a: T[], b: T[]): boolean {
+  return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((val, index) => val === b[index])
 }
 
 export function stringHashForHsl(str: string): number {
@@ -62,41 +47,12 @@ export function roundRates({ a_per_b, b_per_a }: Rates): RatesRounded {
   }
 }
 
-export const JSON_SERIALIZER: Serializer<JsonValue> = {
-  read: (raw) => JSON.parse(raw),
-  write: (parsed) => JSON.stringify(parsed),
-}
-
 export function nonNullSet<T>(values: (null | undefined | T)[]): Set<T> {
   const set = new Set<T>()
   for (const val of values) {
     if (val !== null && val !== undefined) set.add(val)
   }
   return set
-}
-
-if (import.meta.vitest) {
-  const { test, expect, describe } = import.meta.vitest
-
-  describe('format rate', () => {
-    test('case 1', () => {
-      expect(formatRate('423', '20')).toMatchInlineSnapshot('"21.15000"')
-    })
-
-    test('case 2', () => {
-      expect(formatRate('1000', '3.5')).toMatchInlineSnapshot('"285.71429"')
-    })
-  })
-
-  describe('format percent', () => {
-    test('case 1', () => {
-      expect(formatPercent('423', '20')).toMatchInlineSnapshot('"5.00%"')
-    })
-
-    test('case 2', () => {
-      expect(formatPercent('1000', '3.5')).toMatchInlineSnapshot('"0.35%"')
-    })
-  })
 }
 
 export function shortenStringInTheMiddle(string: string) {
@@ -109,4 +65,43 @@ export function makeTabsArray(data: string[]): Tab[] {
     id: item,
     label: item,
   }))
+}
+
+export function formatNumberWithCommas(value: string | number | BigNumber): string {
+  return value.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ',')
+}
+
+export function numberToPercent(num: number, precision: number): Percent {
+  const pow = 10 ** precision
+  return new Percent(num * pow, pow)
+}
+
+export function trimTrailingZerosWithPeriod(input: string): string {
+  let firstNonZeroIndex: undefined | number
+  let periodIndex: undefined | number
+  for (let i = input.length - 1, char = input[i]; i > 0; i--, char = input[i]) {
+    if (char === '.') {
+      periodIndex = i
+      break
+    }
+    if (!firstNonZeroIndex && char !== '0') firstNonZeroIndex = i
+  }
+  return periodIndex ? (firstNonZeroIndex ? input.slice(0, firstNonZeroIndex + 1) : input.slice(0, periodIndex)) : input
+}
+
+if (import.meta.vitest) {
+  const { describe, test, expect } = import.meta.vitest
+
+  describe('Trim trailing zeros', () => {
+    test.each([
+      ['0.0', '0'],
+      ['12230000', '12230000'],
+      ['1.2000', '1.2'],
+      ['0', '0'],
+      ['7.001', '7.001'],
+      ['1.00000', '1'],
+    ])('%o is trimmed into %o', (a, b) => {
+      expect(trimTrailingZerosWithPeriod(a)).toEqual(b)
+    })
+  })
 }

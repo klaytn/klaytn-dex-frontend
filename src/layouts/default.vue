@@ -1,9 +1,15 @@
 <script setup lang="ts" name="DefaultLayout">
-import { formatAddress } from '@/core/kaikas'
 import { type HeaderMenuItem, RouteName } from '@/types'
-import { storeToRefs } from 'pinia'
-import { KlayIconDexLogo, KlayIconWallet } from '~klay-icons'
+import { KlayIconDexLogo } from '~klay-icons'
 import { SToastsDisplay } from '@soramitsu-ui/ui'
+import HeaderMenu from '@/components/HeaderMenu.vue'
+
+// Good for tree-shaking
+const TheHeaderDexToken = defineAsyncComponent(() => import('@/components/TheHeaderDexToken.vue'))
+const TheWalletConnectModal = defineAsyncComponent(() => import('@/components/TheWalletConnectModal.vue'))
+const TheHeaderWallet = defineAsyncComponent(() => import('@/components/TheHeaderWallet.vue'))
+const TheDexInitGuard = defineAsyncComponent(() => import('@/components/TheDexInitGuard.vue'))
+const TheNegativeNativeTokenGuard = defineAsyncComponent(() => import('@/components/TheNegativeNativeTokenGuard.vue'))
 
 const { t } = useI18n()
 
@@ -11,79 +17,70 @@ const menu = computed<HeaderMenuItem[]>(() => {
   return [
     {
       label: t('DefaultLayout.menu.assets'),
+      kind: 'route',
       routeName: RouteName.Assets,
     },
     {
       label: t('DefaultLayout.menu.trade'),
       routeName: RouteName.Swap,
+      kind: 'route',
       activeWith: [RouteName.Trade, RouteName.Liquidity, RouteName.LiquidityAdd, RouteName.LiquidityRemove],
     },
     {
       label: t('DefaultLayout.menu.earn'),
       routeName: RouteName.Farms,
+      kind: 'route',
       activeWith: [RouteName.Pools],
     },
     {
       label: t('DefaultLayout.menu.voting'),
       routeName: RouteName.Voting,
+      kind: 'route',
+      activeWith: [RouteName.VotingProposal],
     },
     {
       label: t('DefaultLayout.menu.charts'),
-      routeName: RouteName.Charts,
+      kind: 'external',
+      href: import.meta.env.VITE_APP_DASHBOARDS_HREF,
     },
   ]
 })
-
-const kaikasStore = useKaikasStore()
-const { address, isNotInstalled } = storeToRefs(kaikasStore)
-
-const formattedAddress = computed(() => {
-  if (!address.value) return ''
-  return formatAddress(address.value)
-})
-
-onMounted(() => kaikasStore.connect())
 </script>
 
 <template>
-  <main class="layout">
-    <header class="relative">
-      <div class="col">
-        <a href="#">
-          <KlayIconDexLogo />
-        </a>
-      </div>
-      <div class="col col-center">
-        <HeaderMenu :items="menu" />
-      </div>
+  <TheDexInitGuard>
+    <TheWalletConnectModal />
+    <TheNegativeNativeTokenGuard />
 
-      <div class="col col-right">
-        <div v-if="isNotInstalled || !address">
-          Connect Wallet
+    <main class="layout">
+      <header class="relative">
+        <div class="col">
+          <a href="#">
+            <KlayIconDexLogo />
+          </a>
         </div>
-        <div
-          v-if="address"
-          class="address"
-        >
-          <KlayIconWallet />
-          <span>
-            {{ formattedAddress }}
-          </span>
+        <div class="col col-center">
+          <HeaderMenu :items="menu" />
         </div>
-      </div>
 
-      <div class="toasts-mount absolute right-0 bottom-0 w-full">
-        <SToastsDisplay
-          :to="(null as any)"
-          absolute
-          vertical="top"
-          horizontal="right"
-        />
-      </div>
-    </header>
+        <div class="col col-right">
+          <TheHeaderDexToken />
+          <TheHeaderWallet />
+        </div>
 
-    <RouterView />
-  </main>
+        <div class="toasts-mount absolute right-0 bottom-0 w-full">
+          <SToastsDisplay
+            :to="(null as any)"
+            absolute
+            vertical="top"
+            horizontal="right"
+          />
+        </div>
+      </header>
+
+      <RouterView />
+    </main>
+  </TheDexInitGuard>
 </template>
 
 <style scoped lang="scss">

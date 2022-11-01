@@ -16,7 +16,7 @@ const { proposal } = toRefs(props)
 
 function getChoiceScore(choice: string) {
   const choiceIndex = proposal.value.choices.indexOf(choice)
-  return proposal.value.scores[choiceIndex]
+  return proposal.value.scores[choiceIndex] ?? 0
 }
 
 function getChoicePercent(choice: string) {

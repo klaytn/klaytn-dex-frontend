@@ -1,0 +1,32 @@
+[
+  {
+    "liquidityTokenBalance": "0.565152869111064754",
+    "pair": {
+      "id": "0x85c32ca7e071823b781dda7a43f213258c931c94",
+      "name": "EA-MER",
+      "reserve0": "93963.55232676724706708",
+      "reserve1": "10224746.537751247321604932",
+      "token0": {
+        "id": "0x2486a551714f947c386fe9c8b895c2a6b3275ec9",
+        "name": "Earth",
+        "symbol": "EA",
+        "decimals": "18",
+        "__typename": "Token"
+      },
+      "token1": {
+        "id": "0xb9920bd871e39c6ef46169c32e7ac4c698688881",
+        "name": "Mercury",
+        "symbol": "MER",
+        "decimals": "18",
+        "__typename": "Token"
+      },
+      "reserveKLAY": "0",
+      "reserveUSD": "0",
+      "token1Price": "108.8160918203019034538655675789556",
+      "totalSupply": "0",
+      "volumeUSD": "0",
+      "__typename": "Pair"
+    },
+    "__typename": "LiquidityPosition"
+  }
+]

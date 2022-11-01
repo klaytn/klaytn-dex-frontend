@@ -1,82 +1,120 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
-import { Address, Wei, WeiAsToken } from '@/core/kaikas'
-import BigNumber from 'bignumber.js'
+import {
+  Address,
+  CurrencySymbol,
+  WeiAsToken,
+  Wei,
+  TokenImpl,
+  Pair,
+  TokenAmount,
+  LP_TOKEN_DECIMALS,
+  Trade,
+  POOL_COMMISSION,
+} from '@/core'
 import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
 import Debug from 'debug'
-import { useGetAmount, GetAmountProps } from '../composable.get-amount'
-import { usePairAddress, usePairBalance, useSimplifiedResult } from '../../ModuleTradeShared/composable.pair-by-tokens'
+import {
+  useSwapAmounts,
+  GetAmountsProps,
+  computeSlippage,
+  useSlippageParsed,
+  AmountsAdjusted,
+} from '../composable.get-amounts'
+import { useTrade } from '../composable.trade'
 import { useSwapValidation } from '../composable.validation'
-import { buildSwapProps, TokenAddrAndWeiInput } from '../util.swap-props'
-import { useExchangeRateInput, useInertExchangeRateInput } from '../../ModuleTradeShared/composable.exchange-rate-input'
+import {
+  usePairInput,
+  useEstimatedLayer,
+  useLocalStorageAddrsOrigin,
+} from '../../ModuleTradeShared/composable.pair-input'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import { RouteName } from '@/types'
+import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
+import { usePairsQuery } from '../query.pairs'
+import { numberToPercent } from '@/utils/common'
+import { match, P } from 'ts-pattern'
+import { computeFeesByAmounts, FeeItem } from '../utils'
 
-const debugModule = Debug('swap-store')
+const SLIPPAGE_PRECISION = 5
 
-type NormalizedWeiInput = TokensPair<TokenAddrAndWeiInput> & { amountFor: TokenType }
+const dbg = Debug('swap-store')
 
-function useSwap(input: Ref<null | NormalizedWeiInput>) {
-  const kaikasStore = useKaikasStore()
-  const tokensStore = useTokensStore()
+export interface SwapPropsLocal {
+  trade: Trade
+  amounts: AmountsAdjusted
+  expertMode: boolean
+}
+
+function useSwap(
+  props: Ref<null | SwapPropsLocal>,
+  options: {
+    onSuccess: () => void
+  },
+) {
+  const dexStore = useDexStore()
   const { notify } = useNotify()
 
-  const [active, setActive] = useToggle(false)
-
   const swapKey = computed(() => {
-    if (!input.value) return null
-    const { tokenA, tokenB, amountFor } = input.value
+    if (!props.value) return null
+    const {
+      trade: {
+        route: {
+          input: { address: input },
+          output: { address: output },
+        },
+      },
+      amounts,
+    } = props.value
+
+    return (
+      dexStore.active.kind === 'named' && {
+        key:
+          // NOTE: we do not put `expertMode` here because it actually doesn't produce any significant effect
+          `${input}-${output}-${
+            amounts.mode === 'exact-in'
+              ? `exact-in-${amounts.amountIn}-${amounts.amountOutMin}`
+              : `exact-out-${amounts.amountInMax}-${amounts.amountOut}`
+          }`,
+        payload: { props: props.value, swap: dexStore.active.dex().swap },
+      }
+    )
+  })
+
+  const { filteredKey, setActive } = useControlledComposedKey(swapKey)
+
+  const scope = useParamScope(filteredKey, ({ payload: { props, swap: swapAgent } }) => {
+    const { state: prepareState, run: prepare } = useTask(
+      async () => {
+        const { amounts, ...rest } = props
+        const { send, fee } = await swapAgent.prepareSwap({ ...amounts, ...rest })
+        return { send, fee }
+      },
+      { immediate: true },
+    )
+
+    usePromiseLog(prepareState, 'prepare-swap')
+    useNotifyOnError(prepareState, notify, 'Swap preparation failed')
+
+    const { state: swapState, run: swap } = useTask(async () => {
+      invariant(prepareState.fulfilled)
+      const { send } = prepareState.fulfilled.value
+      await send()
+    })
+
+    usePromiseLog(swapState, 'swap')
+    wheneverFulfilled(swapState, options.onSuccess)
+    useNotifyOnError(swapState, notify, 'Swap failed')
+
     return {
-      key: `${tokenA.addr}-${tokenA.input}-${tokenB.addr}-${tokenB.input}-${amountFor}`,
-      payload: { tokenA, tokenB, amountFor },
+      prepare,
+      swap,
+      fee: computed(() => prepareState.fulfilled?.value.fee ?? null),
+      prepareState: promiseStateToFlags(prepareState),
+      swapState: promiseStateToFlags(swapState),
     }
   })
-  watch(swapKey, () => setActive(false))
-
-  const scope = useParamScope(
-    computed(() => active.value && swapKey.value),
-    ({ tokenA, tokenB, amountFor }) => {
-      const { state: prepareState, run: prepare } = useTask(
-        async () => {
-          const kaikas = kaikasStore.getKaikasAnyway()
-
-          // 1. Approve amount of the tokenA
-          await kaikas.cfg.approveAmount(tokenA.addr, tokenA.input)
-
-          // 2. Perform swap according to which token is "exact" and if
-          // some of them is native
-          const swapProps = buildSwapProps({ tokenA, tokenB, referenceToken: mirrorTokenType(amountFor) })
-          const { send, fee } = await kaikas.swap.swap(swapProps)
-
-          return { send, fee }
-        },
-        { immediate: true },
-      )
-
-      usePromiseLog(prepareState, 'prepare-swap')
-
-      const { state: swapState, run: swap } = useTask(async () => {
-        invariant(prepareState.fulfilled)
-        const { send } = prepareState.fulfilled.value
-        await send()
-      })
-
-      usePromiseLog(swapState, 'swap')
-      wheneverFulfilled(swapState, () => {
-        tokensStore.touchUserBalance()
-      })
-      useNotifyOnError(swapState, notify, 'Swap failed')
-
-      return {
-        prepare,
-        swap,
-        fee: computed(() => prepareState.fulfilled?.value.fee ?? null),
-        prepareState: promiseStateToFlags(prepareState),
-        swapState: promiseStateToFlags(swapState),
-      }
-    },
-  )
 
   return {
     prepare: () => {
@@ -91,142 +129,309 @@ function useSwap(input: Ref<null | NormalizedWeiInput>) {
 }
 
 export const useSwapStore = defineStore('swap', () => {
-  const route = useRoute()
-  const isActiveRoute = computed(() => route.name === RouteName.Swap)
+  const dexStore = useDexStore()
+  const tokensStore = useTokensStore()
 
-  const selection = useExchangeRateInput({ localStorageKey: 'swap-selection', isActive: isActiveRoute })
-  const selectionInput = useInertExchangeRateInput({ input: selection.input })
-  const { rates: inputRates } = selectionInput
-  const { tokens, resetInput } = selection
+  const pageRoute = useRoute()
+  const isActiveRoute = computed(() => pageRoute.name === RouteName.Swap)
+
+  const multihops = useLocalStorage<boolean>('swap-multi-hops', false)
+
+  const slippageTolerance = ref(0)
+
+  const expertMode = ref(false)
+
+  // #region selection
+
+  const selection = usePairInput({ addrsOrigin: useLocalStorageAddrsOrigin('swap-selection', isActiveRoute) })
+  const { tokens, resetInput, tokenValues } = selection
   const addrsReadonly = readonly(selection.addrs)
+
+  const tokenImpls = reactive(
+    buildPair((type) =>
+      computed(() => {
+        const token = tokens[type]
+        return token && new TokenImpl(token)
+      }),
+    ),
+  )
 
   const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
 
-  const { pair: pairAddrResult } = usePairAddress(addrsReadonly)
-  const { result: pairBalance } = usePairBalance(
-    addrsReadonly,
-    computed(() => pairAddrResult.value?.kind === 'exist'),
-  )
-  const poolShare = computed(() => pairBalance.value?.poolShare ?? null)
-  const formattedPoolShare = useFormattedPercent(poolShare, 7)
+  function setTokenAddress(type: TokenType, addr: Address | null) {
+    selection.addrs[type] = addr
+  }
 
-  const { gotAmountFor, gettingAmountFor } = useGetAmount(
-    computed<GetAmountProps | null>(() => {
-      const amountFor = selectionInput.exchangeRateFor.value
-      if (!amountFor) return null
+  function setBothTokens(pair: TokensPair<Address | null>) {
+    selection.setBothAddrs(pair)
+    resetInput()
+  }
 
-      const referenceValue = selection.inputNormalized.value?.wei
-      if (!referenceValue || referenceValue.asBigInt <= 0) return null
+  const { estimatedFor, setEstimated, setMainToken } = useEstimatedLayer(selection)
 
-      const { tokenA, tokenB } = addrsReadonly
-      if (!tokenA || !tokenB) return null
+  function swapTokensWithEachOther() {
+    const currentMain = estimatedFor.value && mirrorTokenType(estimatedFor.value)
+    selection.setBothAddrs({ tokenA: addrsReadonly.tokenB, tokenB: addrsReadonly.tokenA })
+    if (currentMain) {
+      const newMain = mirrorTokenType(currentMain)
+      const mainValue = tokenValues[currentMain]
+      invariant(mainValue)
+      tokenValues[currentMain] = null
+      setMainToken(newMain, mainValue)
+    }
+  }
 
-      if (pairAddrResult.value?.kind !== 'exist') return null
+  // #endregion
+
+  // #region Pair data
+
+  const PairsQuery = usePairsQuery()
+
+  const pairs = computed(() => {
+    return (
+      PairsQuery.result.value?.pairs.map((pair) => {
+        const token0 = new TokenImpl({
+          name: pair.token0.name,
+          address: pair.token0.id,
+          decimals: Number(pair.token0.decimals),
+          symbol: pair.token0.symbol,
+        })
+        const token1 = new TokenImpl({
+          name: pair.token1.name,
+          address: pair.token1.id,
+          decimals: Number(pair.token1.decimals),
+          symbol: pair.token1.symbol,
+        })
+        const pairSymbol = (token0.symbol + '-' + token1.symbol) as CurrencySymbol
+        return new Pair({
+          liquidityToken: new TokenImpl({
+            address: pair.id,
+            decimals: LP_TOKEN_DECIMALS,
+            symbol: pairSymbol,
+            name: pairSymbol,
+          }),
+          token0: TokenAmount.fromToken(token0, pair.reserve0),
+          token1: TokenAmount.fromToken(token1, pair.reserve1),
+        })
+      }) ?? null
+    )
+  })
+
+  // #endregion
+
+  // #region Route & Amounts
+
+  const inputAmount = computed(() => {
+    const amountFor = estimatedFor.value
+    if (!amountFor) return null
+
+    const amountFrom = mirrorTokenType(amountFor)
+    const referenceValue = selection.weiFromTokens[amountFrom]
+    if (!referenceValue?.asBigInt) return null
+
+    return {
+      for: amountFor,
+      from: amountFrom,
+      wei: referenceValue,
+    }
+  })
+
+  const tradeResult = useTrade({
+    pairs,
+    amount: inputAmount,
+    tokens: tokenImpls,
+    disableMultiHops: logicNot(multihops),
+  })
+
+  const trade = computed(() => (tradeResult.value?.kind === 'ok' ? tradeResult.value.trade : null))
+  const priceImpact = computed(() => trade.value?.priceImpact ?? null)
+
+  const {
+    gotAmountFor,
+    gotResult: gotAmountsResult,
+    gettingAmountFor,
+    touch: touchAmounts,
+  } = useSwapAmounts(
+    computed<GetAmountsProps | null>(() => {
+      const input = inputAmount.value
+      if (!input) return null
+      const { for: amountFor, wei: referenceValue } = input
+
+      const tradeVal = trade.value
+      if (!tradeVal) return null
 
       return {
-        tokenA,
-        tokenB,
+        trade: tradeVal,
         amountFor,
-        referenceValue: referenceValue,
+        referenceValue,
       }
     }),
   )
+
+  const amountsWithSlippage = computed(() =>
+    match(gotAmountsResult.value)
+      .with(P.not(P.nullish), ({ amountsResult, props }) => {
+        const adjusted = computeSlippage(amountsResult, numberToPercent(slippageTolerance.value, SLIPPAGE_PRECISION))
+        return { adjusted, props }
+      })
+      .otherwise(() => null),
+  )
+
+  const slippageDataParsed = useSlippageParsed({
+    tokens,
+    amounts: computed(() => amountsWithSlippage.value?.adjusted ?? null),
+  })
+
   watch(
     [gotAmountFor, selection.tokens],
     ([result]) => {
       if (result) {
-        const {
-          props: { amountFor },
-          amount,
-        } = result
+        const { amount, amountFor } = result
         const tokenData = selection.tokens[amountFor]
         if (tokenData) {
-          debugModule('Setting computed amount %o for %o', amount, amountFor)
-          const raw = amount.toToken(tokenData)
-          selectionInput.setEstimated(new BigNumber(raw).toFixed(5) as WeiAsToken)
+          dbg('Setting computed amount for %o: %o', amountFor, amount.asBigInt)
+          const raw = amount.decimals(tokenData)
+          setEstimated(raw.toFixed(5) as WeiAsToken)
         }
       }
     },
     { deep: true },
   )
 
-  const normalizedWeiInputs = computed<NormalizedWeiInput | null>(() => {
-    if (gotAmountFor.value) {
-      const {
-        amount,
-        props: { amountFor, referenceValue, ...addrs },
-      } = gotAmountFor.value
-      return {
-        ...buildPair((type) => ({ addr: addrs[type], input: amountFor === type ? amount : referenceValue })),
-        amountFor,
-      }
-    }
-    return null
+  const estimatedForAfterAmountsComputation = computed<null | TokenType>(() => {
+    return gotAmountFor.value?.amountFor ?? null
   })
 
-  const rates = useRates(
+  const finalRates = useRates(
     computed(() => {
-      const wei = normalizedWeiInputs.value
-      if (!wei) return null
-      return buildPair((type) => wei[type].input)
+      const amounts = gotAmountsResult.value?.amountsResult
+      if (!amounts) return null
+      return { tokenA: amounts.amountIn, tokenB: amounts.amountOut }
     }),
   )
 
-  const swapValidation = useSwapValidation({
-    tokenA: computed(() => {
-      const balance = selection.balance.tokenA as Wei | null
-      const token = selection.tokens.tokenA
-      const input = normalizedWeiInputs.value?.tokenA?.input
+  const feeArray = computed((): null | FeeItem[] =>
+    match(gotAmountsResult.value)
+      .with(
+        {
+          amountsResult: { amounts: P.select('amounts') },
+          props: { trade: { route: { path: P.select('path') } } },
+        },
+        ({ amounts, path }) =>
+          computeFeesByAmounts({
+            amounts,
+            path,
+            commission: POOL_COMMISSION,
+          }),
+      )
+      .otherwise(() => null),
+  )
 
-      return balance && token && input ? { ...token, balance, input } : null
-    }),
-    tokenB: computed(() => selection.tokens.tokenB),
-    pairAddr: useSimplifiedResult(pairAddrResult),
+  // #endregion
+
+  // #region Action
+
+  const propsForSwap = computed<null | SwapPropsLocal>(() =>
+    match(amountsWithSlippage.value)
+      .with(
+        {
+          adjusted: P.select('amounts'),
+          props: { trade: P.select('trade') },
+        },
+        ({ amounts, trade }) => ({
+          trade,
+          amounts,
+          expertMode: expertMode.value,
+        }),
+      )
+      .otherwise(() => null),
+  )
+
+  const {
+    prepare,
+    prepareState,
+    swapState,
+    swapFee,
+    swap,
+    clear: clearSwap,
+  } = useSwap(propsForSwap, {
+    onSuccess: () => {
+      tokensStore.touchUserBalance()
+    },
+  })
+
+  // #endregion
+
+  // #region validation
+
+  const swapValidation = useSwapValidation({
+    selected: reactive(buildPair((type) => computed(() => !!selection.addrs[type]))),
+    amounts: selection.weiFromTokens,
+    tokenABalance: computed(() => selection.balance.tokenA as Wei | null),
+    trade: computed(() => tradeResult.value?.kind ?? null),
+    wallet: computed(() => (dexStore.isWalletConnected ? 'connected' : 'anonymous')),
   })
 
   const isValid = computed(() => swapValidation.value.kind === 'ok')
-  const validationMessage = computed(() => (swapValidation.value.kind === 'err' ? swapValidation.value.message : null))
+  const isValidationPending = computed(() => swapValidation.value.kind === 'pending')
+  const validationError = computed(() => (swapValidation.value.kind === 'err' ? swapValidation.value.err : null))
 
-  const { prepare, prepareState, swapState, swapFee, swap, clear: clearSwap } = useSwap(normalizedWeiInputs)
+  // #endregion
 
-  function setToken(type: TokenType, addr: Address | null) {
-    selection.addrs[type] = addr
+  // #region etc
+
+  const isRefreshing = logicOr(
+    toRef(tokensStore, 'isBalancePending'),
+    toRef(tokensStore, 'isDerivedUSDPending'),
+    computed(() => !!gettingAmountFor.value),
+  )
+
+  const refresh = () => {
+    tokensStore.touchUserBalance()
+    tokensStore.touchDerivedUsd()
+    touchAmounts()
   }
 
-  function setBothTokens(pair: TokensPair<Address>) {
-    selection.setAddrs(pair)
-    selection.input.value = null
-  }
-
-  function setTokenValue(type: TokenType, value: WeiAsToken) {
-    selectionInput.set(type, value)
-  }
+  // #endregion
 
   return {
-    inputRates,
-    rates,
+    tokenValues: readonly(tokenValues),
+    finalRates,
     addrs: addrsReadonly,
-    normalizedWeiInputs,
     tokens,
+    trade,
     symbols,
-    formattedPoolShare,
+    priceImpact,
 
     isValid,
-    validationMessage,
+    isValidationPending,
+    validationError,
 
-    swap,
     swapState,
     prepareState,
-    prepare,
     swapFee,
     gettingAmountFor,
     gotAmountFor,
-    clearSwap,
+    gotAmountsResult,
+    estimatedFor: estimatedForAfterAmountsComputation,
+    slippageDataParsed,
+    feeArray,
 
-    setToken,
-    setTokenValue,
+    prepare,
+    swap,
+    clearSwap,
+    setTokenAddress,
+    setToken: setMainToken,
     setBothTokens,
     resetInput,
+    swapTokensWithEachOther,
+
+    slippageTolerance,
+    multihops,
+    expertMode,
+
+    isRefreshing,
+    refresh,
   }
 })
 
