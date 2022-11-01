@@ -29,9 +29,8 @@ jobs:
       - name: Lint
         run: pnpm run lint
         
-        # FIXED VERSION OF CYPRESS FOR TEST
       - name: Test
-        run: npm install -g --force cypress@10.9.0; cypress install --force; pnpm test
+        run: pnpm test
 
   build:
     runs-on: ubuntu-latest
