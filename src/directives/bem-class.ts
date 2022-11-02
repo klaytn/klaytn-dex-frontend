@@ -1,8 +1,10 @@
-import { type ComponentInternalInstance } from 'vue'
+import { match, P } from 'ts-pattern'
 
 type Element = string
-type Modifiers = Record<string, any>
-type Props = Element | [Element, Modifiers?] | Modifiers | undefined
+type Modifiers = Record<string, string | boolean>
+type Props = Element | Modifiers | [Element, Modifiers?] | undefined
+
+const isModifiers = (x: any): x is Modifiers => typeof x === 'object'
 
 function toKebabCase(value: string) {
   return value
@@ -21,30 +23,43 @@ function getBlockName() {
   return block
 }
 
-export function getBemClasses(props: Props, blockParam?: string): Set<string> {
+function getBemClasses(props: Props, blockParam?: string): Set<string> {
   const block = blockParam ? blockParam : getBlockName()
 
-  if (isRef(props) || isRef(props?.[0]) || isRef(props?.[1]))
-    throw new Error('Value of bem class directive must not contain refs')
-  if (typeof props !== 'string' && !Array.isArray(props) && props !== undefined && typeof props !== 'object')
-    throw new Error('Value of bem class directive must be string, array or object')
+  interface MatchPropsResult {
+    element?: string
+    modifiers?: Modifiers
+  }
+
+  const result: MatchPropsResult | null = match(props)
+    .with(P.nullish, () => null)
+    .with(P.when(isRef), [P.when(isRef), P.optional(P.when(isRef))], () => {
+      throw new Error('Value of bem class directive must not contain refs')
+    })
+    .with(P.string, (element) => ({ element }))
+    .with(P.when(isModifiers), (modifiers) => ({ modifiers }))
+    .with([P.string, P.optional(P.when(isModifiers))], ([element, modifiers]) => ({ element, modifiers }))
+    .otherwise(() => {
+      throw new Error('Value of bem class directive must be string, array or object')
+    })
+
   let classList = [block]
-  if (props) {
-    if (typeof props === 'string' || Array.isArray(props)) {
-      const element = typeof props === 'string' ? props : props[0]
-      if (element) classList = [`${block}__${element}`]
-    }
-    const modifiers = props[1] || props
-    if (typeof modifiers === 'object') {
-      Object.entries(modifiers).forEach(([key, value]) => {
-        if (typeof value === 'boolean') {
-          if (value) classList.push(`${classList[0]}--${toKebabCase(key)}`)
-        } else {
-          classList.push(`${classList[0]}--${toKebabCase(key)}--${value}`)
-        }
-      })
+
+  if (result) {
+    if (result.element) classList.push(`${block}__${result.element}`)
+
+    if (result.modifiers) {
+      for (const [key, value] of Object.entries(result.modifiers)) {
+        const newClass = match(value)
+          .with(true, () => `${classList[0]}--${toKebabCase(key)}`)
+          .with(P.string, (value) => `${classList[0]}--${toKebabCase(key)}--${value}`)
+          .otherwise(() => null)
+
+        newClass && classList.push(newClass)
+      }
     }
   }
+
   return new Set(classList)
 }
 
@@ -83,8 +98,4 @@ export function useBemClass() {
       el.bemClassList[block] = newClassList
     },
   }
-}
-
-export default {
-  useBemClass,
 }

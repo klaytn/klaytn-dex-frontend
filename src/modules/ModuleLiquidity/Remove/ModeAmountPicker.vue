@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { not } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { Ref } from 'vue'
 
 const store = useLiquidityRmStore()
 const { liquidityRelative, isPairLoaded } = storeToRefs(store)
 
-const isNotActive = not(isPairLoaded)
+const isNotActive = logicNot(isPairLoaded)
 
 const relativeTo100 = computed({
   get: () => (liquidityRelative.value ?? 0) * 100,
