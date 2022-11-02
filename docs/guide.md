@@ -170,11 +170,21 @@ You can add and remove liquidity in the `Trade`>`Liquidity` tab:
 
    ![](./img/liquidity/liquidity-add.png)
 
-3. Specify the amount of tokens to add. Once you put in a value for any of the tokens, the value for the second token will be calculated automatically:
+3. Choose the pair of tokens for which you want to add liquidity. Note that for some pairs the pool already exists and for some it doesn't.
+   
+   - **The pool already exists for the pair of tokens you've chosen**: in this case, when you specify the amount of tokens to add for any of the tokens, the value for the second token will be calculated automatically:
 
    ![](./img/liquidity/liquidity-add-choose.png)
 
    The pool commission shows which percentage you will earn from all trades on this pair (proportional to your share).
+
+   - **The pool doesn't exist for the pair of tokens you've chosen**: in this case, DEX will notify you that by adding liquidity for this pair of tokens you will be creating a new pool:
+
+     ![](./img/liquidity/add-no-pool.png)
+
+    When you specify the amount of tokens to add, you are also setting the rates for this pool:
+
+    ![](./img/liquidity/add-no-pool-values.png)
 
 4. Confirm supply.
 
