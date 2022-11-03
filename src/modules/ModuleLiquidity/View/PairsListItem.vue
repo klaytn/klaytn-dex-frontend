@@ -61,25 +61,19 @@ const formattedPoolShare = useFormattedPercent(
         <div :class="cssRowMd">
           <span>Pooled {{ pair.token0.symbol }}</span>
           <span>
-            <CurrencyFormatTruncate
-              :amount="pair.reserve0"
-            />
+            <CurrencyFormatTruncate :amount="pair.reserve0" />
           </span>
         </div>
         <div :class="cssRowMd">
           <span>Pooled {{ pair.token1.symbol }}</span>
           <span>
-            <CurrencyFormatTruncate
-              :amount="pair.reserve1"
-            />
+            <CurrencyFormatTruncate :amount="pair.reserve1" />
           </span>
         </div>
         <div :class="cssRowMd">
           <span>Your pool tokens:</span>
           <span>
-            <CurrencyFormatTruncate
-              :amount="liquidityTokenBalance"
-            />
+            <CurrencyFormatTruncate :amount="liquidityTokenBalance" />
           </span>
         </div>
         <div :class="cssRowMd">
