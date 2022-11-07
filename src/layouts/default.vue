@@ -41,7 +41,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
     {
       label: t('DefaultLayout.menu.charts'),
       kind: 'external',
-      href: import.meta.env.VITE_APP_DASHBOARDS_HREF,
+      href: import.meta.env.VITE_DASHBOARDS_HREF,
     },
   ]
 })
