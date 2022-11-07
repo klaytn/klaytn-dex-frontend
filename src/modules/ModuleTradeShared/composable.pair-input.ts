@@ -115,7 +115,7 @@ type SetTokenFn = (type: TokenType, token: WeiAsToken) => void
 
 interface EstimatedLayer {
   setMainToken: SetTokenFn
-  setEstimated: (token: WeiAsToken) => void
+  setEstimated: (token: WeiAsToken<string>) => void
   estimatedFor: Ref<null | TokenType>
   isEstimatedUpToDate: Ref<boolean>
 }
@@ -124,7 +124,7 @@ export function useEstimatedLayer({ tokenValues }: Pick<PairInputReturn, 'tokenV
   const estimatedFor = ref<null | TokenType>(null)
   const isUpToDate = ref(false)
 
-  function setMainToken(type: TokenType, token: WeiAsToken) {
+  function setMainToken(type: TokenType, token: WeiAsToken<string>) {
     if (new BigNumber(token).isZero()) {
       tokenValues.tokenA = tokenValues.tokenB = token
       estimatedFor.value = null

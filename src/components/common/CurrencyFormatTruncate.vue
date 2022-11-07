@@ -5,10 +5,8 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { CURRENCY_USD } from '@/core'
-import { MaskSymbol, formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
+import { formatCurrency, useNormalizedComponentProps } from '@/utils/composable.currency-input'
 import BigNumber from 'bignumber.js'
-import { SetRequired } from 'type-fest'
 import { PropType } from 'vue'
 import { SPopover } from '@soramitsu-ui/ui'
 
@@ -17,7 +15,10 @@ const props = defineProps({
     type: [String, Number, BigNumber] as PropType<null | string | number | BigNumber>,
     default: null,
   },
-  symbol: String,
+  symbol: {
+    type: String as PropType<string | null>,
+    default: null,
+  },
   symbolPosition: {
     type: String as PropType<'left' | 'right'>,
     default: 'right',
@@ -31,35 +32,25 @@ const props = defineProps({
     default: null,
   },
   usd: Boolean,
+  percent: Boolean,
   maxWidth: {
     type: [String, Number] as PropType<string | number>,
     default: 100,
   },
 })
 
-const resolvedSymbol = computed<null | SetRequired<MaskSymbol, 'delimiter'>>(() =>
-  props.usd
-    ? SYMBOL_USD
-    : props.symbol
-    ? { str: props.symbol, delimiter: props.symbolDelimiter, position: props.symbolPosition }
-    : null,
-)
-
-const decimalsNum = eagerComputed(() => {
-  const d = props.decimals
-  const decimals = typeof d === 'string' ? Number(d) : typeof d === 'number' ? d : undefined
-  return decimals ?? (props.usd ? CURRENCY_USD.decimals : undefined)
-})
+const { symbol: resolvedSymbol, decimals: decimalsNum, amount: resolvedAmount } = useNormalizedComponentProps(props)
 
 const maxWidthPx = computed(() => `${props.maxWidth}px`)
 
 const formattedAmountWithoutSymbol = computed(() =>
-  props.amount ? formatCurrency({ amount: props.amount, decimals: decimalsNum.value }) : null,
+  resolvedAmount.value ? formatCurrency({ amount: resolvedAmount.value, decimals: decimalsNum.value }) : null,
 )
 
 const formattedAmount = computed(
   () =>
-    props.amount && formatCurrency({ amount: props.amount, decimals: decimalsNum.value, symbol: resolvedSymbol.value }),
+    resolvedAmount.value &&
+    formatCurrency({ amount: resolvedAmount.value, decimals: decimalsNum.value, symbol: resolvedSymbol.value }),
 )
 </script>
 

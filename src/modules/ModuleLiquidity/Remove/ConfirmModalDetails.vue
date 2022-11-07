@@ -2,9 +2,10 @@
 import { NATIVE_TOKEN_DECIMALS } from '@/core'
 import { storeToRefs } from 'pinia'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
+import { POOL_SHARE_PERCENT_FORMAT_DECIMALS } from '../const'
 
 const store = useLiquidityRmStore()
-const { formattedPoolShare, rates, selectedTokensSymbols: symbols, liquidity, fee } = storeToRefs(store)
+const { poolShare, rates, selectedTokensSymbols: symbols, liquidity, fee } = storeToRefs(store)
 
 const feeKlay = computed(() => fee.value?.decimals({ decimals: NATIVE_TOKEN_DECIMALS }) ?? null)
 const liquidityKlay = computed(() => liquidity.value?.decimals({ decimals: NATIVE_TOKEN_DECIMALS }) ?? null)
@@ -25,9 +26,16 @@ const liquidityKlay = computed(() => liquidity.value?.decimals({ decimals: NATIV
         </span>
       </div>
 
-      <div :class="cssRows.rowSm">
-        <span>Share of pool</span>
-        <span>{{ formattedPoolShare }}</span>
+      <div
+        v-if="poolShare"
+        :class="cssRows.rowSm"
+      >
+        <span>Pool share</span>
+        <CurrencyFormatTruncate
+          :amount="poolShare.quotient"
+          percent
+          :decimals="POOL_SHARE_PERCENT_FORMAT_DECIMALS"
+        />
       </div>
 
       <RowsRates

@@ -25,10 +25,7 @@ const balanceUsd = computed(() => {
   return value.isNaN() ? null : value
 })
 
-const formattedPoolShare = useFormattedPercent(
-  computed(() => new BigNumber(liquidityTokenBalance.value).dividedBy(pairReactive.totalSupply).toNumber()),
-  7,
-)
+const poolSharePercent = computed(() => new BigNumber(liquidityTokenBalance.value).dividedBy(pairReactive.totalSupply))
 </script>
 
 <template>
@@ -79,7 +76,11 @@ const formattedPoolShare = useFormattedPercent(
         <div :class="cssRowMd">
           <span>Your pool share:</span>
           <span>
-            {{ formattedPoolShare }}
+            <CurrencyFormat
+              :amount="poolSharePercent"
+              percent
+              decimals="7"
+            />
           </span>
         </div>
 

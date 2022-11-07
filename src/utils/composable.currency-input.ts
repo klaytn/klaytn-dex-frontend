@@ -1,7 +1,8 @@
+import { CURRENCY_USD } from '@/core'
 import { MaybeRef } from '@vueuse/core'
 import BigNumber from 'bignumber.js'
 import invariant from 'tiny-invariant'
-import { Except } from 'type-fest'
+import { Except, SetRequired } from 'type-fest'
 import { Ref } from 'vue'
 import { formatNumberWithCommas, trimTrailingZerosWithPeriod } from './common'
 
@@ -24,6 +25,8 @@ export interface MaskSymbol {
 }
 
 export const SYMBOL_USD = { str: '$', position: 'left', delimiter: '' } as const
+
+export const SYMBOL_PERCENT = { str: '%', position: 'right', delimiter: '' } as const
 
 export interface UseCurrencyInputReturn {
   inputRef: Ref<null | HTMLInputElement>
@@ -237,6 +240,49 @@ export function useCurrencyInput(props: UseCurrencyInputProps): UseCurrencyInput
   return {
     inputRef,
   }
+}
+
+export interface FormatComponentProps {
+  amount: null | string | number | BigNumber
+  symbol: string | null
+  symbolPosition: SymbolPosition
+  symbolDelimiter: string
+  decimals: string | number | null
+  usd?: boolean
+  percent?: boolean
+}
+
+type MaskSymbolWithDelimiter = SetRequired<MaskSymbol, 'delimiter'>
+
+/**
+ * Useful for `<CurrencyFormat>`, `<CurrencyFormatTruncate>` and more possible formatting components
+ */
+export function useNormalizedComponentProps(props: FormatComponentProps): {
+  symbol: Ref<null | MaskSymbolWithDelimiter>
+  decimals: Ref<undefined | number>
+  amount: Ref<FormatComponentProps['amount']>
+} {
+  const decimals = eagerComputed(() => {
+    const raw = props.decimals
+    const numeric = typeof raw === 'string' ? Number(raw) : typeof raw === 'number' ? raw : undefined
+    return numeric ?? (props.usd ? CURRENCY_USD.decimals : undefined)
+  })
+
+  const symbol = computed<null | MaskSymbolWithDelimiter>(() =>
+    props.usd
+      ? SYMBOL_USD
+      : props.percent
+      ? SYMBOL_PERCENT
+      : props.symbol
+      ? { str: props.symbol, delimiter: props.symbolDelimiter, position: props.symbolPosition }
+      : null,
+  )
+
+  const amount = computed(() =>
+    props.amount && props.percent ? new BigNumber(props.amount).multipliedBy(100) : props.amount,
+  )
+
+  return { decimals, symbol, amount }
 }
 
 if (import.meta.vitest) {

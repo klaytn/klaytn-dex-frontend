@@ -3,7 +3,8 @@ import { buildPair, TOKEN_TYPES } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 import { LP_TOKEN_DECIMALS } from '@/core'
 import { formatCurrency } from '@/utils/composable.currency-input'
-import cssRows from '../../ModuleTradeShared/rows.module.scss'
+import cssRows from '../../ModuleTradeShared/rows.module.scss.types'
+import { POOL_SHARE_PERCENT_FORMAT_DECIMALS } from '../const'
 
 const store = useLiquidityRmStore()
 const {
@@ -11,7 +12,7 @@ const {
   pairReserves,
   pairUserBalance,
   selectedTokensSymbols: symbols,
-  formattedPoolShare,
+  poolShare,
 } = storeToRefs(store)
 
 const formattedReserves = computed(() => {
@@ -53,17 +54,22 @@ const formattedPoolTokens = computed(() => {
         </div>
 
         <div :class="cssRows.rowMd">
-          <span>Your pool tokens:</span>
+          <span>Your pool tokens</span>
           <span>
             <ValueOrDash :value="formattedPoolTokens" />
           </span>
         </div>
 
-        <div :class="cssRows.rowMd">
-          <span>Your pool share:</span>
-          <span>
-            <ValueOrDash :value="formattedPoolShare" />
-          </span>
+        <div
+          v-if="poolShare"
+          :class="cssRows.rowMd"
+        >
+          <span>Your pool share</span>
+          <CurrencyFormatTruncate
+            :amount="poolShare.quotient"
+            percent
+            :decimals="POOL_SHARE_PERCENT_FORMAT_DECIMALS"
+          />
         </div>
       </div>
     </template>
