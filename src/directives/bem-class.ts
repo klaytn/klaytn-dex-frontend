@@ -46,7 +46,7 @@ function getBemClasses(props: Props, blockParam?: string): Set<string> {
   let classList = [block]
 
   if (result) {
-    if (result.element) classList.push(`${block}__${result.element}`)
+    if (result.element) classList = [`${block}__${result.element}`]
 
     if (result.modifiers) {
       for (const [key, value] of Object.entries(result.modifiers)) {
