@@ -4,7 +4,7 @@ type Element = string
 type Modifiers = Record<string, string | boolean>
 type Props = Element | Modifiers | [Element, Modifiers?] | undefined
 
-const isModifiers = (x: any): x is Modifiers => typeof x === 'object'
+const isModifiers = (x: any): x is Modifiers => typeof x === 'object' && !Array.isArray(x)
 
 function toKebabCase(value: string) {
   return value
