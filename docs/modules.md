@@ -112,4 +112,4 @@ While the router defines the following route:
 
 ## Environment Variables
 
-Some application parameters are defined as the environment variables via [`.env`](../.env). For more details consult the [deployment guide](./deploy.md#configuration-via-environment-variables). 
+Some application parameters are defined as the environment variables via [`.env`](../.env). Сonsult the [deployment guide](./deploy.md#configuration-via-environment-variables) for more details.
