@@ -37,6 +37,7 @@ You can use [`.env.example`](../.env.example) as an sample.
 
 For more details about env variables and modes please consult [Vite documentation](https://vitejs.dev/guide/env-and-mode.html).
 
+
 ## Build without testing
 
 1. Install dependencies:
