@@ -74,7 +74,7 @@ function useSwap(
           amounts.mode === 'exact-in'
             ? `exact-in-${amounts.amountIn}-${amounts.amountOutMin}`
             : `exact-out-${amounts.amountInMax}-${amounts.amountOut}`
-        }-${props.value.expertMode}`,
+        }-expert-mode-${props.value.expertMode}`,
         payload: { props: props.value, swap: dexStore.active.dex().swap },
       }
     )
