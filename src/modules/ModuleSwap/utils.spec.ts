@@ -63,7 +63,7 @@ describe('Compute fees', () => {
               "symbol": "DEX",
             },
             {
-              "address": "0xb9920BD871e39C6EF46169c32e7AC4C698688881",
+              "address": "0xb9920bd871e39c6ef46169c32e7ac4c698688881",
               "decimals": 18,
               "name": "Mercury",
               "symbol": "MER",
