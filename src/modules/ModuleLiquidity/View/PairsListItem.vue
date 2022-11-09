@@ -25,10 +25,7 @@ const balanceUsd = computed(() => {
   return value.isNaN() ? null : value
 })
 
-const formattedPoolShare = useFormattedPercent(
-  computed(() => new BigNumber(liquidityTokenBalance.value).dividedBy(pairReactive.totalSupply).toNumber()),
-  7,
-)
+const poolSharePercent = computed(() => new BigNumber(liquidityTokenBalance.value).dividedBy(pairReactive.totalSupply))
 </script>
 
 <template>
@@ -59,36 +56,31 @@ const formattedPoolShare = useFormattedPercent(
     <template #main>
       <div class="space-y-4 mt-2">
         <div :class="cssRowMd">
-          <span>Pooled {{ pair.token0.name }}</span>
+          <span>Pooled {{ pair.token0.symbol }}</span>
           <span>
-            <CurrencyFormat
-              :amount="pair.reserve0"
-              :decimals="5"
-            />
+            <CurrencyFormatTruncate :amount="pair.reserve0" />
           </span>
         </div>
         <div :class="cssRowMd">
-          <span>Pooled {{ pair.token1.name }}</span>
+          <span>Pooled {{ pair.token1.symbol }}</span>
           <span>
-            <CurrencyFormat
-              :amount="pair.reserve1"
-              :decimals="5"
-            />
+            <CurrencyFormatTruncate :amount="pair.reserve1" />
           </span>
         </div>
         <div :class="cssRowMd">
           <span>Your pool tokens:</span>
           <span>
-            <CurrencyFormat
-              :amount="liquidityTokenBalance"
-              :decimals="5"
-            />
+            <CurrencyFormatTruncate :amount="liquidityTokenBalance" />
           </span>
         </div>
         <div :class="cssRowMd">
           <span>Your pool share:</span>
           <span>
-            {{ formattedPoolShare }}
+            <CurrencyFormat
+              :amount="poolSharePercent"
+              percent
+              decimals="7"
+            />
           </span>
         </div>
 

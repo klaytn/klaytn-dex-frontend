@@ -1,3 +1,6 @@
+import type { Address } from '@/core'
+import { areAddressesEqual } from '@/core/utils'
+
 export const TOKEN_TYPES = ['tokenA', 'tokenB'] as const
 
 export type TokenType = typeof TOKEN_TYPES[number]
@@ -32,4 +35,14 @@ export function doForPair(fn: (type: TokenType) => void): void {
 export function nonNullPair<T>(pair: TokensPair<null | undefined | T>): null | TokensPair<T> {
   if (pair.tokenA && pair.tokenB) return pair as TokensPair<T>
   return null
+}
+
+export type Pair01<T> = Record<`token${0 | 1}`, T>
+
+// export function mapPairTo01<T>(pair: TokensPair<T>, token0: Address, tokenA: Address): Pair01<T> {}
+
+export function map01ToPair<T>(pair: Pair01<T>, token0: Address, tokenA: Address): TokensPair<T> {
+  const ab = [pair.token0, pair.token1] as [T, T]
+  !areAddressesEqual(token0, tokenA) && ab.reverse()
+  return { tokenA: ab[0], tokenB: ab[1] }
 }

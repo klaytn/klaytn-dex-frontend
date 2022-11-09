@@ -3,7 +3,7 @@ import type { Address, Token, CurrencySymbol } from '../types'
 import { Wei } from '../entities'
 import CommonContracts from './CommonContracts'
 import invariant from 'tiny-invariant'
-import type { TokensPair, TokenType } from '@/utils/pair'
+import { map01ToPair, TokensPair, TokenType } from '@/utils/pair'
 import { AgentPure, Agent } from './agent'
 import { IsomorphicContract } from '../isomorphic-contract'
 import MulticallPure, { CallStruct } from './MulticallPure'
@@ -66,10 +66,7 @@ export class TokensPure {
       contract.token0([]).call(),
     ])
 
-    const [tokenA, tokenB] =
-      token0.toLowerCase() === tokens.tokenA.toLowerCase() ? [reserve0, reserve1] : [reserve1, reserve0]
-
-    return { tokenA, tokenB }
+    return map01ToPair({ token0: reserve0, token1: reserve1 }, token0 as Address, tokens.tokenA)
   }
 
   /**

@@ -159,8 +159,6 @@
     "useFileSystemAccess": true,
     "useFocus": true,
     "useFocusWithin": true,
-    "useFormattedPercent": true,
-    "useFormattedToken": true,
     "useFps": true,
     "useFullscreen": true,
     "useGamepad": true,

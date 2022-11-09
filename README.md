@@ -24,6 +24,10 @@ pnpm lint
 
 ## CI/CD
 
+First of all, create `.env.local` file. Use `.env.example` as a reference.
+
+Commands:
+
 ```bash
 pnpm i
 

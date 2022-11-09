@@ -2,7 +2,6 @@
 import { Pool } from './types'
 import { PAGE_SIZE } from './const'
 import { Address } from '@/core'
-import { or } from '@vueuse/core'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { useFetchFarmingRewards } from './composable.fetch-rewards'
 import { useFarmingQuery } from './query.farming'
@@ -83,7 +82,7 @@ const poolsFiltered = useFilteredPools(poolsMapped, { stakedOnly, searchQuery })
 
 const poolsSorted = useSortedPools(poolsFiltered, sorting)
 
-const isLoading = or(FarmingQuery.loading, PairsAndRewardTokenQuery.loading)
+const isLoading = logicOr(FarmingQuery.loading, PairsAndRewardTokenQuery.loading)
 
 for (const [QueryName, Query] of Object.entries({
   FarmingQuery,
