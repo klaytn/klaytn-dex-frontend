@@ -45,6 +45,7 @@ const allSelectedTokens = computed(() => nonNullSet(Object.values(addrs.value)))
           :estimated="estimatedFor === type"
           :selected="allSelectedTokens"
           :value-debounce="isValuesDebounceWelcome ? 500 : 0"
+          set-by-balance
         />
         <div
           v-if="i === 0"

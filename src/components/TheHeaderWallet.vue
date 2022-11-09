@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { formatAddress } from '@/core'
 import { SPopover } from '@soramitsu-ui/ui'
-import { not, and } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import WalletConnectButton from './WalletConnectButton.vue'
 import WalletIcon from './WalletIcon.vue'
@@ -9,7 +8,7 @@ import WalletIcon from './WalletIcon.vue'
 const store = useDexStore()
 const { account, selectedWallet, isChainCorrect, isChainLoaded, isProviderSetupPending, isEnabled } = storeToRefs(store)
 
-const wrongChain = and(isChainLoaded, not(isChainCorrect))
+const wrongChain = logicAnd(isChainLoaded, logicNot(isChainCorrect))
 
 const addressFormatted = computed(() => account.value && formatAddress(account.value))
 </script>

@@ -1,6 +1,7 @@
 import Percent from './entities/Percent'
 import Currency from './entities/Currency'
 import type { Token, Address, CurrencySymbol, Network } from './types'
+import { areAddressesEqual } from './utils'
 
 export const MAX_UINT256 = 2n ** 256n - 1n
 
@@ -144,7 +145,7 @@ export const WHITELIST_TOKENS = Object.freeze([
 ] as Token[])
 
 export function isNativeToken(address: Address): boolean {
-  return address.toLowerCase() === NATIVE_TOKEN.toLowerCase()
+  return areAddressesEqual(address, NATIVE_TOKEN)
 }
 
 export function sortKlayPair(tokenA: Token, tokenB: Token) {

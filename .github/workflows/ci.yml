@@ -3,14 +3,14 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - dev
 
   pull_request:
     branches:
-      - main
+      - dev
 
 jobs:
-  lint:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -22,75 +22,37 @@ jobs:
 
       - name: Install
         run: pnpm install
+
+      - name: Format
+        run: pnpm format:check
 
       - name: Lint
         run: pnpm run lint
 
-  typecheck:
+      - name: Test
+        run: pnpm test
+
+  build:
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-      - uses: actions/setup-node@v3
+      - uses: docker/setup-buildx-action@v2
+      - uses: docker/login-action@v2
         with:
-          node-version: 16.x
-          cache: pnpm
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Install
-        run: pnpm install
-
-      - name: Typecheck
-        run: pnpm run typecheck
-
-  test:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        node-version: [14.x, 16.x]
-        os: [ubuntu-latest]
-      fail-fast: false
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: docker/build-push-action@v3
         with:
-          node-version: ${{ matrix.node-version }}
-          registry-url: https://registry.npmjs.org/
-          cache: pnpm
-
-      - run: pnpm install
-      - run: pnpm run test:unit
-
-  test-e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache
-          key: cypress-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - uses: pnpm/action-setup@v2
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          registry-url: https://registry.npmjs.org/
-          cache: pnpm
-
-      - run: pnpm install
-
-      - name: Cypress PNPM Patch
-        run: cp pnpm-lock.yaml package-lock.json
-
-      - name: Cypress
-        uses: cypress-io/github-action@v2
-        with:
-          install-command: echo
-          build: pnpm run build
-          start: npx vite --port 3333
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/klaytn-dex-frontend:dev
+          build-args: |
+              VITE_APP_GRAPHQL_URI_EXCHANGE=${{ secrets.VITE_APP_GRAPHQL_URI_EXCHANGE }}
+              VITE_APP_GRAPHQL_URI_FARMING=${{ secrets.VITE_APP_GRAPHQL_URI_FARMING }}
+              VITE_APP_GRAPHQL_URI_STAKING=${{ secrets.VITE_APP_GRAPHQL_URI_STAKING }}
+              VITE_APP_GRAPHQL_URI_SNAPSHOT=${{ secrets.VITE_APP_GRAPHQL_URI_SNAPSHOT }}
+              VITE_APP_SNAPSHOT_SPACE=${{ secrets.VITE_APP_SNAPSHOT_SPACE }}
+              VITE_APP_DASHBOARDS_HREF=${{ secrets.VITE_APP_DASHBOARDS_HREF }}

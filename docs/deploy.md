@@ -29,6 +29,15 @@ To build Klaytn-DEX, you need Node.js v16 and PNPM v7 installed:
   npm i -g pnpm
   ```
 
+## Configuration via Environment Variables
+
+Some application parameters are defined as the environment variables. The expected types for these variables are defined in [`src/env.d.ts`](../src/env.d.ts). The values could be specified in `.env`, `.env.local`, other `.env*` files or directly in [user environment](https://nodejs.org/api/process.html#processenv).
+
+You can use [`.env.example`](../.env.example) as an sample.
+
+For more details about env variables and modes please consult [Vite documentation](https://vitejs.dev/guide/env-and-mode.html).
+
+
 ## Build without testing
 
 1. Install dependencies:

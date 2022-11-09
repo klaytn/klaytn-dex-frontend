@@ -1,7 +1,7 @@
 import type { EnvGit } from '@/types'
 
-if (import.meta.env.VITE_APP_GIT) {
-  const { branch, revision, date }: EnvGit = JSON.parse(import.meta.env.VITE_APP_GIT)
+if (import.meta.env.VITE_GIT) {
+  const { branch, revision, date }: EnvGit = JSON.parse(import.meta.env.VITE_GIT)
 
   const BRAND_COLOR = '#2177F8'
 

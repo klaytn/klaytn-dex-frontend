@@ -1,5 +1,6 @@
 import { Address, Token, Wei } from '@/core'
 import {
+  computeEstimatedPoolShare,
   useNullablePairBalanceComponents,
   usePairAddress,
   usePairBalance,
@@ -12,6 +13,7 @@ import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
+import { match, P } from 'ts-pattern'
 
 function usePrepareSupply(props: {
   tokens: Ref<null | TokensPair<Address>>
@@ -54,7 +56,7 @@ function usePrepareSupply(props: {
         dex.liquidity.prepareRmLiquidity({
           tokens,
           pair,
-          lpTokenValue,
+          liquidity: lpTokenValue,
           // we want to burn it all for sure
           minAmounts: amounts,
         }),
@@ -135,7 +137,7 @@ function useRemoveAmounts(
           const { amounts } = await dex.liquidity.computeRmLiquidityAmounts({
             tokens,
             pair,
-            lpTokenValue,
+            liquidity: lpTokenValue,
           })
           return amounts
         },
@@ -205,13 +207,9 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     touch: touchPairBalance,
   } = usePairBalance(selectedFiltered, doesPairExist)
 
-  const {
-    totalSupply: pairTotalSupply,
-    userBalance: pairUserBalance,
-    poolShare: pairPoolShare,
-  } = toRefs(useNullablePairBalanceComponents(pairBalanceResult))
-
-  const formattedPoolShare = useFormattedPercent(pairPoolShare, 7)
+  const { totalSupply: pairTotalSupply, userBalance: pairUserBalance } = toRefs(
+    useNullablePairBalanceComponents(pairBalanceResult),
+  )
 
   const {
     result: pairReserves,
@@ -256,6 +254,14 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   // #endregion
 
   // #region Amounts
+
+  const estimatedPoolShare = computed(() =>
+    match(pairBalanceResult.value)
+      .with(P.not(P.nullish), (balance) =>
+        computeEstimatedPoolShare(balance, new Wei(-(liquidity.value?.asBigInt ?? 0n))),
+      )
+      .otherwise(() => null),
+  )
 
   const {
     amounts,
@@ -331,8 +337,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
     pairUserBalance,
     pairTotalSupply,
-    pairPoolShare,
-    formattedPoolShare,
+    poolShare: estimatedPoolShare,
     pairReserves,
     isReservesPending,
     isPairBalancePending,

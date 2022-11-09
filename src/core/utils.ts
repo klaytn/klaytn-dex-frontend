@@ -43,3 +43,9 @@ export function parseBigIntIsh(value: BigNumberIsh): bigint {
   invariant(bigNumberValue.isInteger, 'value in not an integer')
   return BigInt(bigNumberValue.toFixed(0))
 }
+
+export function areAddressesEqual(left: Address, right: Address): boolean {
+  // TODO could be optimized with char-by-char case insensitive comparison
+  // taking into account that the whole set of characters is `[A-Fa-f0-9]`
+  return left.toLowerCase() === right.toLowerCase()
+}

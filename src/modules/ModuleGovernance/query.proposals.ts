@@ -30,7 +30,7 @@ export function useProposalsQuery(props: Ref<{ onlyActive: boolean; skip: number
           first: ${PAGE_SIZE},
           skip: $skip,
           where: {
-            space_in: ["${import.meta.env.VITE_APP_SNAPSHOT_SPACE}"],
+            space_in: ["${import.meta.env.VITE_SNAPSHOT_SPACE}"],
             title_contains: $query,
             state: $state
           },
