@@ -31,22 +31,23 @@ To build Klaytn-DEX, you need Node.js v16 and PNPM v7 installed:
 
 ## Configuration
 
-App configuration is split into 2 parts: main configuration file and environment variables.
+App configuration is split into two parts: main configuration file and environment variables.
 
 ### Main configuration file
 
-Most of application configuration should be defined in `dex-config.json` file. **This configuration is mandatory.** Also, its contents is strictly validated before being passed into application.
+Most of application configuration should be defined in `dex-config.json` file. **This configuration is mandatory.** Its content is strictly validated before being passed into application.
 
-The main configuration includes:
+The main configuration in `dex-config.json` includes:
 
-- tokens whitelist + native and dex token
+- native and DEX tokens
+- whitelisted tokens
 - network configuration
 - addresses of smart contracts deployed in the network
 - URIs of subgraphs
 
-`dex-config.example.json` contains a sample configuration, also used by Soramitsu in dev environment.
+The `dex-config.example.json` file contains a sample configuration used by Soramitsu in dev environment.
 
-For more details of configuration schema please consult [`etc/vite-plugin-config.ts`](../etc/vite-plugin-config.ts).
+For more details of configuration schema, consult [`etc/vite-plugin-config.ts`](../etc/vite-plugin-config.ts).
 
 ### Configuration via Environment Variables
 
