@@ -78,7 +78,6 @@ const SCHEMA_CONFIG_RAW: JSONSchemaType<ConfigRaw> = {
       },
       required: ['exchange', 'farming', 'staking', 'snapshot'],
     },
-    // FIXME should it be a URI?
     snapshotSpace: { type: 'string' },
     uriDashboards: SCHEMA_URI,
   },
