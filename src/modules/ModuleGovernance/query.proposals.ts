@@ -5,6 +5,7 @@ import { Address } from '@/core'
 import { PAGE_SIZE } from './const'
 import { ProposalState } from './types'
 import { ApolloClientId } from '@/types'
+import CONFIG from '~config'
 
 export interface ProposalsQueryResult {
   proposals: {
@@ -30,7 +31,7 @@ export function useProposalsQuery(props: Ref<{ onlyActive: boolean; skip: number
           first: ${PAGE_SIZE},
           skip: $skip,
           where: {
-            space_in: ["${import.meta.env.VITE_SNAPSHOT_SPACE}"],
+            space_in: ["${CONFIG.snapshotSpace}"],
             title_contains: $query,
             state: $state
           },

@@ -1,6 +1,6 @@
 <script setup lang="ts" name="ModuleGovernanceProposalCallToVote">
-import { Status } from '@soramitsu-ui/ui'
 import { Proposal } from '../types'
+import CONFIG from '~config'
 
 const { t } = useI18n()
 const vBem = useBemClass()
@@ -11,7 +11,7 @@ const props = defineProps<{
 const { proposal } = toRefs(props)
 
 const href = computed(() => {
-  return `https://snapshot.org/#/${import.meta.env.VITE_APP_SNAPSHOT_SPACE}/proposal/${proposal.value.id}`
+  return `https://snapshot.org/#/${CONFIG.snapshotSpace}/proposal/${proposal.value.id}`
 })
 </script>
 
