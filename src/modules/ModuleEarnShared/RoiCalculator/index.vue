@@ -14,6 +14,8 @@ import { trimTrailingZerosWithPeriod } from '@/utils/common'
 
 const { t } = useI18n()
 
+const dexStore = useDexStore()
+
 const props = defineProps<{
   show: boolean
   type: RoiType
@@ -262,6 +264,7 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
                 ${{ amount }}
               </KlayButton>
               <KlayButton
+                v-if="dexStore.isWalletConnected"
                 size="sm"
                 @click="setStakeValueWithBalance()"
               >
