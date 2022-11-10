@@ -23,10 +23,11 @@ ENV VITE_ROUTER_HASH_MODE=$VITE_ROUTER_HASH_MODE
 
 WORKDIR /app
 
-COPY . .
+COPY package.json package.json
 
-RUN npm install -g pnpm
-RUN pnpm install
+RUN npm install -g pnpm && npm install
+
+COPY . .
 
 RUN VITE_GRAPHQL_URI_EXCHANGE=$VITE_GRAPHQL_URI_EXCHANGE \
     VITE_GRAPHQL_URI_FARMING=$VITE_GRAPHQL_URI_FARMING \
