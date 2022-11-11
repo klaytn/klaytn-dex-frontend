@@ -28,4 +28,4 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}:latest,${{ env.IMAGE_NAME }}:${{ github.ref_name }}
           build-args: |
               VITE_ROUTER_HASH_MODE=${{ secrets.VITE_ROUTER_HASH_MODE }}
-              VITE_DEX_CONFIG="${{ secrets.VITE_DEX_CONFIG }}"
+              VITE_DEX_CONFIG='${{ secrets.VITE_DEX_CONFIG }}'
