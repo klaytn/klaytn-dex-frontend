@@ -21,6 +21,7 @@ const props = defineProps<{
   lpApr?: BigNumber
   staked: WeiAsToken<BigNumber>
   balance: WeiAsToken<BigNumber>
+  showBalanceButton: boolean
   /**
    * USD
    */
@@ -262,6 +263,8 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
                 ${{ amount }}
               </KlayButton>
               <KlayButton
+                v-if="showBalanceButton"
+                :disabled="!balance"
                 size="sm"
                 @click="setStakeValueWithBalance()"
               >

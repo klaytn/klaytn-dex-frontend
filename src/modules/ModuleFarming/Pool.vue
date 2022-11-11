@@ -338,6 +338,7 @@ function openRoiCalculator() {
     v-model:show="showRoiCalculator"
     :type="roiType"
     :balance="balance"
+    :show-balance-button="dexStore.isWalletConnected"
     :staked="roiPool.staked"
     :apr="roiPool.annualPercentageRate"
     :lp-apr="roiPool.lpAnnualPercentageRate"
