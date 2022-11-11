@@ -70,13 +70,11 @@ function useSwap(
 
     return (
       dexStore.active.kind === 'named' && {
-        key:
-          // NOTE: we do not put `expertMode` here because it actually doesn't produce any significant effect
-          `${input}-${output}-${
-            amounts.mode === 'exact-in'
-              ? `exact-in-${amounts.amountIn}-${amounts.amountOutMin}`
-              : `exact-out-${amounts.amountInMax}-${amounts.amountOut}`
-          }`,
+        key: `${input}-${output}-${
+          amounts.mode === 'exact-in'
+            ? `exact-in-${amounts.amountIn}-${amounts.amountOutMin}`
+            : `exact-out-${amounts.amountInMax}-${amounts.amountOut}`
+        }-expert-mode-${props.value.expertMode}`,
         payload: { props: props.value, swap: dexStore.active.dex().swap },
       }
     )

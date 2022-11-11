@@ -14,6 +14,7 @@ import Icons from 'unplugin-icons/vite'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 import KlaytnIcons from './etc/vite-plugin-klaytn-icons'
 import AppAbi from './etc/vite-plugin-abi'
+import AppConfig from './etc/vite-plugin-config'
 
 export default defineConfig({
   resolve: {
@@ -52,6 +53,8 @@ export default defineConfig({
     KlaytnIcons(),
 
     AppAbi(),
+
+    AppConfig(),
 
     // https://github.com/antfu/unplugin-auto-import
     AutoImport({

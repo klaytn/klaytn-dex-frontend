@@ -7,4 +7,4 @@ const composed: EnvGit = {
   date: git.date().toISOString(),
 }
 
-process.env.VITE_APP_GIT = JSON.stringify(composed)
+process.env.VITE_GIT = JSON.stringify(composed)
