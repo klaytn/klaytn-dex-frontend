@@ -5,6 +5,7 @@ import { shortenStringInTheMiddle } from '@/utils/common'
 import { Proposal } from '../types'
 import { getLowerCaseChoice, getLowerCaseChoices, formatAmount } from '../utils'
 import { POSITIVE_CHOICES } from '../const'
+import CONFIG from '~config'
 
 const { t } = useI18n()
 const vBem = useBemClass()
@@ -69,7 +70,7 @@ const formattedId = computed(() => {
 })
 
 const proposalHref = computed(() => {
-  return `https://snapshot.org/#/${import.meta.env.VITE_APP_SNAPSHOT_SPACE}/proposal/${proposal.value.id}`
+  return `https://snapshot.org/#/${CONFIG.snapshotSpace}/proposal/${proposal.value.id}`
 })
 
 const formattedCreator = computed(() => {

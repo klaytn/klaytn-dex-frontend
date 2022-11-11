@@ -43,9 +43,6 @@ The `core` contains:
 - domain logic
 - classes for working with Kaikas and Metamask wallets via `caver` and `ethers` providers.
 - ABI (application binary interface) for Klaytn-DEX smart contracts and their methods
-- application configuration: hard-coded const values that have to be rewritten for each new deployment, such as whitelisted tokens, native token address, and network configuration
-
-Hard-coded const values can be updated. For example, you can add or remove tokens from the list of whitelisted tokens by changing the `WHITELIST_TOKENS` constant in `src/core/const`.
 
 ### Modules
 

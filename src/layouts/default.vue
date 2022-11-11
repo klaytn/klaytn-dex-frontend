@@ -3,6 +3,7 @@ import { type HeaderMenuItem, RouteName } from '@/types'
 import { KlayIconDexLogo } from '~klay-icons'
 import { SToastsDisplay } from '@soramitsu-ui/ui'
 import HeaderMenu from '@/components/HeaderMenu.vue'
+import CONFIG from '~config'
 
 // Good for tree-shaking
 const TheHeaderDexToken = defineAsyncComponent(() => import('@/components/TheHeaderDexToken.vue'))
@@ -41,7 +42,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
     {
       label: t('DefaultLayout.menu.charts'),
       kind: 'external',
-      href: import.meta.env.VITE_DASHBOARDS_HREF,
+      href: CONFIG.uriDashboards,
     },
   ]
 })

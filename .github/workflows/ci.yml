@@ -50,10 +50,4 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/klaytn-dex-frontend:dev
           build-args: |
-              VITE_GRAPHQL_URI_EXCHANGE=${{ secrets.VITE_GRAPHQL_URI_EXCHANGE }}
-              VITE_GRAPHQL_URI_FARMING=${{ secrets.VITE_GRAPHQL_URI_FARMING }}
-              VITE_GRAPHQL_URI_STAKING=${{ secrets.VITE_GRAPHQL_URI_STAKING }}
-              VITE_GRAPHQL_URI_SNAPSHOT=${{ secrets.VITE_GRAPHQL_URI_SNAPSHOT }}
-              VITE_SNAPSHOT_SPACE=${{ secrets.VITE_SNAPSHOT_SPACE }}
-              VITE_DASHBOARDS_HREF=${{ secrets.VITE_DASHBOARDS_HREF }}
               VITE_ROUTER_HASH_MODE=${{ secrets.VITE_ROUTER_HASH_MODE }}

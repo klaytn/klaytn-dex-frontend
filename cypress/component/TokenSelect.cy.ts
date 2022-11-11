@@ -1,6 +1,6 @@
 import TokenSelectPure from '@/components/TokenSelectPure.vue'
 import { Address, CurrencySymbol, Token, Wei } from '@/core'
-import { WHITELIST_TOKENS } from '@/core/const'
+import { TOKENS_LIST } from '../../test/util'
 import { MaybeRef } from '@vueuse/core'
 import { TOASTS_API_KEY, defineToastsApi } from '@soramitsu-ui/ui'
 import { apiKey as minimalTokensApiKey } from '@/utils/minimal-tokens-api'
@@ -21,9 +21,9 @@ describe('TokenSelectPure', () => {
       {
         components: { TokenSelectPure },
         setup() {
-          const tokens = computed(() => [...(unref(props?.tokensImported) ?? []), ...WHITELIST_TOKENS])
+          const tokens = computed(() => [...(unref(props?.tokensImported) ?? []), ...TOKENS_LIST])
 
-          const tokensWhitelist = WHITELIST_TOKENS
+          const tokensWhitelist = TOKENS_LIST
           const tokensImportedAddresses = computed(() => (unref(props?.tokensImported) ?? []).map((x) => x.address))
 
           const areImportedTokensPending = props?.areImportedTokensPending ?? ref(false)
@@ -103,7 +103,7 @@ describe('TokenSelectPure', () => {
   })
 
   it('selected token is disabled', () => {
-    const token = WHITELIST_TOKENS.at(4)!
+    const token = TOKENS_LIST.at(4)!
 
     mountFactory({ selected: new Set([token.address]) })
 
@@ -113,7 +113,7 @@ describe('TokenSelectPure', () => {
   })
 
   it('selected token with lowercase addr is disabled too', () => {
-    const token = WHITELIST_TOKENS.at(4)!
+    const token = TOKENS_LIST.at(4)!
 
     mountFactory({ selected: new Set([token.address.toLowerCase() as Address]) })
 
@@ -123,7 +123,7 @@ describe('TokenSelectPure', () => {
   })
 
   it('multiple selected tokens are disabled', () => {
-    const tokens = [WHITELIST_TOKENS.at(2)!, WHITELIST_TOKENS.at(5)!]
+    const tokens = [TOKENS_LIST.at(2)!, TOKENS_LIST.at(5)!]
 
     mountFactory({ selected: new Set(tokens.map((x) => x.address)) })
 
@@ -135,7 +135,7 @@ describe('TokenSelectPure', () => {
   })
 
   it('token, selected with `token` prop, is disabled too', () => {
-    const token = WHITELIST_TOKENS.at(2)!
+    const token = TOKENS_LIST.at(2)!
 
     mountFactory({ model: ref(token?.address) })
 
@@ -148,7 +148,7 @@ describe('TokenSelectPure', () => {
 
     openModal()
     cy.get(TESTID_SEARCH).type('i do not exist')
-    for (const token of WHITELIST_TOKENS.slice(0, 6)) {
+    for (const token of TOKENS_LIST.slice(0, 6)) {
       cy.get(TESTID_RECENT_TOKEN).contains(token.symbol).should('exist')
     }
   })
