@@ -12,7 +12,7 @@ RUN npm install -g pnpm && \
 
 COPY . .
 
-RUN echo $VITE_DEX_CONFIG > dex-config.json && \
+RUN echo $VITE_DEX_CONFIG > dex-config.json && echo dex-config.json \
             VITE_ROUTER_HASH_MODE=$VITE_ROUTER_HASH_MODE pnpm build
 
 FROM nginxinc/nginx-unprivileged:1.20
