@@ -8,6 +8,18 @@ const isOpen = ref(false)
 function open() {
   isOpen.value = true
 }
+
+const showExpertModeConfirm = ref(false)
+
+const expertMode = computed({
+  get() {
+    return swapStore.expertMode
+  },
+  set(value) {
+    if (value) showExpertModeConfirm.value = true
+    else swapStore.expertMode = false
+  },
+})
 </script>
 
 <template>
@@ -24,12 +36,14 @@ function open() {
         />
 
         <KlaySwitch
-          v-model="swapStore.expertMode"
+          v-model="expertMode"
           label="Expert mode"
         />
       </div>
     </KlayModalCard>
   </SModal>
+
+  <ModuleSwapModalExpertModeConfirm v-model:show="showExpertModeConfirm" />
 
   <slot v-bind="{ open }" />
 </template>
