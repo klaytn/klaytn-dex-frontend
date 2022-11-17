@@ -248,7 +248,7 @@ export interface FormatComponentProps {
   symbolPosition: SymbolPosition
   symbolDelimiter: string
   decimals: string | number | null
-  decimalsPopover: string | number | null
+  decimalsPopover?: string | number | null
   usd?: boolean
   percent?: boolean
 }
