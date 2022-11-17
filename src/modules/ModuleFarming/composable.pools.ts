@@ -130,11 +130,11 @@ export function useFilteredPools<T extends Pool>(
 function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): number {
   switch (sorting) {
     case Sorting.Hot:
-      return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
+      return (poolB.annualPercentageRate ?? new BigNumber(0)).comparedTo(poolA.annualPercentageRate ?? new BigNumber(0))
     case Sorting.Liquidity:
       return poolB.liquidity.comparedTo(poolA.liquidity)
     case Sorting.AnnualPercentageRate:
-      return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
+      return (poolB.annualPercentageRate ?? new BigNumber(0)).comparedTo(poolA.annualPercentageRate ?? new BigNumber(0))
     case Sorting.Multiplier:
       return poolB.multiplier.comparedTo(poolA.multiplier)
     case Sorting.Earned:
