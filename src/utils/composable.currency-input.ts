@@ -248,6 +248,7 @@ export interface FormatComponentProps {
   symbolPosition: SymbolPosition
   symbolDelimiter: string
   decimals: string | number | null
+  decimalsPopover: string | number | null
   usd?: boolean
   percent?: boolean
 }
@@ -260,12 +261,19 @@ type MaskSymbolWithDelimiter = SetRequired<MaskSymbol, 'delimiter'>
 export function useNormalizedComponentProps(props: FormatComponentProps): {
   symbol: Ref<null | MaskSymbolWithDelimiter>
   decimals: Ref<undefined | number>
+  decimalsPopover: Ref<undefined | number>
   amount: Ref<FormatComponentProps['amount']>
 } {
   const decimals = eagerComputed(() => {
     const raw = props.decimals
     const numeric = typeof raw === 'string' ? Number(raw) : typeof raw === 'number' ? raw : undefined
     return numeric ?? (props.usd ? CURRENCY_USD.decimals : undefined)
+  })
+
+  const decimalsPopover = eagerComputed(() => {
+    const raw = props.decimalsPopover
+    const numeric = typeof raw === 'string' ? Number(raw) : typeof raw === 'number' ? raw : undefined
+    return numeric ?? undefined
   })
 
   const symbol = computed<null | MaskSymbolWithDelimiter>(() =>
@@ -282,7 +290,7 @@ export function useNormalizedComponentProps(props: FormatComponentProps): {
     props.amount && props.percent ? new BigNumber(props.amount).multipliedBy(100) : props.amount,
   )
 
-  return { decimals, symbol, amount }
+  return { decimals, decimalsPopover, symbol, amount }
 }
 
 if (import.meta.vitest) {
