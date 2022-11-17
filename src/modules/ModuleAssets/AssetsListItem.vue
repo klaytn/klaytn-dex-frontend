@@ -52,7 +52,7 @@ const balanceWithDecimals = computed(() => balance.value?.decimals(props.token))
         :symbol="token.symbol"
         max-width="150"
       />
-      <span class="amount self-end max-w-30 truncate">
+      <span class="amount self-end max-w-30">
         <CurrencyFormatTruncate
           :amount="balanceInUsd"
           usd
