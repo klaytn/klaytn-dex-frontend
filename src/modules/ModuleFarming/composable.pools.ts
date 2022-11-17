@@ -85,11 +85,13 @@ export function useMappedPools(props: {
     pools = pools.map((pool) => {
       const farmingRewardRate = new BigNumber(farmingFromWei(new Wei(farming.rewardRate)))
       const poolRewardRate = farmingRewardRate.times(pool.multiplier.div(sumOfMultipliers))
-      const totalRewardPricePerYear = poolRewardRate.times(BLOCKS_PER_YEAR).times(rewardToken.derivedUSD)
+      const totalRewardPricePerYear = rewardToken
+        ? poolRewardRate.times(BLOCKS_PER_YEAR).times(rewardToken.derivedUSD)
+        : null
       // If there is no liquidity, we assume what APR will be if liquidity is equal to 1
-      const annualPercentageRate = totalRewardPricePerYear
-        .div(pool.liquidity.isZero() ? 1 : pool.liquidity)
-        .times(100) as PercentageRate
+      const annualPercentageRate =
+        (totalRewardPricePerYear?.div(pool.liquidity.isZero() ? 1 : pool.liquidity).times(100) as PercentageRate) ??
+        null
       return {
         ...pool,
         annualPercentageRate,
