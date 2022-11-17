@@ -56,9 +56,9 @@ const menu = computed<HeaderMenuItem[]>(() => {
     <main class="layout">
       <header class="relative">
         <div class="col">
-          <a href="#">
+          <router-link :to="{ name: RouteName.Swap }">
             <KlayIconDexLogo />
-          </a>
+          </router-link>
         </div>
         <div class="col col-center">
           <HeaderMenu :items="menu" />
