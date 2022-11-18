@@ -54,4 +54,3 @@ const filtered = computed(() =>
   height: 40px
   color: $gray3
 </style>
-
