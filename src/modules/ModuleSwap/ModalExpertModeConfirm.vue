@@ -23,7 +23,7 @@ const showModel = computed({
 const showConfirm = ref(false)
 const confirmText = ref('')
 
-function turnOnExpertMode () {
+function turnOnExpertMode() {
   showConfirm.value = true
 }
 
@@ -31,7 +31,7 @@ const confirmDisabled = computedEager(() => {
   return confirmText.value.toLowerCase() !== 'confirm'
 })
 
-function confirm () {
+function confirm() {
   emit('close')
   swapStore.expertMode = true
   showConfirm.value = false
@@ -61,7 +61,8 @@ function confirm () {
       </template>
       <template v-else>
         <span class="lh-4">
-          Expert mode turns off the confirm transaction prompt and allows high slippage trades that often result in bad rates and lost funds.
+          Expert mode turns off the confirm transaction prompt and allows high slippage trades that often result in bad
+          rates and lost funds.
           <br>
           <br>
           <b>ONLY USE THIS MODE IF YOU KNOW WHAT YOU ARE DOING.</b>
