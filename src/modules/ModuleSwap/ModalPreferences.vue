@@ -12,9 +12,7 @@ function open() {
 const showExpertModeConfirm = ref(false)
 
 const expertMode = computed({
-  get() {
-    return swapStore.expertMode
-  },
+  get: () => swapStore.expertMode || showExpertModeConfirm.value,
   set(value) {
     if (value) showExpertModeConfirm.value = true
     else swapStore.expertMode = false
@@ -31,11 +29,13 @@ const expertMode = computed({
 
       <div class="space-y-4">
         <KlaySwitch
+          id="multi-hops"
           v-model="swapStore.multihops"
           label="Enable multi-hops"
         />
 
         <KlaySwitch
+          id="expert-mode"
           v-model="expertMode"
           label="Expert mode"
         />
@@ -43,7 +43,10 @@ const expertMode = computed({
     </KlayModalCard>
   </SModal>
 
-  <ModuleSwapModalExpertModeConfirm v-model:show="showExpertModeConfirm" />
+  <ModuleSwapModalExpertModeConfirm
+    :show="showExpertModeConfirm"
+    @close="showExpertModeConfirm = false"
+  />
 
   <slot v-bind="{ open }" />
 </template>
