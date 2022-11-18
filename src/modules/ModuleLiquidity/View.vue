@@ -11,7 +11,6 @@ const { loading: isLoading, result, refetch } = useLiquidityPairsQuery()
 if (result.value && !isLoading.value) refetch()
 
 const isLoaded = computed(() => !!result.value)
-const isUserEmpty = computed(() => result.value && !result.value.user)
 
 const tradeStore = useTradeStore()
 
@@ -58,15 +57,8 @@ function goToFarms({ pair: { name: pairName } }: LiquidityPairsPosition) {
       Your liquidity
     </h3>
 
-    <div
-      v-if="isUserEmpty"
-      class="px-4"
-    >
-      Empty
-    </div>
-
     <ModuleLiquidityViewPairsList
-      v-if="isLoaded && !isUserEmpty"
+      v-if="isLoaded"
       :positions="result!.user?.liquidityPositions"
       @click:add="goToAddLiquidity($event)"
       @click:remove="goToRemoveLiquidity($event)"
