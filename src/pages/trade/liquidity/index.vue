@@ -1,3 +1,11 @@
+<script lang="ts">
+export default {
+  beforeRouteEnter: function (to, from) {
+    to.meta.quickPoll = from.name === RouteName.LiquidityAdd || from.name === RouteName.LiquidityRemove
+  }
+}
+</script>
+
 <script lang="ts" setup>
 import { RouteName } from '@/types'
 </script>
