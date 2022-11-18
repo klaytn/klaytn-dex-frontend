@@ -34,7 +34,8 @@
     "KDEX",
     "dompurify",
     "kakuyaku",
-    "KDEX"
+    "KDEX",
+    "multihops"
   ],
   "i18n-ally.sourceLanguage": "en",
   "i18n-ally.keystyle": "nested",
