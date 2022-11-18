@@ -104,7 +104,7 @@ describe('RoiCalculator', () => {
     mountFactory({ stakeTokenPrice: new BigNumber('6.21392439956') })
 
     const USD = '$10'
-    const USD_RECEIVE = '$1.04'
+    const USD_RECEIVE = '$1.035'
     const TOKEN = '1.609288970543009366 VEN-ARS'
     const TOKEN_RECEIVE = '0.166591376507986927 DEX'
 
