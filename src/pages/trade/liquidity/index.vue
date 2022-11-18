@@ -2,7 +2,7 @@
 export default {
   beforeRouteEnter: function (to, from) {
     to.meta.quickPoll = from.name === RouteName.LiquidityAdd || from.name === RouteName.LiquidityRemove
-  }
+  },
 }
 </script>
 
