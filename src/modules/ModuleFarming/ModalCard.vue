@@ -30,6 +30,8 @@ const stakeToken = computed(() => ({
   decimals: LP_TOKEN_DECIMALS,
 }))
 
+const equationStaked = ref<BigNumber | null>(null)
+
 const label = computed(() => {
   const { operation, staked } = props
   if (operation === ModalOperation.Stake) {
@@ -74,6 +76,7 @@ const { state: operationState, run: confirm } = useTask(async () => {
   const dex = dexStore.getNamedDexAnyway()
   const { operation, poolId } = props
 
+  equationStaked.value = props.staked
   const amount = inputAmount.value
   const amountWei = farmingToWei(amount)
 
@@ -135,7 +138,7 @@ const loading = toRef(operationState, 'pending')
       <StakeUserLimit
         :operation="operation"
         :stake-amount="inputAmount"
-        :staked="staked"
+        :staked="equationStaked || staked"
         :stake-token="stakeToken"
       />
 
