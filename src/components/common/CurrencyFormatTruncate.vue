@@ -31,6 +31,10 @@ const props = defineProps({
     type: [String, Number] as PropType<string | number | null>,
     default: null,
   },
+  decimalsPopover: {
+    type: [String, Number] as PropType<string | number | null>,
+    default: null,
+  },
   usd: Boolean,
   percent: Boolean,
   maxWidth: {
@@ -39,18 +43,27 @@ const props = defineProps({
   },
 })
 
-const { symbol: resolvedSymbol, decimals: decimalsNum, amount: resolvedAmount } = useNormalizedComponentProps(props)
+const {
+  symbol: resolvedSymbol,
+  decimals: resolvedDecimals,
+  decimalsPopover: resolvedDecimalsPopover,
+  amount: resolvedAmount,
+} = useNormalizedComponentProps(props)
 
 const maxWidthPx = computed(() => `${props.maxWidth}px`)
 
 const formattedAmountWithoutSymbol = computed(() =>
-  resolvedAmount.value ? formatCurrency({ amount: resolvedAmount.value, decimals: decimalsNum.value }) : null,
+  resolvedAmount.value ? formatCurrency({ amount: resolvedAmount.value, decimals: resolvedDecimals.value }) : null,
 )
 
 const formattedAmount = computed(
   () =>
     resolvedAmount.value &&
-    formatCurrency({ amount: resolvedAmount.value, decimals: decimalsNum.value, symbol: resolvedSymbol.value }),
+    formatCurrency({
+      amount: resolvedAmount.value,
+      decimals: resolvedDecimalsPopover.value,
+      symbol: resolvedSymbol.value,
+    }),
 )
 </script>
 

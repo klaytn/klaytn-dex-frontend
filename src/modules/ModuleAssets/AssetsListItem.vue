@@ -38,10 +38,9 @@ const balanceWithDecimals = computed(() => balance.value?.decimals(props.token))
 
     <div class="two-line flex-1">
       <span> {{ token.symbol }} </span>
-      <span class="max-w-20 truncate">
-        <CurrencyFormat
+      <span class="amount">
+        <CurrencyFormatTruncate
           :amount="derivedUsd"
-          decimals="2"
           usd
         />
       </span>
@@ -53,11 +52,9 @@ const balanceWithDecimals = computed(() => balance.value?.decimals(props.token))
         :symbol="token.symbol"
         max-width="150"
       />
-
-      <span class="self-end max-w-30 truncate">
+      <span class="amount self-end max-w-30">
         <CurrencyFormatTruncate
           :amount="balanceInUsd"
-          decimals="2"
           usd
         />
       </span>
@@ -103,10 +100,10 @@ const balanceWithDecimals = computed(() => balance.value?.decimals(props.token))
     margin-bottom: 4px;
   }
 
-  & > :last-child {
-    font-size: 14px;
-    font-weight: 500;
-    color: vars.$gray2;
+  .amount {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: vars.$gray2 !important;
   }
 }
 

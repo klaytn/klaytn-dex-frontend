@@ -39,7 +39,7 @@ export const TRADE_MAX_NUM_RESULTS = 3
 
 export const TRADE_MAX_PRICE_IMPACT = new Percent(1, 10)
 
-export const CURRENCY_USD = new Currency(2, 'USD' as CurrencySymbol, 'US Dollars')
+export const CURRENCY_USD = new Currency(3, 'USD' as CurrencySymbol, 'US Dollars')
 
 export function makeExplorerLinkToAccount(address: Address): string {
   return `${NETWORK.blockExplorerUrl}/account/${address}`
