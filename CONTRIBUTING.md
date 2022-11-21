@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-Thank you for your interest in contributing to Klaytn Contracts. As an open source project, Klaytn Contracts is always open to the developer community and we welcome your contribution to help more developer onboarding resources for the Klaytn developer community. Please read the guideline below and follow it in all interactions with the project.
+Thank you for your interest in contributing to Klaytn Organization. As an open source project, Klaytn Organization is always open to the developer community and we welcome your contribution to help more developer onboarding resources for the Klaytn developer community. Please read the guideline below and follow it in all interactions with the project.
 
 ## How to Contribute on Klaytn 
 
@@ -88,7 +88,7 @@ Formatting errors can be easily fixed by running `pnpm format:fix`.
 
 * Tests Must not be Random
 
-    Inputs for tests should not be generated randomly. Accounts used to create test contracts are an exception, those can be random. Also, the type and structure of outputs should be checked.
+    Inputs for tests should not be generated randomly. Accounts used to create test wallets are an exception, those can be random. Also, the type and structure of outputs should be checked.
 
 
 ## Contributor License Agreement (CLA)
