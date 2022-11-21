@@ -55,7 +55,7 @@ describe('LiquidityViewPairsList.cy.ts', () => {
       .first()
       .within(() => {
         cy.get(TESTID_ITEM_HEADER_VALUE).should('have.text', '0.56515')
-        cy.get(TESTID_ITEM_HEADER_VALUE_USD).should('have.text', '($0.84)')
+        cy.get(TESTID_ITEM_HEADER_VALUE_USD).should('have.text', '($0.842)')
       })
   })
 

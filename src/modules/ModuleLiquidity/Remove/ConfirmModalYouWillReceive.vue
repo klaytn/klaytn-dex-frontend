@@ -61,7 +61,7 @@ const rows = computed(() => {
 <style lang="scss" scoped>
 .container {
   display: grid;
-  grid-template-columns: repeat(3, max-content);
+  grid-template-columns: repeat(2, max-content) 1fr;
   column-gap: 8px;
   row-gap: 8px;
   align-items: center;

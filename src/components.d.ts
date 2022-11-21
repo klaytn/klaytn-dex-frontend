@@ -94,6 +94,7 @@ declare module '@vue/runtime-core' {
     ModuleSwapModalConfirm: typeof import('./modules/ModuleSwap/ModalConfirm.vue')['default']
     ModuleSwapModalConfirmDetails: typeof import('./modules/ModuleSwap/ModalConfirmDetails.vue')['default']
     ModuleSwapModalConfirmTokens: typeof import('./modules/ModuleSwap/ModalConfirmTokens.vue')['default']
+    ModuleSwapModalExpertModeConfirm: typeof import('./modules/ModuleSwap/ModalExpertModeConfirm.vue')['default']
     ModuleSwapModalPreferences: typeof import('./modules/ModuleSwap/ModalPreferences.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

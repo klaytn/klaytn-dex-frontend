@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
-import { KlayIconCalculator } from '~klay-icons'
+import { KlayIconCalculator, KlayIconImportant } from '~klay-icons'
 import { Pool } from './types'
 import { CurrencySymbol } from '@/core'
 import { TokensPair } from '@/utils/pair'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
+import { SPopover } from '@soramitsu-ui/ui'
 
 const props = defineProps<{
   name: Pool['name']
@@ -72,6 +73,31 @@ const formattedMultiplier = computed(() => {
           :class="$style.iconCalc"
           @click.stop="emit('click:roi-calculator')"
         />
+
+        <SPopover
+          placement="right"
+          distance="8"
+        >
+          <template #trigger>
+            <span>
+              <KlayIconImportant
+                v-if="annualPercentageRate === null"
+                :class="$style.iconImportant"
+              />
+            </span>
+          </template>
+
+          <template #popper="{ show }">
+            <div
+              v-if="show"
+              :class="$style.popper"
+              class="px-3 py-3 bg-white rounded-md shadow-md cursor-text"
+            >
+              The DEX token is not listed and has no price. For this reason, it is not possible to calculate APR at the
+              moment.
+            </div>
+          </template>
+        </SPopover>
       </div>
     </div>
 
@@ -116,7 +142,7 @@ const formattedMultiplier = computed(() => {
   margin-bottom: 12px;
 }
 
-.valueEmpty {
+.value-empty {
   color: vars.$gray2;
 }
 
@@ -126,5 +152,22 @@ const formattedMultiplier = computed(() => {
   &:hover {
     color: vars.$blue;
   }
+}
+
+.iconImportant {
+  color: vars.$gray3;
+  &:hover {
+    color: vars.$blue;
+  }
+}
+
+.popper {
+  border: 1px solid vars.$gray5; // same as .klay-divider
+  z-index: 10;
+  max-width: 300px;
+  word-wrap: break-word;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.3em;
 }
 </style>
