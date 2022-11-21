@@ -76,7 +76,7 @@ describe('RoiCalculator', () => {
     mountFactory()
 
     getInput().type('123').blur().should('have.value', '$10,123')
-    getReceive().should('have.value', '$1,047.92')
+    getReceive().should('have.value', '$1,047.919')
   })
 
   it('when "$10" is clicked, then value is set in dollars', () => {
@@ -91,7 +91,7 @@ describe('RoiCalculator', () => {
 
     getInput().should('have.value', '$10')
     getInputAltUnits().should('have.text', '0.05 VEN-ARS')
-    getReceive().should('have.value', '$1.04')
+    getReceive().should('have.value', '$1.035')
 
     getSwitchBtn().click()
 
@@ -104,7 +104,7 @@ describe('RoiCalculator', () => {
     mountFactory({ stakeTokenPrice: new BigNumber('6.21392439956') })
 
     const USD = '$10'
-    const USD_RECEIVE = '$1.04'
+    const USD_RECEIVE = '$1.035'
     const TOKEN = '1.609288970543009366 VEN-ARS'
     const TOKEN_RECEIVE = '0.166591376507986927 DEX'
 

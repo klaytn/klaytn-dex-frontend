@@ -302,6 +302,7 @@ function openRoiCalculator() {
     :staked="pool.staked"
     :apr="pool.annualPercentageRate"
     :balance="balance"
+    :show-balance-button="dexStore.isWalletConnected"
     :stake-token-price="pool.stakeTokenPrice"
     :stake-token-decimals="pool.stakeToken.decimals"
     :reward-token-decimals="pool.rewardToken.decimals"

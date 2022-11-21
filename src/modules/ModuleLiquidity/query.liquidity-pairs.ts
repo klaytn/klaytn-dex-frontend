@@ -2,8 +2,11 @@ import { Address, CurrencySymbol, WeiAsToken } from '@/core'
 import { ApolloClientId } from '@/types'
 import { useQuery } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
+import { Ref } from 'vue'
 
-const LIQUIDITY_PAIRS_POLLING_INTERVAL = 10_000
+export const POLL_INTERVAL = 10_000
+export const POLL_INTERVAL_QUICK = 1_000
+export const POLL_INTERVAL_QUICK_TIMEOUT = 5_000
 
 export interface LiquidityPairsResult {
   user: null | {
@@ -37,7 +40,7 @@ interface Token {
   decimals: string
 }
 
-export function useLiquidityPairsQuery() {
+export function useLiquidityPairsQuery(pollInterval: Ref<number>) {
   const dexStore = useDexStore()
 
   return useQuery<LiquidityPairsResult>(
@@ -79,7 +82,7 @@ export function useLiquidityPairsQuery() {
     () => ({
       enabled: !!dexStore.account,
       clientId: ApolloClientId.Exchange,
-      pollInterval: LIQUIDITY_PAIRS_POLLING_INTERVAL,
+      pollInterval: pollInterval.value,
     }),
   )
 }

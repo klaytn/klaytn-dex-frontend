@@ -21,7 +21,7 @@ const filtered = computed(() =>
 
 <template>
   <div
-    v-if="positions"
+    v-if="filtered.length"
     class="px-4 space-y-4"
   >
     <ModuleLiquidityViewPairsListItem
@@ -35,4 +35,22 @@ const filtered = computed(() =>
       @click:deposit="emit('click:deposit', item)"
     />
   </div>
+  <div
+    v-else
+    class="empty"
+  >
+    Empty
+  </div>
 </template>
+
+<style lang="sass" scoped>
+@import '@/styles/vars.sass'
+
+.empty
+  display: flex
+  justify-content: center
+  align-items: center
+  width: 100%
+  height: 40px
+  color: $gray3
+</style>

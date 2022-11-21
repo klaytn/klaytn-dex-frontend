@@ -85,11 +85,13 @@ export function useMappedPools(props: {
     pools = pools.map((pool) => {
       const farmingRewardRate = new BigNumber(farmingFromWei(new Wei(farming.rewardRate)))
       const poolRewardRate = farmingRewardRate.times(pool.multiplier.div(sumOfMultipliers))
-      const totalRewardPricePerYear = poolRewardRate.times(BLOCKS_PER_YEAR).times(rewardToken.derivedUSD)
+      const totalRewardPricePerYear = rewardToken
+        ? poolRewardRate.times(BLOCKS_PER_YEAR).times(rewardToken.derivedUSD)
+        : null
       // If there is no liquidity, we assume what APR will be if liquidity is equal to 1
-      const annualPercentageRate = totalRewardPricePerYear
-        .div(pool.liquidity.isZero() ? 1 : pool.liquidity)
-        .times(100) as PercentageRate
+      const annualPercentageRate =
+        (totalRewardPricePerYear?.div(pool.liquidity.isZero() ? 1 : pool.liquidity).times(100) as PercentageRate) ??
+        null
       return {
         ...pool,
         annualPercentageRate,
@@ -126,13 +128,14 @@ export function useFilteredPools<T extends Pool>(
 }
 
 function comparePools<T extends Pool>(poolA: T, poolB: T, sorting: Sorting): number {
+  const zero = new BigNumber(0)
   switch (sorting) {
     case Sorting.Hot:
-      return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
+      return (poolB.annualPercentageRate ?? zero).comparedTo(poolA.annualPercentageRate ?? zero)
     case Sorting.Liquidity:
       return poolB.liquidity.comparedTo(poolA.liquidity)
     case Sorting.AnnualPercentageRate:
-      return poolB.annualPercentageRate.comparedTo(poolA.annualPercentageRate)
+      return (poolB.annualPercentageRate ?? zero).comparedTo(poolA.annualPercentageRate ?? zero)
     case Sorting.Multiplier:
       return poolB.multiplier.comparedTo(poolA.multiplier)
     case Sorting.Earned:

@@ -3,15 +3,29 @@ import { Address } from '@/core'
 import { RouteName } from '@/types'
 import { TokensPair } from '@/utils/pair'
 import { useTradeStore } from '../ModuleTradeShared/trade-store'
-import { useLiquidityPairsQuery, LiquidityPairsPosition } from './query.liquidity-pairs'
+import {
+  useLiquidityPairsQuery,
+  LiquidityPairsPosition,
+  POLL_INTERVAL,
+  POLL_INTERVAL_QUICK,
+  POLL_INTERVAL_QUICK_TIMEOUT,
+} from './query.liquidity-pairs'
 
-const { loading: isLoading, result, refetch } = useLiquidityPairsQuery()
+const router = useRouter()
+const route = useRoute()
+
+const quickPoll = refAutoReset(false, POLL_INTERVAL_QUICK_TIMEOUT)
+quickPoll.value = route.meta.quickPoll as boolean
+const pollInterval = computed(() => {
+  return (quickPoll.value && POLL_INTERVAL_QUICK) || POLL_INTERVAL
+})
+
+const { loading: isLoading, result, refetch } = useLiquidityPairsQuery(pollInterval)
 
 // Refetch if cached
 if (result.value && !isLoading.value) refetch()
 
 const isLoaded = computed(() => !!result.value)
-const isUserEmpty = computed(() => result.value && !result.value.user)
 
 const tradeStore = useTradeStore()
 
@@ -20,7 +34,6 @@ tradeStore.useRefresh({
   pending: isLoading,
 })
 
-const router = useRouter()
 const addLiquidityStore = useLiquidityAddStore()
 
 function positionToAddresses({
@@ -58,15 +71,8 @@ function goToFarms({ pair: { name: pairName } }: LiquidityPairsPosition) {
       Your liquidity
     </h3>
 
-    <div
-      v-if="isUserEmpty"
-      class="px-4"
-    >
-      Empty
-    </div>
-
     <ModuleLiquidityViewPairsList
-      v-if="isLoaded && !isUserEmpty"
+      v-if="isLoaded"
       :positions="result!.user?.liquidityPositions"
       @click:add="goToAddLiquidity($event)"
       @click:remove="goToRemoveLiquidity($event)"
