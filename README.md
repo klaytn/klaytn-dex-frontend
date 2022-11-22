@@ -1,4 +1,10 @@
-# klaytn-dex-frontend
+# Klaytn-DEX Frontend Documentation
+
+Here you can find Klaytn-DEX frontend documentation:
+
+- [User Guide](docs/guide.md) provides instructions on how to interact with Klaytn-DEX 
+- [Frontend Specification](docs/modules.md) describes the Klaytn-DEX module structure
+- [Deployment Guide](docs/deploy.md) provides instructions on how to deploy Klaytn-DEX
 
 ## Local Development
 
