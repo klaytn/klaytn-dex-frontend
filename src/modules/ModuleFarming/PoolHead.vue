@@ -30,16 +30,16 @@ const formattedMultiplier = computed(() => {
 </script>
 
 <template>
-  <div class="grid grid-cols-5 gap-4 items-center py-3">
-    <div class="flex items-center space-x-2">
+  <div class="grid grid-cols-1 md:grid-cols-5 md:gap-4 items-center py-4">
+    <div class="flex items-center space-x-2 lt-md:mb-2">
       <KlaySymbolsPair v-bind="poolSymbols" />
 
-      <span class="title-name">
+      <span>
         {{ name }}
       </span>
     </div>
 
-    <div>
+    <div :class="$style.item">
       <div :class="$style.title">
         Earned
       </div>
@@ -48,7 +48,7 @@ const formattedMultiplier = computed(() => {
       </div>
     </div>
 
-    <div>
+    <div :class="$style.item">
       <div
         :class="$style.title"
         title="Annual percentage rate"
@@ -101,7 +101,7 @@ const formattedMultiplier = computed(() => {
       </div>
     </div>
 
-    <div>
+    <div :class="$style.item">
       <div :class="$style.title">
         Liquidity
       </div>
@@ -113,7 +113,7 @@ const formattedMultiplier = computed(() => {
       </div>
     </div>
 
-    <div>
+    <div :class="$style.item">
       <div :class="$style.title">
         Multiplier
       </div>
@@ -127,6 +127,15 @@ const formattedMultiplier = computed(() => {
 <style lang="scss" module>
 @use '@/styles/vars';
 
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  @media only screen and (min-width: vars.$md) {
+    display: block;
+  }
+}
+
 .title {
   font-weight: 500;
   font-size: 12px;
@@ -138,8 +147,10 @@ const formattedMultiplier = computed(() => {
   font-weight: 600;
   font-size: 16px;
   color: vars.$dark;
-  margin-top: 2px;
-  margin-bottom: 12px;
+  @media only screen and (min-width: vars.$md) {
+    margin-top: 2px;
+    margin-bottom: 12px;
+  }
 }
 
 .value-empty {

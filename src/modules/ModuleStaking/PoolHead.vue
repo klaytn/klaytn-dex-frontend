@@ -22,7 +22,7 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
 </script>
 
 <template>
-  <div class="grid grid-cols-5 gap-4 items-center py-3">
+  <div class="grid grid-cols-1 md:grid-cols-5 md:gap-4 items-center py-4">
     <div class="flex items-center space-x-6">
       <div class="relative">
         <KlayCharAvatar
@@ -36,7 +36,7 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
         />
       </div>
 
-      <div>
+      <div class="flex flex-col">
         <div :class="$style.title">
           Stake {{ stakeTokenSymbol }}
         </div>
@@ -46,7 +46,7 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
       </div>
     </div>
 
-    <div>
+    <div :class="$style.item">
       <div :class="$style.title">
         Earned
       </div>
@@ -55,7 +55,7 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
       </div>
     </div>
 
-    <div>
+    <div :class="$style.item">
       <div :class="$style.title">
         Total staked
       </div>
@@ -67,7 +67,7 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
       </div>
     </div>
 
-    <div>
+    <div :class="$style.item">
       <div
         :class="$style.title"
         title="Annual percentage rate"
@@ -78,24 +78,26 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
         :class="$style.value"
         class="flex items-center"
       >
-        <span class="mr-2">
-          <CurrencyFormatTruncate
-            :amount="annualPercentageRate"
-            :decimals="2"
-            symbol="%"
-            symbol-position="right"
-          />
-        </span>
+        <CurrencyFormatTruncate
+          :amount="annualPercentageRate"
+          :decimals="2"
+          symbol="%"
+          symbol-position="right"
+        />
 
         <KlayIconCalculator
           v-if="annualPercentageRate !== null"
           :class="$style.iconCalc"
+          class="ml-2"
           @click.stop="emit('click:roi-calculator')"
         />
       </div>
     </div>
 
-    <div v-if="nonNegativeStartsIn">
+    <div
+      v-if="nonNegativeStartsIn"
+      :class="$style.item"
+    >
       <div :class="$style.title">
         Starts in
       </div>
@@ -111,7 +113,10 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
       </div>
     </div>
 
-    <div v-else>
+    <div
+      v-else
+      :class="$style.item"
+    >
       <div :class="$style.title">
         Ends in
       </div>
@@ -137,6 +142,16 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
 <style lang="scss" module>
 @use '@/styles/vars';
 
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  @media only screen and (min-width: vars.$md) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 .title {
   font-weight: 500;
   font-size: 12px;
@@ -148,8 +163,10 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
   font-weight: 600;
   font-size: 16px;
   color: vars.$dark;
-  margin-top: 2px;
-  margin-bottom: 12px;
+  @media only screen and (min-width: vars.$md) {
+    margin-top: 2px;
+    margin-bottom: 12px;
+  }
 }
 
 .valueEmpty {

@@ -22,7 +22,7 @@ const show = computed({
   <SModal v-model:show="show">
     <KlayModalCard
       title="Confirm Swap"
-      class="w-[420px]"
+      class="max-w-[420px] lt-sm:mx-2"
     >
       <KlayModalTemplateSubmitted v-if="swapState?.fulfilled" />
       <KlayModalTemplateError v-else-if="swapState?.rejected" />

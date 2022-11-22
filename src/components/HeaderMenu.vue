@@ -1,6 +1,7 @@
 <script setup lang="ts" name="HeaderMenu">
 import { RouteName, HeaderMenuItem } from '@/types'
-import { KlayIconArrowOutward } from '~klay-icons'
+import { KlayIconArrowOutward, KlayIconCollapseArrow } from '~klay-icons'
+import { SPopover } from '@soramitsu-ui/ui'
 
 const props = defineProps<{
   items: HeaderMenuItem[]
@@ -26,10 +27,63 @@ const itemsWithActive = computed(() =>
         }
   }),
 )
+
+const activeItem = computed(() => {
+  return (
+    itemsWithActive.value.find((item) => item.forceActive) ||
+    props.items.find((item) => item.kind === 'route' && item.routeName === route.name)
+  )
+})
 </script>
 
 <template>
-  <div class="header-menu">
+  <SPopover
+    placement="bottom"
+    distance="8"
+  >
+    <template #trigger>
+      <div class="md:hidden lt-md:flex items-center gap-1 rounded-lg p-3 bg-white text-xs font-bold">
+        {{ activeItem?.label ?? '' }}
+        <KlayIconCollapseArrow />
+      </div>
+    </template>
+
+    <template #popper="{ show }">
+      <div
+        v-if="show"
+        class="flex flex-col items-center bg-white z-10 rounded-lg shadow-lg p-4 w-[96px]"
+      >
+        <template
+          v-for="item in itemsWithActive"
+          :key="item.key"
+        >
+          <RouterLink
+            v-if="item.kind === 'route'"
+            :to="{ name: item.routeName }"
+            :active-class="$style.activeItem"
+            :class="[$style.item, { [$style.activeItem]: item.forceActive }]"
+          >
+            {{ item.label }}
+          </RouterLink>
+
+          <a
+            v-else
+            :href="item.href"
+            :class="$style.item"
+            class="flex items-center space-x-2"
+          >
+            <span> {{ item.label }} </span>
+            <KlayIconArrowOutward class="icon-link" />
+          </a>
+        </template>
+      </div>
+    </template>
+  </SPopover>
+
+  <div
+    :class="$style.menu"
+    class="lt-md:hidden md:flex items-center py-1 px-2 border-rd-4"
+  >
     <template
       v-for="item in itemsWithActive"
       :key="item.key"
@@ -37,8 +91,8 @@ const itemsWithActive = computed(() =>
       <RouterLink
         v-if="item.kind === 'route'"
         :to="{ name: item.routeName }"
-        active-class="active-item"
-        :class="['header-item', { 'active-item': item.forceActive }]"
+        :active-class="$style.activeItem"
+        :class="[$style.item, { [$style.activeItem]: item.forceActive }]"
       >
         {{ item.label }}
       </RouterLink>
@@ -46,7 +100,8 @@ const itemsWithActive = computed(() =>
       <a
         v-else
         :href="item.href"
-        class="header-item flex items-center space-x-2"
+        :class="$style.item"
+        class="flex items-center space-x-2"
       >
         <span> {{ item.label }} </span>
         <KlayIconArrowOutward class="icon-link" />
@@ -55,18 +110,14 @@ const itemsWithActive = computed(() =>
   </div>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss" module>
 @use '@/styles/vars';
 
-.header-menu {
-  display: flex;
-  align-items: center;
-  padding: 4px 8px;
+.menu {
   background: vars.$white;
-  border-radius: 16px;
 }
 
-.header-item {
+.item {
   font-style: normal;
   font-weight: 700;
   font-size: 12px;

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19">
+  <path fill-rule="evenodd" d="M13 10.109a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"
+    clip-rule="evenodd" />
+  <rect width="2" height="11.299" x="8.778" y="9.109" rx="1" transform="rotate(45 8.778 9.109)" />
+</svg>

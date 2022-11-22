@@ -72,7 +72,8 @@ watch(model, (dep) => {
         background: $gray5
     .s-accordion-item
       &__trigger
-        height: 80px
+        height: auto
+        min-height: 80px
       &__head
         position: relative
       &__chevron

@@ -23,7 +23,7 @@ function supply() {
   <SModal v-model:show="show">
     <KlayModalCard
       title="Remove LP Tokens"
-      class="w-[420px]"
+      class="max-w-[420px] lt-sm:mx-2"
     >
       <KlayModalTemplateSubmitted v-if="supplyState?.fulfilled" />
       <KlayModalTemplateError v-else-if="supplyState?.rejected" />

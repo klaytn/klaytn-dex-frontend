@@ -4,7 +4,6 @@ import { RouteName } from '@/types'
 import { Proposal } from '../types'
 
 const { t } = useI18n()
-const vBem = useBemClass()
 
 const props = defineProps<{
   proposal: Proposal
@@ -26,25 +25,26 @@ const formattedEndDate = computed(() => {
 
 <template>
   <RouterLink
-    v-bem
+    :class="$style.proposal"
+    class="flex lt-md:flex-col gap-3 md:gap-4 md:items-center py-4 px-6"
     :to="{ name: RouteName.VotingProposal, params: { id: proposal.id } }"
   >
-    <div v-bem="'item'">
-      <div v-bem="'item-label'">
+    <div :class="$style.item">
+      <div :class="$style.itemLabel">
         {{ t('ModuleGovernanceListProposal.startDate') }}
       </div>
-      <div v-bem="'item-value'">
+      <div :class="$style.itemValue">
         {{ formattedStartDate }}
       </div>
     </div>
-    <div v-bem="'title'">
+    <div class="flex-1 lt-md:order-first font-medium">
       {{ proposal.title }}
     </div>
-    <div v-bem="'item'">
-      <div v-bem="'item-label'">
+    <div :class="$style.item">
+      <div :class="$style.itemLabel">
         {{ t('ModuleGovernanceListProposal.endDate') }}
       </div>
-      <div v-bem="'item-value'">
+      <div :class="$style.itemValue">
         {{ formattedEndDate }}
       </div>
     </div>
@@ -52,17 +52,62 @@ const formattedEndDate = computed(() => {
   </RouterLink>
 </template>
 
+<style lang="scss" module>
+@use '@/styles/vars';
+
+.proposal {
+  border-top: 2px solid vars.$gray6;
+  border-bottom: 2px solid vars.$gray6;
+  transition: 250ms ease background-color;
+  & + & {
+    margin-top: -2px;
+  }
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  @media only screen and (min-width: vars.$md) {
+    width: 100px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}
+
+.item-label {
+  font-weight: 500;
+  font-size: 12px;
+  color: vars.$gray2;
+  line-height: 100%;
+}
+
+.item-value {
+  font-weight: 600;
+  font-size: 16px;
+  color: vars.$dark;
+  @media only screen and (min-width: vars.$md) {
+    margin-top: 2px;
+    margin-bottom: 12px;
+  }
+}
+</style>
+
 <style lang="sass">
 @import '@/styles/vars.sass'
 
 .module-governance-list-proposal
   display: flex
+  flex-direction: column
   align-items: center
-  height: 80px
+  gap: 0.75rem
   padding: 0 24px
   border-top: 2px solid $gray6
   border-bottom: 2px solid $gray6
   transition: 250ms ease background-color
+  @media only screen and (min-width: $md)
+    flex-direction: row
   & + &
     margin-top: -2px
   &:hover
@@ -85,3 +130,4 @@ const formattedEndDate = computed(() => {
     margin-right: 32px
     font-weight: 500
 </style>
+-->
