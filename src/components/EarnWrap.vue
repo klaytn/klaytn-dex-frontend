@@ -2,7 +2,6 @@
 import { Sorting as FarmingSorting } from '@/modules/ModuleFarming/types'
 import { Sorting as StakingSorting } from '@/modules/ModuleStaking/types'
 import { RouteName } from '@/types'
-import { KlayIconSearch } from '~klay-icons'
 
 const { t } = useI18n()
 const vBem = useBemClass()
@@ -72,44 +71,37 @@ const menuActiveClass = 'earn-wrap__head-button--active'
 
 <template>
   <div v-bem>
-    <div v-bem="'head'">
-      <RouterLink
-        v-bem="'head-button'"
-        to="/farms"
-        :exact-active-class="menuActiveClass"
-      >
-        {{ t('EarnWrap.menu.farms') }}
-      </RouterLink>
-      <RouterLink
-        v-bem="'head-button'"
-        to="/pools"
-        :exact-active-class="menuActiveClass"
-      >
-        {{ t('EarnWrap.menu.pools') }}
-      </RouterLink>
+    <div class="flex flex-wrap items-center gap-3 mx-4 md:mx-6 py-4 md:h-[74px]">
+      <div class="lt-md:w-full">
+        <RouterLink
+          v-bem="'head-button'"
+          to="/farms"
+          :exact-active-class="menuActiveClass"
+        >
+          {{ t('EarnWrap.menu.farms') }}
+        </RouterLink>
+        <RouterLink
+          v-bem="'head-button'"
+          to="/pools"
+          :exact-active-class="menuActiveClass"
+        >
+          {{ t('EarnWrap.menu.pools') }}
+        </RouterLink>
+      </div>
       <KlaySwitch
         v-model="stakedOnly"
-        v-bem="'staked-only'"
+        class="md:ml-8"
         label="Staked only"
       />
-      <span v-bem="'sorting-label'">
-        {{ t('EarnWrap.sorting.label') }}
-      </span>
-      <KlaySelect
+      <SortingFilter
         v-model="sorting"
-        v-bem="'sorting'"
+        class="ml-auto"
         :options="sortingOptions"
-        size="lg"
       />
-      <KlayTextField
+      <SearchFilter
         v-model="searchQuery"
-        v-bem="'search'"
-        label="Search"
-      >
-        <template #append>
-          <KlayIconSearch v-bem="'search-icon'" />
-        </template>
-      </KlayTextField>
+        class="ml-2"
+      />
     </div>
 
     <slot />
@@ -131,11 +123,6 @@ const menuActiveClass = 'earn-wrap__head-button--active'
   background: linear-gradient(0deg, #ffffff, #ffffff), linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%), rgba(255, 255, 255, 0.6)
   box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05)
   &__head
-    display: flex
-    align-items: center
-    justify-content: flex-start
-    height: 74px
-    padding: 0 16px 0 30px
     &-button
       font-style: normal
       font-weight: 700
@@ -149,8 +136,6 @@ const menuActiveClass = 'earn-wrap__head-button--active'
         margin-right: 0
       &--active
         color: $dark
-  &__staked-only
-    margin-left: 32px
   &__sorting
     margin-left: 8px
     &-label

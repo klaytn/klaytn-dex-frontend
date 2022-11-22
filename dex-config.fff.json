@@ -1,0 +1,87 @@
+{
+  "network": {
+    "chainName": "Klaytn Baobab",
+    "chainId": 1001,
+    "rpcUrl": "https://api.baobab.klaytn.net:8651/",
+    "blockExplorerUrl": "https://baobab.scope.klaytn.com/"
+  },
+  "tokens": [
+    {
+      "address": "0x6d1c5403bab8ff5fca04dab0a5d820ae0fa615e9",
+      "name": "KLAY",
+      "symbol": "KLAY",
+      "decimals": 18
+    },
+    {
+      "address": "0xae56dda0d73296034c4b5453739ad5255a6f4fda",
+      "decimals": 18,
+      "symbol": "DEX",
+      "name": "DEX Token"
+    },
+    {
+      "address": "0x2486a551714f947c386fe9c8b895c2a6b3275ec9",
+      "name": "Earth",
+      "symbol": "EA",
+      "decimals": 18
+    },
+    {
+      "address": "0xafea7569b745eae7ab22cf17c3b237c3350407a1",
+      "name": "Mars",
+      "symbol": "ARS",
+      "decimals": 18
+    },
+    {
+      "address": "0xc20a9eb22de0c6920619ade93a11283c2a07273e",
+      "name": "Jupiter",
+      "symbol": "JUP",
+      "decimals": 18
+    },
+    {
+      "address": "0xce77229ff8451f5791ef4cc2a841735ed4edc3ca",
+      "name": "Saturn",
+      "symbol": "SAT",
+      "decimals": 18
+    },
+    {
+      "address": "0xfbcb69f52d6a08c156c543dd4dc0521f5f545755",
+      "name": "Uranus",
+      "symbol": "URA",
+      "decimals": 18
+    },
+    {
+      "address": "0x7cb550723972d7f29b047d6e71b62dcccaf93992",
+      "name": "Neptune",
+      "symbol": "NEP",
+      "decimals": 18
+    },
+    {
+      "address": "0xcdbd333bdbb99bc80d77b10ccf74285a97150e5d",
+      "name": "Pluto",
+      "symbol": "PL",
+      "decimals": 18
+    },
+    {
+      "address": "0x246c989333fa3c3247c7171f6bca68062172992c",
+      "name": "Io",
+      "symbol": "IO",
+      "decimals": 18
+    }
+  ],
+  "tokenNative": "0x6d1c5403bab8ff5fca04dab0a5d820ae0fa615e9",
+  "tokenDex": "0xae56dda0d73296034c4b5453739ad5255a6f4fda",
+  "smartcontracts": {
+    "router": "0x980d2bd3a19378969c151226bcc2b62ee62c3816",
+    "factory": "0x1720f497a0583f2df87696ddbc77f9aa44c5552c",
+    "weth": "0x6d1c5403bab8ff5fca04dab0a5d820ae0fa615e9",
+    "multicall": "0x30569ac98d1833e8feb678b70fb7c3e2027e6b29",
+    "farming": "0x4e732aa3a07cabf7f16383eb2d9f0c660690c9b3"
+  },
+  "subgraphs": {
+    "exchange": "https://dex-graphnode.baobab.klaytn.net/subgraphs/name/klaytn-subgraph/exchange",
+    "farming": "http://aaa443986060f4317918c9dca297239c-568830255.eu-west-1.elb.amazonaws.com:8000/subgraphs/name/klaytn-subgraph/farming",
+    "staking": "https://dex-graphnode.baobab.klaytn.net/subgraphs/name/klaytn-subgraph/staking",
+    "snapshot": "https://hub.snapshot.org/graphql"
+  },
+  "uriDashboards": "https://dex-dashboard.baobab.klaytn.net",
+  "snapshotSpace": "test-klaytn-dex.eth"
+}

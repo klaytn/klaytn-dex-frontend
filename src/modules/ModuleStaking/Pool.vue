@@ -147,7 +147,10 @@ function openRoiCalculator() {
 </script>
 
 <template>
-  <KlayAccordionItem v-model="expanded">
+  <KlayAccordionItem
+    v-model="expanded"
+    class="module-staking-pool"
+  >
     <template #title>
       <PoolHead
         :reward-token-symbol="pool.rewardToken.symbol"
@@ -166,11 +169,12 @@ function openRoiCalculator() {
     </div>
 
     <template v-else>
-      <div class="flex items-center space-x-6">
+      <div class="flex md:items-center lt-md:flex-col gap-4 md:gap-6">
         <WalletConnectButton
           v-if="!dexStore.isWalletConnected"
           size="md"
         />
+
         <template v-else-if="!enabled">
           <KlayButton
             type="primary"
@@ -262,7 +266,7 @@ function openRoiCalculator() {
         </template>
       </div>
 
-      <div class="flex items-center space-x-4 mt-6">
+      <div class="flex items-center flex-wrap gap-4 mt-6">
         <KlayExternalLink :href="makeExplorerLinkToAccount(pool.stakeToken.id)">
           See Token Info
         </KlayExternalLink>
@@ -325,7 +329,18 @@ function openRoiCalculator() {
   font-weight: 500;
   font-size: 12px;
   color: vars.$gray2;
-
   margin-bottom: 16px;
 }
 </style>
+
+<style lang="scss">
+@use '@/styles/vars';
+
+.module-staking-pool .klay-accordion-item__chevron-wrapper {
+  height: 56px;
+  @media only screen and (min-width: vars.$md) {
+    height: 100%;
+  }
+}
+</style>
+

@@ -186,7 +186,7 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
 <template>
   <SModal v-model:show="showModel">
     <KlayModalCard
-      class="w-[420px] flex flex-col"
+      class="max-w-[420px] lt-sm:mx-2 flex flex-col"
       :title="t('ModuleEarnSharedRoiCalculator.title')"
     >
       <template #body>
@@ -276,7 +276,7 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
           <div class="space-y-2">
             <span class="label">
               You will receive
-              <div class="flex">
+              <div>
                 ({{ PERIOD_NAMES[stakeFor] }} Percentage Yield =
                 <CurrencyFormatTruncate
                   class="ml-1"

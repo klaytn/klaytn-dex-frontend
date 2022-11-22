@@ -22,7 +22,7 @@ const expertMode = computed({
 
 <template>
   <SModal v-model:show="isOpen">
-    <KlayModalCard class="w-420px">
+    <KlayModalCard class="max-w-[420px] lt-sm:mx-2">
       <template #title>
         Swap preferences
       </template>

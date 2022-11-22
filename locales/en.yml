@@ -18,7 +18,6 @@ EarnWrap:
     farms: Farms
     pools: Pools
   sorting:
-    label: Sort by
     options:
       hot: Hot
       liquidity: Liquidity
@@ -27,6 +26,9 @@ EarnWrap:
       earned: Earned
       totalStaked: Total staked
       latest: Latest
+
+SortingAndSearchFilter:
+  sortBy: Sort by
 
 ModuleFarmingPool:
   stats:
