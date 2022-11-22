@@ -29,7 +29,10 @@ const itemsWithActive = computed(() =>
 )
 
 const activeItem = computed(() => {
-  return itemsWithActive.value.find(item => item.forceActive) || props.items.find(item => item.kind === 'route' && item.routeName === route.name)
+  return (
+    itemsWithActive.value.find((item) => item.forceActive) ||
+    props.items.find((item) => item.kind === 'route' && item.routeName === route.name)
+  )
 })
 </script>
 
@@ -122,7 +125,6 @@ const activeItem = computed(() => {
   padding: 9px 12px;
   border-radius: 10px;
   color: vars.$dark;
-
 }
 
 .active-item {

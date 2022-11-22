@@ -37,9 +37,7 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
       </div>
 
       <div class="flex flex-col">
-        <div
-          :class="$style.title"
-        >
+        <div :class="$style.title">
           Stake {{ stakeTokenSymbol }}
         </div>
         <div :class="$style.value">

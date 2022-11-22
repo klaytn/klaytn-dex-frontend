@@ -129,4 +129,5 @@ const formattedEndDate = computed(() => {
     flex: 1
     margin-right: 32px
     font-weight: 500
-</style> -->
+</style>
+-->

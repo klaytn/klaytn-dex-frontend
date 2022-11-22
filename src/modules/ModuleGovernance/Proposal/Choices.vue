@@ -57,9 +57,7 @@ function isChoiceNegative(choice: string) {
       <div>
         {{ choice }}
       </div>
-      <span>
-        {{ formatAmount(getChoiceScore(choice)) }} {{ formatPercent(getChoicePercent(choice)) }}
-      </span>
+      <span> {{ formatAmount(getChoiceScore(choice)) }} {{ formatPercent(getChoicePercent(choice)) }} </span>
       <div
         :class="$style.lineWrapper"
         class="w-full h-1 border-rd mt-2.5"

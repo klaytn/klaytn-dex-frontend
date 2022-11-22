@@ -220,9 +220,7 @@ function openRoiCalculator() {
 
         <template v-else>
           <div :class="$style.input">
-            <span :class="$style.inputLabel">
-              Staked LP Tokens
-            </span>
+            <span :class="$style.inputLabel"> Staked LP Tokens </span>
             <InputCurrencyTemplate right>
               <template #input>
                 <CurrencyFormat

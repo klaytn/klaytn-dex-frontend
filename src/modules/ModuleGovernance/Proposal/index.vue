@@ -94,7 +94,7 @@ const loading = ProposalQuery.loading
 
 .section {
   padding-bottom: 1.5rem;
-  &+& {
+  & + & {
     padding-top: 1.5rem;
     border-top: 1px solid $gray5;
   }

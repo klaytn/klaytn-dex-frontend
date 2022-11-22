@@ -7,7 +7,7 @@ const vBem = useBemClass()
 
 const props = defineProps<{
   modelValue: string
-  options: { value: string, label: string }[]
+  options: { value: string; label: string }[]
 }>()
 
 const emit = defineEmits(['update:modelValue'])

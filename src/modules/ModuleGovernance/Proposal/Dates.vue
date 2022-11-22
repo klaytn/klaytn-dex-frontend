@@ -29,7 +29,7 @@ const formattedEndDate = computed(() => {
     <div
       v-for="{ label, value } in [
         { label: t('ModuleGovernanceListProposal.startDate'), value: formattedStartDate },
-        { label: t('ModuleGovernanceListProposal.endDate'), value: formattedEndDate }
+        { label: t('ModuleGovernanceListProposal.endDate'), value: formattedEndDate },
       ]"
       :key="label"
       :class="$style.date"
@@ -51,7 +51,7 @@ const formattedEndDate = computed(() => {
 @import '@/styles/vars.sass';
 
 .date {
-  &+& {
+  & + & {
     margin-top: 1.5rem;
   }
   &-label {

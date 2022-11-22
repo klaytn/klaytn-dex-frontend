@@ -343,4 +343,3 @@ function openRoiCalculator() {
   }
 }
 </style>
-
