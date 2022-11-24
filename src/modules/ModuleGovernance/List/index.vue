@@ -125,7 +125,7 @@ function viewMore() {
 </template>
 
 <style lang="sass">
-@import '@/styles/vars.sass'
+@use '@/styles/vars.sass'
 
 $padding-bottom: 19px
 
@@ -153,5 +153,5 @@ $padding-bottom: 19px
     align-items: center
     width: 100%
     flex: 1
-    color: $gray3
+    color: vars.$gray3
 </style>

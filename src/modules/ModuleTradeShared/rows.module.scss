@@ -1,4 +1,4 @@
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .row-md {
   display: flex;
@@ -6,7 +6,7 @@
   justify-content: space-between;
   font-weight: 500;
   font-size: 14px;
-  color: $dark2;
+  color: vars.$dark2;
 
   & > :last-child {
     font-weight: 600;
@@ -25,10 +25,10 @@
 
   font-size: 12px;
   font-weight: 600;
-  color: $dark2;
+  color: vars.$dark2;
 
   &--dimmed {
     font-weight: 500;
-    color: $gray2;
+    color: vars.$gray2;
   }
 }

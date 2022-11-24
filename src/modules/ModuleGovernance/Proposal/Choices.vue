@@ -77,21 +77,21 @@ function isChoiceNegative(choice: string) {
 </template>
 
 <style lang="scss" module>
-@import '@/styles/vars.sass';
+@use '@/styles/vars.sass';
 
 .line-wrapper {
-  background-color: $gray5;
+  background-color: vars.$gray5;
 }
 
 .blue-line {
-  background-color: $blue;
+  background-color: vars.$blue;
 }
 
 .green-line {
-  background-color: $green;
+  background-color: vars.$green;
 }
 
 .red-line {
-  background-color: $red;
+  background-color: vars.$red;
 }
 </style>

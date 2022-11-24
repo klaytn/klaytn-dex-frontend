@@ -72,10 +72,10 @@ const emit = defineEmits(['update:modelValue', 'click:max'])
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .input-template {
-  background: $gray6;
+  background: vars.$gray6;
   border-radius: 8px;
   display: grid;
   align-content: center;
@@ -119,7 +119,7 @@ const emit = defineEmits(['update:modelValue', 'click:max'])
   font-weight: 600;
   font-size: 30px;
   line-height: 1.3rem;
-  color: $dark2;
+  color: vars.$dark2;
   background: transparent;
   border: none;
   min-width: 0;

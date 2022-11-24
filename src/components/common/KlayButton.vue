@@ -16,35 +16,35 @@ import { SButton } from '@soramitsu-ui/ui'
 </template>
 
 <style lang="scss">
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .klay-button.s-button {
   border-radius: 8px;
   &_type_primary {
-    background-color: $blue;
+    background-color: vars.$blue;
     &:hover {
-      background-color: $blue-light1;
+      background-color: vars.$blue-light1;
     }
     &:active {
-      background-color: $blue-dark;
+      background-color: vars.$blue-dark;
     }
   }
   &_type_primary.s-button_disabled {
-    background: $gray4;
+    background: vars.$gray4;
   }
   &_type_secondary {
-    background: $white;
+    background: vars.$white;
     box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.15);
     transition: 150ms color ease;
     &.s-button_disabled {
-      background: $white;
-      color: $gray4;
+      background: vars.$white;
+      color: vars.$gray4;
     }
     &:not(.s-button_disabled) {
       &:hover,
       &:active {
-        color: $blue;
-        background: $white;
+        color: vars.$blue;
+        background: vars.$white;
       }
     }
   }

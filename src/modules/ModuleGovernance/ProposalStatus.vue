@@ -17,7 +17,7 @@ const { status } = toRefs(props)
 </template>
 
 <style lang="sass">
-@import '@/styles/vars.sass'
+@use '@/styles/vars.sass'
 
 .module-governance-proposal-status
   display: flex
@@ -32,11 +32,11 @@ const { status } = toRefs(props)
   font-size: 14px
   &--type
     &--active
-      color: $blue
+      color: vars.$blue
     &--executed
-      color: $green
-      border-color: $green
+      color: vars.$green
+      border-color: vars.$green
     &--defeated
-      color: $red
-      border-color: $red
+      color: vars.$red
+      border-color: vars.$red
 </style>

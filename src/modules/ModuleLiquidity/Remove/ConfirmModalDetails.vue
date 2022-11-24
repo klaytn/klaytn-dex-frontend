@@ -63,7 +63,7 @@ const liquidityKlay = computed(() => liquidity.value?.decimals({ decimals: NATIV
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .details {
   border: 1px solid $gray5;
@@ -74,6 +74,6 @@ p {
   font-size: 12px;
   font-weight: 500;
   line-height: 1.2rem;
-  color: $gray2;
+  color: vars.$gray2;
 }
 </style>

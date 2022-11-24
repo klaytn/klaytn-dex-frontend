@@ -32,19 +32,24 @@ const href = computed(() => {
 </template>
 
 <style lang="sass">
-@import '@/styles/vars.sass'
+@use '@/styles/vars.sass'
 
 .module-governance-proposal-call-to-vote
   display: flex
   flex-direction: column
   padding: 24px
   margin-bottom: 24px
-  background: $gray6
+  background: vars.$gray6
   border-radius: 8px
+  text-align: center
+  @media only screen and (min-width: vars.$md)
+    text-align: left
   &__call
     font-size: 20px
     font-weight: 600
   &__vote
-    width: 240px
+    width: 100%
     margin-top: 16px
+    @media only screen and (min-width: vars.$md)
+      width: 240px
 </style>

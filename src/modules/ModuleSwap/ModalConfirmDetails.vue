@@ -96,7 +96,7 @@ const feeForSure = computed(() => {
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .root {
   border: 1px solid $gray5;

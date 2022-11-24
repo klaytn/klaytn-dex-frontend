@@ -109,7 +109,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
 </template>
 
 <style lang="sass">
-@import '@/styles/vars.sass'
+@use '@/styles/vars.sass'
 
 .earn-wrap
   display: flex
@@ -128,27 +128,27 @@ const menuActiveClass = 'earn-wrap__head-button--active'
       font-weight: 700
       font-size: 18px
       line-height: 150%
-      color: $gray3
+      color: vars.$gray3
       cursor: pointer
       & + &
         margin-left: 16px
       &:last-child
         margin-right: 0
       &--active
-        color: $dark
+        color: vars.$dark
   &__sorting
     margin-left: 8px
     &-label
       margin-left: auto
       font-size: 14px
       font-weight: 400
-      color: $gray2
+      color: vars.$gray2
     div:last-child
       z-index: 100
     .s-radio-atom_checked
-      border-color: $blue !important
+      border-color: vars.$blue !important
       &:before
-        background-color: $blue !important
+        background-color: vars.$blue !important
     .s-select-input__label
       display: none
       + span
@@ -166,7 +166,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
       top: 12px
       left: 38px
       line-height: 16px
-      color: $gray2
+      color: vars.$gray2
     &:focus-within label, &:not(.s-text-field_empty) label
       transform: translateY(0)
       opacity: 0
@@ -176,5 +176,5 @@ const menuActiveClass = 'earn-wrap__head-button--active'
     &-icon
       position: absolute
       left: 12px
-      stroke: $gray2
+      stroke: vars.$gray2
 </style>

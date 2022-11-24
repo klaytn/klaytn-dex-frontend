@@ -48,10 +48,10 @@ const api = useModalApi()
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .card {
-  background: $white;
+  background: vars.$white;
   border-radius: 20px;
   max-height: 90vh;
 }

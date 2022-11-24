@@ -95,7 +95,7 @@ const formattedEndDate = computed(() => {
 </style>
 
 <style lang="sass">
-@import '@/styles/vars.sass'
+@use '@/styles/vars.sass'
 
 .module-governance-list-proposal
   display: flex
@@ -103,15 +103,15 @@ const formattedEndDate = computed(() => {
   align-items: center
   gap: 0.75rem
   padding: 0 24px
-  border-top: 2px solid $gray6
-  border-bottom: 2px solid $gray6
+  border-top: 2px solid vars.$gray6
+  border-bottom: 2px solid vars.$gray6
   transition: 250ms ease background-color
   @media only screen and (min-width: $md)
     flex-direction: row
   & + &
     margin-top: -2px
   &:hover
-    background-color: $gray7
+    background-color: vars.$gray7
   &__item
     position: relative
     width: 100px
@@ -120,7 +120,7 @@ const formattedEndDate = computed(() => {
       position: absolute
       bottom: calc(100% + 4px)
       font-size: 12px
-      color: $gray2
+      color: vars.$gray2
       line-height: 14px
     &-value
       line-height: 20px

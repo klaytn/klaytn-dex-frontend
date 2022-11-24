@@ -6,6 +6,7 @@ declare module '~klay-icons' {
   export const KlayIconBackArrow: DefineComponent<{}, {}, any>
   export const KlayIconBusd: DefineComponent<{}, {}, any>
   export const KlayIconCalculator: DefineComponent<{}, {}, any>
+  export const KlayIconCheckbox: DefineComponent<{}, {}, any>
   export const KlayIconChevron: DefineComponent<{}, {}, any>
   export const KlayIconClock: DefineComponent<{}, {}, any>
   export const KlayIconClose: DefineComponent<{}, {}, any>

@@ -117,7 +117,7 @@ function viewMore() {
 </template>
 
 <style lang="sass">
-@import '@/styles/vars.sass'
+@use '@/styles/vars.sass'
 
 .module-governance-proposal-votes
   &__title
@@ -160,5 +160,5 @@ function viewMore() {
     align-items: center
     width: 100%
     height: 82px
-    color: $gray3
+    color: vars.$gray3
 </style>

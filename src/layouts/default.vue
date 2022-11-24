@@ -87,7 +87,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .layout {
   & h1 {
@@ -96,12 +96,12 @@ const menu = computed<HeaderMenuItem[]>(() => {
 
   .address {
     padding: 7px 12px;
-    background: $white;
+    background: vars.$white;
     font-style: normal;
     font-weight: 700;
     line-height: 150%;
     font-size: 12px;
-    color: $dark;
+    color: vars.$dark;
     border-radius: 10px;
     display: flex;
     align-items: center;
