@@ -20,9 +20,13 @@ const href = computed(() => {
     <span v-bem="'call'">
       {{ t('ModuleGovernanceProposalCallToVote.call') }}
     </span>
-    <a :href="href">
+    <a
+      :href="href"
+      target="_blank"
+    >
       <KlayButton
         v-bem="'vote'"
+        target="_blank"
         type="primary"
       >
         {{ t('ModuleGovernanceProposalCallToVote.vote') }}
