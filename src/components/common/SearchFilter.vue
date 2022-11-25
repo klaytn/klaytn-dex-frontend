@@ -61,13 +61,13 @@ const model = useVModel(props, 'modelValue', emit)
 </template>
 
 <style lang="sass">
-@import '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .search-filter
   &__trigger:hover
-    fill: $blue
+    fill: vars.$blue
   &__field
-    width: 160px
+    width: 225px
     &, .s-text-field__input-wrapper
       height: 40px
     label
@@ -75,7 +75,7 @@ const model = useVModel(props, 'modelValue', emit)
       top: 12px
       left: 38px
       line-height: 16px
-      color: $gray2
+      color: vars.$gray2
     &:focus-within label, &:not(.s-text-field_empty) label
       transform: translateY(0)
       opacity: 0
@@ -85,5 +85,5 @@ const model = useVModel(props, 'modelValue', emit)
     &-icon
       position: absolute
       left: 12px
-      stroke: $gray2
+      stroke: vars.$gray2
 </style>

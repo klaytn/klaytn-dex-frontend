@@ -88,7 +88,7 @@ const cleanBody = computed(() => {
 </template>
 
 <style lang="sass">
-@import '@/styles/vars.sass'
+@use '@/styles/vars'
 
 $padding-bottom: 19px
 
@@ -112,7 +112,7 @@ $padding-bottom: 19px
     width: 100%
     height: 88px
     bottom: 0
-    background: linear-gradient(180deg, rgba($white, 0) 0, $white 56px, $white 100%)
+    background: linear-gradient(180deg, rgba(vars.$white, 0) 0, vars.$white 56px, vars.$white 100%)
   &__view-more
     padding: 0 16px !important
 </style>

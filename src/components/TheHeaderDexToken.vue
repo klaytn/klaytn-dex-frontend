@@ -42,7 +42,7 @@ const balancePrice = computed(() => {
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .token {
   background: white;
@@ -54,6 +54,6 @@ const balancePrice = computed(() => {
 }
 
 .price {
-  color: $gray2;
+  color: vars.$gray2;
 }
 </style>

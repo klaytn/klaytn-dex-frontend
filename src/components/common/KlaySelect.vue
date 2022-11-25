@@ -7,23 +7,23 @@ import { SSelect } from '@soramitsu-ui/ui'
 </template>
 
 <style lang="scss">
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .klay-select {
   .s-select-input {
     border-radius: 8px;
-    background: $gray6 !important;
+    background: vars.$gray6 !important;
     border: 1px solid transparent;
     transition: 250ms ease border-color;
     &:hover {
-      background: $gray6;
-      border: 1px solid $blue-light3;
+      background: vars.$gray6;
+      border: 1px solid vars.$blue-light3;
     }
     svg {
       transition: 250ms ease;
     }
     &:hover svg {
-      color: $blue;
+      color: vars.$blue;
     }
   }
 

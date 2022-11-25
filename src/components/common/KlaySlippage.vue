@@ -84,7 +84,7 @@ function select(value: number) {
       font-weight: 700;
       font-size: 14px;
       line-height: 180%;
-      color: $dark;
+      color: vars.$dark;
       margin-right: 5px;
       margin-bottom: 0;
     }
@@ -94,7 +94,7 @@ function select(value: number) {
       font-weight: 700;
       font-size: 14px;
       line-height: 180%;
-      color: $dark;
+      color: vars.$dark;
       margin-left: auto;
       margin-left: 8px;
     }
@@ -119,13 +119,13 @@ function select(value: number) {
 
     & .input {
       margin-left: auto;
-      background: $gray3;
+      background: vars.$gray3;
       border-radius: 8px;
       font-style: normal;
       font-weight: 500;
       font-size: 14px;
       line-height: 180%;
-      color: $dark2;
+      color: vars.$dark2;
       box-shadow: none;
       padding: 3px 8px;
       max-width: 88px;

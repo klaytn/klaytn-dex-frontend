@@ -82,13 +82,13 @@ const loading = ProposalQuery.loading
 </template>
 
 <style lang="scss" module>
-@import '@/styles/vars.sass';
+@use '@/styles/vars';
 
 .details {
-  border-bottom: 1px solid $gray5;
-  @media only screen and (min-width: $md) {
+  border-bottom: 1px solid vars.$gray5;
+  @media only screen and (min-width: vars.$md) {
     border-bottom: none;
-    border-left: 1px solid $gray5;
+    border-left: 1px solid vars.$gray5;
   }
 }
 
@@ -96,7 +96,7 @@ const loading = ProposalQuery.loading
   padding-bottom: 1.5rem;
   & + & {
     padding-top: 1.5rem;
-    border-top: 1px solid $gray5;
+    border-top: 1px solid vars.$gray5;
   }
 }
 </style>

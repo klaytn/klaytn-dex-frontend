@@ -72,7 +72,7 @@ watchDebounced(
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .pair-symbols {
   font-weight: 600;
@@ -82,6 +82,6 @@ watchDebounced(
 .balance {
   font-size: 12px;
   font-weight: 500;
-  color: $gray2;
+  color: vars.$gray2;
 }
 </style>

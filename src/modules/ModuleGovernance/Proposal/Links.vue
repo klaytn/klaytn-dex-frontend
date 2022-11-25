@@ -62,7 +62,7 @@ const snapshotHref = computed(() => {
 </template>
 
 <style lang="sass">
-@import '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .module-governance-proposal-side-column
   &__link
@@ -74,9 +74,9 @@ const snapshotHref = computed(() => {
     & + &
       margin-top: 24px
     span
-      color: $blue
+      color: vars.$blue
     &-icon
       display: inline-block
       margin-left: 5px
-      color: $gray3
+      color: vars.$gray3
 </style>

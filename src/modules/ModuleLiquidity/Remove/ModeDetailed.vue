@@ -81,19 +81,19 @@ const balanceAsBigNum = computed(() => pairUserBalance.value?.decimals(LP_TOKEN_
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .rates {
-  border: 1px solid $gray5;
+  border: 1px solid vars.$gray5;
   border-radius: 8px;
 }
 </style>
 
 <style lang="scss" module>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .balance {
-  color: $gray2;
+  color: vars.$gray2;
   font-size: 12px;
   font-weight: 400;
 }

@@ -26,9 +26,9 @@ const api = useModalApi()
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .error {
-  color: $red;
+  color: vars.$red;
 }
 </style>

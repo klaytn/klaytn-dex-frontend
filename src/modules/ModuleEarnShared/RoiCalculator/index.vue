@@ -186,7 +186,7 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
 <template>
   <SModal v-model:show="showModel">
     <KlayModalCard
-      class="max-w-[420px] lt-sm:mx-2 flex flex-col"
+      class="max-w-[420px] lt-sm:mx-2"
       :title="t('ModuleEarnSharedRoiCalculator.title')"
     >
       <template #body>
@@ -253,7 +253,7 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
               </template>
             </InputCurrencyTemplate>
 
-            <div class="space-x-2">
+            <div class="flex flex-wrap gap-2">
               <KlayButton
                 v-for="amount in [10, 100, 1000]"
                 :key="amount"
@@ -361,7 +361,7 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
 </template>
 
 <style lang="scss" scoped>
-@use '@/styles/vars.sass';
+@use '@/styles/vars';
 
 .label {
   font-weight: 700;
@@ -378,6 +378,7 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
 .details-item {
   display: flex;
   justify-content: space-between;
+  gap: 1rem;
   font-size: 12px;
   font-weight: 500;
 }

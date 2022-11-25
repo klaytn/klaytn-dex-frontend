@@ -25,12 +25,12 @@ const model = useVModel(props, 'modelValue', emit)
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .tabs {
   max-width: 177px;
   width: 100%;
-  background: $gray6;
+  background: vars.$gray6;
   border-radius: 10px;
   padding: 4px;
   display: flex;
@@ -53,8 +53,8 @@ const model = useVModel(props, 'modelValue', emit)
   cursor: pointer;
 
   &--active {
-    background: $blue;
-    color: $white;
+    background: vars.$blue;
+    color: vars.$white;
   }
 }
 </style>

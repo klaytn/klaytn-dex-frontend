@@ -42,9 +42,12 @@ const activeItem = computed(() => {
     distance="8"
   >
     <template #trigger>
-      <div class="md:hidden lt-md:flex items-center gap-1 rounded-lg p-3 bg-white text-xs font-bold">
+      <div
+        :class="$style.trigger"
+        class="md:hidden lt-md:flex items-center gap-1 rounded-lg p-3 bg-white text-xs font-bold"
+      >
         {{ activeItem?.label ?? '' }}
-        <KlayIconCollapseArrow />
+        <KlayIconCollapseArrow :class="$style.triggerIcon" />
       </div>
     </template>
 
@@ -53,6 +56,7 @@ const activeItem = computed(() => {
         v-if="show"
         class="flex flex-col items-center bg-white z-10 rounded-lg shadow-lg p-4 w-[96px]"
       >
+        <div :class="$style.arrowUp" />
         <template
           v-for="item in itemsWithActive"
           :key="item.key"
@@ -70,10 +74,11 @@ const activeItem = computed(() => {
             v-else
             :href="item.href"
             :class="$style.item"
+            target="_blank"
             class="flex items-center space-x-2"
           >
             <span> {{ item.label }} </span>
-            <KlayIconArrowOutward class="icon-link" />
+            <KlayIconArrowOutward :class="$style.iconLink" />
           </a>
         </template>
       </div>
@@ -101,10 +106,11 @@ const activeItem = computed(() => {
         v-else
         :href="item.href"
         :class="$style.item"
+        target="_blank"
         class="flex items-center space-x-2"
       >
         <span> {{ item.label }} </span>
-        <KlayIconArrowOutward class="icon-link" />
+        <KlayIconArrowOutward :class="$style.iconLink" />
       </a>
     </template>
   </div>
@@ -112,6 +118,20 @@ const activeItem = computed(() => {
 
 <style lang="scss" module>
 @use '@/styles/vars';
+
+.trigger:hover .trigger-icon {
+  fill: vars.$blue;
+}
+
+.arrow-up {
+  position: absolute;
+  width: 0;
+  height: 0;
+  top: -6px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid white;
+}
 
 .menu {
   background: vars.$white;

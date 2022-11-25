@@ -48,14 +48,14 @@ const formattedEndDate = computed(() => {
 </template>
 
 <style lang="scss" module>
-@import '@/styles/vars.sass';
+@use '@/styles/vars';
 
 .date {
   & + & {
     margin-top: 1.5rem;
   }
   &-label {
-    color: $gray2;
+    color: vars.$gray2;
   }
 }
 </style>

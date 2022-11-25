@@ -38,7 +38,7 @@ const sortingOptions = computed(() => {
 </template>
 
 <style lang="sass">
-@import '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .module-governance-list-wrap
   display: flex

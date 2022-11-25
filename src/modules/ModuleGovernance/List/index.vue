@@ -118,14 +118,24 @@ function viewMore() {
     <div
       v-else-if="!proposals?.length"
       v-bem="'empty'"
+      class="flex-1 w-full flex justify-center items-center p-4 text-center"
+      :class="$style.empty"
     >
       {{ emptyText }}
     </div>
   </div>
 </template>
 
+<style lang="scss" module>
+@use '@/styles/vars';
+
+.empty {
+  color: vars.$gray3;
+}
+</style>
+
 <style lang="sass">
-@import '@/styles/vars.sass'
+@use '@/styles/vars'
 
 $padding-bottom: 19px
 
@@ -147,11 +157,4 @@ $padding-bottom: 19px
     align-items: center
     min-height: 82px + $padding-bottom
     margin-bottom: - $padding-bottom
-  &__empty
-    display: flex
-    justify-content: center
-    align-items: center
-    width: 100%
-    flex: 1
-    color: $gray3
 </style>
