@@ -59,13 +59,13 @@ const vBem = useBemClass()
     height: 4px
     width: 100%
     border-radius: 2px
-    background: vars.$gray6;
+    background: vars.$gray6
   &__line
     position: absolute
     height: 100%
     width: 100%
     right: 100%
-    background: vars.$gray6;blue
+    background: vars.$gray6
   &__thumb
     position: absolute
     height: 20px
