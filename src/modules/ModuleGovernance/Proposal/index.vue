@@ -82,7 +82,7 @@ const loading = ProposalQuery.loading
 </template>
 
 <style lang="scss" module>
-@use '@/styles/vars.sass';
+@use '@/styles/vars';
 
 .details {
   border-bottom: 1px solid vars.$gray5;

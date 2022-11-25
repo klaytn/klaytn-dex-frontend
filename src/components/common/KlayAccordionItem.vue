@@ -53,7 +53,7 @@ watch(model, (dep) => {
 </template>
 
 <style lang="sass">
-@use '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .klay-accordion-item
   &.s-accordion-item

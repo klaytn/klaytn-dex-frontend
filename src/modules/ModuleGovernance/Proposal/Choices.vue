@@ -77,7 +77,7 @@ function isChoiceNegative(choice: string) {
 </template>
 
 <style lang="scss" module>
-@use '@/styles/vars.sass';
+@use '@/styles/vars';
 
 .line-wrapper {
   background-color: vars.$gray5;

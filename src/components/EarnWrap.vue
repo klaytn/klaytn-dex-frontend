@@ -109,7 +109,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
 </template>
 
 <style lang="sass">
-@use '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .earn-wrap
   display: flex

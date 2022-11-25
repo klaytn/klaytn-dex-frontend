@@ -88,7 +88,7 @@ const cleanBody = computed(() => {
 </template>
 
 <style lang="sass">
-@use '@/styles/vars.sass'
+@use '@/styles/vars'
 
 $padding-bottom: 19px
 

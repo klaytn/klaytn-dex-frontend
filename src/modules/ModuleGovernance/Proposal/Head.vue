@@ -49,7 +49,7 @@ watch(copied, (value) => {
 </template>
 
 <style lang="scss" module>
-@use '@/styles/vars.sass';
+@use '@/styles/vars';
 
 .head {
   border-bottom: 1px solid vars.$gray5;

@@ -361,7 +361,7 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
 </template>
 
 <style lang="scss" scoped>
-@use '@/styles/vars.sass';
+@use '@/styles/vars';
 
 .label {
   font-weight: 700;

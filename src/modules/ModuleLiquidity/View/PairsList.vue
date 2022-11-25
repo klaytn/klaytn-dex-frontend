@@ -44,7 +44,7 @@ const filtered = computed(() =>
 </template>
 
 <style lang="sass" scoped>
-@use '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .empty
   display: flex

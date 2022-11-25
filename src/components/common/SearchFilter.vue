@@ -61,7 +61,7 @@ const model = useVModel(props, 'modelValue', emit)
 </template>
 
 <style lang="sass">
-@use '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .search-filter
   &__trigger:hover

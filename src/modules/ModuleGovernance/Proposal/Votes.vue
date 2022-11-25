@@ -117,7 +117,7 @@ function viewMore() {
 </template>
 
 <style lang="sass">
-@use '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .module-governance-proposal-votes
   &__title

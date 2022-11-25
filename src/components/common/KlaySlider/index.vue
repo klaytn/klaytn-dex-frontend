@@ -44,7 +44,7 @@ const vBem = useBemClass()
 </template>
 
 <style lang="sass">
-@use '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .klay-slider
   position: relative

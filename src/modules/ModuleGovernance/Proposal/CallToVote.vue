@@ -36,7 +36,7 @@ const href = computed(() => {
 </template>
 
 <style lang="sass">
-@use '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .module-governance-proposal-call-to-vote
   display: flex

@@ -17,7 +17,7 @@ const { status } = toRefs(props)
 </template>
 
 <style lang="sass">
-@use '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .module-governance-proposal-status
   display: flex

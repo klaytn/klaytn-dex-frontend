@@ -95,7 +95,7 @@ const formattedEndDate = computed(() => {
 </style>
 
 <style lang="sass">
-@use '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .module-governance-list-proposal
   display: flex

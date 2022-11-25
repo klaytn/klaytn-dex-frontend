@@ -32,7 +32,7 @@ const model = useVModel(props, 'modelValue', emit)
 </template>
 
 <style lang="sass">
-@use '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .klay-tabs
   background: vars.$gray6

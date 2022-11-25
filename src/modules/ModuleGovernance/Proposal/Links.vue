@@ -62,7 +62,7 @@ const snapshotHref = computed(() => {
 </template>
 
 <style lang="sass">
-@use '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .module-governance-proposal-side-column
   &__link

@@ -87,7 +87,7 @@ const model = useVModel(props, 'modelValue', emit)
 </template>
 
 <style lang="scss" module>
-@use '@/styles/vars.sass';
+@use '@/styles/vars';
 
 .header {
   border-bottom: 1px solid vars.$gray5;
@@ -107,7 +107,7 @@ const model = useVModel(props, 'modelValue', emit)
 </style>
 
 <style lang="sass">
-@use '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .sorting-filter
   &__trigger:hover
