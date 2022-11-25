@@ -106,7 +106,7 @@ const formattedEndDate = computed(() => {
   border-top: 2px solid vars.$gray6
   border-bottom: 2px solid vars.$gray6
   transition: 250ms ease background-color
-  @media only screen and (min-width: $md)
+  @media only screen and (min-width: vars.$md)
     flex-direction: row
   & + &
     margin-top: -2px
