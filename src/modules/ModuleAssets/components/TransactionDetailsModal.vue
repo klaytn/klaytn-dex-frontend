@@ -99,10 +99,13 @@ const detailsParsed = computed<null | DetailsParsed>(() => {
 </script>
 
 <template>
-  <SModal v-model:show="showModel">
+  <SModal
+    v-model:show="showModel"
+    class="mx-2"
+  >
     <KlayModalCard
       title="Transaction details"
-      class="w-full sm:w-[344px] lt-sm:mx-2"
+      class="max-w-[344px]"
     >
       <template #body>
         <div class="space-y-4 px-4 pb-5">
@@ -145,10 +148,16 @@ const detailsParsed = computed<null | DetailsParsed>(() => {
                   Amount {{ x }}
                 </template>
                 <template #value-top>
-                  <CurrencyFormatTruncate v-bind="detailsParsed.amounts[x].token" />
+                  <CurrencyFormatTruncate
+                    v-bind="detailsParsed.amounts[x].token"
+                    max-width="auto"
+                  />
                 </template>
                 <template #value-sub>
-                  <CurrencyFormatTruncate v-bind="detailsParsed.amounts[x].usd" />
+                  <CurrencyFormatTruncate
+                    v-bind="detailsParsed.amounts[x].usd"
+                    max-width="auto"
+                  />
                 </template>
               </RowTemplate>
             </template>
@@ -162,7 +171,10 @@ const detailsParsed = computed<null | DetailsParsed>(() => {
                 LP Tokens
               </template>
               <template #value>
-                <CurrencyFormatTruncate v-bind="detailsParsed.liquidity" />
+                <CurrencyFormatTruncate
+                  v-bind="detailsParsed.liquidity"
+                  max-width="auto"
+                />
               </template>
             </RowTemplate>
 
@@ -177,10 +189,16 @@ const detailsParsed = computed<null | DetailsParsed>(() => {
                   Amount {{ detailsParsed[x].token.symbol }}
                 </template>
                 <template #value-top>
-                  <CurrencyFormatTruncate v-bind="detailsParsed[x].token" />
+                  <CurrencyFormatTruncate
+                    v-bind="detailsParsed[x].token"
+                    max-width="auto"
+                  />
                 </template>
                 <template #value-sub>
-                  <CurrencyFormatTruncate v-bind="detailsParsed[x].usd" />
+                  <CurrencyFormatTruncate
+                    v-bind="detailsParsed[x].usd"
+                    max-width="auto"
+                  />
                 </template>
               </RowTemplate>
             </template>

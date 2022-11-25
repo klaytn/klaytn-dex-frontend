@@ -29,37 +29,38 @@ const balanceWithDecimals = computed(() => balance.value?.decimals(props.token))
 </script>
 
 <template>
-  <div class="flex items-center gap-4 px-4 py-3">
+  <div class="flex items-center px-4 py-3">
     <KlayCharAvatar
       :symbol="token.symbol"
       class="mr-2"
       size="36"
     />
 
-    <div class="two-line flex-1">
-      <span> {{ token.symbol }} </span>
-      <span class="amount">
-        <CurrencyFormatTruncate
-          :amount="derivedUsd"
-          usd
-          max-width="50"
-        />
-      </span>
-    </div>
+    <div class="flex-1 flex gap-4 min-w-0">
+      <div class="two-line flex-1">
+        <span> {{ token.symbol }} </span>
+        <span class="amount">
+          <CurrencyFormatTruncate
+            :amount="derivedUsd"
+            usd
+            max-width="50"
+          />
+        </span>
+      </div>
 
-    <div class="two-line flex-2 items-end min-w-0">
-      <CurrencyFormatTruncate
-        class="max-w-full"
-        :amount="balanceWithDecimals"
-        :symbol="token.symbol"
-        max-width="auto"
-      />
-      <span class="amount self-end max-w-30">
+      <div class="two-line flex-2 items-end min-w-0">
         <CurrencyFormatTruncate
-          :amount="balanceInUsd"
-          usd
+          :amount="balanceWithDecimals"
+          :symbol="token.symbol"
+          max-width="auto"
         />
-      </span>
+        <span class="amount self-end max-w-30">
+          <CurrencyFormatTruncate
+            :amount="balanceInUsd"
+            usd
+          />
+        </span>
+      </div>
     </div>
 
     <div>

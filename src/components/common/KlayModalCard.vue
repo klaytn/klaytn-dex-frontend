@@ -14,7 +14,7 @@ const api = useModalApi()
 </script>
 
 <template>
-  <div class="card flex flex-col space-y-5">
+  <div class="card flex flex-col space-y-5 mx-2 lt-sm:w-[calc(100vw_-_1rem)]">
     <div class="head pt-5 px-4 space-x-4">
       <button
         v-if="backArrow"
