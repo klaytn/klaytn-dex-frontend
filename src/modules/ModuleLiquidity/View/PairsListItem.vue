@@ -31,7 +31,7 @@ const poolSharePercent = computed(() => new BigNumber(liquidityTokenBalance.valu
 <template>
   <KlayCollapse v-bind="{ alwaysOpened }">
     <template #head>
-      <div class="head flex items-center gap-2">
+      <div class="head flex flex-wrap items-center gap-2">
         <KlaySymbolsPair
           :token-a="pair.token0.symbol"
           :token-b="pair.token1.symbol"
