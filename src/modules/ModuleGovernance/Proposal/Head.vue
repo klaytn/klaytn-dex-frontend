@@ -52,6 +52,6 @@ watch(copied, (value) => {
 @use '@/styles/vars.sass';
 
 .head {
-  border-bottom: 1px solid $gray5;
+  border-bottom: 1px solid vars.$gray5;
 }
 </style>
