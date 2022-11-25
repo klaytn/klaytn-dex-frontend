@@ -48,6 +48,7 @@ export default defineConfig({
           lg: '1280px',
         },
       },
+      rules: [[/^flex-(\d)$/, ([, d]: any) => ({ flex: `${d} ${d} 0%` })]],
     }),
 
     SvgLoader(),

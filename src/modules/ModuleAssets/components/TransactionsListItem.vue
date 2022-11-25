@@ -69,7 +69,7 @@ const detailsParsed = computed(() => {
     <div class="font-semibold text-sm flex items-center space-x-2">
       <span :class="$style.kind">{{ kindFormatted }}</span>
       <div
-        class="flex items-center"
+        class="flex items-center min-w-0"
         @click.stop
       >
         <template v-if="detailsParsed.kind === 'swap'">
@@ -79,9 +79,11 @@ const detailsParsed = computed(() => {
         </template>
         <template v-else>
           <CurrencyFormatTruncate
+            class="overflow-hidden"
             :symbol="detailsParsed.symbol"
             :amount="detailsParsed.liquidity"
             decimals="18"
+            max-width="auto"
           />
         </template>
       </div>

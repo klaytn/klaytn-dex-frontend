@@ -50,7 +50,14 @@ const {
   amount: resolvedAmount,
 } = useNormalizedComponentProps(props)
 
-const maxWidthPx = computed(() => `${props.maxWidth}px`)
+const maxWidthString = computed(() => {
+  const maxWidthNumber = Number(props.maxWidth)
+  if (!isNaN(maxWidthNumber)) {
+    return maxWidthNumber + 'px'
+  } else {
+    return props.maxWidth
+  }
+})
 
 const formattedAmountWithoutSymbol = computed(() =>
   resolvedAmount.value ? formatCurrency({ amount: resolvedAmount.value, decimals: resolvedDecimals.value }) : null,
@@ -116,7 +123,7 @@ const formattedAmount = computed(
 }
 
 .amount {
-  max-width: v-bind(maxWidthPx);
+  max-width: v-bind(maxWidthString);
   overflow: hidden;
   -o-text-overflow: ellipsis;
   text-overflow: ellipsis;
