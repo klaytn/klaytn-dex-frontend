@@ -42,6 +42,7 @@ const balanceWithDecimals = computed(() => balance.value?.decimals(props.token))
         <CurrencyFormatTruncate
           :amount="derivedUsd"
           usd
+          max-width="50"
         />
       </span>
     </div>
@@ -50,7 +51,7 @@ const balanceWithDecimals = computed(() => balance.value?.decimals(props.token))
       <CurrencyFormatTruncate
         :amount="balanceWithDecimals"
         :symbol="token.symbol"
-        max-width="150"
+        max-width="90"
       />
       <span class="amount self-end max-w-30">
         <CurrencyFormatTruncate

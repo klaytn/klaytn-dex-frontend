@@ -84,7 +84,7 @@ const balanceAsBigNum = computed(() => pairUserBalance.value?.decimals(LP_TOKEN_
 @use '@/styles/vars';
 
 .rates {
-  border: 1px solid $gray5;
+  border: 1px solid vars.$gray5;
   border-radius: 8px;
 }
 </style>

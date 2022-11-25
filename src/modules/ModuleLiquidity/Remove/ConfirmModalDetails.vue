@@ -66,7 +66,7 @@ const liquidityKlay = computed(() => liquidity.value?.decimals({ decimals: NATIV
 @use '@/styles/vars';
 
 .details {
-  border: 1px solid $gray5;
+  border: 1px solid vars.$gray5;
   border-radius: 8px;
 }
 

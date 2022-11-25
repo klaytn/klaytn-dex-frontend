@@ -20,6 +20,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
       label: t('DefaultLayout.menu.assets'),
       kind: 'route',
       routeName: RouteName.Assets,
+      activeWith: [RouteName.Transactions],
     },
     {
       label: t('DefaultLayout.menu.trade'),

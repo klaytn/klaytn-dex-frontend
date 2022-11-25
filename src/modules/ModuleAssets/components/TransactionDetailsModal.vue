@@ -102,7 +102,7 @@ const detailsParsed = computed<null | DetailsParsed>(() => {
   <SModal v-model:show="showModel">
     <KlayModalCard
       title="Transaction details"
-      class="w-[344px]"
+      class="w-full sm:w-[344px] lt-sm:mx-2"
     >
       <template #body>
         <div class="space-y-4 px-4 pb-5">

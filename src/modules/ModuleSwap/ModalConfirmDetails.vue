@@ -99,7 +99,7 @@ const feeForSure = computed(() => {
 @use '@/styles/vars';
 
 .root {
-  border: 1px solid $gray5;
+  border: 1px solid vars.$gray5;
   border-radius: 8px;
 }
 
