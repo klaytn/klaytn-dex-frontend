@@ -27,7 +27,7 @@ const balanceInUsd = computed(() => {
 <template>
   <KlayModalCard
     back-arrow
-    class="w-344px"
+    class="max-w-344px"
     @click:back="emit('cancel')"
   >
     <template #title>

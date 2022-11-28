@@ -105,7 +105,7 @@ const detailsParsed = computed<null | DetailsParsed>(() => {
   >
     <KlayModalCard
       title="Transaction details"
-      class="w-344px"
+      class="max-w-344px"
     >
       <template #body>
         <div class="space-y-4 px-4 pb-5">

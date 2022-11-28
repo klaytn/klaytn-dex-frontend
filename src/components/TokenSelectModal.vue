@@ -91,7 +91,7 @@ function doImport() {
     <KlayModalCard
       no-padding
       title="Select a token"
-      class="w-344px h-640px flex flex-col min-h-0 max-h-90vh overflow-hidden"
+      class="max-w-344px h-640px flex flex-col min-h-0 max-h-90vh overflow-hidden"
     >
       <template #body>
         <div class="flex-1 min-h-0 flex flex-col">
