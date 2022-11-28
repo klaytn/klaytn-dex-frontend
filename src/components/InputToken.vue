@@ -84,6 +84,15 @@ function setToMax() {
   invariant(balanceAsToken.value)
   model.value = balanceAsToken.value
 }
+
+const isWarning = computedEager(() => {
+  return !!(
+    !props.isLoading &&
+    balanceAsToken.value &&
+    modelDebounced.value &&
+    modelDebounced.value.isGreaterThan(balanceAsToken.value)
+  )
+})
 </script>
 
 <template>
@@ -101,6 +110,7 @@ function setToMax() {
         v-model="modelDebounced"
         :decimals="tokenData.decimals"
         :disabled="isLoading"
+        :warning="isWarning"
       />
     </template>
 
