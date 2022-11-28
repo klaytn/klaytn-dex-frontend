@@ -10,7 +10,7 @@ const props = withDefaults(
     symbolPosition?: 'left' | 'right'
     symbolDelimiter?: string
     decimals: number
-    warning: boolean
+    warning?: boolean
   }>(),
   { symbolPosition: 'right' },
 )
