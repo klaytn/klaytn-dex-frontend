@@ -189,7 +189,10 @@ function openRoiCalculator() {
         @click:roi-calculator="openRoiCalculator"
       />
     </template>
-    <div v-if="loading">
+    <div
+      v-if="loading"
+      class="w-full flex justify-center"
+    >
       <KlayLoader />
     </div>
 
