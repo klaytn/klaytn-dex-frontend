@@ -186,7 +186,7 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
 <template>
   <SModal v-model:show="showModel">
     <KlayModalCard
-      class="max-w-[420px] lt-sm:mx-2"
+      class="w-420px lt-sm:mx-2"
       :title="t('ModuleEarnSharedRoiCalculator.title')"
     >
       <template #body>

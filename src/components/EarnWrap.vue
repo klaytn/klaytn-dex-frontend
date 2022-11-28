@@ -71,7 +71,7 @@ const menuActiveClass = 'earn-wrap__head-button--active'
 
 <template>
   <div v-bem>
-    <div class="flex flex-wrap items-center gap-3 mx-4 md:mx-6 py-4 md:h-[74px]">
+    <div class="flex flex-wrap items-center gap-3 mx-4 md:mx-6 py-4 md:h-74px">
       <div class="lt-md:w-full">
         <RouterLink
           v-bem="'head-button'"

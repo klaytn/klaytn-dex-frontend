@@ -54,7 +54,7 @@ const activeItem = computed(() => {
     <template #popper="{ show }">
       <div
         v-if="show"
-        class="flex flex-col items-center bg-white z-10 rounded-lg shadow-lg p-4 w-[96px]"
+        class="flex flex-col items-center bg-white z-10 rounded-lg shadow-lg p-4 w-96px"
       >
         <div :class="$style.arrowUp" />
         <template

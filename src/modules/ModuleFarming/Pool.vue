@@ -274,7 +274,7 @@ function openRoiCalculator() {
               </template>
             </InputCurrencyTemplate>
           </div>
-          <div class="h-[72px] flex items-center">
+          <div class="h-72px flex items-center">
             <KlayButton
               class="lt-md:w-full md:w-50"
               @click="triggerLpAddNavigation()"

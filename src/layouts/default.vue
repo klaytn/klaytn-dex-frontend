@@ -55,7 +55,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
     <TheNegativeNativeTokenGuard />
 
     <main class="layout flex justify-center">
-      <div class="lt-sm:w-full md:w-full sm:lt-md:w-[452px] lt-sm:px-2 lt-md:py-4 sm:lt-md:px-4 md:px-10 md:py-8">
+      <div class="lt-sm:w-full md:w-full sm:lt-md:w-452px lt-sm:px-2 lt-md:py-4 sm:lt-md:px-4 md:px-10 md:py-8">
         <header class="flex items-center justify-between mb-8">
           <div class="lg:flex-1">
             <router-link :to="{ name: RouteName.Swap }">
@@ -67,7 +67,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
             <HeaderMenu :items="menu" />
           </div>
 
-          <div class="w-[306px] lg:flex-1 flex justify-end">
+          <div class="w-306px lg:flex-1 flex justify-end">
             <TheHeaderDexToken />
             <TheHeaderWallet />
           </div>
