@@ -74,7 +74,9 @@ const menu = computed<HeaderMenuItem[]>(() => {
         </header>
         <RouterView />
       </div>
-      <div class="toasts-mount fixed lt-sm:w-full md:w-full sm:lt-md:w-[452px] h-full top-36px lt-sm:px-2 lt-md:py-4 sm:lt-md:px-4 md:px-10 md:py-8">
+      <div
+        class="toasts-mount fixed lt-sm:w-full md:w-full sm:lt-md:w-[452px] h-full top-36px lt-sm:px-2 lt-md:py-4 sm:lt-md:px-4 md:px-10 md:py-8"
+      >
         <div class="relative">
           <SToastsDisplay
             :to="(null as any)"
