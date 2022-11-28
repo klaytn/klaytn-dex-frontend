@@ -119,7 +119,6 @@ const emit = defineEmits(['update:modelValue', 'click:max'])
   font-weight: 600;
   font-size: 30px;
   line-height: 1.3rem;
-  color: vars.$dark2;
   background: transparent;
   border: none;
   min-width: 0;

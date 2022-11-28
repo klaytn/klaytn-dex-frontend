@@ -10,6 +10,7 @@ const props = withDefaults(
     symbolPosition?: 'left' | 'right'
     symbolDelimiter?: string
     decimals: number
+    warning: boolean
   }>(),
   { symbolPosition: 'right' },
 )
@@ -33,5 +34,20 @@ const { inputRef } = useCurrencyInput({
 </script>
 
 <template>
-  <input ref="inputRef">
+  <input
+    ref="inputRef"
+    :class="[$style.input, { [$style.warning]: warning }]"
+  >
 </template>
+
+<style lang="scss" module>
+@use '@/styles/vars';
+
+.input {
+  color: vars.$dark2;
+}
+
+.warning {
+  color: vars.$red
+}
+</style>
