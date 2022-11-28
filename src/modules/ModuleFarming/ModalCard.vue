@@ -107,7 +107,7 @@ const loading = toRef(operationState, 'pending')
 
 <template>
   <KlayModalCard
-    class="max-w-[420px] lt-sm:mx-2"
+    class="w-420px lt-sm:mx-2"
     :title="label"
   >
     <div class="space-y-4">

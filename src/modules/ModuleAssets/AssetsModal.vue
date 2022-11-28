@@ -42,7 +42,7 @@ function doImport() {
 
     <KlayModalCard
       v-show="!showImportConfirmation"
-      class="w-344px h-640px"
+      class="max-w-344px h-640px"
     >
       <template #title>
         Add a token

@@ -59,7 +59,7 @@ const loading = ProposalQuery.loading
       </div>
       <div
         :class="$style.details"
-        class="lt-md:order-first lt-md:w-full md:w-[300px] flex flex-col flex-shrink-0 min-height-[100%] p-6"
+        class="lt-md:order-first lt-md:w-full md:w-300px flex flex-col flex-shrink-0 min-height-[100%] p-6"
       >
         <div :class="$style.section">
           <ModuleGovernanceProposalChoices :proposal="proposal" />

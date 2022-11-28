@@ -116,7 +116,7 @@ const reduce = () => {
 <template>
   <KlayModalCard
     :title="label"
-    class="max-w-[420px] lt-sm:mx-2"
+    class="w-420px lt-sm:mx-2"
   >
     <div class="space-y-4">
       <InputCurrencyTemplate bottom>

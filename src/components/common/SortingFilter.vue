@@ -59,7 +59,7 @@ const model = useVModel(props, 'modelValue', emit)
       <template #popper="{ show }">
         <div
           v-if="show"
-          class="flex flex-col bg-white z-10 rounded-lg shadow-lg w-[160px]"
+          class="flex flex-col bg-white z-10 rounded-lg shadow-lg w-160px"
         >
           <div
             class="text-sm px-4 py-2"
