@@ -48,6 +48,6 @@ const { inputRef } = useCurrencyInput({
 }
 
 .warning {
-  color: vars.$red
+  color: vars.$red;
 }
 </style>

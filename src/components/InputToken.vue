@@ -86,7 +86,12 @@ function setToMax() {
 }
 
 const isWarning = computedEager(() => {
-  return !!(!props.isLoading && balanceAsToken.value && modelDebounced.value && modelDebounced.value.isGreaterThan(balanceAsToken.value))
+  return !!(
+    !props.isLoading &&
+    balanceAsToken.value &&
+    modelDebounced.value &&
+    modelDebounced.value.isGreaterThan(balanceAsToken.value)
+  )
 })
 </script>
 

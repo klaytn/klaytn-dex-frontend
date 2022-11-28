@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { WeiAsToken } from '@/core';
+import { WeiAsToken } from '@/core'
 import { useTradeStore } from '@/modules/ModuleTradeShared/trade-store'
-import { useMinimalTokensApi } from '@/utils/minimal-tokens-api';
-import { buildPair, TOKEN_TYPES } from '@/utils/pair';
-import BigNumber from 'bignumber.js';
-import { storeToRefs } from 'pinia';
+import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
+import { buildPair, TOKEN_TYPES } from '@/utils/pair'
+import BigNumber from 'bignumber.js'
+import { storeToRefs } from 'pinia'
 
 const dexStore = useDexStore()
 const liquidityAddStore = useLiquidityAddStore()
