@@ -72,8 +72,7 @@ function goToFarms({ pair: { name: pairName } }: LiquidityPairsPosition) {
     </h3>
 
     <ModuleLiquidityViewPairsList
-      v-if="isLoaded"
-      :positions="result!.user?.liquidityPositions"
+      :positions="result?.user?.liquidityPositions || []"
       @click:add="goToAddLiquidity($event)"
       @click:remove="goToRemoveLiquidity($event)"
       @click:deposit="goToFarms($event)"
