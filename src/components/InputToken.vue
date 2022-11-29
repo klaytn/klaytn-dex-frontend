@@ -19,6 +19,8 @@ interface Props {
   setByBalance?: boolean
   // FIXME not by design
   estimated?: boolean
+  showWarning?: boolean
+
 }
 
 interface Emits {
@@ -88,6 +90,7 @@ function setToMax() {
 const isWarning = computedEager(() => {
   return !!(
     !props.isLoading &&
+    props.showWarning &&
     balanceAsToken.value &&
     modelDebounced.value &&
     modelDebounced.value.isGreaterThan(balanceAsToken.value)
