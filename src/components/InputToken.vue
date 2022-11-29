@@ -20,7 +20,6 @@ interface Props {
   // FIXME not by design
   estimated?: boolean
   showWarning?: boolean
-
 }
 
 interface Emits {
