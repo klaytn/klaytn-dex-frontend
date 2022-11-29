@@ -33,7 +33,7 @@ const wallets = computed<Wallet[]>(() => {
   <SModal v-model:show="openModal">
     <KlayModalCard
       title="Connect Wallet"
-      class="max-w-344px"
+      class="w-344px"
     >
       <template #body>
         <div>
