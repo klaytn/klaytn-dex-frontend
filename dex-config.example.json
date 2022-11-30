@@ -2,8 +2,8 @@
   "network": {
     "chainName": "Klaytn Baobab",
     "chainId": 1001,
-    "rpcUrl": "https://api.baobab.klaytn.net:8651/",
-    "blockExplorerUrl": "https://baobab.scope.klaytn.com/"
+    "rpcUrl": "https://api.baobab.klaytn.net:8651",
+    "blockExplorerUrl": "https://baobab.scope.klaytn.com"
   },
   "tokens": [
     {
