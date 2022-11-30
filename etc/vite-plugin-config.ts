@@ -80,7 +80,7 @@ const SCHEMA_CONFIG_RAW: JSONSchemaType<ConfigRaw> = {
     },
     snapshotSpace: { type: 'string' },
     uriDashboards: SCHEMA_URI,
-    uriGuide: SCHEMA_URI,
+    uriConnectWalletGuide: SCHEMA_URI,
   },
   required: [
     'network',
@@ -91,7 +91,7 @@ const SCHEMA_CONFIG_RAW: JSONSchemaType<ConfigRaw> = {
     'subgraphs',
     'uriDashboards',
     'snapshotSpace',
-    'uriGuide',
+    'uriConnectWalletGuide',
   ],
   additionalProperties: false,
 }
@@ -164,7 +164,7 @@ function parseConfig(raw: ConfigRaw): ConfigParsed {
     tokens: raw.tokens,
     smartcontracts: raw.smartcontracts,
     uriDashboards: parseURL(raw.uriDashboards),
-    uriGuide: parseURL(raw.uriDashboards),
+    uriConnectWalletGuide: parseURL(raw.uriDashboards),
     snapshotSpace: raw.snapshotSpace,
     tokenDex,
     tokenNative,

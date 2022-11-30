@@ -96,5 +96,5 @@
   },
   "uriDashboards": "https://klaytn-dashboard.dev.klaytn.tachi.soramitsu.co.jp",
   "snapshotSpace": "test-klaytn-dex.eth",
-  "uriGuide": "https://github.com/klaytn/klaytn-dex-frontend/blob/dev/docs/guide.md"
+  "uriConnectWalletGuide": "https://github.com/klaytn/klaytn-dex-frontend/blob/dev/docs/guide.md"
 }

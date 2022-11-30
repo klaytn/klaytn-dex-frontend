@@ -29,5 +29,5 @@ export interface ConfigParsed {
    */
   snapshotSpace: string
   uriDashboards: string
-  uriGuide: string
+  uriConnectWalletGuide: string
 }

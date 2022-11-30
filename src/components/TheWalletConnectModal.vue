@@ -29,8 +29,6 @@ const wallets = computed<Wallet[]>(() => {
     },
   ]
 })
-
-const connectWalletGuideUrl = CONFIG.uriGuide + '#connect-wallet'
 </script>
 
 <template>
@@ -72,7 +70,7 @@ const connectWalletGuideUrl = CONFIG.uriGuide + '#connect-wallet'
             <p>
               <a
                 class="learn-how"
-                :href="connectWalletGuideUrl"
+                :href="CONFIG.uriConnectWalletGuide"
                 target="_blank"
               >Learn How to Connect</a>
             </p>
