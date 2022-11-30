@@ -192,22 +192,18 @@ function openRoiCalculator() {
         </template>
 
         <template v-else>
-          <div>
-            <div class="input-label">
+          <div :class="$style.input">
+            <div :class="$style.inputLabel">
               {{ t('ModuleStakingPool.staked', { symbol: pool.stakeToken.symbol }) }}
             </div>
 
             <InputCurrencyTemplate right>
               <template #input>
-                <CurrencyFormat
-                  v-slot="{ formatted }"
+                <CurrencyFormatTruncate
+                  :class="$style.inputValue"
                   :amount="pool.staked"
-                >
-                  <input
-                    readonly
-                    :value="formatted"
-                  >
-                </CurrencyFormat>
+                  max-width="auto"
+                />
               </template>
 
               <template #right>
@@ -238,22 +234,18 @@ function openRoiCalculator() {
             </InputCurrencyTemplate>
           </div>
 
-          <div>
-            <div class="input-label">
+          <div :class="$style.input">
+            <div :class="$style.inputLabel">
               {{ t('ModuleStakingPool.earned', { symbol: pool.rewardToken.symbol }) }}
             </div>
 
             <InputCurrencyTemplate right>
               <template #input>
-                <CurrencyFormat
-                  v-slot="{ formatted }"
+                <CurrencyFormatTruncate
+                  :class="$style.inputValue"
                   :amount="pool.earned"
-                >
-                  <input
-                    readonly
-                    :value="formatted"
-                  >
-                </CurrencyFormat>
+                  max-width="auto"
+                />
               </template>
 
               <template #right>
@@ -280,6 +272,7 @@ function openRoiCalculator() {
         </KlayExternalLink>
         <AddToWallet
           v-if="dexStore.active.kind === 'named'"
+          class="text-xs"
           :connected="dexStore.active.wallet"
           @click="addRewardTokenToWallet(pool)"
         />
@@ -318,21 +311,26 @@ function openRoiCalculator() {
   />
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss" module>
 @use '@/styles/vars';
 
-.add-to-kaikas {
-  cursor: pointer;
-  &:hover {
-    color: vars.$blue;
-  }
-}
+.input {
+  width: 388px;
+  max-width: 100%;
 
-.input-label {
-  font-weight: 500;
-  font-size: 12px;
-  color: vars.$gray2;
-  margin-bottom: 16px;
+  &-label {
+    font-weight: 500;
+    font-size: 12px;
+    color: vars.$gray2;
+    margin-bottom: 16px;
+  }
+
+  &-value {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 36px;
+  }
 }
 </style>
 

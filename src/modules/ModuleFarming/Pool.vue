@@ -4,7 +4,6 @@ import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
-import { KlayIconLink } from '~klay-icons'
 import { CONSTANT_FARMING_DECIMALS } from './utils'
 import {
   Wei,
@@ -226,15 +225,11 @@ function openRoiCalculator() {
             <span :class="$style.inputLabel"> Staked LP Tokens </span>
             <InputCurrencyTemplate right>
               <template #input>
-                <CurrencyFormat
-                  v-slot="{ formatted }"
+                <CurrencyFormatTruncate
+                  :class="$style.inputValue"
                   :amount="pool.staked"
-                >
-                  <input
-                    :value="formatted"
-                    readonly
-                  >
-                </CurrencyFormat>
+                  max-width="auto"
+                />
               </template>
 
               <template #right>
@@ -255,16 +250,11 @@ function openRoiCalculator() {
             </div>
             <InputCurrencyTemplate right>
               <template #input>
-                <CurrencyFormat
-                  v-slot="{ formatted }"
+                <CurrencyFormatTruncate
+                  :class="$style.inputValue"
                   :amount="pool.earned"
-                  decimals="6"
-                >
-                  <input
-                    :value="formatted"
-                    readonly
-                  >
-                </CurrencyFormat>
+                  max-width="auto"
+                />
               </template>
 
               <template #right>
@@ -331,28 +321,21 @@ function openRoiCalculator() {
 @use '@/styles/vars';
 
 .input {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
+  width: 388px;
+  max-width: 100%;
 
-.input-label {
-  font-weight: 500;
-  font-size: 12px;
-  color: vars.$gray2;
-  margin-bottom: 16px;
-}
-
-.link-with-icon {
-  display: flex;
-  align-items: center;
-
-  & > :first-child {
+  &-label {
+    font-weight: 500;
     font-size: 12px;
+    color: vars.$gray2;
+    margin-bottom: 16px;
   }
-  & > :last-child {
-    color: vars.$gray3;
-    margin-left: 8px;
+
+  &-value {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 36px;
   }
 }
 </style>
