@@ -145,7 +145,7 @@ function parseConfig(raw: ConfigRaw): ConfigParsed {
     return token
   }
 
-  const parseURL = (url: string): string => {
+  const trimTrailingSlash = (url: string): string => {
     return url.replace(/\/$/, '')
   }
 
@@ -154,21 +154,21 @@ function parseConfig(raw: ConfigRaw): ConfigParsed {
 
   const parsed: ConfigParsed = {
     subgraphs: {
-      exchange: parseURL(raw.subgraphs.exchange),
-      farming: parseURL(raw.subgraphs.farming),
-      staking: parseURL(raw.subgraphs.staking),
-      snapshot: parseURL(raw.subgraphs.snapshot),
+      exchange: trimTrailingSlash(raw.subgraphs.exchange),
+      farming: trimTrailingSlash(raw.subgraphs.farming),
+      staking: trimTrailingSlash(raw.subgraphs.staking),
+      snapshot: trimTrailingSlash(raw.subgraphs.snapshot),
     },
     tokens: raw.tokens,
     smartcontracts: raw.smartcontracts,
-    uriDashboards: parseURL(raw.uriDashboards),
+    uriDashboards: trimTrailingSlash(raw.uriDashboards),
     snapshotSpace: raw.snapshotSpace,
     tokenDex,
     tokenNative,
     network: {
       ...raw.network,
-      rpcUrl: parseURL(raw.network.rpcUrl),
-      blockExplorerUrl: parseURL(raw.network.blockExplorerUrl),
+      rpcUrl: trimTrailingSlash(raw.network.rpcUrl),
+      blockExplorerUrl: trimTrailingSlash(raw.network.blockExplorerUrl),
       nativeToken: tokenNative,
     },
   }
