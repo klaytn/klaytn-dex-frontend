@@ -145,19 +145,30 @@ function parseConfig(raw: ConfigRaw): ConfigParsed {
     return token
   }
 
+  const trimTrailingSlash = (url: string): string => {
+    return url.replace(/\/$/, '')
+  }
+
   const tokenNative = findTokenOrFail('native')
   const tokenDex = findTokenOrFail('dex')
 
   const parsed: ConfigParsed = {
-    subgraphs: raw.subgraphs,
+    subgraphs: {
+      exchange: trimTrailingSlash(raw.subgraphs.exchange),
+      farming: trimTrailingSlash(raw.subgraphs.farming),
+      staking: trimTrailingSlash(raw.subgraphs.staking),
+      snapshot: trimTrailingSlash(raw.subgraphs.snapshot),
+    },
     tokens: raw.tokens,
     smartcontracts: raw.smartcontracts,
-    uriDashboards: raw.uriDashboards,
+    uriDashboards: trimTrailingSlash(raw.uriDashboards),
     snapshotSpace: raw.snapshotSpace,
     tokenDex,
     tokenNative,
     network: {
       ...raw.network,
+      rpcUrl: trimTrailingSlash(raw.network.rpcUrl),
+      blockExplorerUrl: trimTrailingSlash(raw.network.blockExplorerUrl),
       nativeToken: tokenNative,
     },
   }
