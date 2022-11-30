@@ -114,18 +114,22 @@ const emit = defineEmits(['update:modelValue', 'click:max'])
   grid-row: 1 / 3;
 }
 
-.input-wrapper :deep(input) {
-  font-style: normal;
-  font-weight: 600;
-  font-size: 30px;
-  line-height: 1.3rem;
-  background: transparent;
-  border: none;
+.input-wrapper {
   min-width: 0;
-  width: 100%;
 
-  &:focus {
-    outline: none;
+  &:deep(input) {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 1.3rem;
+    background: transparent;
+    border: none;
+    min-width: 0;
+    width: 100%;
+
+    &:focus {
+      outline: none;
+    }
   }
 }
 </style>
