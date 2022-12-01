@@ -95,5 +95,6 @@
     "snapshot": "https://hub.snapshot.org/graphql"
   },
   "uriDashboards": "https://klaytn-dashboard.dev.klaytn.tachi.soramitsu.co.jp",
-  "snapshotSpace": "test-klaytn-dex.eth"
+  "snapshotSpace": "test-klaytn-dex.eth",
+  "uriConnectWalletGuide": "https://github.com/klaytn/klaytn-dex-frontend/blob/dev/docs/guide.md"
 }

@@ -80,6 +80,7 @@ const SCHEMA_CONFIG_RAW: JSONSchemaType<ConfigRaw> = {
     },
     snapshotSpace: { type: 'string' },
     uriDashboards: SCHEMA_URI,
+    uriConnectWalletGuide: SCHEMA_URI,
   },
   required: [
     'network',
@@ -90,6 +91,7 @@ const SCHEMA_CONFIG_RAW: JSONSchemaType<ConfigRaw> = {
     'subgraphs',
     'uriDashboards',
     'snapshotSpace',
+    'uriConnectWalletGuide',
   ],
   additionalProperties: false,
 }
@@ -145,8 +147,8 @@ function parseConfig(raw: ConfigRaw): ConfigParsed {
     return token
   }
 
-  const trimTrailingSlash = (url: string): string => {
-    return url.replace(/\/$/, '')
+  const trimTrailingSlash = (str: string): string => {
+    return str.replace(/\/$/, '')
   }
 
   const tokenNative = findTokenOrFail('native')
@@ -162,6 +164,7 @@ function parseConfig(raw: ConfigRaw): ConfigParsed {
     tokens: raw.tokens,
     smartcontracts: raw.smartcontracts,
     uriDashboards: trimTrailingSlash(raw.uriDashboards),
+    uriConnectWalletGuide: trimTrailingSlash(raw.uriConnectWalletGuide),
     snapshotSpace: raw.snapshotSpace,
     tokenDex,
     tokenNative,
