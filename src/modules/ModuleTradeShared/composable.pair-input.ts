@@ -1,7 +1,8 @@
-import { Address, Wei, WeiAsToken } from '@/core'
+import { Address, isAddress, Wei, WeiAsToken } from '@/core'
 import { JSON_SERIALIZER } from '@/utils/json-serializer'
 import { emptyPair, buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
 import { Serializer } from '@vueuse/core'
+import { useRouteParams } from '@vueuse/router'
 import BigNumber from 'bignumber.js'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -18,6 +19,47 @@ export function useLocalStorageAddrsOrigin(key: string, isActive?: Ref<boolean>)
     },
     set: (v) => {
       raw.value = v
+    },
+  })
+
+  return offable
+}
+
+export function useRouteAddrsOrigin({
+  baseToken,
+  additionalBaseToken,
+  isActive,
+}: {
+  baseToken?: Address
+  additionalBaseToken?: Address
+  isActive?: Ref<boolean>
+}) {
+  const offable = computed({
+    get: () => {
+      const params = {
+        tokenA: useRouteParams('tokenA'),
+        tokenB: useRouteParams('tokenB'),
+      }
+
+      const pair = computed((): TokensPair<Address> | TokensPair<null> => {
+        const tokenA =
+          (typeof params.tokenA.value === 'string' && isAddress(params.tokenA.value) && params.tokenA.value) || null
+        const tokenB =
+          (typeof params.tokenB.value === 'string' && isAddress(params.tokenB.value) && params.tokenB.value) || null
+
+        if (tokenA && tokenB) return { tokenA, tokenB }
+        else if (tokenA && baseToken && tokenA !== baseToken) return { tokenA, tokenB: baseToken }
+        else if (tokenA && additionalBaseToken) return { tokenA, tokenB: additionalBaseToken }
+        else return emptyPair()
+      })
+
+      if (isActive?.value ?? true) return pair.value
+      return emptyPair()
+    },
+    set: (v) => {
+      const route = useRoute()
+      route.params.tokenA = v.tokenA || ''
+      route.params.tokenB = v.tokenB || ''
     },
   })
 

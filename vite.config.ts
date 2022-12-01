@@ -76,6 +76,9 @@ export default defineConfig({
         '@vueuse/core',
         '@vueuse/math',
         {
+          '@vueuse/router': ['useRouteParams'],
+        },
+        {
           '@vue-kakuyaku/core': [
             'useParamScope',
             'useDeferredScope',

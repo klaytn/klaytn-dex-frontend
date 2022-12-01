@@ -1,5 +1,5 @@
 /* eslint-disable max-nested-callbacks */
-import { deadlineFiveMinutesFromNow, Address, Wei, WeiAsToken } from '@/core'
+import { deadlineFiveMinutesFromNow, Address, Wei, WeiAsToken, NATIVE_TOKEN_FULL, DEX_TOKEN_FULL } from '@/core'
 import {
   usePairAddress,
   usePairBalance,
@@ -16,6 +16,7 @@ import {
   usePairInput,
   useEstimatedLayer,
   useLocalStorageAddrsOrigin,
+  useRouteAddrsOrigin,
 } from '@/modules/ModuleTradeShared/composable.pair-input'
 import { RouteName } from '@/types'
 import { TokenAddressAndDesiredValue } from '@/core/domain/liquidity'
@@ -170,7 +171,24 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   // #region Selection
 
-  const selection = usePairInput({ addrsOrigin: useLocalStorageAddrsOrigin('liquidity-add-selection', isActiveRoute) })
+  const routeAddrsOrigin = useRouteAddrsOrigin({
+    baseToken: NATIVE_TOKEN_FULL.address,
+    additionalBaseToken: DEX_TOKEN_FULL.address,
+    isActive: isActiveRoute,
+  })
+  const localStorageAddrsOrigin = useLocalStorageAddrsOrigin('liquidity-add-selection', isActiveRoute)
+
+  const addrsOrigin = computed({
+    get() {
+      if (routeAddrsOrigin.value.tokenA && routeAddrsOrigin.value.tokenB) return routeAddrsOrigin.value
+      return localStorageAddrsOrigin.value
+    },
+    set(value) {
+      localStorageAddrsOrigin.value = value
+    },
+  })
+
+  const selection = usePairInput({ addrsOrigin })
   const { tokens, resetInput, tokenValues } = selection
   const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
   const addrsReadonly = readonly(selection.addrs)
