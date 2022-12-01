@@ -147,8 +147,8 @@ function parseConfig(raw: ConfigRaw): ConfigParsed {
     return token
   }
 
-  const trimTrailingSlash = (url: string): string => {
-    return url.replace(/\/$/, '')
+  const trimTrailingSlash = (str: string): string => {
+    return str.replace(/\/$/, '')
   }
 
   const tokenNative = findTokenOrFail('native')
