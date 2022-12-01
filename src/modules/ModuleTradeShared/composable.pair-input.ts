@@ -39,21 +39,19 @@ export function useRouteAddrsOrigin({
     tokenB: useRouteParams('tokenB'),
   }
 
-  const pair = computed((): TokensPair<Address> | TokensPair<null> => {
-    const tokenA =
-      (typeof params.tokenA.value === 'string' && isAddress(params.tokenA.value) && params.tokenA.value) || null
-    const tokenB =
-      (typeof params.tokenB.value === 'string' && isAddress(params.tokenB.value) && params.tokenB.value) || null
-
-    if (tokenA && tokenB) return { tokenA, tokenB }
-    else if (tokenA && baseToken && tokenA !== baseToken) return { tokenA, tokenB: baseToken }
-    else if (tokenA && additionalBaseToken) return { tokenA, tokenB: additionalBaseToken }
-    else return emptyPair()
-  })
-
   const offable = computed({
     get: () => {
-      if (isActive?.value ?? true) return pair.value
+      if (!isActive?.value) return emptyPair()
+
+      const tokenA =
+        (typeof params.tokenA.value === 'string' && isAddress(params.tokenA.value) && params.tokenA.value) || null
+      const tokenB =
+        (typeof params.tokenB.value === 'string' && isAddress(params.tokenB.value) && params.tokenB.value) || null
+
+      if (tokenA && tokenB) return { tokenA, tokenB }
+      else if (tokenA && baseToken && tokenA !== baseToken) return { tokenA, tokenB: baseToken }
+      else if (tokenA && additionalBaseToken) return { tokenA, tokenB: additionalBaseToken }
+
       return emptyPair()
     },
     set: (v) => {
