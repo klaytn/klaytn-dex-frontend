@@ -49,8 +49,8 @@ export function useRouteAddrsOrigin({
         (typeof params.tokenB.value === 'string' && isAddress(params.tokenB.value) && params.tokenB.value) || null
 
       if (tokenA && tokenB) return { tokenA, tokenB }
-      else if (tokenA && baseToken && tokenA !== baseToken) return { tokenA, tokenB: baseToken }
-      else if (tokenA && additionalBaseToken) return { tokenA, tokenB: additionalBaseToken }
+      if (tokenA && baseToken && !areAddressesEqual(tokenA, baseToken)) return { tokenA, tokenB: baseToken }
+      if (tokenA && additionalBaseToken) return { tokenA, tokenB: additionalBaseToken }
 
       return emptyPair()
     },
