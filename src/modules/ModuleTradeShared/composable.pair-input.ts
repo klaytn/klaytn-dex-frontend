@@ -39,7 +39,7 @@ export function useRouteAddrsOrigin({
     tokenB: useRouteParams('tokenB'),
   }
 
-  const offable = computed({
+  return computed({
     get: () => {
       if (!isActive?.value) return emptyPair()
 
@@ -59,8 +59,6 @@ export function useRouteAddrsOrigin({
       params.tokenB.value = v.tokenB
     },
   })
-
-  return offable
 }
 
 export function usePairInput(options?: { addrsOrigin?: Ref<TokensPair<Address | null>> }) {
