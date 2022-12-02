@@ -3,6 +3,7 @@ import type { Address, BigNumberIsh, Deadline } from './types'
 import Wei from './entities/Wei'
 import BigNumber from 'bignumber.js'
 import invariant from 'tiny-invariant'
+import { TokensPair } from '@/utils/pair'
 
 export const isAddress = ethersIsAddress as (raw: string) => raw is Address
 
@@ -44,8 +45,22 @@ export function parseBigIntIsh(value: BigNumberIsh): bigint {
   return BigInt(bigNumberValue.toFixed(0))
 }
 
-export function areAddressesEqual(left: Address, right: Address): boolean {
+export function areAddressesEqual(a: Address, b: Address): boolean {
   // TODO could be optimized with char-by-char case insensitive comparison
   // taking into account that the whole set of characters is `[A-Fa-f0-9]`
-  return left.toLowerCase() === right.toLowerCase()
+  return a.toLowerCase() === b.toLowerCase()
+}
+
+export function isAddrTokenPairEmpty(pair: TokensPair<Address | null>) {
+  return pair.tokenA === null && pair.tokenB === null
+}
+
+export function areAddressesOrNullEqual(a: Address | null, b: Address | null): boolean {
+  if (a !== null && b !== null) return areAddressesEqual(a, b)
+  if (a === null && b === null) return true
+  return false
+}
+
+export function areAddrTokenPairsEqual(a: TokensPair<Address | null>, b: TokensPair<Address | null>) {
+  return areAddressesOrNullEqual(a.tokenA, b.tokenA) && areAddressesOrNullEqual(a.tokenB, b.tokenB)
 }

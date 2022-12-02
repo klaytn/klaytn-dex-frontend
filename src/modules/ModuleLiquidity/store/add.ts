@@ -7,7 +7,7 @@ import {
   useNullablePairBalanceComponents,
   computeEstimatedPoolShare,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
-import { buildPair, mirrorTokenType, nonNullPair, TokensPair, TokenType } from '@/utils/pair'
+import { buildPair, emptyPair, mirrorTokenType, nonNullPair, TokensPair, TokenType } from '@/utils/pair'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -22,6 +22,7 @@ import { RouteName } from '@/types'
 import { TokenAddressAndDesiredValue } from '@/core/domain/liquidity'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { match, P } from 'ts-pattern'
+import { areAddrTokenPairsEqual, isAddrTokenPairEmpty } from '@/core/utils'
 
 type SupplyTokens = TokensPair<TokenAddressAndDesiredValue>
 
@@ -178,17 +179,30 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   })
   const localStorageAddrsOrigin = useLocalStorageAddrsOrigin('liquidity-add-selection', isActiveRoute)
 
-  const addrsOrigin = computed({
-    get() {
-      if (routeAddrsOrigin.value.tokenA && routeAddrsOrigin.value.tokenB) return routeAddrsOrigin.value
-      return localStorageAddrsOrigin.value
+  watch(
+    routeAddrsOrigin,
+    (x) => {
+      console.log(
+        'watch routeAddrsOrigin',
+        x,
+        localStorageAddrsOrigin.value,
+        areAddrTokenPairsEqual(x, localStorageAddrsOrigin.value),
+      )
+      if (!areAddrTokenPairsEqual(x, localStorageAddrsOrigin.value) && !isAddrTokenPairEmpty(x)) {
+        localStorageAddrsOrigin.value = x
+      }
     },
-    set(value) {
-      localStorageAddrsOrigin.value = value
-    },
+    { immediate: true },
+  )
+
+  watch(localStorageAddrsOrigin, (x) => {
+    if (!areAddrTokenPairsEqual(x, routeAddrsOrigin.value)) {
+      console.log('watch localStorageAddrsOrigin', x)
+      routeAddrsOrigin.value = emptyPair()
+    }
   })
 
-  const selection = usePairInput({ addrsOrigin })
+  const selection = usePairInput({ addrsOrigin: localStorageAddrsOrigin })
   const { tokens, resetInput, tokenValues } = selection
   const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
   const addrsReadonly = readonly(selection.addrs)

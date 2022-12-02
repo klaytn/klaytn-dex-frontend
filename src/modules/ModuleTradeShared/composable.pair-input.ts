@@ -1,4 +1,5 @@
 import { Address, isAddress, Wei, WeiAsToken } from '@/core'
+import { areAddressesEqual } from '@/core/utils'
 import { JSON_SERIALIZER } from '@/utils/json-serializer'
 import { emptyPair, buildPair, mirrorTokenType, TokensPair, TokenType } from '@/utils/pair'
 import { Serializer } from '@vueuse/core'
@@ -8,11 +9,11 @@ import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 
 export function useLocalStorageAddrsOrigin(key: string, isActive?: Ref<boolean>) {
-  const raw = useLocalStorage<TokensPair<Address | null>>(key + '-addrs', emptyPair(), {
+  const raw = useLocalStorage<TokensPair<Address | null>>(key + '-addrs', null, {
     serializer: JSON_SERIALIZER as Serializer<any>,
   })
 
-  const offable = computed({
+  const offable = computed<TokensPair<Address | null>>({
     get: () => {
       if (isActive?.value ?? true) return raw.value
       return emptyPair()
@@ -39,16 +40,25 @@ export function useRouteAddrsOrigin({
     tokenB: useRouteParams('tokenB'),
   }
 
-  return computed<null | TokensPair<Address>>({
+  return computed<TokensPair<Address | null>>({
     get: () => {
-      if (!isActive?.value) return null
+      if (isActive?.value) {
+        const addressOrNull = (x: unknown) => (typeof x === 'string' && isAddress(x) ? x : null)
+        const { tokenA, tokenB } = buildPair((type) => addressOrNull(params[type].value))
 
-      const addressOrNull = (x: unknown) => isAddress(x) ? x : null
-      const tokens = buildPair((type) => addressOrNull(params[type].value))
-
-      if (tokenA && tokenB) return { tokenA, tokenB }
-      if (tokenA && baseToken && !areAddressesEqual(tokenA, baseToken)) return { tokenA, tokenB: baseToken }
-      if (tokenA && additionalBaseToken) return { tokenA, tokenB: additionalBaseToken }
+        if (tokenA) {
+          if (tokenB) {
+            return { tokenA, tokenB }
+          }
+          if (baseToken && !areAddressesEqual(tokenA, baseToken)) {
+            return { tokenA, tokenB: baseToken }
+          }
+          if (additionalBaseToken) {
+            return { tokenA, tokenB: additionalBaseToken }
+          }
+          return { tokenA, tokenB: null }
+        }
+      }
 
       return emptyPair()
     },
@@ -57,7 +67,7 @@ export function useRouteAddrsOrigin({
         params.tokenA.value = v.tokenA
         params.tokenB.value = v.tokenB
       } else {
-        params.tokenA.value = params.tokenB.value = undefined
+        params.tokenA.value = params.tokenB.value = null
       }
     },
   })
