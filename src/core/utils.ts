@@ -3,7 +3,6 @@ import type { Address, BigNumberIsh, Deadline } from './types'
 import Wei from './entities/Wei'
 import BigNumber from 'bignumber.js'
 import invariant from 'tiny-invariant'
-import { TokensPair } from '@/utils/pair'
 
 export const isAddress = ethersIsAddress as (raw: string) => raw is Address
 
