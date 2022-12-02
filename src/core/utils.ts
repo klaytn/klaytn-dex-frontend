@@ -55,7 +55,7 @@ export function isAddrTokenPairEmpty(pair: TokensPair<Address | null>) {
   return pair.tokenA === null && pair.tokenB === null
 }
 
-export function areAddressesOrNullEqual(a: Address | null, b: Address | null): boolean {
+export function areNullableAddressesEqual(a: Address | null, b: Address | null): boolean {
   if (a !== null && b !== null) return areAddressesEqual(a, b)
   if (a === null && b === null) return true
   return false
