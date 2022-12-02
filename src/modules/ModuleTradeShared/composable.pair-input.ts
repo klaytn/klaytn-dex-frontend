@@ -39,7 +39,7 @@ export function useRouteAddrsOrigin({
     tokenB: useRouteParams('tokenB'),
   }
 
-  return computed({
+  return computed<null | TokensPair<Address>>({
     get: () => {
       if (!isActive?.value) return emptyPair()
 
