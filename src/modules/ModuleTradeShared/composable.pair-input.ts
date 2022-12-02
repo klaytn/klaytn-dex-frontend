@@ -43,10 +43,8 @@ export function useRouteAddrsOrigin({
     get: () => {
       if (!isActive?.value) return null
 
-      const tokenA =
-        (typeof params.tokenA.value === 'string' && isAddress(params.tokenA.value) && params.tokenA.value) || null
-      const tokenB =
-        (typeof params.tokenB.value === 'string' && isAddress(params.tokenB.value) && params.tokenB.value) || null
+      const addressOrNull = (x: unknown) => isAddress(x) ? x : null
+      const tokens = buildPair((type) => addressOrNull(params[type].value))
 
       if (tokenA && tokenB) return { tokenA, tokenB }
       if (tokenA && baseToken && !areAddressesEqual(tokenA, baseToken)) return { tokenA, tokenB: baseToken }
