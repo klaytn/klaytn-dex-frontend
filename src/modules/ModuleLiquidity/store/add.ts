@@ -22,7 +22,7 @@ import { RouteName } from '@/types'
 import { TokenAddressAndDesiredValue } from '@/core/domain/liquidity'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { match, P } from 'ts-pattern'
-import { areAddrTokenPairsEqual, isAddrTokenPairEmpty } from '@/core/utils'
+import { areAddrTokenPairsEqual, isAddrTokenPairEmpty } from '@/utils/pair'
 
 type SupplyTokens = TokensPair<TokenAddressAndDesiredValue>
 

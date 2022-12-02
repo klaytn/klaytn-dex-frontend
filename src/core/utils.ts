@@ -51,16 +51,8 @@ export function areAddressesEqual(a: Address, b: Address): boolean {
   return a.toLowerCase() === b.toLowerCase()
 }
 
-export function isAddrTokenPairEmpty(pair: TokensPair<Address | null>) {
-  return pair.tokenA === null && pair.tokenB === null
-}
-
 export function areNullableAddressesEqual(a: Address | null, b: Address | null): boolean {
   if (a !== null && b !== null) return areAddressesEqual(a, b)
   if (a === null && b === null) return true
   return false
-}
-
-export function areAddrTokenPairsEqual(a: TokensPair<Address | null>, b: TokensPair<Address | null>) {
-  return areAddressesOrNullEqual(a.tokenA, b.tokenA) && areAddressesOrNullEqual(a.tokenB, b.tokenB)
 }
