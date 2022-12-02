@@ -41,7 +41,7 @@ export function useRouteAddrsOrigin({
 
   return computed<null | TokensPair<Address>>({
     get: () => {
-      if (!isActive?.value) return emptyPair()
+      if (!isActive?.value) return null
 
       const tokenA =
         (typeof params.tokenA.value === 'string' && isAddress(params.tokenA.value) && params.tokenA.value) || null
