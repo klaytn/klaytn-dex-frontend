@@ -182,12 +182,6 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   watch(
     routeAddrsOrigin,
     (x) => {
-      console.log(
-        'watch routeAddrsOrigin',
-        x,
-        localStorageAddrsOrigin.value,
-        areAddrTokenPairsEqual(x, localStorageAddrsOrigin.value),
-      )
       if (!areAddrTokenPairsEqual(x, localStorageAddrsOrigin.value) && !isAddrTokenPairEmpty(x)) {
         localStorageAddrsOrigin.value = x
       }
@@ -197,7 +191,6 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   watch(localStorageAddrsOrigin, (x) => {
     if (!areAddrTokenPairsEqual(x, routeAddrsOrigin.value)) {
-      console.log('watch localStorageAddrsOrigin', x)
       routeAddrsOrigin.value = emptyPair()
     }
   })
