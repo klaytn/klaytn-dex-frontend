@@ -53,8 +53,12 @@ export function useRouteAddrsOrigin({
       return emptyPair()
     },
     set: (v) => {
-      params.tokenA.value = v.tokenA
-      params.tokenB.value = v.tokenB
+      if (v) {
+        params.tokenA.value = v.tokenA
+        params.tokenB.value = v.tokenB
+      } else {
+        params.tokenA.value = params.tokenB.value = undefined
+      }
     },
   })
 }
