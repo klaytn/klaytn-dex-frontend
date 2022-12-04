@@ -7,6 +7,7 @@ import { useRouteParams } from '@vueuse/router'
 import BigNumber from 'bignumber.js'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
+import { Router } from 'vue-router'
 
 export function useLocalStorageAddrsOrigin(key: string, isActive?: Ref<boolean>) {
   const raw = useLocalStorage<TokensPair<Address | null>>(key + '-addrs', null, {
@@ -26,47 +27,54 @@ export function useLocalStorageAddrsOrigin(key: string, isActive?: Ref<boolean>)
   return offable
 }
 
-export function useRouteAddrsOrigin({
+export function useAddrRouteParams({
+  router,
   baseToken,
   additionalBaseToken,
   isActive,
 }: {
+  router: Router
   baseToken?: Address
   additionalBaseToken?: Address
   isActive?: Ref<boolean>
-}) {
+}): { pair: Readonly<Ref<TokensPair<Address | null>>>; clear: () => void } {
   const params = {
     tokenA: useRouteParams('tokenA'),
     tokenB: useRouteParams('tokenB'),
   }
 
-  return computed<TokensPair<Address | null>>({
-    get: () => {
-      if (isActive?.value) {
-        const addressOrNull = (x: unknown) => (typeof x === 'string' && isAddress(x) ? x : null)
-        const { tokenA, tokenB } = buildPair((type) => addressOrNull(params[type].value))
+  const pair = computed<TokensPair<Address | null>>(() => {
+    if (isActive?.value) {
+      const addressOrNull = (x: unknown) => (typeof x === 'string' && isAddress(x) ? x : null)
+      const { tokenA, tokenB } = buildPair((type) => addressOrNull(params[type].value))
 
-        if (tokenA) {
-          if (tokenB) {
-            return { tokenA, tokenB }
-          }
-          if (baseToken && !areAddressesEqual(tokenA, baseToken)) {
-            return { tokenA, tokenB: baseToken }
-          }
-          if (additionalBaseToken) {
-            return { tokenA, tokenB: additionalBaseToken }
-          }
-          return { tokenA, tokenB: null }
+      if (tokenA) {
+        if (tokenB) {
+          return { tokenA, tokenB }
         }
+        if (baseToken && !areAddressesEqual(tokenA, baseToken)) {
+          return { tokenA, tokenB: baseToken }
+        }
+        if (additionalBaseToken) {
+          return { tokenA, tokenB: additionalBaseToken }
+        }
+        return { tokenA, tokenB: null }
       }
+    }
 
-      return emptyPair()
-    },
-    set: (v) => {
-      params.tokenA.value = v.tokenA
-      params.tokenB.value = v.tokenB
-    },
+    return emptyPair()
   })
+
+  function clear() {
+    router.replace({
+      params: {
+        tokenA: '',
+        tokenB: '',
+      },
+    })
+  }
+
+  return { pair, clear }
 }
 
 export function usePairInput(options?: { addrsOrigin?: Ref<TokensPair<Address | null>> }) {

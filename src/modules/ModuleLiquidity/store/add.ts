@@ -7,7 +7,7 @@ import {
   useNullablePairBalanceComponents,
   computeEstimatedPoolShare,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
-import { buildPair, emptyPair, mirrorTokenType, nonNullPair, TokensPair, TokenType } from '@/utils/pair'
+import { buildPair, mirrorTokenType, nonNullPair, TokensPair, TokenType } from '@/utils/pair'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -16,7 +16,7 @@ import {
   usePairInput,
   useEstimatedLayer,
   useLocalStorageAddrsOrigin,
-  useRouteAddrsOrigin,
+  useAddrRouteParams,
 } from '@/modules/ModuleTradeShared/composable.pair-input'
 import { RouteName } from '@/types'
 import { TokenAddressAndDesiredValue } from '@/core/domain/liquidity'
@@ -165,6 +165,7 @@ function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null> }) {
 
 export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const route = useRoute()
+  const router = useRouter()
   const tokensStore = useTokensStore()
   const dexStore = useDexStore()
 
@@ -172,7 +173,8 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   // #region Selection
 
-  const routeAddrsOrigin = useRouteAddrsOrigin({
+  const routeAddrsParams = useAddrRouteParams({
+    router,
     baseToken: NATIVE_TOKEN_FULL.address,
     additionalBaseToken: DEX_TOKEN_FULL.address,
     isActive: isActiveRoute,
@@ -180,7 +182,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const localStorageAddrsOrigin = useLocalStorageAddrsOrigin('liquidity-add-selection', isActiveRoute)
 
   watch(
-    routeAddrsOrigin,
+    routeAddrsParams.pair,
     (x) => {
       if (!areAddrTokenPairsEqual(x, localStorageAddrsOrigin.value) && !isAddrTokenPairEmpty(x)) {
         localStorageAddrsOrigin.value = x
@@ -190,10 +192,14 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   )
 
   watch(localStorageAddrsOrigin, (x) => {
-    if (!areAddrTokenPairsEqual(x, routeAddrsOrigin.value)) {
-      routeAddrsOrigin.value = emptyPair()
+    if (!areAddrTokenPairsEqual(x, routeAddrsParams.pair.value)) {
+      routeAddrsParams.clear()
     }
   })
+
+  setTimeout(() => {
+    routeAddrsParams.clear()
+  }, 5000)
 
   const selection = usePairInput({ addrsOrigin: localStorageAddrsOrigin })
   const { tokens, resetInput, tokenValues } = selection
