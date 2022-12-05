@@ -1,6 +1,6 @@
 <script setup lang="ts" name="DefaultLayout">
 import { type HeaderMenuItem, RouteName } from '@/types'
-import { KlayIconDexLogo } from '~klay-icons'
+import { KlayIconDexLogo, KlayIconDexLogoMobile } from '~klay-icons'
 import { SToastsDisplay } from '@soramitsu-ui/ui'
 import HeaderMenu from '@/components/HeaderMenu.vue'
 import CONFIG from '~config'
@@ -20,6 +20,7 @@ const menu = computed<HeaderMenuItem[]>(() => {
       label: t('DefaultLayout.menu.assets'),
       kind: 'route',
       routeName: RouteName.Assets,
+      activeWith: [RouteName.Transactions],
     },
     {
       label: t('DefaultLayout.menu.trade'),
@@ -53,23 +54,30 @@ const menu = computed<HeaderMenuItem[]>(() => {
     <TheWalletConnectModal />
     <TheNegativeNativeTokenGuard />
 
-    <main class="layout">
-      <header class="relative">
-        <div class="col">
-          <router-link :to="{ name: RouteName.Swap }">
-            <KlayIconDexLogo />
-          </router-link>
-        </div>
-        <div class="col col-center">
-          <HeaderMenu :items="menu" />
-        </div>
+    <main class="layout flex justify-center">
+      <div class="lt-sm:w-full md:w-full sm:lt-md:w-452px lt-sm:px-2 lt-md:py-4 sm:lt-md:px-4 md:px-10 md:py-8">
+        <header class="flex items-center justify-between mb-8">
+          <div class="lg:flex-1">
+            <router-link :to="{ name: RouteName.Swap }">
+              <KlayIconDexLogo class="lt-md:hidden" />
+              <KlayIconDexLogoMobile class="md:hidden" />
+            </router-link>
+          </div>
+          <div class="flex justify-center lg:flex-1">
+            <HeaderMenu :items="menu" />
+          </div>
 
-        <div class="col col-right">
-          <TheHeaderDexToken />
-          <TheHeaderWallet />
-        </div>
-
-        <div class="toasts-mount absolute right-0 bottom-0 w-full">
+          <div class="w-306px lg:flex-1 flex justify-end">
+            <TheHeaderDexToken />
+            <TheHeaderWallet />
+          </div>
+        </header>
+        <RouterView />
+      </div>
+      <div
+        class="toasts-mount fixed lt-sm:w-full md:w-full sm:lt-md:w-[452px] h-full top-36px lt-sm:px-2 lt-md:py-4 sm:lt-md:px-4 md:px-10 md:py-8"
+      >
+        <div class="relative">
           <SToastsDisplay
             :to="(null as any)"
             absolute
@@ -77,51 +85,27 @@ const menu = computed<HeaderMenuItem[]>(() => {
             horizontal="right"
           />
         </div>
-      </header>
-
-      <RouterView />
+      </div>
     </main>
   </TheDexInitGuard>
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .layout {
-  padding: 40px 82px;
-
   & h1 {
     font-size: 30px;
   }
 
-  & header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
-
-    & .col {
-      width: 33.33%;
-      display: flex;
-    }
-
-    & .col-center {
-      justify-content: center;
-    }
-
-    & .col-right {
-      justify-content: flex-end;
-    }
-  }
-
   .address {
     padding: 7px 12px;
-    background: $white;
+    background: vars.$white;
     font-style: normal;
     font-weight: 700;
     line-height: 150%;
     font-size: 12px;
-    color: $dark;
+    color: vars.$dark;
     border-radius: 10px;
     display: flex;
     align-items: center;

@@ -40,7 +40,16 @@ export default defineConfig({
 
     VueSetupExtend(),
 
-    UnoCSS(),
+    UnoCSS({
+      theme: {
+        breakpoints: {
+          sm: '452px',
+          md: '960px',
+          lg: '1280px',
+        },
+      },
+      rules: [[/^flex-(\d)$/, ([, d]: any) => ({ flex: `${d} ${d} 0%` })]],
+    }),
 
     SvgLoader(),
 

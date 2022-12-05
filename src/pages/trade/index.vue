@@ -121,7 +121,7 @@ function refresh() {
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .wrap {
   background: linear-gradient(0deg, #ffffff, #ffffff),
@@ -137,7 +137,7 @@ h1 {
   font-weight: 700;
   font-size: 18px;
   line-height: 150%;
-  color: $dark;
+  color: vars.$dark;
 }
 
 .link {
@@ -145,10 +145,10 @@ h1 {
   font-weight: 700;
   font-size: 18px;
   line-height: 150%;
-  color: $gray2;
+  color: vars.$gray2;
 
   &--active {
-    color: $dark;
+    color: vars.$dark;
   }
 }
 

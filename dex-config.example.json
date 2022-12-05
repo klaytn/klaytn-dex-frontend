@@ -2,8 +2,8 @@
   "network": {
     "chainName": "Klaytn Baobab",
     "chainId": 1001,
-    "rpcUrl": "https://api.baobab.klaytn.net:8651/",
-    "blockExplorerUrl": "https://baobab.scope.klaytn.com/"
+    "rpcUrl": "https://api.baobab.klaytn.net:8651",
+    "blockExplorerUrl": "https://baobab.scope.klaytn.com"
   },
   "tokens": [
     {
@@ -95,5 +95,6 @@
     "snapshot": "https://hub.snapshot.org/graphql"
   },
   "uriDashboards": "https://klaytn-dashboard.dev.klaytn.tachi.soramitsu.co.jp",
-  "snapshotSpace": "test-klaytn-dex.eth"
+  "snapshotSpace": "test-klaytn-dex.eth",
+  "uriConnectWalletGuide": "https://github.com/klaytn/klaytn-dex-frontend/blob/dev/docs/guide.md"
 }

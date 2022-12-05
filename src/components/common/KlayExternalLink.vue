@@ -10,7 +10,7 @@ defineProps<{
   <a
     target="_blank"
     :href="href"
-    class="inline-flex items-center space-x-1"
+    class="inline-flex items-center gap-1.5 text-xs"
   >
     <span>
       <slot />

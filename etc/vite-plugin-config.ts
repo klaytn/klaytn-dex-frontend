@@ -80,6 +80,7 @@ const SCHEMA_CONFIG_RAW: JSONSchemaType<ConfigRaw> = {
     },
     snapshotSpace: { type: 'string' },
     uriDashboards: SCHEMA_URI,
+    uriConnectWalletGuide: SCHEMA_URI,
   },
   required: [
     'network',
@@ -90,6 +91,7 @@ const SCHEMA_CONFIG_RAW: JSONSchemaType<ConfigRaw> = {
     'subgraphs',
     'uriDashboards',
     'snapshotSpace',
+    'uriConnectWalletGuide',
   ],
   additionalProperties: false,
 }
@@ -145,19 +147,31 @@ function parseConfig(raw: ConfigRaw): ConfigParsed {
     return token
   }
 
+  const trimTrailingSlash = (str: string): string => {
+    return str.replace(/\/$/, '')
+  }
+
   const tokenNative = findTokenOrFail('native')
   const tokenDex = findTokenOrFail('dex')
 
   const parsed: ConfigParsed = {
-    subgraphs: raw.subgraphs,
+    subgraphs: {
+      exchange: trimTrailingSlash(raw.subgraphs.exchange),
+      farming: trimTrailingSlash(raw.subgraphs.farming),
+      staking: trimTrailingSlash(raw.subgraphs.staking),
+      snapshot: trimTrailingSlash(raw.subgraphs.snapshot),
+    },
     tokens: raw.tokens,
     smartcontracts: raw.smartcontracts,
-    uriDashboards: raw.uriDashboards,
+    uriDashboards: trimTrailingSlash(raw.uriDashboards),
+    uriConnectWalletGuide: trimTrailingSlash(raw.uriConnectWalletGuide),
     snapshotSpace: raw.snapshotSpace,
     tokenDex,
     tokenNative,
     network: {
       ...raw.network,
+      rpcUrl: trimTrailingSlash(raw.network.rpcUrl),
+      blockExplorerUrl: trimTrailingSlash(raw.network.blockExplorerUrl),
       nativeToken: tokenNative,
     },
   }

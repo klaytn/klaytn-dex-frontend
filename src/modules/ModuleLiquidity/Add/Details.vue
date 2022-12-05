@@ -95,7 +95,7 @@ const formattedCommission = POOL_COMMISSION.toFormat()
             <template #popper="{ show }">
               <div
                 v-if="show"
-                class="commission-card bg-white z-10 rounded-lg shadow-lg p-4 w-[305px]"
+                class="commission-card bg-white z-10 rounded-lg shadow-lg p-4 w-305px"
               >
                 By adding liquidity you'll earn <b>{{ formattedCommission }}</b> of all trades on this pair proportional
                 to your share of the pool. Fees are added to the pool, accrue in real time and can be claimed by

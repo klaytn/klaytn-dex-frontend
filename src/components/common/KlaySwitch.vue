@@ -7,19 +7,19 @@ import { SSwitch } from '@soramitsu-ui/ui'
 </template>
 
 <style lang="scss">
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .klay-switch.s-switch {
   .s-switch {
     &__button {
-      background-color: $gray5 !important;
+      background-color: vars.$gray5 !important;
       &,
       &:before {
         transition: 250ms ease !important;
       }
       &:checked,
       &:hover {
-        background-color: $blue !important;
+        background-color: vars.$blue !important;
       }
     }
     &__label {

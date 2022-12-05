@@ -29,7 +29,7 @@ const show = computed({
 
 <template>
   <SModal v-model:show="show">
-    <KlayModalCard class="w-[344px]">
+    <KlayModalCard class="w-344px">
       <template #title>
         Confirm Supply
       </template>

@@ -4,7 +4,6 @@ import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
-import { KlayIconCalculator, KlayIconLink } from '~klay-icons'
 import { CONSTANT_FARMING_DECIMALS } from './utils'
 import {
   Wei,
@@ -175,7 +174,10 @@ function openRoiCalculator() {
 </script>
 
 <template>
-  <KlayAccordionItem v-model="expanded">
+  <KlayAccordionItem
+    v-model="expanded"
+    class="module-farming-pool"
+  >
     <template #title>
       <PoolHead
         :name="pool.name"
@@ -186,73 +188,48 @@ function openRoiCalculator() {
         @click:roi-calculator="openRoiCalculator"
       />
     </template>
+    <div
+      v-if="loading"
+      class="w-full flex justify-center"
+    >
+      <KlayLoader />
+    </div>
 
-    <div class="min-h-84px flex flex-col justify-center">
-      <template v-if="expanded">
-        <div
-          v-if="loading"
-          class="h-full flex items-center justify-center"
-        >
-          <KlayLoader />
-        </div>
+    <template v-else>
+      <div class="flex md:items-end lt-md:flex-col gap-4 md:gap-6">
+        <WalletConnectButton
+          v-if="!dexStore.isWalletConnected"
+          size="md"
+        />
 
-        <div
-          v-else
-          class="space-y-4"
-        >
-          <div
-            v-if="!dexStore.isWalletConnected"
-            class="flex items-center space-x-6"
+        <template v-else-if="!enabled">
+          <KlayButton
+            class="md:w-60"
+            type="primary"
+            @click="enable()"
           >
-            <WalletConnectButton
-              v-if="!dexStore.isWalletConnected"
-              size="md"
-            />
-          </div>
-          <div
-            v-else-if="!enabled"
-            class="flex items-center space-x-6"
+            Enable {{ pool.name }} balance
+          </KlayButton>
+
+          <KlayButton
+            class="md:w-50"
+            :loading="isLpAddNavigationPending"
+            @click="triggerLpAddNavigation()"
           >
-            <KlayButton
-              class="w-60"
-              type="primary"
-              @click="enable()"
-            >
-              Enable {{ pool.name }} balance
-            </KlayButton>
+            Get {{ pool.name }} LP
+          </KlayButton>
+        </template>
 
-            <KlayButton
-              class="w-50"
-              :loading="isLpAddNavigationPending"
-              @click="triggerLpAddNavigation()"
-            >
-              Get {{ pool.name }} LP
-            </KlayButton>
-          </div>
-
-          <div
-            v-else
-            class="enabled-grid"
-          >
-            <span class="input-label">Staked LP Tokens</span>
-
-            <div class="input-label flex items-center">
-              <span class="flex-1">Earned DEX Tokens</span>
-            </div>
-
-            <span />
-
+        <template v-else>
+          <div :class="$style.input">
+            <span :class="$style.inputLabel"> Staked LP Tokens </span>
             <InputCurrencyTemplate right>
               <template #input>
-                <CurrencyFormat
-                  v-slot="{ formatted }"
+                <CurrencyFormatTruncate
+                  :class="$style.inputValue"
                   :amount="pool.staked"
-                >
-                  <input
-                    :value="formatted"
-                    readonly
-                  >
-                </CurrencyFormat>
+                  max-width="auto"
+                />
               </template>
 
               <template #right>
@@ -266,19 +243,18 @@ function openRoiCalculator() {
                 </div>
               </template>
             </InputCurrencyTemplate>
-
+          </div>
+          <div :class="$style.input">
+            <div :class="$style.inputLabel">
+              Earned DEX Tokens
+            </div>
             <InputCurrencyTemplate right>
               <template #input>
-                <CurrencyFormat
-                  v-slot="{ formatted }"
+                <CurrencyFormatTruncate
+                  :class="$style.inputValue"
                   :amount="pool.earned"
-                  decimals="6"
-                >
-                  <input
-                    :value="formatted"
-                    readonly
-                  >
-                </CurrencyFormat>
+                  max-width="auto"
+                />
               </template>
 
               <template #right>
@@ -290,36 +266,27 @@ function openRoiCalculator() {
                 </KlayButton>
               </template>
             </InputCurrencyTemplate>
-
+          </div>
+          <div class="h-72px flex items-center">
             <KlayButton
-              class="w-50"
+              class="lt-md:w-full md:w-50"
               @click="triggerLpAddNavigation()"
             >
               Get {{ pool.name }} LP
             </KlayButton>
           </div>
+        </template>
+      </div>
 
-          <div class="flex items-center space-x-4">
-            <a
-              class="link-with-icon"
-              target="_blank"
-              :href="makeExplorerLinkToAccount(ADDRESS_FARMING)"
-            >
-              <span>View Contract</span>
-              <KlayIconLink />
-            </a>
-            <a
-              class="link-with-icon"
-              target="_blank"
-              :href="makeExplorerLinkToAccount(pool.pairId)"
-            >
-              <span>See Pair Info</span>
-              <KlayIconLink />
-            </a>
-          </div>
-        </div>
-      </template>
-    </div>
+      <div class="flex items-center flex-wrap gap-4 mt-6">
+        <KlayExternalLink :href="makeExplorerLinkToAccount(ADDRESS_FARMING)">
+          View Contract
+        </KlayExternalLink>
+        <KlayExternalLink :href="makeExplorerLinkToAccount(pool.pairId)">
+          See Pair Info
+        </KlayExternalLink>
+      </div>
+    </template>
   </KlayAccordionItem>
 
   <StakeUnstakeModal
@@ -350,65 +317,36 @@ function openRoiCalculator() {
   />
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss" module>
 @use '@/styles/vars';
 
-.input-label {
-  font-size: 12px;
-}
+.input {
+  width: 388px;
+  max-width: 100%;
 
-.loader-wrapper {
-  height: 82px;
-}
-
-.title-name {
-  font-size: 16px;
-}
-
-.stats-item {
   &-label {
     font-weight: 500;
     font-size: 12px;
     color: vars.$gray2;
-    line-height: 100%;
+    margin-bottom: 16px;
   }
 
   &-value {
+    font-style: normal;
     font-weight: 600;
-    font-size: 16px;
-    color: vars.$dark;
-    margin-top: 2px;
-    margin-bottom: 12px;
+    font-size: 30px;
+    line-height: 36px;
   }
 }
+</style>
 
-.calculator-icon {
-  color: vars.$gray3;
-  height: 18px;
+<style lang="scss">
+@use '@/styles/vars';
 
-  &:hover {
-    color: vars.$blue;
-  }
-}
-
-.enabled-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  column-gap: 24px;
-  row-gap: 8px;
-  align-items: center;
-}
-
-.link-with-icon {
-  display: flex;
-  align-items: center;
-
-  & > :first-child {
-    font-size: 12px;
-  }
-  & > :last-child {
-    color: vars.$gray3;
-    margin-left: 8px;
+.module-farming-pool .klay-accordion-item__chevron-wrapper {
+  height: 56px;
+  @media only screen and (min-width: vars.$md) {
+    height: 100%;
   }
 }
 </style>

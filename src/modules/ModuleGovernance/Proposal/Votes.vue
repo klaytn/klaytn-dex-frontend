@@ -117,7 +117,7 @@ function viewMore() {
 </template>
 
 <style lang="sass">
-@import '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .module-governance-proposal-votes
   &__title
@@ -128,7 +128,7 @@ function viewMore() {
     display: flex
     flex-direction: column
     padding: 0 16px
-    border: 1px solid $gray5
+    border: 1px solid vars.$gray5
     border-radius: 8px
   &__vote
     position: relative
@@ -137,7 +137,7 @@ function viewMore() {
     align-items: center
     height: 54px
     &+&
-      border-top: 1px solid $gray5
+      border-top: 1px solid vars.$gray5
     &-voter, &-vp
       width: calc(50% - 150px)
     &-vp
@@ -160,5 +160,5 @@ function viewMore() {
     align-items: center
     width: 100%
     height: 82px
-    color: $gray3
+    color: vars.$gray3
 </style>

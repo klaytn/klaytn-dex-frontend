@@ -116,11 +116,11 @@ const isButtonLoading = logicAnd(isImportedTokenSelected, toRef(props, 'areImpor
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .btn-empty {
-  background: $blue;
-  color: $white;
+  background: vars.$blue;
+  color: vars.$white;
   border-radius: 8px;
   padding: 12px 12px;
   font-weight: 700;
@@ -129,7 +129,7 @@ const isButtonLoading = logicAnd(isImportedTokenSelected, toRef(props, 'areImpor
 
 .btn-filled {
   height: 40px;
-  background: $white;
+  background: vars.$white;
   border-radius: 8px;
   box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.07);
 
@@ -160,7 +160,7 @@ const isButtonLoading = logicAnd(isImportedTokenSelected, toRef(props, 'areImpor
       font-weight: 600;
       font-size: 14px;
       line-height: 17px;
-      color: $dark2;
+      color: vars.$dark2;
       margin-left: 8px;
     }
   }

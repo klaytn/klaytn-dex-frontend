@@ -72,8 +72,7 @@ function goToFarms({ pair: { name: pairName } }: LiquidityPairsPosition) {
     </h3>
 
     <ModuleLiquidityViewPairsList
-      v-if="isLoaded"
-      :positions="result!.user?.liquidityPositions"
+      :positions="result?.user?.liquidityPositions || []"
       @click:add="goToAddLiquidity($event)"
       @click:remove="goToRemoveLiquidity($event)"
       @click:deposit="goToFarms($event)"
@@ -82,7 +81,7 @@ function goToFarms({ pair: { name: pairName } }: LiquidityPairsPosition) {
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .title {
   text-align: left;
@@ -90,6 +89,6 @@ function goToFarms({ pair: { name: pairName } }: LiquidityPairsPosition) {
   font-weight: 700;
   font-size: 14px;
   line-height: 17px;
-  color: $dark2;
+  color: vars.$dark2;
 }
 </style>

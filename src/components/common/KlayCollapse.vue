@@ -42,12 +42,12 @@ const isOpen = ref(false)
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .collapse {
-  border: 1px solid $gray6;
+  border: 1px solid vars.$gray6;
   border-radius: 8px;
-  background: $white;
+  background: vars.$white;
 }
 
 .head {
@@ -56,6 +56,6 @@ const isOpen = ref(false)
 }
 
 .chevron--opened {
-  color: $blue;
+  color: vars.$blue;
 }
 </style>
