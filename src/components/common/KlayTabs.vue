@@ -32,10 +32,10 @@ const model = useVModel(props, 'modelValue', emit)
 </template>
 
 <style lang="sass">
-@import '@/styles/vars'
+@use '@/styles/vars'
 
 .klay-tabs
-  background: $gray6
+  background: vars.$gray6
   border-radius: 10px
   padding: 4px
   display: flex
@@ -59,10 +59,10 @@ const model = useVModel(props, 'modelValue', emit)
     &+&
       margin-left: 8px
     &--active
-      background-color: $blue
-      color: $white
+      background-color: vars.$blue
+      color: vars.$white
   &--disabled &__tab
     &, &--active
       background-color: transparent
-      color: $gray3
+      color: vars.$gray3
 </style>

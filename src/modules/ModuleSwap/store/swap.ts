@@ -135,7 +135,7 @@ export const useSwapStore = defineStore('swap', () => {
 
   const multihops = useLocalStorage<boolean>('swap-multi-hops', false)
 
-  const slippageTolerance = ref(0)
+  const slippageTolerance = ref(0.005)
 
   const expertMode = ref(false)
 

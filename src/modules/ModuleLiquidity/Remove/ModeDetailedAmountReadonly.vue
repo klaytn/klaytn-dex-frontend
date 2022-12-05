@@ -38,10 +38,10 @@ const amountAsToken = computed(() => (props.token && props.amount && props.amoun
 </template>
 
 <style lang="scss">
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .token-symbol {
-  color: $dark2;
+  color: vars.$dark2;
   font-weight: 600;
   font-size: 14px;
 }

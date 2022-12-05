@@ -28,12 +28,17 @@ watch(copied, (value) => {
 </script>
 
 <template>
-  <div v-bem>
-    <span v-bem="'title'">
+  <div
+    :class="$style.head"
+    class="flex items-center justify-start flex-wrap gap-4 px-6 py-4 md:py-5"
+  >
+    <span
+      v-bem="'title'"
+      class="lt-md:w-full mr-auto text-xl font-semibold"
+    >
       {{ proposal.title }}
     </span>
     <KlayButton
-      v-bem="'share'"
       size="sm"
       @click="share"
     >
@@ -43,20 +48,10 @@ watch(copied, (value) => {
   </div>
 </template>
 
-<style lang="sass">
-@import '@/styles/vars.sass'
+<style lang="scss" module>
+@use '@/styles/vars';
 
-.module-governance-proposal-head
-  display: flex
-  align-items: center
-  justify-content: flex-start
-  height: 74px
-  padding: 0 16px 0 30px
-  border-bottom: 1px solid $gray5
-  &__title
-    margin-right: auto
-    font-size: 20px
-    font-weight: 600
-  &__share
-    margin: 0 16px
+.head {
+  border-bottom: 1px solid vars.$gray5;
+}
 </style>

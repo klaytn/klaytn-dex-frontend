@@ -50,7 +50,14 @@ const {
   amount: resolvedAmount,
 } = useNormalizedComponentProps(props)
 
-const maxWidthPx = computed(() => `${props.maxWidth}px`)
+const maxWidthString = computed(() => {
+  const maxWidthNumber = Number(props.maxWidth)
+  if (!isNaN(maxWidthNumber)) {
+    return maxWidthNumber + 'px'
+  } else {
+    return props.maxWidth
+  }
+})
 
 const formattedAmountWithoutSymbol = computed(() =>
   resolvedAmount.value ? formatCurrency({ amount: resolvedAmount.value, decimals: resolvedDecimals.value }) : null,
@@ -71,17 +78,17 @@ const formattedAmount = computed(
   <SPopover :trigger="amount ? 'hover' : 'manual'">
     <template #trigger>
       <span
-        class="truncated-wrap"
-        :class="{ 'no-value': !amount }"
+        class="inline-flex items-center max-w-full"
+        :class="[$style.truncatedWrap, { 'no-value': !amount }]"
         v-bind="$attrs"
       >
         <template v-if="amount">
-          <template v-if="!resolvedSymbol"><span class="amount">{{ formattedAmountWithoutSymbol }}</span></template>
+          <template v-if="!resolvedSymbol"><span :class="$style.amount">{{ formattedAmountWithoutSymbol }}</span></template>
           <template v-else-if="resolvedSymbol.position === 'left'">
-            <span class="whitespace-pre">{{ resolvedSymbol.str + resolvedSymbol.delimiter }}</span><span class="amount">{{ formattedAmountWithoutSymbol }}</span>
+            <span class="whitespace-pre">{{ resolvedSymbol.str + resolvedSymbol.delimiter }}</span><span :class="$style.amount">{{ formattedAmountWithoutSymbol }}</span>
           </template>
           <template v-else>
-            <span class="amount">{{ formattedAmountWithoutSymbol }}</span><span class="whitespace-pre">{{ resolvedSymbol.delimiter + resolvedSymbol.str }}</span>
+            <span :class="$style.amount">{{ formattedAmountWithoutSymbol }}</span><span class="whitespace-pre">{{ resolvedSymbol.delimiter + resolvedSymbol.str }}</span>
           </template>
         </template>
         <template v-else>&mdash;</template>
@@ -91,7 +98,8 @@ const formattedAmount = computed(
     <template #popper="{ show }">
       <div
         v-if="show"
-        class="popper select-text px-2 py-1 bg-white rounded-md shadow-md cursor-text"
+        :class="$style.popper"
+        class="select-text px-2 py-1 bg-white rounded-md shadow-md cursor-text"
       >
         {{ formattedAmount }}
       </div>
@@ -99,13 +107,10 @@ const formattedAmount = computed(
   </SPopover>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss" module>
 @use '@/styles/vars';
 
 .truncated-wrap {
-  display: inline-flex;
-  align-items: center;
-
   span {
     display: inline-block;
   }
@@ -116,7 +121,7 @@ const formattedAmount = computed(
 }
 
 .amount {
-  max-width: v-bind(maxWidthPx);
+  max-width: v-bind(maxWidthString);
   overflow: hidden;
   -o-text-overflow: ellipsis;
   text-overflow: ellipsis;

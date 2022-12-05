@@ -31,25 +31,27 @@ const poolSharePercent = computed(() => new BigNumber(liquidityTokenBalance.valu
 <template>
   <KlayCollapse v-bind="{ alwaysOpened }">
     <template #head>
-      <div class="head flex items-center space-x-2">
+      <div class="head flex flex-wrap items-center gap-2">
         <KlaySymbolsPair
           :token-a="pair.token0.symbol"
           :token-b="pair.token1.symbol"
         />
         <span>{{ pair.name }}</span>
-        <CurrencyFormatTruncate
-          :amount="liquidityTokenBalance"
-          :decimals="5"
-          data-testid="pair-list-item-header-value"
-        />
-        <span
-          v-if="balanceUsd"
-          class="reserve-usd"
-          data-testid="pair-list-item-header-value-usd"
-        >(<CurrencyFormatTruncate
-          :amount="balanceUsd"
-          usd
-        />)</span>
+        <div class="flex gap-2">
+          <CurrencyFormatTruncate
+            :amount="liquidityTokenBalance"
+            :decimals="5"
+            data-testid="pair-list-item-header-value"
+          />
+          <span
+            v-if="balanceUsd"
+            class="reserve-usd"
+            data-testid="pair-list-item-header-value-usd"
+          >(<CurrencyFormatTruncate
+            :amount="balanceUsd"
+            usd
+          />)</span>
+        </div>
       </div>
     </template>
 
@@ -104,17 +106,17 @@ const poolSharePercent = computed(() => new BigNumber(liquidityTokenBalance.valu
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .head {
   font-size: 14px;
   font-weight: 600;
-  color: $dark2;
+  color: vars.$dark2;
   user-select: none;
 }
 
 .reserve-usd {
-  color: $gray2;
+  color: vars.$gray2;
   font-weight: 500;
 }
 </style>

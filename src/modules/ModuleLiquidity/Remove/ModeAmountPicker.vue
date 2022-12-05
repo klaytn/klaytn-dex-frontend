@@ -76,9 +76,9 @@ function formatPercent(value: number): string {
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .disabled-value {
-  color: $gray2;
+  color: vars.$gray2;
 }
 </style>

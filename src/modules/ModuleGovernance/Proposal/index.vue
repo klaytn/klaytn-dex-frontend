@@ -46,14 +46,31 @@ const loading = ProposalQuery.loading
     />
     <div
       v-if="proposal"
-      v-bem="'body'"
+      class="flex flex-1 lt-md:flex-col"
     >
       <div v-bem="'content'">
-        <ModuleGovernanceProposalCallToVote :proposal="proposal" />
-        <ModuleGovernanceProposalDescription :proposal="proposal" />
-        <ModuleGovernanceProposalVotes :proposal="proposal" />
+        <div :class="$style.section">
+          <ModuleGovernanceProposalCallToVote :proposal="proposal" />
+          <ModuleGovernanceProposalDescription :proposal="proposal" />
+        </div>
+        <div :class="$style.section">
+          <ModuleGovernanceProposalVotes :proposal="proposal" />
+        </div>
       </div>
-      <ModuleGovernanceProposalSideColumn :proposal="proposal" />
+      <div
+        :class="$style.details"
+        class="lt-md:order-first lt-md:w-full md:w-300px flex flex-col flex-shrink-0 min-height-[100%] p-6"
+      >
+        <div :class="$style.section">
+          <ModuleGovernanceProposalChoices :proposal="proposal" />
+        </div>
+        <div :class="$style.section">
+          <ModuleGovernanceProposalDates :proposal="proposal" />
+        </div>
+        <div :class="$style.section">
+          <ModuleGovernanceProposalLinks :proposal="proposal" />
+        </div>
+      </div>
     </div>
     <div
       v-if="loading"
@@ -63,6 +80,26 @@ const loading = ProposalQuery.loading
     </div>
   </div>
 </template>
+
+<style lang="scss" module>
+@use '@/styles/vars';
+
+.details {
+  border-bottom: 1px solid vars.$gray5;
+  @media only screen and (min-width: vars.$md) {
+    border-bottom: none;
+    border-left: 1px solid vars.$gray5;
+  }
+}
+
+.section {
+  padding-bottom: 1.5rem;
+  & + & {
+    padding-top: 1.5rem;
+    border-top: 1px solid vars.$gray5;
+  }
+}
+</style>
 
 <style lang="sass">
 .module-governance-proposal
@@ -76,9 +113,9 @@ const loading = ProposalQuery.loading
   min-height: calc(100vh - 204px)
   background: linear-gradient(0deg, #ffffff, #ffffff), linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%), rgba(255, 255, 255, 0.6)
   box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05)
-  &__body
-    display: flex
-    flex: 1
+  .s-accordion-item__trigger
+    min-height: auto !important
+    padding-bottom: 26px !important
   &__content
     flex: 1
     min-width: 0

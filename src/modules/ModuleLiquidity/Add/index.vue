@@ -1,13 +1,46 @@
 <script lang="ts" setup>
+import { WeiAsToken } from '@/core'
 import { useTradeStore } from '@/modules/ModuleTradeShared/trade-store'
+import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
+import { buildPair, TOKEN_TYPES } from '@/utils/pair'
+import BigNumber from 'bignumber.js'
+import { storeToRefs } from 'pinia'
 
-const addStore = useLiquidityAddStore()
 const dexStore = useDexStore()
+const liquidityAddStore = useLiquidityAddStore()
+const { tokenValues, addrs } = storeToRefs(liquidityAddStore)
 
-onUnmounted(() => addStore.resetInput())
+const { lookupBalance, lookupToken } = useMinimalTokensApi()
+
+onUnmounted(() => liquidityAddStore.resetInput())
+
+const values = reactive(
+  buildPair((type) => {
+    return {
+      input: computed<WeiAsToken<BigNumber>>(() => {
+        const val = tokenValues.value[type]
+        return new BigNumber(val ?? '0') as WeiAsToken<BigNumber>
+      }),
+      balance: computed<WeiAsToken<BigNumber> | null>(() => {
+        const address = addrs.value[type]
+        const balance = address && lookupBalance(address)
+        const token = address && lookupToken(address)
+        const balanceAsToken = balance && token && balance.decimals(token)
+        return balanceAsToken
+      }),
+    }
+  }),
+)
+
+const isThereAnyValueExceedsBalance = computed(() => {
+  return TOKEN_TYPES.some((type) => {
+    const value = values[type]
+    return value.balance && value.input.isGreaterThan(value.balance)
+  })
+})
 
 const isSupplyDisabled = computed(() => {
-  return !addStore.finalRates || !dexStore.isWalletConnected
+  return !liquidityAddStore.finalRates || !dexStore.isWalletConnected || isThereAnyValueExceedsBalance.value
 })
 
 const supplyLabel = computed(() => {
@@ -15,8 +48,8 @@ const supplyLabel = computed(() => {
 })
 
 useTradeStore().useRefresh({
-  run: () => addStore.refresh(),
-  pending: toRef(addStore, 'isRefreshing'),
+  run: () => liquidityAddStore.refresh(),
+  pending: toRef(liquidityAddStore, 'isRefreshing'),
 })
 </script>
 
@@ -31,8 +64,8 @@ useTradeStore().useRefresh({
       size="lg"
       type="primary"
       :disabled="isSupplyDisabled"
-      :loading="addStore.supplyScope?.prepareState.pending"
-      @click="addStore.prepareSupply()"
+      :loading="liquidityAddStore.supplyScope?.prepareState.pending"
+      @click="liquidityAddStore.prepareSupply()"
     >
       {{ supplyLabel }}
     </KlayButton>

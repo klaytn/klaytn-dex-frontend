@@ -123,7 +123,7 @@ const onAssetDetails = computed(() => tab.value === null)
     linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%), rgba(255, 255, 255, 0.6);
   box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05);
   border-radius: 20px;
-  width: 420px;
+  max-width: 420px;
   height: 600px;
 }
 </style>

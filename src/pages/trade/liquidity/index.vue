@@ -36,7 +36,7 @@ import { RouteName } from '@/types'
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .title {
   text-align: left;
@@ -44,11 +44,11 @@ import { RouteName } from '@/types'
   font-weight: 700;
   font-size: 14px;
   line-height: 17px;
-  color: $dark2;
+  color: vars.$dark2;
 }
 
 hr {
-  background: $gray5;
+  background: vars.$gray5;
   height: 1px;
 }
 </style>

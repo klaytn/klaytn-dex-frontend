@@ -23,13 +23,13 @@ withDefaults(
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .color-blue {
-  color: $blue;
+  color: vars.$blue;
 }
 
 .color-gray {
-  color: $gray2;
+  color: vars.$gray2;
 }
 </style>
