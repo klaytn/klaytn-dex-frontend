@@ -197,10 +197,6 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     }
   })
 
-  setTimeout(() => {
-    routeAddrsParams.clear()
-  }, 5000)
-
   const selection = usePairInput({ addrsOrigin: localStorageAddrsOrigin })
   const { tokens, resetInput, tokenValues } = selection
   const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
