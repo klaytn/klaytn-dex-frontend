@@ -1,5 +1,5 @@
 /* eslint-disable max-nested-callbacks */
-import { deadlineFiveMinutesFromNow, Address, Wei, WeiAsToken } from '@/core'
+import { deadlineFiveMinutesFromNow, Address, Wei, WeiAsToken, NATIVE_TOKEN_FULL, DEX_TOKEN_FULL } from '@/core'
 import {
   usePairAddress,
   usePairBalance,
@@ -16,11 +16,13 @@ import {
   usePairInput,
   useEstimatedLayer,
   useLocalStorageAddrsOrigin,
+  useAddrRouteParams,
 } from '@/modules/ModuleTradeShared/composable.pair-input'
 import { RouteName } from '@/types'
 import { TokenAddressAndDesiredValue } from '@/core/domain/liquidity'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { match, P } from 'ts-pattern'
+import { areAddrTokenPairsEqual } from '@/utils/pair'
 
 type SupplyTokens = TokensPair<TokenAddressAndDesiredValue>
 
@@ -163,6 +165,7 @@ function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null> }) {
 
 export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const route = useRoute()
+  const router = useRouter()
   const tokensStore = useTokensStore()
   const dexStore = useDexStore()
 
@@ -170,7 +173,35 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   // #region Selection
 
-  const selection = usePairInput({ addrsOrigin: useLocalStorageAddrsOrigin('liquidity-add-selection', isActiveRoute) })
+  const routeAddrsParams = useAddrRouteParams({
+    router,
+    baseToken: NATIVE_TOKEN_FULL.address,
+    additionalBaseToken: DEX_TOKEN_FULL.address,
+    isActive: isActiveRoute,
+  })
+  const localStorageAddrsOrigin = useLocalStorageAddrsOrigin('liquidity-add-selection', isActiveRoute)
+
+  watch(
+    routeAddrsParams.pair,
+    (x) => {
+      if (x && !areAddrTokenPairsEqual(x, localStorageAddrsOrigin.value)) {
+        localStorageAddrsOrigin.value = x
+      }
+    },
+    { immediate: true },
+  )
+
+  watch(localStorageAddrsOrigin, (x) => {
+    if (routeAddrsParams.pair.value && !areAddrTokenPairsEqual(x, routeAddrsParams.pair.value)) {
+      routeAddrsParams.clear()
+    }
+  })
+
+  setTimeout(() => {
+    routeAddrsParams.clear()
+  }, 5000)
+
+  const selection = usePairInput({ addrsOrigin: localStorageAddrsOrigin })
   const { tokens, resetInput, tokenValues } = selection
   const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
   const addrsReadonly = readonly(selection.addrs)

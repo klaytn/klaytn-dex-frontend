@@ -31,6 +31,7 @@
     "@vueuse/head": "^0.9.8",
     "@vueuse/integrations": "^9.3.0",
     "@vueuse/math": "^9.3.0",
+    "@vueuse/router": "^9.6.0",
     "bignumber.js": "^9.1.0",
     "bn.js": "^5.2.1",
     "dayjs": "^1.11.4",

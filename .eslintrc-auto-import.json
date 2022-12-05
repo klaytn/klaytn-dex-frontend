@@ -239,6 +239,7 @@
     "useResizeObserver": true,
     "useRound": true,
     "useRoute": true,
+    "useRouteParams": true,
     "useRouter": true,
     "useScreenOrientation": true,
     "useScreenSafeArea": true,
