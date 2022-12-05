@@ -47,10 +47,6 @@ export function map01ToPair<T>(pair: Pair01<T>, token0: Address, tokenA: Address
   return { tokenA: ab[0], tokenB: ab[1] }
 }
 
-export function isAddrTokenPairEmpty(pair: TokensPair<Address | null>) {
-  return pair.tokenA === null && pair.tokenB === null
-}
-
 export function areAddrTokenPairsEqual(a: TokensPair<Address | null>, b: TokensPair<Address | null>) {
   return areNullableAddressesEqual(a.tokenA, b.tokenA) && areNullableAddressesEqual(a.tokenB, b.tokenB)
 }

@@ -37,13 +37,16 @@ export function useAddrRouteParams({
   baseToken?: Address
   additionalBaseToken?: Address
   isActive?: Ref<boolean>
-}): { pair: Readonly<Ref<TokensPair<Address | null>>>; clear: () => void } {
+}): {
+  pair: Readonly<Ref<{ tokenA: Address; tokenB: null | Address } | null>>
+  clear: () => void
+} {
   const params = {
     tokenA: useRouteParams('tokenA'),
     tokenB: useRouteParams('tokenB'),
   }
 
-  const pair = computed<TokensPair<Address | null>>(() => {
+  const pair = computed(() => {
     if (isActive?.value) {
       const addressOrNull = (x: unknown) => (typeof x === 'string' && isAddress(x) ? x : null)
       const { tokenA, tokenB } = buildPair((type) => addressOrNull(params[type].value))
@@ -62,7 +65,7 @@ export function useAddrRouteParams({
       }
     }
 
-    return emptyPair()
+    return null
   })
 
   function clear() {

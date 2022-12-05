@@ -22,7 +22,7 @@ import { RouteName } from '@/types'
 import { TokenAddressAndDesiredValue } from '@/core/domain/liquidity'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { match, P } from 'ts-pattern'
-import { areAddrTokenPairsEqual, isAddrTokenPairEmpty } from '@/utils/pair'
+import { areAddrTokenPairsEqual } from '@/utils/pair'
 
 type SupplyTokens = TokensPair<TokenAddressAndDesiredValue>
 
@@ -184,7 +184,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   watch(
     routeAddrsParams.pair,
     (x) => {
-      if (!areAddrTokenPairsEqual(x, localStorageAddrsOrigin.value) && !isAddrTokenPairEmpty(x)) {
+      if (x && !areAddrTokenPairsEqual(x, localStorageAddrsOrigin.value)) {
         localStorageAddrsOrigin.value = x
       }
     },
@@ -192,7 +192,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   )
 
   watch(localStorageAddrsOrigin, (x) => {
-    if (!areAddrTokenPairsEqual(x, routeAddrsParams.pair.value)) {
+    if (routeAddrsParams.pair.value && !areAddrTokenPairsEqual(x, routeAddrsParams.pair.value)) {
       routeAddrsParams.clear()
     }
   })
