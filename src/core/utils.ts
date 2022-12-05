@@ -51,7 +51,5 @@ export function areAddressesEqual(a: Address, b: Address): boolean {
 }
 
 export function areNullableAddressesEqual(a: Address | null, b: Address | null): boolean {
-  if (a !== null && b !== null) return areAddressesEqual(a, b)
-  if (a === null && b === null) return true
-  return false
+  return (!a && !b) || (!!(a && b) && areAddressesEqual(a, b))
 }
