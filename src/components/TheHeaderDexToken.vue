@@ -17,7 +17,7 @@ const balancePrice = computed(() => {
 <template>
   <div
     v-if="balance"
-    class="token rounded-lg p-3 flex items-center space-x-1 mr-2"
+    class="token rounded-lg p-3 lt-md:hidden md:flex items-center space-x-1 mr-2"
   >
     <div class="balance">
       <CurrencyFormatTruncate
@@ -42,7 +42,7 @@ const balancePrice = computed(() => {
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .token {
   background: white;
@@ -54,6 +54,6 @@ const balancePrice = computed(() => {
 }
 
 .price {
-  color: $gray2;
+  color: vars.$gray2;
 }
 </style>

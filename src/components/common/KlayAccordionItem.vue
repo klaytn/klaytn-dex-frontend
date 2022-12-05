@@ -53,7 +53,7 @@ watch(model, (dep) => {
 </template>
 
 <style lang="sass">
-@import '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .klay-accordion-item
   &.s-accordion-item
@@ -69,27 +69,28 @@ watch(model, (dep) => {
     &_expanded .s-accordion-item__body-wrapper
       box-shadow: none
       &::before
-        background: $gray5
+        background: vars.$gray5
     .s-accordion-item
       &__trigger
-        height: 80px
+        height: auto
+        min-height: 80px
       &__head
         position: relative
       &__chevron
         display: none
   &--type--default.s-accordion-item
-    border-top: 2px solid $gray6
-    border-bottom: 2px solid $gray6
+    border-top: 2px solid vars.$gray6
+    border-bottom: 2px solid vars.$gray6
     &::before
       content: ''
       position: absolute
       height: 100%
       width: 4px
-      background-color: $blue
+      background-color: vars.$blue
       transition: 250ms ease transform
       transform-origin: left
     &_expanded
-      background-color: $gray7
+      background-color: vars.$gray7
     .s-accordion-item
       &__body
         padding: 16px 24px
@@ -109,7 +110,7 @@ watch(model, (dep) => {
       &__body
         padding: 0
   &__chevron
-    fill: $gray4
+    fill: vars.$gray4
     transition: 250ms ease fill, 250ms ease-in-out transform
     &-wrapper
       position: absolute
@@ -119,6 +120,6 @@ watch(model, (dep) => {
       right: 0
       top: 0
   .s-accordion-item_expanded &__chevron
-    fill: $blue
+    fill: vars.$blue
     transform: rotate(180deg)
 </style>

@@ -42,7 +42,7 @@ async function download() {
 
 <template>
   <SModal v-model:show="showModel">
-    <KlayModalCard class="w-[344px]">
+    <KlayModalCard class="w-344px">
       <template #title>
         <slot name="title" />
       </template>

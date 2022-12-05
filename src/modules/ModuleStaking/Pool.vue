@@ -147,7 +147,10 @@ function openRoiCalculator() {
 </script>
 
 <template>
-  <KlayAccordionItem v-model="expanded">
+  <KlayAccordionItem
+    v-model="expanded"
+    class="module-staking-pool"
+  >
     <template #title>
       <PoolHead
         :reward-token-symbol="pool.rewardToken.symbol"
@@ -161,16 +164,20 @@ function openRoiCalculator() {
       />
     </template>
 
-    <div v-if="loading">
+    <div
+      v-if="loading"
+      class="w-full flex justify-center"
+    >
       <KlayLoader />
     </div>
 
     <template v-else>
-      <div class="flex items-center space-x-6">
+      <div class="flex md:items-center lt-md:flex-col gap-4 md:gap-6">
         <WalletConnectButton
           v-if="!dexStore.isWalletConnected"
           size="md"
         />
+
         <template v-else-if="!enabled">
           <KlayButton
             type="primary"
@@ -185,22 +192,18 @@ function openRoiCalculator() {
         </template>
 
         <template v-else>
-          <div>
-            <div class="input-label">
+          <div :class="$style.input">
+            <div :class="$style.inputLabel">
               {{ t('ModuleStakingPool.staked', { symbol: pool.stakeToken.symbol }) }}
             </div>
 
             <InputCurrencyTemplate right>
               <template #input>
-                <CurrencyFormat
-                  v-slot="{ formatted }"
+                <CurrencyFormatTruncate
+                  :class="$style.inputValue"
                   :amount="pool.staked"
-                >
-                  <input
-                    readonly
-                    :value="formatted"
-                  >
-                </CurrencyFormat>
+                  max-width="auto"
+                />
               </template>
 
               <template #right>
@@ -231,22 +234,18 @@ function openRoiCalculator() {
             </InputCurrencyTemplate>
           </div>
 
-          <div>
-            <div class="input-label">
+          <div :class="$style.input">
+            <div :class="$style.inputLabel">
               {{ t('ModuleStakingPool.earned', { symbol: pool.rewardToken.symbol }) }}
             </div>
 
             <InputCurrencyTemplate right>
               <template #input>
-                <CurrencyFormat
-                  v-slot="{ formatted }"
+                <CurrencyFormatTruncate
+                  :class="$style.inputValue"
                   :amount="pool.earned"
-                >
-                  <input
-                    readonly
-                    :value="formatted"
-                  >
-                </CurrencyFormat>
+                  max-width="auto"
+                />
               </template>
 
               <template #right>
@@ -262,7 +261,7 @@ function openRoiCalculator() {
         </template>
       </div>
 
-      <div class="flex items-center space-x-4 mt-6">
+      <div class="flex items-center flex-wrap gap-4 mt-6">
         <KlayExternalLink :href="makeExplorerLinkToAccount(pool.stakeToken.id)">
           See Token Info
         </KlayExternalLink>
@@ -273,6 +272,7 @@ function openRoiCalculator() {
         </KlayExternalLink>
         <AddToWallet
           v-if="dexStore.active.kind === 'named'"
+          class="text-xs"
           :connected="dexStore.active.wallet"
           @click="addRewardTokenToWallet(pool)"
         />
@@ -311,21 +311,36 @@ function openRoiCalculator() {
   />
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss" module>
 @use '@/styles/vars';
 
-.add-to-kaikas {
-  cursor: pointer;
-  &:hover {
-    color: vars.$blue;
+.input {
+  width: 388px;
+  max-width: 100%;
+
+  &-label {
+    font-weight: 500;
+    font-size: 12px;
+    color: vars.$gray2;
+    margin-bottom: 16px;
+  }
+
+  &-value {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 36px;
   }
 }
+</style>
 
-.input-label {
-  font-weight: 500;
-  font-size: 12px;
-  color: vars.$gray2;
+<style lang="scss">
+@use '@/styles/vars';
 
-  margin-bottom: 16px;
+.module-staking-pool .klay-accordion-item__chevron-wrapper {
+  height: 56px;
+  @media only screen and (min-width: vars.$md) {
+    height: 100%;
+  }
 }
 </style>

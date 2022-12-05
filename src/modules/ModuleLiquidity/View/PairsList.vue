@@ -44,7 +44,7 @@ const filtered = computed(() =>
 </template>
 
 <style lang="sass" scoped>
-@import '@/styles/vars.sass'
+@use '@/styles/vars'
 
 .empty
   display: flex
@@ -52,5 +52,5 @@ const filtered = computed(() =>
   align-items: center
   width: 100%
   height: 40px
-  color: $gray3
+  color: vars.$gray3
 </style>

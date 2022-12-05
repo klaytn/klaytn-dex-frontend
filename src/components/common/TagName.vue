@@ -18,12 +18,12 @@ defineProps<{
 </template>
 
 <style lang="scss" scoped>
-@import '@/styles/vars';
+@use '@/styles/vars';
 
 .tag-name {
   display: flex;
   align-items: center;
-  background: $white;
+  background: vars.$white;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
   border-radius: 8px;
   width: min-content;
@@ -40,7 +40,7 @@ defineProps<{
     font-weight: 600;
     font-size: 14px;
     line-height: 17px;
-    color: $dark2;
+    color: vars.$dark2;
   }
 }
 </style>

@@ -4,6 +4,8 @@ import { SModal } from '@soramitsu-ui/ui'
 import { storeToRefs } from 'pinia'
 import WalletIcon from './WalletIcon.vue'
 
+import CONFIG from '~config'
+
 const store = useDexStore()
 const { isMetamaskDetected, selectedWallet, connectState, isProviderSetupPending, openModal } = storeToRefs(store)
 
@@ -33,7 +35,7 @@ const wallets = computed<Wallet[]>(() => {
   <SModal v-model:show="openModal">
     <KlayModalCard
       title="Connect Wallet"
-      class="w-[344px]"
+      class="w-344px"
     >
       <template #body>
         <div>
@@ -65,8 +67,13 @@ const wallets = computed<Wallet[]>(() => {
             <p class="tip">
               Haven’t got a crypto wallet yet?
             </p>
-            <p><a class="learn-how">Learn How to Connect</a></p>
-            <i class="text-xs">todo add a link</i>
+            <p>
+              <a
+                class="learn-how"
+                :href="CONFIG.uriConnectWalletGuide"
+                target="_blank"
+              >Learn How to Connect</a>
+            </p>
           </div>
         </div>
       </template>
