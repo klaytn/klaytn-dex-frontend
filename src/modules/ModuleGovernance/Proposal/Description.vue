@@ -1,8 +1,5 @@
 <script setup lang="ts" name="ModuleGovernanceProposalDescription">
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
 import { Proposal } from '../types'
-import 'github-markdown-css/github-markdown-light.css'
 
 const { t } = useI18n()
 const vBem = useBemClass()
@@ -40,23 +37,11 @@ const short = computed(() => {
   if (bodyHeight.value === null) return null
   return !long.value
 })
-
-const parsedBody = computed(() => {
-  return marked(
-    proposal.value.body
-      .replaceAll('\n', '<br>')
-      .replace(/ipfs:\/\/([a-z,A-Z,0-9]*)/, 'https://snapshot.mypinata.cloud/ipfs/$1'),
-  )
-})
-
-const cleanBody = computed(() => {
-  return DOMPurify.sanitize(parsedBody.value)
-})
 </script>
 
 <template>
   <KlayAccordionItem
-    v-if="parsedBody !== ''"
+    v-if="proposal.body !== ''"
     v-model="expanded"
     v-bem="{ long, short }"
     type="light"
@@ -66,11 +51,9 @@ const cleanBody = computed(() => {
         {{ t('ModuleGovernanceProposalDescription.title') }}
       </span>
     </template>
-    <div
-      ref="body"
-      class="markdown-body"
-      v-html="cleanBody"
-    />
+    <div ref="body">
+      <KlayMarkdown :body="proposal.body" />
+    </div>
     <div
       v-if="!expanded && long"
       v-bem="'gradient'"

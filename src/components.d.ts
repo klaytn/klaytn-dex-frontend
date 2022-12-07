@@ -22,6 +22,7 @@ declare module '@vue/runtime-core' {
     KlayCollapse: typeof import('./components/common/KlayCollapse.vue')['default']
     KlayExternalLink: typeof import('./components/common/KlayExternalLink.vue')['default']
     KlayLoader: typeof import('./components/common/KlayLoader.vue')['default']
+    KlayMarkdown: typeof import('./components/common/KlayMarkdown.vue')['default']
     KlayModalCard: typeof import('./components/common/KlayModalCard.vue')['default']
     KlayModalTemplateError: typeof import('./components/common/KlayModalTemplateError.vue')['default']
     KlayModalTemplateSubmitted: typeof import('./components/common/KlayModalTemplateSubmitted.vue')['default']

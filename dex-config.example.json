@@ -96,5 +96,7 @@
   },
   "uriDashboards": "https://klaytn-dashboard.dev.klaytn.tachi.soramitsu.co.jp",
   "snapshotSpace": "test-klaytn-dex.eth",
-  "uriConnectWalletGuide": "https://github.com/klaytn/klaytn-dex-frontend/blob/dev/docs/guide.md#connect-wallet"
+  "uriConnectWalletGuide": "https://github.com/klaytn/klaytn-dex-frontend/blob/dev/docs/guide.md#connect-wallet",
+  "sentryDSN": "https://7d2c187384c04eba9400841e8671d3d9@o4504283700658176.ingest.sentry.io/4504283703410688",
+  "uriIPFS": "https://snapshot.mypinata.cloud/ipfs"
 }
