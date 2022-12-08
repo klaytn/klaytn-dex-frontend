@@ -21,6 +21,8 @@
     "@ethersproject/bignumber": "5.7.0",
     "@ethersproject/providers": "5.7.0",
     "@metamask/detect-provider": "^1.2.0",
+    "@sentry/tracing": "^7.23.0",
+    "@sentry/vue": "^7.23.0",
     "@soramitsu-ui/icons": "^0.1.0",
     "@soramitsu-ui/ui": "^0.7.0",
     "@uniswap/sdk-core": "3.0.2",

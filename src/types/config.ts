@@ -30,4 +30,6 @@ export interface ConfigParsed {
   snapshotSpace: string
   uriDashboards: string
   uriConnectWalletGuide: string
+  sentryDSN: string
+  sentryTracingOrigin: string
 }
