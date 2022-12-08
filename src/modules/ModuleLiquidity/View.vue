@@ -25,7 +25,7 @@ const { loading: isLoading, result, refetch } = useLiquidityPairsQuery(pollInter
 // Refetch if cached
 if (result.value && !isLoading.value) refetch()
 
-const isLoaded = computed(() => !!result.value)
+// const isLoaded = computed(() => !!result.value)
 
 const tradeStore = useTradeStore()
 
