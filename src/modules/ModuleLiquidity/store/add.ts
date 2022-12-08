@@ -223,17 +223,9 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   // #region Pair balance & reserves
 
-  const {
-    result: pairBalance,
-    touch: touchPairBalance,
-    pending: isPairBalancePending,
-  } = usePairBalance(addrsReadonly, doesPairExist)
+  const { result: pairBalance, touch: touchPairBalance, pending: isPairBalancePending } = usePairBalance(gotPair)
 
-  const {
-    result: pairReserves,
-    touch: touchPairReserves,
-    pending: isPairReservesPending,
-  } = usePairReserves(addrsReadonly, doesPairExist)
+  const { result: pairReserves, touch: touchPairReserves, pending: isPairReservesPending } = usePairReserves(gotPair)
 
   const { userBalance: pairUserBalance, totalSupply: pairTotalSupply } = toRefs(
     useNullablePairBalanceComponents(pairBalance),

@@ -3,9 +3,9 @@ import { storeToRefs } from 'pinia'
 import { Ref } from 'vue'
 
 const store = useLiquidityRmStore()
-const { liquidityRelative, isPairLoaded } = storeToRefs(store)
+const { liquidityRelative, doesPairExist } = storeToRefs(store)
 
-const isNotActive = logicNot(isPairLoaded)
+const isNotActive = logicNot(doesPairExist)
 
 const relativeTo100 = computed({
   get: () => (liquidityRelative.value ?? 0) * 100,
