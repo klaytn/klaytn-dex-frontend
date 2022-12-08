@@ -93,6 +93,6 @@ Formatting errors can be easily fixed by running `pnpm format:fix`.
 
 ## Contributor License Agreement (CLA)
 
-Keep in mind when you submit your pull request, you'll need to sign the CLA via [CLA-Assistant](https://cla-assistant.io/klaytn/klaytn-dex-frontend) for legal purposes. You will have to sign the CLA just one time, either as an individual or corporation.
+Keep in mind when you submit your pull request, you'll need to read the [CLA](https://gist.github.com/e78f99e1c527225637e269cff1bc7e49) document and sign by posting "I have read the CLA Document and I hereby sign the CLA" in the comment of PR for legal purposes. You will have to sign the CLA just one time, either as an individual or corporation.
 
 You will be prompted to sign the agreement by CLA Assistant (bot) when you open a Pull Request for the first time.
