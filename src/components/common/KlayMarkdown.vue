@@ -12,7 +12,7 @@ const remarkable = new Remarkable({
   html: false,
   breaks: true,
   typographer: false,
-  linkTarget: '_blank'
+  linkTarget: '_blank',
 })
 
 const markdown = computed(() => {
