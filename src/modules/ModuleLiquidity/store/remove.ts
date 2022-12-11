@@ -198,7 +198,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
   const { pair: pairResult, pending: isPairPending, touch: touchPairAddress } = usePairAddress(selectedFiltered)
   const existingPair = computed(() => (pairResult.value?.kind === 'exist' ? pairResult.value : null))
-  const doesPairExist = eagerComputed(() => !!existingPair.value)
+  const doesPairExist = computedEagerUsingWatch(() => !!existingPair.value)
 
   const {
     result: pairBalanceResult,
