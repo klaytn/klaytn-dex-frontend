@@ -178,6 +178,7 @@ function parseConfig(raw: ConfigRaw): ConfigParsed {
       nativeToken: tokenNative,
     },
     sentryDSN: raw.sentryDSN,
+    sentryTracingOrigin: raw.sentryTracingOrigin,
   }
 
   return parsed
