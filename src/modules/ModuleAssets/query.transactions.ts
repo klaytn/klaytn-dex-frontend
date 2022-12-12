@@ -72,7 +72,7 @@ export interface TransactionsQueryResult {
   burns: FragmentBurn[]
 }
 
-const LIMIT = 5
+const LIMIT = 10
 
 const FRAGMENT_PAIR = gql`
   fragment pair on Pair {
