@@ -13,6 +13,7 @@
     "computed": true,
     "computedAsync": true,
     "computedEager": true,
+    "computedEagerUsingWatch": true,
     "computedInject": true,
     "computedWithControl": true,
     "controlledComputed": true,
