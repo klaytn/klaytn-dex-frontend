@@ -82,7 +82,7 @@ const SCHEMA_CONFIG_RAW: JSONSchemaType<ConfigRaw> = {
     uriDashboards: SCHEMA_URI,
     uriConnectWalletGuide: SCHEMA_URI,
     sentryDSN: SCHEMA_URI,
-    sentryTracingOrigin: SCHEMA_URI,
+    sentryTracingOrigin: { type: 'string' },
   },
   required: [
     'network',
