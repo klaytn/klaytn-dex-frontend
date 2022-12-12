@@ -83,7 +83,7 @@ export function useAddrRouteParams({
 export function usePairInput(options?: { addrsOrigin?: Ref<TokensPair<Address | null>> }) {
   const tokensStore = useTokensStore()
 
-  const addrsRaw = options?.addrsOrigin ? options?.addrsOrigin : ref<TokensPair<Address | null>>(emptyPair())
+  const addrsRaw = options?.addrsOrigin ?? ref<TokensPair<Address | null>>(emptyPair())
   const addrs = toReactive(addrsRaw)
 
   const tokenValuesRef = ref<TokensPair<null | WeiAsToken>>(emptyPair())
