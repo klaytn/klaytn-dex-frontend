@@ -81,6 +81,7 @@ const SCHEMA_CONFIG_RAW: JSONSchemaType<ConfigRaw> = {
     snapshotSpace: { type: 'string' },
     uriDashboards: SCHEMA_URI,
     uriConnectWalletGuide: SCHEMA_URI,
+    uriIPFS: SCHEMA_URI,
   },
   required: [
     'network',
@@ -92,6 +93,7 @@ const SCHEMA_CONFIG_RAW: JSONSchemaType<ConfigRaw> = {
     'uriDashboards',
     'snapshotSpace',
     'uriConnectWalletGuide',
+    'uriIPFS',
   ],
   additionalProperties: false,
 }
@@ -174,6 +176,7 @@ function parseConfig(raw: ConfigRaw): ConfigParsed {
       blockExplorerUrl: trimTrailingSlash(raw.network.blockExplorerUrl),
       nativeToken: tokenNative,
     },
+    uriIPFS: trimTrailingSlash(raw.uriIPFS),
   }
 
   return parsed
