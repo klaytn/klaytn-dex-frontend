@@ -9,6 +9,7 @@ import { TransactionEnum } from '../query.transactions'
 import ListItem from './TransactionsListItem.vue'
 import TransactionDetailsModal from './TransactionDetailsModal.vue'
 import { mergeProps } from 'vue'
+import { ITEM_HEIGHT } from '../const'
 
 const props = defineProps<{
   transactions: TransactionEnum[] | null
@@ -18,8 +19,6 @@ const props = defineProps<{
 const emit = defineEmits(['load-more'])
 
 const openDetailsFor = shallowRef<null | TransactionEnum>(null)
-
-const ITEM_HEIGHT = 56
 
 const {
   list: virtualList,
