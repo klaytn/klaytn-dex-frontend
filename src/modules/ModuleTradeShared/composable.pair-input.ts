@@ -10,13 +10,13 @@ import { Ref } from 'vue'
 import { Router } from 'vue-router'
 
 export function useLocalStorageAddrsOrigin(key: string, isActive?: Ref<boolean>) {
-  const raw = useLocalStorage<TokensPair<Address | null>>(key + '-addrs', null, {
+  const raw = useLocalStorage<TokensPair<Address | null> | null>(key + '-addrs', null, {
     serializer: JSON_SERIALIZER as Serializer<any>,
   })
 
   const offable = computed<TokensPair<Address | null>>({
     get: () => {
-      if (isActive?.value ?? true) return raw.value
+      if ((isActive?.value ?? true) && raw.value) return raw.value
       return emptyPair()
     },
     set: (v) => {
