@@ -1,18 +1,17 @@
 import { type Plugin } from '@/types'
 import * as Sentry from '@sentry/vue'
 import { BrowserTracing } from '@sentry/tracing'
-import CONFIG from '~config'
 
 // Setup Sentry
 // https://sentry.io/
 export const install: Plugin = ({ app, router }) => {
   Sentry.init({
     app,
-    dsn: CONFIG.sentryDSN,
+    dsn: import.meta.env.SENTRY_DSN,
     integrations: [
       new BrowserTracing({
         routingInstrumentation: Sentry.vueRouterInstrumentation(router),
-        tracingOrigins: ['dex.baobab.klaytn.net'],
+        tracingOrigins: import.meta.env.SENTRY_TRACING_ORIGIN ? [import.meta.env.SENTRY_TRACING_ORIGIN] : [],
       }),
     ],
     tracesSampleRate: 1.0,

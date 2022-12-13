@@ -97,6 +97,4 @@
   "uriDashboards": "https://klaytn-dashboard.dev.klaytn.tachi.soramitsu.co.jp",
   "snapshotSpace": "test-klaytn-dex.eth",
   "uriConnectWalletGuide": "https://github.com/klaytn/klaytn-dex-frontend/blob/dev/docs/guide.md#connect-wallet",
-  "sentryDSN": "https://65766c67c7cc429886725dc871a94182@sentry.soramitsu.co.jp/13",
-  "sentryTracingOrigin": "dex.baobab.klaytn.net"
 }
