@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js'
 import invariant from 'tiny-invariant'
 import { Except, SetRequired } from 'type-fest'
 import { Ref } from 'vue'
-import { formatNumberWithCommas, trimTrailingZerosWithPeriod } from './common'
+import { formatNumberWithCommas, formatNumberWithSignificant, trimTrailingZerosWithPeriod } from './common'
 
 type SymbolPosition = 'left' | 'right'
 
@@ -65,16 +65,19 @@ export function formatCurrency({
   amount,
   symbol,
   decimals,
+  significant,
 }: {
   amount: BigNumber | string | number
   symbol?: MaskSymbol | null
   decimals?: number
+  significant?: number | null
 }) {
   const amountBigNumber = new BigNumber(amount)
   const rounded =
     // can't just pass `number | undefined` to `toFixed()` - typing error
     typeof decimals === 'number' ? amountBigNumber.toFixed(decimals) : amountBigNumber.toFixed()
-  let num = formatNumberWithCommas(rounded)
+  const withSignificant = significant ? formatNumberWithSignificant(rounded, significant) : rounded
+  let num = formatNumberWithCommas(withSignificant)
   num = trimTrailingZerosWithPeriod(num)
   if (symbol) {
     const sym = composeSymbol(symbol)

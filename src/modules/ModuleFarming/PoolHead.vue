@@ -62,8 +62,8 @@ const formattedMultiplier = computed(() => {
         <span class="mr-2">
           <CurrencyFormatTruncate
             :amount="annualPercentageRate"
-            :decimals="2"
             symbol="%"
+            percent
             symbol-position="right"
           />
         </span>

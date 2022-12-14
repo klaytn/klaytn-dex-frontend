@@ -80,8 +80,8 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
       >
         <CurrencyFormatTruncate
           :amount="annualPercentageRate"
-          :decimals="2"
           symbol="%"
+          percent
           symbol-position="right"
         />
 

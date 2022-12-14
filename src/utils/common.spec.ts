@@ -1,7 +1,20 @@
 import { Percent } from '@/core'
 import BigNumber from 'bignumber.js'
 import { expect, test, describe } from 'vitest'
-import { formatNumberWithCommas, numberToPercent } from './common'
+import { formatNumberWithCommas, formatNumberWithSignificant, numberToPercent } from './common'
+
+describe('number with significant', () => {
+  test.each([
+    [1234.0, '1234'],
+    [1234.474747, '1234.475'],
+    [new BigNumber('1000000000.1234321'), '1000000000.12'],
+    [1.0000000099999, '1'],
+    [new BigNumber('0.00000000000123456789'), '0.000000000001234568'],
+    [0.0010000004, '0.001'],
+  ])('Formats %s to %s', (input, output) => {
+    expect(formatNumberWithSignificant(input, 7)).toEqual(output)
+  })
+})
 
 describe('number with commas', () => {
   test.each([
