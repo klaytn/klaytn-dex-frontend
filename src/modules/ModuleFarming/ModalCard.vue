@@ -97,6 +97,7 @@ wheneverFulfilled(operationState, ({ amount, operation }) => {
     emit('unstaked', amount)
   }
 
+  useLiquidityListStore().quickPoll = true
   tokensStore.touchUserBalance()
 })
 

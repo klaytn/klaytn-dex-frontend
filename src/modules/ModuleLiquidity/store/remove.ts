@@ -76,6 +76,10 @@ function usePrepareSupply(props: {
     usePromiseLog(supplyState, 'liquidity-remove-supply')
     useNotifyOnError(supplyState, notify, 'Supply failed')
 
+    wheneverFulfilled(supplyState, () => {
+      useLiquidityListStore().quickPoll = true
+    })
+
     const fee = computed(() => prepareState.fulfilled?.value?.fee)
 
     return readonly({

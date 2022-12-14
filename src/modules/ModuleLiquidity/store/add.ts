@@ -135,6 +135,7 @@ function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null> }) {
     useNotifyOnError(stateSupply, notify, 'Liquidity addition failed')
     wheneverFulfilled(stateSupply, () => {
       notify({ type: 'ok', description: 'Liquidity addition succeeded!' })
+      useLiquidityListStore().quickPoll = true
     })
 
     const fee = computed(() => statePrepare.fulfilled?.value.fee ?? null)

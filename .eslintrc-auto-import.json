@@ -195,6 +195,7 @@
     "useKeyModifier": true,
     "useLastChanged": true,
     "useLiquidityAddStore": true,
+    "useLiquidityListStore": true,
     "useLiquidityRmSelectionStore": true,
     "useLiquidityRmStore": true,
     "useLocalStorage": true,

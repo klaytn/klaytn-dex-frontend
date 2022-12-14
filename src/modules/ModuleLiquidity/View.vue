@@ -8,16 +8,14 @@ import {
   LiquidityPairsPosition,
   POLL_INTERVAL,
   POLL_INTERVAL_QUICK,
-  POLL_INTERVAL_QUICK_TIMEOUT,
 } from './query.liquidity-pairs'
 
 const router = useRouter()
-const route = useRoute()
 
-const quickPoll = refAutoReset(false, POLL_INTERVAL_QUICK_TIMEOUT)
-quickPoll.value = route.meta.quickPoll as boolean
+const liquidityListStore = useLiquidityListStore()
+
 const pollInterval = computed(() => {
-  return (quickPoll.value && POLL_INTERVAL_QUICK) || POLL_INTERVAL
+  return (liquidityListStore.quickPoll && POLL_INTERVAL_QUICK) || POLL_INTERVAL
 })
 
 const { loading: isLoading, result, refetch } = useLiquidityPairsQuery(pollInterval)
