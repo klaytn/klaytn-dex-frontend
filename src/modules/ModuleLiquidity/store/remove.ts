@@ -1,4 +1,4 @@
-import { Address, Token, Wei } from '@/core'
+import { Address, Token, TokenAmount, TokenImpl, Wei } from '@/core'
 import {
   computeEstimatedPoolShare,
   PairAddressResult,
@@ -7,7 +7,7 @@ import {
   usePairBalance,
   usePairReserves,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
-import { buildPair, TokensPair, TOKEN_TYPES } from '@/utils/pair'
+import { buildPair, completePairOrNull, TokensPair, TOKEN_TYPES } from '@/utils/pair'
 import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -15,6 +15,7 @@ import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { match, P } from 'ts-pattern'
+import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
 
 function usePrepareSupply(props: {
   tokens: Ref<null | TokensPair<Address>>
@@ -261,7 +262,22 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
   const { amounts, pending: isAmountsPending, touch: touchAmounts } = useRemoveAmounts(pairResult, liquidity)
 
-  const rates = useRates(amounts)
+  const tokens = computed(() => {
+    const { lookupToken } = useMinimalTokensApi()
+    const result = pairResult.value
+    return result ? buildPair((type) => lookupToken(result.tokens[type])) : null
+  })
+  const tokenAmounts = computed(() => {
+    const tokensValue = tokens.value
+    const amountsValue = amounts.value
+    if (!tokensValue || !amountsValue) return null
+    return buildPair((type) => {
+      const token = tokensValue[type]
+      return token ? TokenAmount.fromWei(new TokenImpl(token), amountsValue[type]) : null
+    })
+  })
+
+  const rates = useRates(computed(() => completePairOrNull(tokenAmounts.value)))
 
   // #endregion
 

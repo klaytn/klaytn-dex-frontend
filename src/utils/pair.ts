@@ -18,6 +18,12 @@ export function buildPair<T>(fn: (type: TokenType) => T): TokensPair<T> {
   }
 }
 
+export function completePairOrNull<T>(pair: TokensPair<T | null> | null): TokensPair<T> | null {
+  const tokenA = pair?.tokenA
+  const tokenB = pair?.tokenB
+  return tokenA && tokenB ? { tokenA, tokenB } : null
+}
+
 export function emptyPair(): TokensPair<null> {
   return buildPair(() => null)
 }

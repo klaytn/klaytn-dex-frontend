@@ -1,4 +1,4 @@
-import { Wei, Percent } from '@/core'
+import { Percent, TokenAmount } from '@/core'
 import { Tab } from '@/types'
 import BigNumber from 'bignumber.js'
 import rfdc from 'rfdc'
@@ -34,8 +34,8 @@ export type RatesRounded = {
   [K in keyof Rates]: number
 }
 
-export function computeRates(pair: TokensPair<Wei>): Rates {
-  const a_per_b = pair.tokenA.asBigNum.dividedBy(pair.tokenB.asBigNum).toNumber()
+export function computeRates(pair: TokensPair<TokenAmount>): Rates {
+  const a_per_b = pair.tokenA.quotient.dividedBy(pair.tokenB.quotient).toNumber()
   const b_per_a = 1 / a_per_b
   return { a_per_b, b_per_a }
 }
