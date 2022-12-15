@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js'
 import { expect, test, describe } from 'vitest'
 import { formatNumberWithCommas, formatNumberWithSignificant, numberToPercent } from './common'
 
-describe('number with significant', () => {
+describe('format a number with 7 significant positions', () => {
   test.each([
     [1234.0, '1234'],
     [1234.474747, '1234.475'],
