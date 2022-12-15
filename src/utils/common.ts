@@ -67,6 +67,29 @@ export function makeTabsArray(data: string[]): Tab[] {
   }))
 }
 
+export function formatNumberWithSignificant(value: string | number | BigNumber, significant: number): string {
+  const valueBigNumber = BigNumber(value)
+  const valueStr = valueBigNumber.toFixed()
+  let done = false
+  let i = 0
+  let significantFound = 0
+  let decimals = 0
+  let afterPoint = false
+  while (!done) {
+    const char = valueStr[i]
+    const isPeriod = char === '.'
+    if (!isPeriod) {
+      if (significantFound === 0 && char !== '0') significantFound = 1
+      else if (significantFound > 0) significantFound++
+    }
+    if (afterPoint) decimals++
+    if ((significantFound >= significant && decimals >= 2) || valueStr.length - 1 <= i) done = true
+    i++
+    if (isPeriod) afterPoint = true
+  }
+  return trimTrailingZerosWithPeriod(valueBigNumber.toFixed(decimals))
+}
+
 export function formatNumberWithCommas(value: string | number | BigNumber): string {
   return value.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ',')
 }
