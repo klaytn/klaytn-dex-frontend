@@ -51,6 +51,8 @@ function usePrepareSupply(props: {
 
   const isReadyToPrepareSupply = computed(() => !!scopeKey.value)
 
+  const liquidityListStore = useLiquidityListStore()
+
   const scope = useParamScope(filteredKey, ({ payload: { tokens, pair, liquidity: lpTokenValue, amounts, dex } }) => {
     const { state: prepareState, run: prepare } = useTask(
       () =>
@@ -77,7 +79,7 @@ function usePrepareSupply(props: {
     useNotifyOnError(supplyState, notify, 'Supply failed')
 
     wheneverFulfilled(supplyState, () => {
-      useLiquidityListStore().quickPoll = true
+      liquidityListStore.quickPoll = true
     })
 
     const fee = computed(() => prepareState.fulfilled?.value?.fee)
