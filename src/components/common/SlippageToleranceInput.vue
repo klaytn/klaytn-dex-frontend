@@ -90,7 +90,7 @@ const anyWarning = logicOr(warningMayBeFrontrun, warningMayFail)
             v-model="inputModel"
             class="w-60px sm:w-88px"
             symbol="%"
-            percent
+            :decimals="PERCENT_DECIMALS"
             symbol-position="right"
             symbol-delimiter=""
           />
