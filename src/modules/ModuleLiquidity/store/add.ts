@@ -108,6 +108,8 @@ function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null> }) {
 
   const { filteredKey, setActive } = useControlledComposedKey(scopeKey)
 
+  const liquidityListStore = useLiquidityListStore()
+
   const scope = useParamScope(filteredKey, ({ payload: { tokens, dex } }) => {
     const { state: statePrepare, run: runPrepare } = useTask(
       async () => {
@@ -135,6 +137,7 @@ function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null> }) {
     useNotifyOnError(stateSupply, notify, 'Liquidity addition failed')
     wheneverFulfilled(stateSupply, () => {
       notify({ type: 'ok', description: 'Liquidity addition succeeded!' })
+      liquidityListStore.quickPoll = true
     })
 
     const fee = computed(() => statePrepare.fulfilled?.value.fee ?? null)
