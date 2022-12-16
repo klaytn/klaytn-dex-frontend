@@ -44,8 +44,12 @@ export function parseBigIntIsh(value: BigNumberIsh): bigint {
   return BigInt(bigNumberValue.toFixed(0))
 }
 
-export function areAddressesEqual(left: Address, right: Address): boolean {
+export function areAddressesEqual(a: Address, b: Address): boolean {
   // TODO could be optimized with char-by-char case insensitive comparison
   // taking into account that the whole set of characters is `[A-Fa-f0-9]`
-  return left.toLowerCase() === right.toLowerCase()
+  return a.toLowerCase() === b.toLowerCase()
+}
+
+export function areNullableAddressesEqual(a: Address | null, b: Address | null): boolean {
+  return (!a && !b) || (!!(a && b) && areAddressesEqual(a, b))
 }

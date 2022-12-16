@@ -6,7 +6,7 @@ import { Ref } from 'vue'
 
 export const POLL_INTERVAL = 10_000
 export const POLL_INTERVAL_QUICK = 1_000
-export const POLL_INTERVAL_QUICK_TIMEOUT = 5_000
+export const POLL_INTERVAL_QUICK_TIMEOUT = 7_000
 
 export interface LiquidityPairsResult {
   user: null | {
