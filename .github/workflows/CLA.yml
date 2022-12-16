@@ -2,16 +2,13 @@ name: "CLA Assistant"
 on:
   issue_comment:
     types: [created]
-    branches:
-      - "klaytn:*"
   pull_request_target:
     types: [opened, closed, synchronize]
-    branches:
-      - "klaytn:*"
 
 jobs:
   CLAssistant:
     runs-on: ubuntu-latest
+    if: github.repository == "klaytn/klaytn-dex-frontend"
     permissions:
       actions: write
       pull-requests: write
