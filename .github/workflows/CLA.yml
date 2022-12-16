@@ -8,7 +8,6 @@ on:
 jobs:
   CLAssistant:
     runs-on: ubuntu-latest
-    if: github.repository == "klaytn/klaytn-dex-frontend"
     permissions:
       actions: write
       pull-requests: write
