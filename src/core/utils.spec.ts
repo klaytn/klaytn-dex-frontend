@@ -1,6 +1,6 @@
-import { describe, test, expect } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import { NATIVE_TOKEN } from './const'
-import { formatAddress, parseAddress, isEmptyAddress, computeTransactionFee } from './utils'
+import { computeTransactionFee, formatAddress, isEmptyAddress, parseAddress } from './utils'
 import { Wei } from './entities'
 
 describe('Formatting address', () => {

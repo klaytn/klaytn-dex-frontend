@@ -4,7 +4,7 @@ import { MaybeRef } from '@vueuse/core'
 import gql from 'graphql-tag'
 import { Opaque } from 'type-fest'
 import { Ref } from 'vue'
-import { byValue, byString } from 'sort-es'
+import { byString, byValue } from 'sort-es'
 import { ApolloClientId } from '@/types'
 import { ITEM_HEIGHT, WRAP_HEIGHT } from './const'
 

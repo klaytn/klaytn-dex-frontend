@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import { NATIVE_TOKEN, isNativeToken } from '../const'
 import { Address } from '../types'
 

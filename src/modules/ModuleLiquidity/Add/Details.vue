@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import cssRows from '../../ModuleTradeShared/rows.module.scss.types'
-import { buildPair, TOKEN_TYPES, nonNullPair } from '@/utils/pair'
+import { TOKEN_TYPES, buildPair, nonNullPair } from '@/utils/pair'
 import { NATIVE_TOKEN_DECIMALS, POOL_COMMISSION } from '@/core'
 import { KlayIconImportant } from '~klay-icons'
 import { SPopover } from '@soramitsu-ui/ui'

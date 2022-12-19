@@ -1,6 +1,6 @@
-import { describe, test, expect } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import { computeFeesByAmounts } from './utils'
-import { Wei, Percent } from '@/core'
+import { Percent, Wei } from '@/core'
 import { TOKENS_LIST } from '../../../test/util'
 
 describe('Compute fees', () => {

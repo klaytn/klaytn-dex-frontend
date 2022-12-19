@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { KlayIconRefresh, KlayIconArrowDown_2 } from '~klay-icons'
+import { KlayIconArrowDown_2, KlayIconRefresh } from '~klay-icons'
 import { RouteName, Tab } from '@/types'
 import TheTokensApiProvider from '@/components/TheTokensApiProvider.vue'
 import { WRAP_HEIGHT } from '@/modules/ModuleAssets/const'

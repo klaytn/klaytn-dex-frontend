@@ -1,6 +1,6 @@
 import { Percent } from '@/core'
 import BigNumber from 'bignumber.js'
-import { expect, test, describe } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import { formatNumberWithCommas, formatNumberWithSignificant, numberToPercent } from './common'
 
 describe('format a number with 7 significant positions', () => {

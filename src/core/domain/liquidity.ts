@@ -1,6 +1,6 @@
 import type { Address, Deadline } from '../types'
 import { NATIVE_TOKEN, isNativeToken } from '../const'
-import { buildPair, buildPairAsync, TokensPair, TokenType } from '@/utils/pair'
+import { TokenType, TokensPair, buildPair, buildPairAsync } from '@/utils/pair'
 import { computeTransactionFee, deadlineFiveMinutesFromNow } from '../utils'
 import { Wei } from '../entities'
 import { Agent, AgentPure } from './agent'

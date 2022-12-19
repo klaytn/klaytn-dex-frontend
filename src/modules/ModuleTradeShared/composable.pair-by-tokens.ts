@@ -1,4 +1,4 @@
-import { Address, isEmptyAddress, Percent, Wei } from '@/core'
+import { Address, Percent, Wei, isEmptyAddress } from '@/core'
 import { ActiveDex, AnyDex } from '@/store/dex'
 import { TokensPair } from '@/utils/pair'
 import { Ref } from 'vue'

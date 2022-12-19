@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WeiAsToken, LP_TOKEN_DECIMALS, CurrencySymbol } from '@/core'
+import { CurrencySymbol, LP_TOKEN_DECIMALS, WeiAsToken } from '@/core'
 import { TokensPair } from '@/utils/pair'
 import BigNumber from 'bignumber.js'
 import { Ref } from 'vue'

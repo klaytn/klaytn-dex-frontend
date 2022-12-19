@@ -1,14 +1,14 @@
 import type { Deadline } from '../types'
 import { computeTransactionFee, deadlineFiveMinutesFromNow } from '../utils'
-import { Fraction, Trade, Wei, Percent } from '../entities'
+import { Fraction, Percent, Trade, Wei } from '../entities'
 import CommonContracts from './CommonContracts'
 import { Agent } from './agent'
-import { TransactionObject, IsomorphicOverrides } from '../isomorphic-contract'
+import { IsomorphicOverrides, TransactionObject } from '../isomorphic-contract'
 import invariant from 'tiny-invariant'
 import { Opaque, Simplify } from 'type-fest'
 import BigNumber from 'bignumber.js'
 import { BigNumber as EthersBigNumber } from 'ethers'
-import { isNativeToken, MAX_UINT256 } from '../const'
+import { MAX_UINT256, isNativeToken } from '../const'
 import { match } from 'ts-pattern'
 
 const ZERO = new Fraction(0)
