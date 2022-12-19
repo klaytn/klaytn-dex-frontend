@@ -348,7 +348,7 @@ if (import.meta.vitest) {
         }),
       ).toMatchInlineSnapshot(`
         {
-          "klay": {
+          "native": {
             "addr": "0x73365f8f27de98d7634be67a167f229b32e7bf6c",
             "amount": "123",
           },
@@ -368,7 +368,7 @@ if (import.meta.vitest) {
         }),
       ).toMatchInlineSnapshot(`
         {
-          "klay": {
+          "native": {
             "addr": "0x73365f8f27de98d7634be67a167f229b32e7bf6c",
             "amount": "321",
           },
