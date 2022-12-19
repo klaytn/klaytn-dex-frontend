@@ -30,4 +30,5 @@ export interface ConfigParsed {
   snapshotSpace: string
   uriDashboards: string
   uriConnectWalletGuide: string
+  uriIPFS: string
 }

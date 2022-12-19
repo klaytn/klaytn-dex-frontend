@@ -281,8 +281,8 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
                 <CurrencyFormatTruncate
                   class="ml-1"
                   :amount="stakingPeriodPercentageYield"
-                  :decimals="2"
                   symbol="%"
+                  percent
                 />)
               </div>
             </span>
