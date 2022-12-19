@@ -22,7 +22,7 @@ const models = reactive(
       }),
       addr: computed({
         get: () => addrs.value[type],
-        set: (addr) => addr && liquidityStore.setTokenAddress(type, addr),
+        set: (addr) => liquidityStore.setTokenAddress(type, addr),
       }),
     }
   }),
