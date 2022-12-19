@@ -302,9 +302,9 @@ export const useSwapStore = defineStore('swap', () => {
 
   const finalRates = useRates(
     computed(() => {
-      const amounts = gotAmountsResult.value?.amountsResult
-      if (!amounts) return null
-      return { tokenA: amounts.amountIn, tokenB: amounts.amountOut }
+      const props = gotAmountsResult.value?.props
+      if (!props) return null
+      return { tokenA: props.trade.inputAmount, tokenB: props.trade.outputAmount }
     }),
   )
 

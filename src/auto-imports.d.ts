@@ -14,6 +14,7 @@ declare global {
   const computed: typeof import('vue')['computed']
   const computedAsync: typeof import('@vueuse/core')['computedAsync']
   const computedEager: typeof import('@vueuse/core')['computedEager']
+  const computedEagerUsingWatch: typeof import('./composables/computed-eager-using-watch')['computedEagerUsingWatch']
   const computedInject: typeof import('@vueuse/core')['computedInject']
   const computedWithControl: typeof import('@vueuse/core')['computedWithControl']
   const controlledComputed: typeof import('@vueuse/core')['controlledComputed']
@@ -195,6 +196,7 @@ declare global {
   const useKeyModifier: typeof import('@vueuse/core')['useKeyModifier']
   const useLastChanged: typeof import('@vueuse/core')['useLastChanged']
   const useLiquidityAddStore: typeof import('./modules/ModuleLiquidity/store/add')['useLiquidityAddStore']
+  const useLiquidityListStore: typeof import('./modules/ModuleLiquidity/store/list')['useLiquidityListStore']
   const useLiquidityRmSelectionStore: typeof import('./store/liquidity-rm-selection')['useLiquidityRmSelectionStore']
   const useLiquidityRmStore: typeof import('./modules/ModuleLiquidity/store/remove')['useLiquidityRmStore']
   const useLocalStorage: typeof import('@vueuse/core')['useLocalStorage']
@@ -240,6 +242,7 @@ declare global {
   const useResizeObserver: typeof import('@vueuse/core')['useResizeObserver']
   const useRound: typeof import('@vueuse/math')['useRound']
   const useRoute: typeof import('vue-router')['useRoute']
+  const useRouteParams: typeof import('@vueuse/router')['useRouteParams']
   const useRouter: typeof import('vue-router')['useRouter']
   const useScreenOrientation: typeof import('@vueuse/core')['useScreenOrientation']
   const useScreenSafeArea: typeof import('@vueuse/core')['useScreenSafeArea']
@@ -332,6 +335,7 @@ declare module '@vue/runtime-core' {
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly computedAsync: UnwrapRef<typeof import('@vueuse/core')['computedAsync']>
     readonly computedEager: UnwrapRef<typeof import('@vueuse/core')['computedEager']>
+    readonly computedEagerUsingWatch: UnwrapRef<typeof import('./composables/computed-eager-using-watch')['computedEagerUsingWatch']>
     readonly computedInject: UnwrapRef<typeof import('@vueuse/core')['computedInject']>
     readonly computedWithControl: UnwrapRef<typeof import('@vueuse/core')['computedWithControl']>
     readonly controlledComputed: UnwrapRef<typeof import('@vueuse/core')['controlledComputed']>
@@ -513,6 +517,7 @@ declare module '@vue/runtime-core' {
     readonly useKeyModifier: UnwrapRef<typeof import('@vueuse/core')['useKeyModifier']>
     readonly useLastChanged: UnwrapRef<typeof import('@vueuse/core')['useLastChanged']>
     readonly useLiquidityAddStore: UnwrapRef<typeof import('./modules/ModuleLiquidity/store/add')['useLiquidityAddStore']>
+    readonly useLiquidityListStore: UnwrapRef<typeof import('./modules/ModuleLiquidity/store/list')['useLiquidityListStore']>
     readonly useLiquidityRmSelectionStore: UnwrapRef<typeof import('./store/liquidity-rm-selection')['useLiquidityRmSelectionStore']>
     readonly useLiquidityRmStore: UnwrapRef<typeof import('./modules/ModuleLiquidity/store/remove')['useLiquidityRmStore']>
     readonly useLocalStorage: UnwrapRef<typeof import('@vueuse/core')['useLocalStorage']>
@@ -558,6 +563,7 @@ declare module '@vue/runtime-core' {
     readonly useResizeObserver: UnwrapRef<typeof import('@vueuse/core')['useResizeObserver']>
     readonly useRound: UnwrapRef<typeof import('@vueuse/math')['useRound']>
     readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
+    readonly useRouteParams: UnwrapRef<typeof import('@vueuse/router')['useRouteParams']>
     readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
     readonly useScreenOrientation: UnwrapRef<typeof import('@vueuse/core')['useScreenOrientation']>
     readonly useScreenSafeArea: UnwrapRef<typeof import('@vueuse/core')['useScreenSafeArea']>

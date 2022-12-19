@@ -1,5 +1,14 @@
 /* eslint-disable max-nested-callbacks */
-import { deadlineFiveMinutesFromNow, Address, Wei, WeiAsToken } from '@/core'
+import {
+  deadlineFiveMinutesFromNow,
+  Address,
+  Wei,
+  WeiAsToken,
+  NATIVE_TOKEN_FULL,
+  DEX_TOKEN_FULL,
+  TokenAmount,
+  TokenImpl,
+} from '@/core'
 import {
   usePairAddress,
   usePairBalance,
@@ -7,7 +16,7 @@ import {
   useNullablePairBalanceComponents,
   computeEstimatedPoolShare,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
-import { buildPair, mirrorTokenType, nonNullPair, TokensPair, TokenType } from '@/utils/pair'
+import { buildPair, completePairOrNull, mirrorTokenType, nonNullPair, TokensPair, TokenType } from '@/utils/pair'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -16,11 +25,14 @@ import {
   usePairInput,
   useEstimatedLayer,
   useLocalStorageAddrsOrigin,
+  useAddrRouteParams,
 } from '@/modules/ModuleTradeShared/composable.pair-input'
 import { RouteName } from '@/types'
 import { TokenAddressAndDesiredValue } from '@/core/domain/liquidity'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { match, P } from 'ts-pattern'
+import { areAddrTokenPairsEqual } from '@/utils/pair'
+import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
 
 type SupplyTokens = TokensPair<TokenAddressAndDesiredValue>
 
@@ -106,6 +118,8 @@ function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null> }) {
 
   const { filteredKey, setActive } = useControlledComposedKey(scopeKey)
 
+  const liquidityListStore = useLiquidityListStore()
+
   const scope = useParamScope(filteredKey, ({ payload: { tokens, dex } }) => {
     const { state: statePrepare, run: runPrepare } = useTask(
       async () => {
@@ -133,6 +147,7 @@ function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null> }) {
     useNotifyOnError(stateSupply, notify, 'Liquidity addition failed')
     wheneverFulfilled(stateSupply, () => {
       notify({ type: 'ok', description: 'Liquidity addition succeeded!' })
+      liquidityListStore.quickPoll = true
     })
 
     const fee = computed(() => statePrepare.fulfilled?.value.fee ?? null)
@@ -163,6 +178,7 @@ function usePrepareSupply(props: { tokens: Ref<SupplyTokens | null> }) {
 
 export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const route = useRoute()
+  const router = useRouter()
   const tokensStore = useTokensStore()
   const dexStore = useDexStore()
 
@@ -170,7 +186,31 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   // #region Selection
 
-  const selection = usePairInput({ addrsOrigin: useLocalStorageAddrsOrigin('liquidity-add-selection', isActiveRoute) })
+  const routeAddrsParams = useAddrRouteParams({
+    router,
+    baseToken: NATIVE_TOKEN_FULL.address,
+    additionalBaseToken: DEX_TOKEN_FULL.address,
+    isActive: isActiveRoute,
+  })
+  const localStorageAddrsOrigin = useLocalStorageAddrsOrigin('liquidity-add-selection', isActiveRoute)
+
+  watch(
+    routeAddrsParams.pair,
+    (x) => {
+      if (x && !areAddrTokenPairsEqual(x, localStorageAddrsOrigin.value)) {
+        localStorageAddrsOrigin.value = x
+      }
+    },
+    { immediate: true },
+  )
+
+  watch(localStorageAddrsOrigin, (x) => {
+    if (routeAddrsParams.pair.value && !areAddrTokenPairsEqual(x, routeAddrsParams.pair.value)) {
+      routeAddrsParams.clear()
+    }
+  })
+
+  const selection = usePairInput({ addrsOrigin: localStorageAddrsOrigin })
   const { tokens, resetInput, tokenValues } = selection
   const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
   const addrsReadonly = readonly(selection.addrs)
@@ -196,17 +236,9 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   // #region Pair balance & reserves
 
-  const {
-    result: pairBalance,
-    touch: touchPairBalance,
-    pending: isPairBalancePending,
-  } = usePairBalance(addrsReadonly, doesPairExist)
+  const { result: pairBalance, touch: touchPairBalance, pending: isPairBalancePending } = usePairBalance(gotPair)
 
-  const {
-    result: pairReserves,
-    touch: touchPairReserves,
-    pending: isPairReservesPending,
-  } = usePairReserves(addrsReadonly, doesPairExist)
+  const { result: pairReserves, touch: touchPairReserves, pending: isPairReservesPending } = usePairReserves(gotPair)
 
   const { userBalance: pairUserBalance, totalSupply: pairTotalSupply } = toRefs(
     useNullablePairBalanceComponents(pairBalance),
@@ -328,12 +360,16 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     return null
   })
 
-  const finalRates = useRates(
-    computed(() => {
-      const supply = supplyTokens.value
-      return supply && buildPair((type) => supply[type].desired)
-    }),
-  )
+  const tokenAmounts = computed(() => {
+    const supply = supplyTokens.value
+    if (!tokens || !supply) return null
+    return buildPair((type) => {
+      const token = tokens[type]
+      return token ? TokenAmount.fromWei(new TokenImpl(token), supply[type].desired) : null
+    })
+  })
+
+  const finalRates = useRates(computed(() => completePairOrNull(tokenAmounts.value)))
 
   const { prepare: prepareSupply, clear: clearSupply, scope: supplyScope } = usePrepareSupply({ tokens: supplyTokens })
 

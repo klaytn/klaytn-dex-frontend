@@ -1,5 +1,5 @@
 import type { Address } from '@/core'
-import { areAddressesEqual } from '@/core/utils'
+import { areAddressesEqual, areNullableAddressesEqual } from '@/core/utils'
 
 export const TOKEN_TYPES = ['tokenA', 'tokenB'] as const
 
@@ -16,6 +16,12 @@ export function buildPair<T>(fn: (type: TokenType) => T): TokensPair<T> {
     tokenA: fn('tokenA'),
     tokenB: fn('tokenB'),
   }
+}
+
+export function completePairOrNull<T>(pair: TokensPair<T | null> | null): TokensPair<T> | null {
+  const tokenA = pair?.tokenA
+  const tokenB = pair?.tokenB
+  return tokenA && tokenB ? { tokenA, tokenB } : null
 }
 
 export function emptyPair(): TokensPair<null> {
@@ -45,4 +51,8 @@ export function map01ToPair<T>(pair: Pair01<T>, token0: Address, tokenA: Address
   const ab = [pair.token0, pair.token1] as [T, T]
   !areAddressesEqual(token0, tokenA) && ab.reverse()
   return { tokenA: ab[0], tokenB: ab[1] }
+}
+
+export function areAddrTokenPairsEqual(a: TokensPair<Address | null>, b: TokensPair<Address | null>) {
+  return areNullableAddressesEqual(a.tokenA, b.tokenA) && areNullableAddressesEqual(a.tokenB, b.tokenB)
 }
