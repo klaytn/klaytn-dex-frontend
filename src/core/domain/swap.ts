@@ -10,16 +10,7 @@ import BigNumber from 'bignumber.js'
 import { BigNumber as EthersBigNumber } from 'ethers'
 import { isNativeToken, MAX_UINT256 } from '../const'
 import { match } from 'ts-pattern'
-
-const ZERO = new Fraction(0)
-const ONE = new Fraction(1)
-
-type SlippagePercent = Opaque<Percent, 'non-negative'>
-
-export function parseSlippage(raw: Percent): SlippagePercent {
-  invariant(!raw.isLessThan(ZERO), () => `Slippage should be a non-negative number, got: ${raw.toFixed()}`)
-  return raw as SlippagePercent
-}
+import { adjustDown, adjustUp, parseSlippage, SlippagePercent } from '../slippage'
 
 interface HasTrade {
   trade: Trade
@@ -90,16 +81,18 @@ export interface GetAmountsReturn extends AmountsInOut {
   amounts: Wei[]
 }
 
+/**
+ * Utility function to be used outside of the domain module
+ */
 export function applySlippageForExactInput(amountOut: Wei, slippage: SlippagePercent): { amountOutMin: Wei } {
-  const adjusted = ONE.plus(slippage).invert().multipliedBy(new Fraction(amountOut.asBigInt)).quotient.decimalPlaces(0)
-
-  return { amountOutMin: new Wei(adjusted) }
+  return { amountOutMin: adjustDown(amountOut, slippage) }
 }
 
+/**
+ * Utility function to be used outside of the domain module
+ */
 export function applySlippageForExactOutput(amountIn: Wei, slippage: SlippagePercent): { amountInMax: Wei } {
-  const adjusted = ONE.plus(slippage).multipliedBy(new Fraction(amountIn.asBigInt)).quotient.decimalPlaces(0)
-
-  return { amountInMax: new Wei(adjusted) }
+  return { amountInMax: adjustUp(amountIn, slippage) }
 }
 
 /**

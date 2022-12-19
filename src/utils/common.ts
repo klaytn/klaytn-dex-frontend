@@ -94,6 +94,9 @@ export function formatNumberWithCommas(value: string | number | BigNumber): stri
   return value.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ',')
 }
 
+/**
+ * Transforms a number from `0.005` to `0.5%` with given precision.
+ */
 export function numberToPercent(num: number, precision: number): Percent {
   const pow = 10 ** precision
   return new Percent(num * pow, pow)

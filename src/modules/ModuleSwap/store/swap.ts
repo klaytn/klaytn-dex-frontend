@@ -33,11 +33,9 @@ import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { usePairsQuery } from '../query.pairs'
-import { numberToPercent } from '@/utils/common'
 import { match, P } from 'ts-pattern'
 import { computeFeesByAmounts, FeeItem } from '../utils'
-
-const SLIPPAGE_PRECISION = 5
+import { DEFAULT_SLIPPAGE_TOLERANCE } from '../const'
 
 const dbg = Debug('swap-store')
 
@@ -135,7 +133,7 @@ export const useSwapStore = defineStore('swap', () => {
 
   const multihops = useLocalStorage<boolean>('swap-multi-hops', false)
 
-  const slippageTolerance = ref(0.005)
+  const { numeric: slippageNumeric, parsed: slippageParsed } = useRawSlippage(DEFAULT_SLIPPAGE_TOLERANCE)
 
   const expertMode = ref(false)
 
@@ -269,7 +267,7 @@ export const useSwapStore = defineStore('swap', () => {
   const amountsWithSlippage = computed(() =>
     match(gotAmountsResult.value)
       .with(P.not(P.nullish), ({ amountsResult, props }) => {
-        const adjusted = computeSlippage(amountsResult, numberToPercent(slippageTolerance.value, SLIPPAGE_PRECISION))
+        const adjusted = computeSlippage(amountsResult, slippageParsed.value)
         return { adjusted, props }
       })
       .otherwise(() => null),
@@ -424,7 +422,7 @@ export const useSwapStore = defineStore('swap', () => {
     resetInput,
     swapTokensWithEachOther,
 
-    slippageTolerance,
+    slippageNumeric,
     multihops,
     expertMode,
 

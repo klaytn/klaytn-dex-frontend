@@ -16,18 +16,40 @@ const cssRowClassForBottomLines = computed(() => {
 })
 
 const store = useLiquidityAddStore()
-const { finalRates: rates, symbols, tokens, poolShare, pairReserves: reserves, supplyScope } = storeToRefs(store)
+const {
+  finalRates: rates,
+  symbols,
+  tokens,
+  poolShare,
+  pairReserves: reserves,
+  supplyScope,
+  supplyTokens,
+} = storeToRefs(store)
 
-const reservesAsTokens = computed(() => {
-  const bothTokens = nonNullPair(tokens.value)
-  const res = reserves.value
-  if (!bothTokens || !res) return null
+const reservesDesiredAndMin = computed(() => {
+  const tokensVal = nonNullPair(tokens.value)
+  const reservesVal = reserves.value
+  const supplyVal = supplyTokens.value
+  if (!tokensVal || !reservesVal || !supplyVal) return null
 
   return buildPair((type) => {
-    const reserve = res[type]
-    const num = reserve.decimals(bothTokens[type])
-    return num
+    const tokenData = tokensVal[type]
+    const { decimals, symbol } = tokenData
+    const reserve = reservesVal[type]
+    const { desired, min } = supplyVal[type]
+    return {
+      symbol,
+      decimals,
+      reserve: reserve.decimals(tokenData),
+      desired: desired.decimals(tokenData),
+      min: min.decimals(tokenData),
+    }
   })
+})
+
+const reservesDesiredAndMinIter = computed(() => {
+  const obj = reservesDesiredAndMin.value
+  return obj && TOKEN_TYPES.map((x) => obj[x])
 })
 
 const feeKlay = computed(() => {
@@ -47,20 +69,50 @@ const formattedCommission = POOL_COMMISSION.toFormat()
     <h3>Prices and pool share</h3>
 
     <div class="space-y-4">
-      <template v-if="inModal && reservesAsTokens">
-        <div
-          v-for="token in TOKEN_TYPES"
-          :key="token"
-          :class="cssRows.rowSm"
+      <template v-if="inModal && reservesDesiredAndMinIter">
+        <hr class="klay-divider">
+
+        <template
+          v-for="({ reserve, desired, min, decimals, symbol }, i) in reservesDesiredAndMinIter"
+          :key="i"
         >
-          <span>{{ symbols[token] }} Deposited</span>
-          <span>
-            <CurrencyFormat
-              :amount="reservesAsTokens[token]"
-              :decimals="7"
-            />
-          </span>
-        </div>
+          <hr
+            v-if="i > 0"
+            class="klay-divider"
+          >
+
+          <div :class="cssRows.rowSm">
+            <span>{{ symbol }} Deposited</span>
+            <span>
+              <CurrencyFormatTruncate
+                :amount="reserve"
+                :decimals="decimals"
+              />
+            </span>
+          </div>
+
+          <div :class="cssRows.rowSm">
+            <span>{{ symbol }} Desired</span>
+            <span>
+              <CurrencyFormatTruncate
+                :amount="desired"
+                :decimals="decimals"
+              />
+            </span>
+          </div>
+
+          <div :class="cssRows.rowSm">
+            <span>{{ symbol }} Min</span>
+            <span>
+              <CurrencyFormatTruncate
+                :amount="min"
+                :decimals="decimals"
+              />
+            </span>
+          </div>
+        </template>
+
+        <hr class="klay-divider">
       </template>
 
       <RowsRates

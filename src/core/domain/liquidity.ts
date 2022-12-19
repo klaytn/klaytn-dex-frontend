@@ -2,7 +2,7 @@ import type { Address, Deadline } from '../types'
 import { NATIVE_TOKEN, isNativeToken } from '../const'
 import { buildPair, buildPairAsync, TokensPair, TokenType } from '@/utils/pair'
 import { computeTransactionFee, deadlineFiveMinutesFromNow } from '../utils'
-import { Wei } from '../entities'
+import { Percent, Wei } from '../entities'
 import { Agent, AgentPure } from './agent'
 import { TokensPure } from './tokens'
 import CommonContracts from './CommonContracts'
@@ -14,13 +14,20 @@ import invariant from 'tiny-invariant'
 const MINIMUM_LIQUIDITY = new Wei(1000)
 
 export interface PrepareAddLiquidityProps {
-  tokens: TokensPair<TokenAddressAndDesiredValue>
+  tokens: TokensPair<AddLiquidityTokenDefinition>
   deadline: Deadline
 }
 
-export interface TokenAddressAndDesiredValue {
+export interface AddLiquidityTokenDefinition {
   addr: Address
+  /**
+   * Desired value the user wants to supply
+   */
   desired: Wei
+  /**
+   * Slipped desired value; minimal value the user ready to supply
+   */
+  min: Wei
 }
 
 export interface ComputeRemoveLiquidityAmountsProps {
@@ -45,20 +52,17 @@ export interface PrepareTransactionResult {
   send: () => Promise<void>
 }
 
-function minByDesired(desired: Wei): Wei {
-  const nDesired = desired.asBN
-
-  return new Wei(nDesired.sub(nDesired.divn(100)))
-}
-
-function detectKlay<T extends { addr: Address }>(
+function detectNative<T extends { addr: Address }>(
   pair: TokensPair<T>,
 ): null | {
   token: T
-  klay: T
+  /**
+   * i.e. Klay token
+   */
+  native: T
 } {
-  if (isNativeToken(pair.tokenA.addr)) return { token: pair.tokenB, klay: pair.tokenA }
-  if (isNativeToken(pair.tokenB.addr)) return { token: pair.tokenA, klay: pair.tokenB }
+  if (isNativeToken(pair.tokenA.addr)) return { token: pair.tokenB, native: pair.tokenA }
+  if (isNativeToken(pair.tokenB.addr)) return { token: pair.tokenA, native: pair.tokenB }
   return null
 }
 
@@ -235,23 +239,13 @@ export class Liquidity extends LiquidityPure {
     const { address } = this
     const gasPrice = await this.#agent.getGasPrice()
 
-    const detectedKlay = detectKlay(props.tokens)
+    const detectedKlay = detectNative(props.tokens)
     if (detectedKlay) {
-      const {
-        token,
-        klay: { desired: desiredKlay },
-      } = detectedKlay
+      const { token, native } = detectedKlay
 
       const tx = router.addLiquidityKLAY(
-        [
-          token.addr,
-          token.desired.asStr,
-          minByDesired(token.desired).asStr,
-          minByDesired(desiredKlay).asStr,
-          address,
-          props.deadline,
-        ],
-        { gasPrice, value: desiredKlay },
+        [token.addr, token.desired.asStr, token.min.asStr, native.min.asStr, address, props.deadline],
+        { gasPrice, value: native.desired },
       )
       const { gas, send } = await tx.estimateAndPrepareSend()
 
@@ -265,8 +259,8 @@ export class Liquidity extends LiquidityPure {
           tokenB.addr,
           tokenA.desired.asStr,
           tokenB.desired.asStr,
-          minByDesired(tokenA.desired).asStr,
-          minByDesired(tokenB.desired).asStr,
+          tokenA.min.asStr,
+          tokenB.min.asStr,
           address,
           props.deadline,
         ],
@@ -291,7 +285,7 @@ export class Liquidity extends LiquidityPure {
 
     const gasPrice = await this.#agent.getGasPrice()
 
-    const detectedKlay = detectKlay(
+    const detectedKlay = detectNative(
       buildPair((type) => ({
         addr: props.tokens[type],
         minAmount: minAmounts[type],
@@ -303,7 +297,7 @@ export class Liquidity extends LiquidityPure {
             detectedKlay.token.addr,
             props.liquidity.asStr,
             detectedKlay.token.minAmount.asStr,
-            detectedKlay.klay.minAmount.asStr,
+            detectedKlay.native.minAmount.asStr,
             address,
             deadlineFiveMinutesFromNow(),
           ],
@@ -330,17 +324,7 @@ export class Liquidity extends LiquidityPure {
 if (import.meta.vitest) {
   const { describe, test, expect } = import.meta.vitest
 
-  describe('min by desired', () => {
-    test('for 1_000_000', () => {
-      expect(minByDesired(new Wei('1000000')).asStr).toEqual('990000')
-    })
-
-    test('for 7', () => {
-      expect(minByDesired(new Wei(7)).asStr).toEqual('7')
-    })
-  })
-
-  describe('detecting eth', () => {
+  describe('detecting native token', () => {
     const tokens = {
       native: NATIVE_TOKEN,
       test1: '0xb9920BD871e39C6EF46169c32e7AC4C698688881' as Address,
@@ -349,7 +333,7 @@ if (import.meta.vitest) {
 
     test('no native tokens', () => {
       expect(
-        detectKlay({
+        detectNative({
           tokenA: { addr: tokens.test1, desired: new Wei('123') },
           tokenB: { addr: tokens.test2, desired: new Wei('321') },
         }),
@@ -358,7 +342,7 @@ if (import.meta.vitest) {
 
     test('native is the first', () => {
       expect(
-        detectKlay({
+        detectNative({
           tokenA: { addr: NATIVE_TOKEN, amount: new Wei('123') },
           tokenB: { addr: tokens.test2, amount: new Wei('321') },
         }),
@@ -378,7 +362,7 @@ if (import.meta.vitest) {
 
     test('native is the second', () => {
       expect(
-        detectKlay({
+        detectNative({
           tokenA: { addr: tokens.test2, computedAmount: new Wei('123') },
           tokenB: { addr: NATIVE_TOKEN, amount: new Wei('321') },
         }),
