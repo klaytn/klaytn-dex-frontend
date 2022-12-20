@@ -7,7 +7,7 @@ import {
   usePairBalance,
   usePairReserves,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
-import { buildPair, nonNullPair, TokensPair, TOKEN_TYPES } from '@/utils/pair'
+import { TOKEN_TYPES, TokensPair, buildPair, nonNullPair } from '@/utils/pair'
 import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -16,7 +16,7 @@ import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { P, match } from 'ts-pattern'
 import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
-import { adjustDown, SlippagePercent } from '@/core/slippage'
+import { SlippagePercent, adjustDown } from '@/core/slippage'
 import { DEFAULT_SLIPPAGE_TOLERANCE } from '../const'
 
 function usePrepareSupply(props: {

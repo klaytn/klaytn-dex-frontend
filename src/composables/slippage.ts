@@ -1,4 +1,4 @@
-import { parseSlippage, SlippagePercent } from '@/core/slippage'
+import { SlippagePercent, parseSlippage } from '@/core/slippage'
 import { numberToPercent } from '@/utils/common'
 import { Ref } from 'vue'
 

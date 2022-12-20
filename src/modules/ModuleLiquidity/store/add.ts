@@ -16,7 +16,7 @@ import {
   usePairBalance,
   usePairReserves,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
-import { buildPair, mirrorTokenType, nonNullPair, TokensPair, TokenType } from '@/utils/pair'
+import { TokenType, TokensPair, buildPair, mirrorTokenType, nonNullPair } from '@/utils/pair'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'

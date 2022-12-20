@@ -33,8 +33,8 @@ import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { usePairsQuery } from '../query.pairs'
-import { match, P } from 'ts-pattern'
-import { computeFeesByAmounts, FeeItem } from '../utils'
+import { P, match } from 'ts-pattern'
+import { FeeItem, computeFeesByAmounts } from '../utils'
 import { DEFAULT_SLIPPAGE_TOLERANCE } from '../const'
 
 const dbg = Debug('swap-store')

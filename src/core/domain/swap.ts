@@ -10,7 +10,7 @@ import BigNumber from 'bignumber.js'
 import { BigNumber as EthersBigNumber } from 'ethers'
 import { MAX_UINT256, isNativeToken } from '../const'
 import { match } from 'ts-pattern'
-import { adjustDown, adjustUp, parseSlippage, SlippagePercent } from '../slippage'
+import { SlippagePercent, adjustDown, adjustUp, parseSlippage } from '../slippage'
 
 interface HasTrade {
   trade: Trade

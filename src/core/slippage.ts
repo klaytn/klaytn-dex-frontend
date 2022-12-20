@@ -1,6 +1,6 @@
 import invariant from 'tiny-invariant'
 import { Opaque } from 'type-fest'
-import { Percent, Wei, Fraction } from './entities'
+import { Fraction, Percent, Wei } from './entities'
 
 const ZERO = new Fraction(0)
 const ONE = new Fraction(1)
