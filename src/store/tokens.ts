@@ -84,7 +84,9 @@ function useImportedTokens() {
    */
   function importToken(token: Token): void {
     tokens.value.unshift(token.address)
-    scope.value.expose.run()
+    if (result.value) {
+      scope.value.expose.state.fulfilled = { value: result.value.set(token.address, token) }
+    }
   }
 
   return {
