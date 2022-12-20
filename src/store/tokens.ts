@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { Address, DexPure, Dex, Token, Wei, isNativeToken, NATIVE_TOKEN } from '@/core'
+import { Address, Dex, DexPure, NATIVE_TOKEN, Token, Wei, isNativeToken } from '@/core'
 import { WHITELIST_TOKENS } from '@/core'
 import { Ref } from 'vue'
 import { TokensQueryResult, useTokensQuery } from '@/query/tokens-derived-usd'

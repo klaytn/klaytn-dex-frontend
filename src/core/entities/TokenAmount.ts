@@ -3,7 +3,7 @@ import Fraction from './Fraction'
 import TokenImpl from './TokenImpl'
 import Wei, { WeiAsToken } from './Wei'
 
-import { UniToken, UniCurrencyAmount } from './uni-entities'
+import { UniCurrencyAmount, UniToken } from './uni-entities'
 import BigNumber from 'bignumber.js'
 
 export default class TokenAmount extends CurrencyAmount<TokenImpl> {

@@ -22,6 +22,17 @@ module.exports = {
 
     'no-unused-vars': 'warn',
     'no-duplicate-imports': 'off',
+
+    'sort-imports': [
+      'warn',
+      {
+        ignoreCase: false,
+        ignoreDeclarationSort: true,
+        ignoreMemberSort: false,
+        memberSyntaxSortOrder: ['none', 'all', 'multiple', 'single'],
+        allowSeparatedGroups: true,
+      },
+    ],
   },
   overrides: [
     {

@@ -1,6 +1,6 @@
 <script lang="ts" setup name="SortingFilter">
 import { SPopover } from '@soramitsu-ui/ui'
-import { KlayIconSorting, KlayIconCheckbox } from '~klay-icons'
+import { KlayIconCheckbox, KlayIconSorting } from '~klay-icons'
 
 const { t } = useI18n()
 const vBem = useBemClass()

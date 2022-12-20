@@ -4,10 +4,10 @@ import { RouteName } from '@/types'
 import { TokensPair } from '@/utils/pair'
 import { useTradeStore } from '../ModuleTradeShared/trade-store'
 import {
-  useLiquidityPairsQuery,
   LiquidityPairsPosition,
   POLL_INTERVAL,
   POLL_INTERVAL_QUICK,
+  useLiquidityPairsQuery,
 } from './query.liquidity-pairs'
 
 const router = useRouter()

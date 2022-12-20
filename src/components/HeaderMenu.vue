@@ -1,5 +1,5 @@
 <script setup lang="ts" name="HeaderMenu">
-import { RouteName, HeaderMenuItem } from '@/types'
+import { HeaderMenuItem, RouteName } from '@/types'
 import { KlayIconArrowOutward, KlayIconCollapseArrow } from '~klay-icons'
 import { SPopover } from '@soramitsu-ui/ui'
 

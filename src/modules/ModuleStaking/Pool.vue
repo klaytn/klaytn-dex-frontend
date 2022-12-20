@@ -1,6 +1,6 @@
 <script setup lang="ts" name="ModuleStakingPool">
 import { ModalOperation, Pool } from './types'
-import { RouteName, RoiType } from '@/types'
+import { RoiType, RouteName } from '@/types'
 import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { Wei, WeiAsToken, makeExplorerLinkToAccount } from '@/core'

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Proposal } from '../types'
-import { getLowerCaseChoice, getLowerCaseChoices, formatAmount } from '../utils'
+import { formatAmount, getLowerCaseChoice, getLowerCaseChoices } from '../utils'
 import { POSITIVE_CHOICES } from '../const'
 
 const props = defineProps<{
