@@ -8,8 +8,8 @@ import {
   GetAmountsReturn,
   applySlippageForExactInput,
   applySlippageForExactOutput,
-  parseSlippage,
 } from '@/core/domain/swap'
+import { parseSlippage } from '@/core/slippage'
 import { match } from 'ts-pattern'
 
 const debug = Debug('swap-amounts')

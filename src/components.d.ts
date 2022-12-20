@@ -8,7 +8,6 @@ export {}
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     AddressCopy: typeof import('./components/common/AddressCopy.vue')['default']
-    copy: typeof import('./modules/ModuleGovernance/Proposal/SideColumn copy.vue')['default']
     CurrencyFormat: typeof import('./components/common/CurrencyFormat.vue')['default']
     CurrencyFormatTruncate: typeof import('./components/common/CurrencyFormatTruncate.vue')['default']
     CurrencyInput: typeof import('./components/common/CurrencyInput.vue')['default']
@@ -65,7 +64,6 @@ declare module '@vue/runtime-core' {
     ModuleGovernanceProposalDescription: typeof import('./modules/ModuleGovernance/Proposal/Description.vue')['default']
     ModuleGovernanceProposalHead: typeof import('./modules/ModuleGovernance/Proposal/Head.vue')['default']
     ModuleGovernanceProposalLinks: typeof import('./modules/ModuleGovernance/Proposal/Links.vue')['default']
-    ModuleGovernanceProposalSideColumn: typeof import('./modules/ModuleGovernance/Proposal/SideColumn.vue')['default']
     ModuleGovernanceProposalStatus: typeof import('./modules/ModuleGovernance/ProposalStatus.vue')['default']
     ModuleGovernanceProposalVotes: typeof import('./modules/ModuleGovernance/Proposal/Votes.vue')['default']
     ModuleLiquidityAdd: typeof import('./modules/ModuleLiquidity/Add/index.vue')['default']
@@ -106,7 +104,6 @@ declare module '@vue/runtime-core' {
     RowsRates: typeof import('./components/common/RowsRates.vue')['default']
     SearchFilter: typeof import('./components/common/SearchFilter.vue')['default']
     SlippageToleranceInput: typeof import('./components/common/SlippageToleranceInput.vue')['default']
-    SortingAndSearchFilter: typeof import('./components/common/SortingAndSearchFilter.vue')['default']
     SortingFilter: typeof import('./components/common/SortingFilter.vue')['default']
     TagName: typeof import('./components/common/TagName.vue')['default']
     ValueOrDash: typeof import('./components/common/ValueOrDash.vue')['default']

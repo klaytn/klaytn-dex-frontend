@@ -238,6 +238,7 @@ declare global {
   const usePromise: typeof import('@vue-kakuyaku/core')['usePromise']
   const usePromiseLog: typeof import('./composables/kakuyaku')['usePromiseLog']
   const useRafFn: typeof import('@vueuse/core')['useRafFn']
+  const useRawSlippage: typeof import('./composables/slippage')['useRawSlippage']
   const useRefHistory: typeof import('@vueuse/core')['useRefHistory']
   const useResizeObserver: typeof import('@vueuse/core')['useResizeObserver']
   const useRound: typeof import('@vueuse/math')['useRound']
@@ -559,6 +560,7 @@ declare module '@vue/runtime-core' {
     readonly usePromise: UnwrapRef<typeof import('@vue-kakuyaku/core')['usePromise']>
     readonly usePromiseLog: UnwrapRef<typeof import('./composables/kakuyaku')['usePromiseLog']>
     readonly useRafFn: UnwrapRef<typeof import('@vueuse/core')['useRafFn']>
+    readonly useRawSlippage: UnwrapRef<typeof import('./composables/slippage')['useRawSlippage']>
     readonly useRefHistory: UnwrapRef<typeof import('@vueuse/core')['useRefHistory']>
     readonly useResizeObserver: UnwrapRef<typeof import('@vueuse/core')['useResizeObserver']>
     readonly useRound: UnwrapRef<typeof import('@vueuse/math')['useRound']>

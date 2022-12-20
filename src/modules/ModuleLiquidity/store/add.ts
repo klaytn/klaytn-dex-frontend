@@ -16,7 +16,7 @@ import {
   usePairBalance,
   usePairReserves,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
-import { TokenType, TokensPair, buildPair, completePairOrNull, mirrorTokenType, nonNullPair } from '@/utils/pair'
+import { TokenType, TokensPair, buildPair, mirrorTokenType, nonNullPair } from '@/utils/pair'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -28,13 +28,17 @@ import {
   usePairInput,
 } from '@/modules/ModuleTradeShared/composable.pair-input'
 import { RouteName } from '@/types'
-import { TokenAddressAndDesiredValue } from '@/core/domain/liquidity'
+import { AddLiquidityTokenDefinition } from '@/core/domain/liquidity'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { P, match } from 'ts-pattern'
 import { areAddrTokenPairsEqual } from '@/utils/pair'
-import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
+import { DEFAULT_SLIPPAGE_TOLERANCE } from '../const'
+import { adjustDown } from '@/core/slippage'
+import { Except } from 'type-fest'
 
-type SupplyTokens = TokensPair<TokenAddressAndDesiredValue>
+type SupplyTokens = TokensPair<AddLiquidityTokenDefinition>
+
+type SupplyTokensWithoutMin = TokensPair<Except<AddLiquidityTokenDefinition, 'min'>>
 
 interface MainInput {
   type: TokenType
@@ -215,7 +219,7 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
   const symbols = computed(() => buildPair((type) => tokens[type]?.symbol ?? null))
   const addrsReadonly = readonly(selection.addrs)
 
-  function setTokenAddress(type: TokenType, address: Address) {
+  function setTokenAddress(type: TokenType, address: Address | null) {
     selection.addrs[type] = address
   }
 
@@ -223,6 +227,8 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     selection.setBothAddrs(tokens)
     resetInput()
   }
+
+  const { numeric: slippageNumeric, parsed: slippageParsed } = useRawSlippage(DEFAULT_SLIPPAGE_TOLERANCE)
 
   // #endregion
 
@@ -299,10 +305,12 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     { immediate: true, deep: true },
   )
 
-  const supplyTokensFromQuoting = computed<null | SupplyTokens>(() =>
+  const supplyTokensFromQuoting = computed<null | SupplyTokensWithoutMin>(() =>
     match(quoteAndLiquidityResult.value)
-      .with(P.not(P.nullish), ({ quoted: amount, props: { quoteFor, input: referenceValue, tokens } }) =>
-        buildPair((type) => ({ addr: tokens[type], desired: quoteFor === type ? amount : referenceValue })),
+      .with(
+        P.not(P.nullish),
+        ({ quoted: amount, props: { quoteFor, input: referenceValue, tokens } }): SupplyTokensWithoutMin =>
+          buildPair((type) => ({ addr: tokens[type], desired: quoteFor === type ? amount : referenceValue })),
       )
       .with(null, () => null)
       .exhaustive(),
@@ -343,33 +351,50 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
 
   // #region Supply
 
+  /**
+   * Supply tokens with applied slippage
+   */
   const supplyTokens = computed((): null | SupplyTokens => {
-    const pair = gotPair.value
-
-    if (pair) {
-      if (pair.kind === 'empty') {
+    const withoutSlippage = match(gotPair.value)
+      .with({ kind: 'empty' }, () => {
         // get amounts from inputs
         const input = selection.completeWeiPair.value
-        return input && buildPair((type) => ({ addr: input[type].address, desired: input[type].wei }))
-      } else {
-        // get amounts from quoting
-        return supplyTokensFromQuoting.value
-      }
-    }
+        return (
+          input &&
+          buildPair((type) => {
+            return { addr: input[type].address, desired: input[type].wei }
+          })
+        )
+      })
+      .with(
+        { kind: 'exist' },
+        () =>
+          // get amounts from quoting
+          supplyTokensFromQuoting.value,
+      )
+      .with(null, () => null)
+      .exhaustive()
 
-    return null
+    return (
+      withoutSlippage &&
+      buildPair((type) => {
+        const base = withoutSlippage![type]
+        const min = adjustDown(base.desired, slippageParsed.value)
+        return { ...base, min }
+      })
+    )
   })
 
   const tokenAmounts = computed(() => {
     const supply = supplyTokens.value
-    if (!tokens || !supply) return null
+    if (!supply) return null
     return buildPair((type) => {
       const token = tokens[type]
       return token ? TokenAmount.fromWei(new TokenImpl(token), supply[type].desired) : null
     })
   })
 
-  const finalRates = useRates(computed(() => completePairOrNull(tokenAmounts.value)))
+  const finalRates = useRates(computed(() => nonNullPair(tokenAmounts.value)))
 
   const { prepare: prepareSupply, clear: clearSupply, scope: supplyScope } = usePrepareSupply({ tokens: supplyTokens })
 
@@ -409,6 +434,9 @@ export const useLiquidityAddStore = defineStore('liquidity-add', () => {
     pairTotalSupply,
     poolShare,
     pairReserves,
+
+    slippageNumeric,
+    supplyTokens,
 
     isQuotePendingFor,
 

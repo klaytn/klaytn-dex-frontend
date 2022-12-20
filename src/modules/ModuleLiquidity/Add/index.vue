@@ -59,6 +59,8 @@ useTradeStore().useRefresh({
   <div class="space-y-4 px-4">
     <ModuleLiquidityAddExchangeRate />
 
+    <SlippageToleranceInput v-model="liquidityAddStore.slippageNumeric" />
+
     <KlayButton
       class="w-full"
       size="lg"

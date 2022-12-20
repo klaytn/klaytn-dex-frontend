@@ -7,7 +7,7 @@ import {
   usePairBalance,
   usePairReserves,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
-import { TOKEN_TYPES, TokensPair, buildPair, completePairOrNull } from '@/utils/pair'
+import { TOKEN_TYPES, TokensPair, buildPair, nonNullPair } from '@/utils/pair'
 import { acceptHMRUpdate, defineStore, storeToRefs } from 'pinia'
 import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
@@ -16,12 +16,14 @@ import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { P, match } from 'ts-pattern'
 import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
+import { SlippagePercent, adjustDown } from '@/core/slippage'
+import { DEFAULT_SLIPPAGE_TOLERANCE } from '../const'
 
 function usePrepareSupply(props: {
   tokens: Ref<null | TokensPair<Address>>
   pairAddress: Ref<null | Address>
   liquidity: Ref<Wei | null>
-  amounts: Ref<null | TokensPair<Wei>>
+  minAmounts: Ref<null | TokensPair<Wei>>
 }) {
   const dexStore = useDexStore()
   const { notify } = useNotify()
@@ -30,20 +32,20 @@ function usePrepareSupply(props: {
     const tokens = props.tokens.value
     const pair = props.pairAddress.value
     const liquidity = props.liquidity.value
-    const amounts = props.amounts.value
+    const minAmounts = props.minAmounts.value
     const activeDex = dexStore.active
 
     return (
       tokens &&
       pair &&
       liquidity &&
-      amounts &&
+      minAmounts &&
       activeDex.kind === 'named' && {
         key:
           // `pair` also represents both `tokenA` + `tokenB`
           // `liquidity` also **should** strictly represent `amounts`
           `dex-${activeDex.wallet}-${pair}-${liquidity}`,
-        payload: { tokens, pair, liquidity, amounts, dex: activeDex.dex() },
+        payload: { tokens, pair, liquidity, minAmounts, dex: activeDex.dex() },
       }
     )
   })
@@ -54,45 +56,47 @@ function usePrepareSupply(props: {
 
   const liquidityListStore = useLiquidityListStore()
 
-  const scope = useParamScope(filteredKey, ({ payload: { tokens, pair, liquidity: lpTokenValue, amounts, dex } }) => {
-    const { state: prepareState, run: prepare } = useTask(
-      () =>
-        dex.liquidity.prepareRmLiquidity({
-          tokens,
-          pair,
-          liquidity: lpTokenValue,
-          // we want to burn it all for sure
-          minAmounts: amounts,
-        }),
-      { immediate: true },
-    )
+  const scope = useParamScope(
+    filteredKey,
+    ({ payload: { tokens, pair, liquidity: lpTokenValue, minAmounts, dex } }) => {
+      const { state: prepareState, run: prepare } = useTask(
+        () =>
+          dex.liquidity.prepareRmLiquidity({
+            tokens,
+            pair,
+            liquidity: lpTokenValue,
+            minAmounts,
+          }),
+        { immediate: true },
+      )
 
-    usePromiseLog(prepareState, 'liquidity-remove-prepare-supply')
-    useNotifyOnError(prepareState, notify, 'Supply preparation failed')
+      usePromiseLog(prepareState, 'liquidity-remove-prepare-supply')
+      useNotifyOnError(prepareState, notify, 'Supply preparation failed')
 
-    const { state: supplyState, run: supply } = useTask(async () => {
-      const { send } = prepareState.fulfilled?.value ?? {}
-      invariant(send)
-      return send()
-    })
+      const { state: supplyState, run: supply } = useTask(async () => {
+        const { send } = prepareState.fulfilled?.value ?? {}
+        invariant(send)
+        return send()
+      })
 
-    usePromiseLog(supplyState, 'liquidity-remove-supply')
-    useNotifyOnError(supplyState, notify, 'Supply failed')
+      usePromiseLog(supplyState, 'liquidity-remove-supply')
+      useNotifyOnError(supplyState, notify, 'Supply failed')
 
-    wheneverFulfilled(supplyState, () => {
-      liquidityListStore.quickPoll = true
-    })
+      wheneverFulfilled(supplyState, () => {
+        liquidityListStore.quickPoll = true
+      })
 
-    const fee = computed(() => prepareState.fulfilled?.value?.fee)
+      const fee = computed(() => prepareState.fulfilled?.value?.fee)
 
-    return readonly({
-      prepare,
-      supply,
-      fee,
-      prepareState: promiseStateToFlags(prepareState),
-      supplyState: promiseStateToFlags(supplyState),
-    })
-  })
+      return readonly({
+        prepare,
+        supply,
+        fee,
+        prepareState: promiseStateToFlags(prepareState),
+        supplyState: promiseStateToFlags(supplyState),
+      })
+    },
+  )
 
   return {
     isReadyToPrepareSupply,
@@ -163,6 +167,13 @@ function useRemoveAmounts(
   }
 }
 
+function useSlippedAmounts(
+  amounts: Ref<null | TokensPair<Wei>>,
+  slippage: Ref<SlippagePercent>,
+): Ref<null | TokensPair<Wei>> {
+  return computed(() => amounts.value && buildPair((type) => adjustDown(amounts.value![type], slippage.value)))
+}
+
 export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   const router = useRouter()
 
@@ -198,6 +209,8 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
   function setTokens(tokens: TokensPair<Address>) {
     selectedRaw.value = tokens
   }
+
+  const { numeric: slippageNumeric, parsed: slippageParsed } = useRawSlippage(DEFAULT_SLIPPAGE_TOLERANCE)
 
   // #endregion
 
@@ -268,6 +281,11 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
   const { amounts, pending: isAmountsPending, touch: touchAmounts } = useRemoveAmounts(pairResult, liquidity)
 
+  /**
+   * i.e. min amounts
+   */
+  const slippedAmounts = useSlippedAmounts(amounts, slippageParsed)
+
   const tokens = computed(() => {
     const { lookupToken } = useMinimalTokensApi()
     const result = pairResult.value
@@ -283,7 +301,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     })
   })
 
-  const rates = useRates(computed(() => completePairOrNull(tokenAmounts.value)))
+  const rates = useRates(computed(() => nonNullPair(tokenAmounts.value)))
 
   // #endregion
 
@@ -301,7 +319,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     tokens: selectedFiltered,
     pairAddress: computed(() => existingPair.value?.addr ?? null),
     liquidity,
-    amounts,
+    minAmounts: slippedAmounts,
   })
 
   function closeSupply() {
@@ -361,6 +379,7 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
     liquidity,
     liquidityRelative,
     amounts,
+    amountsSlipped: slippedAmounts,
     rates,
     isAmountsPending,
 
@@ -378,6 +397,9 @@ export const useLiquidityRmStore = defineStore('liquidity-remove', () => {
 
     isRefreshing,
     refresh,
+
+    slippageNumeric,
+    slippageParsed,
   }
 })
 

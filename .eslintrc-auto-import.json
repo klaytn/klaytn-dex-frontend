@@ -237,6 +237,7 @@
     "usePromise": true,
     "usePromiseLog": true,
     "useRafFn": true,
+    "useRawSlippage": true,
     "useRefHistory": true,
     "useResizeObserver": true,
     "useRound": true,
