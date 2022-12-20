@@ -78,10 +78,6 @@ function useImportedTokens() {
     return listItemsFromMapOrNull(tokens.value, result.value)
   })
 
-  /**
-   * Saves new imported token.
-   * Does not fetch token data again
-   */
   function importToken(token: Token): void {
     tokens.value.unshift(token.address)
     scope.value.expose.run()
