@@ -1,6 +1,6 @@
 import { AbiLoader } from '../abi'
 import { Address } from '../types'
-import { Agent, AgentPure, CommonAddrs, AgentProvider } from './agent'
+import { Agent, AgentProvider, AgentPure, CommonAddrs } from './agent'
 import CommonContracts from './CommonContracts'
 import { Earn } from './earn'
 import { Liquidity, LiquidityPure } from './liquidity'

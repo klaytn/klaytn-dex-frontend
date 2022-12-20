@@ -1,5 +1,5 @@
 /* eslint-disable max-nested-callbacks */
-import { MaskSymbol, useCurrencyInput, UseCurrencyInputProps } from '@/utils/composable.currency-input'
+import { MaskSymbol, UseCurrencyInputProps, useCurrencyInput } from '@/utils/composable.currency-input'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import BigNumber from 'bignumber.js'
 

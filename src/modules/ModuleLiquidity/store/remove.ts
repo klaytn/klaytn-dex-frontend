@@ -1,7 +1,7 @@
 import { Address, Token, TokenAmount, TokenImpl, Wei } from '@/core'
 import {
-  computeEstimatedPoolShare,
   PairAddressResult,
+  computeEstimatedPoolShare,
   useNullablePairBalanceComponents,
   usePairAddress,
   usePairBalance,
@@ -14,7 +14,7 @@ import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
-import { match, P } from 'ts-pattern'
+import { P, match } from 'ts-pattern'
 import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
 import { adjustDown, SlippagePercent } from '@/core/slippage'
 import { DEFAULT_SLIPPAGE_TOLERANCE } from '../const'

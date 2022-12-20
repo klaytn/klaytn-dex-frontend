@@ -1,11 +1,11 @@
-import { JsonRpcSigner, type JsonRpcProvider } from '@ethersproject/providers'
+import { type JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers'
 import { Contract } from 'ethers'
 import { Address, Kaikas, Token } from '../types'
 import { AbiContractEthers, AbiContractWeb3, AbiLoader, type AvailableAbi } from '../abi'
 import { Wei } from '../entities'
 import type Caver from 'caver-js'
 import type { AbiItem } from 'caver-js'
-import { isomorphicContract, IsomorphicContract } from '../isomorphic-contract'
+import { IsomorphicContract, isomorphicContract } from '../isomorphic-contract'
 import invariant from 'tiny-invariant'
 import { Except } from 'type-fest'
 

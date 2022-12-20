@@ -3,7 +3,7 @@ import { Address, Token } from '@/core'
 import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
 import { KlayIconCollapseArrow } from '~klay-icons'
 import TokenSelectModal from './TokenSelectModal.vue'
-import { match, P } from 'ts-pattern'
+import { P, match } from 'ts-pattern'
 
 interface Props {
   token?: null | Address

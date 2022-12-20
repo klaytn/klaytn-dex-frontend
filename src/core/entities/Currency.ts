@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js'
 import { Except } from 'type-fest'
-import { BigNumberIsh, Token, CurrencySymbol } from '../types'
+import { BigNumberIsh, CurrencySymbol, Token } from '../types'
 import { parseBigNumberIsh } from '../utils'
 import Fraction from './Fraction'
 

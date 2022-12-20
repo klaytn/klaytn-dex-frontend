@@ -1,8 +1,8 @@
 import type {
+  BigNumber as BigNumberEthers,
   Contract as ContractEthers,
   ContractTransaction,
   PayableOverrides,
-  BigNumber as BigNumberEthers,
 } from 'ethers'
 import type { AbiContractEthers, AbiContractWeb3, AbiToContract, AvailableAbi } from './abi'
 import type {

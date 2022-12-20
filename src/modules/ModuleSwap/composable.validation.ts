@@ -1,6 +1,6 @@
 import { Wei } from '@/core'
 import { BestTradeResult } from '@/core/entities/Trade'
-import { buildPair, TokensPair, emptyPair } from '@/utils/pair'
+import { TokensPair, buildPair, emptyPair } from '@/utils/pair'
 import { Ref } from 'vue'
 
 export type ValidationResult = { kind: 'ok' } | { kind: 'err'; err: ValidationError } | { kind: 'pending' }

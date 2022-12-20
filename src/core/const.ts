@@ -1,6 +1,6 @@
 import Percent from './entities/Percent'
 import Currency from './entities/Currency'
-import type { Token, Address, CurrencySymbol } from './types'
+import type { Address, CurrencySymbol, Token } from './types'
 import { areAddressesEqual } from './utils'
 import CONFIG from '~config'
 

@@ -3,30 +3,30 @@ import invariant from 'tiny-invariant'
 import {
   Address,
   CurrencySymbol,
-  WeiAsToken,
-  Wei,
-  TokenImpl,
+  LP_TOKEN_DECIMALS,
+  POOL_COMMISSION,
   Pair,
   TokenAmount,
-  LP_TOKEN_DECIMALS,
+  TokenImpl,
   Trade,
-  POOL_COMMISSION,
+  Wei,
+  WeiAsToken,
 } from '@/core'
-import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
+import { TokenType, TokensPair, buildPair, mirrorTokenType } from '@/utils/pair'
 import Debug from 'debug'
 import {
-  useSwapAmounts,
+  AmountsAdjusted,
   GetAmountsProps,
   computeSlippage,
   useSlippageParsed,
-  AmountsAdjusted,
+  useSwapAmounts,
 } from '../composable.get-amounts'
 import { useTrade } from '../composable.trade'
 import { useSwapValidation } from '../composable.validation'
 import {
-  usePairInput,
   useEstimatedLayer,
   useLocalStorageAddrsOrigin,
+  usePairInput,
 } from '../../ModuleTradeShared/composable.pair-input'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'

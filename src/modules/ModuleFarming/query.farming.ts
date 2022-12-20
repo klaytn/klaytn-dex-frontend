@@ -1,4 +1,4 @@
-import { Address, ADDRESS_FARMING, WeiRaw } from '@/core'
+import { ADDRESS_FARMING, Address, WeiRaw } from '@/core'
 import { ApolloClientId } from '@/types'
 import { useQuery } from '@vue/apollo-composable'
 import { MaybeRef } from '@vueuse/core'

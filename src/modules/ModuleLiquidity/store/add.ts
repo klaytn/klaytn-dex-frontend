@@ -1,20 +1,20 @@
 /* eslint-disable max-nested-callbacks */
 import {
-  deadlineFiveMinutesFromNow,
   Address,
-  Wei,
-  WeiAsToken,
-  NATIVE_TOKEN_FULL,
   DEX_TOKEN_FULL,
+  NATIVE_TOKEN_FULL,
   TokenAmount,
   TokenImpl,
+  Wei,
+  WeiAsToken,
+  deadlineFiveMinutesFromNow,
 } from '@/core'
 import {
+  computeEstimatedPoolShare,
+  useNullablePairBalanceComponents,
   usePairAddress,
   usePairBalance,
   usePairReserves,
-  useNullablePairBalanceComponents,
-  computeEstimatedPoolShare,
 } from '@/modules/ModuleTradeShared/composable.pair-by-tokens'
 import { buildPair, mirrorTokenType, nonNullPair, TokensPair, TokenType } from '@/utils/pair'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -22,15 +22,15 @@ import invariant from 'tiny-invariant'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import {
-  usePairInput,
+  useAddrRouteParams,
   useEstimatedLayer,
   useLocalStorageAddrsOrigin,
-  useAddrRouteParams,
+  usePairInput,
 } from '@/modules/ModuleTradeShared/composable.pair-input'
 import { RouteName } from '@/types'
 import { AddLiquidityTokenDefinition } from '@/core/domain/liquidity'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
-import { match, P } from 'ts-pattern'
+import { P, match } from 'ts-pattern'
 import { areAddrTokenPairsEqual } from '@/utils/pair'
 import { DEFAULT_SLIPPAGE_TOLERANCE } from '../const'
 import { adjustDown } from '@/core/slippage'

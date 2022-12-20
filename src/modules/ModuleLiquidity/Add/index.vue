@@ -2,7 +2,7 @@
 import { WeiAsToken } from '@/core'
 import { useTradeStore } from '@/modules/ModuleTradeShared/trade-store'
 import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'
-import { buildPair, TOKEN_TYPES } from '@/utils/pair'
+import { TOKEN_TYPES, buildPair } from '@/utils/pair'
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
 
