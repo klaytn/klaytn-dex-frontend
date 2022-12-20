@@ -185,9 +185,7 @@ function openRoiCalculator() {
 
     <template v-else>
       <div
-        v-if="pool.userLimit
-        
-        "
+        v-if="pool.userLimit"
         class="flex flex-col items-start lt-md:hidden mb-2"
       >
         <div :class="$style.statsItem">
