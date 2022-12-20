@@ -65,12 +65,12 @@ function useImportedTokens() {
       const { state, run } = useTask(() => loadTokens(dex, tokens.value), { immediate: true })
       usePromiseLog(state, 'imported-tokens')
       useErrorRetry(state, run)
-      return { state, run }
+      return state
     },
   )
 
-  const isPending = computed(() => scope.value.expose.state.pending)
-  const result = computed(() => scope.value.expose.state.fulfilled?.value ?? null)
+  const isPending = computed(() => scope.value.expose.pending)
+  const result = computed(() => scope.value.expose.fulfilled?.value ?? null)
   const isLoaded = computed(() => !!result.value)
 
   const tokensFetched = computed<null | Token[]>(() => {
@@ -85,7 +85,7 @@ function useImportedTokens() {
   function importToken(token: Token): void {
     tokens.value.unshift(token.address)
     if (result.value) {
-      scope.value.expose.state.fulfilled = { value: result.value.set(token.address, token) }
+      scope.value.expose.fulfilled = { value: result.value.set(token.address, token) }
     }
   }
 
