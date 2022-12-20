@@ -27,6 +27,7 @@ export interface Pool {
   endBlock: number
   active: boolean
   userLimit: WeiAsToken<BigNumber> | null
+  userLimitEndBlock: number
 }
 
 export const Sorting = {
