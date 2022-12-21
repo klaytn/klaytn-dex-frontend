@@ -190,7 +190,7 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
       :title="t('ModuleEarnSharedRoiCalculator.title')"
     >
       <template #body>
-        <div class="px-4 pb-5 space-y-4">
+        <div class="px-4 pb-5 space-y-4 overflow-y-scroll">
           <div class="space-y-2 flex flex-col items-start">
             <span class="label"> Staked for </span>
             <KlayTabs
