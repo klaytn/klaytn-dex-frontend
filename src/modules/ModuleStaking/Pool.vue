@@ -62,6 +62,16 @@ const endsIn = computedEager<number>(() => {
   return blockNumber ? endBlock - blockNumber : 0
 })
 
+const userLimitEndsIn = computedEager<number>(() => {
+  const {
+    pool: { userLimitEndBlock },
+    blockNumber,
+  } = props
+  return blockNumber ? userLimitEndBlock - blockNumber : 0
+})
+
+const nonNegativeUserLimitEndsIn = computed(() => Math.max(0, userLimitEndsIn.value))
+
 const {
   pending: loading,
   enable,
@@ -160,6 +170,8 @@ function openRoiCalculator() {
         :annual-percentage-rate="pool.annualPercentageRate"
         :starts-in="startsIn"
         :ends-in="endsIn"
+        :user-limit="pool.userLimit"
+        :user-limit-ends-in="userLimitEndsIn"
         @click:roi-calculator="openRoiCalculator"
       />
     </template>
@@ -172,6 +184,37 @@ function openRoiCalculator() {
     </div>
 
     <template v-else>
+      <div
+        v-if="pool.userLimit"
+        class="flex flex-col items-start lt-md:hidden mb-2"
+      >
+        <div :class="$style.statsItem">
+          <div :class="$style.statsItemTitle">
+            User limit
+          </div>
+          <div :class="[$style.statsItemValue, { [$style.statsItemValueEmpty]: !pool.userLimit }]">
+            <CurrencyFormatTruncate :amount="pool.userLimit" />
+          </div>
+        </div>
+
+        <div :class="$style.statsItem">
+          <div :class="$style.statsItemTitle">
+            User limit ends in
+          </div>
+          <div :class="[$style.statsItemValue, { [$style.statsItemValueEmpty]: !nonNegativeUserLimitEndsIn }]">
+            <template v-if="nonNegativeUserLimitEndsIn">
+              <span class="mr-2">
+                <CurrencyFormat :amount="nonNegativeUserLimitEndsIn" />
+              </span>
+
+              <KlayIconClock />
+            </template>
+            <template v-else>
+              &mdash;
+            </template>
+          </div>
+        </div>
+      </div>
       <div class="flex md:items-center lt-md:flex-col gap-4 md:gap-6">
         <WalletConnectButton
           v-if="!dexStore.isWalletConnected"
@@ -313,6 +356,25 @@ function openRoiCalculator() {
 
 <style lang="scss" module>
 @use '@/styles/vars';
+
+.stats-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 2rem;
+  &-title {
+    font-weight: 500;
+    font-size: 12px;
+    color: vars.$gray2;
+    line-height: 100%;
+  }
+  &-value {
+    margin-left: 1rem;
+    font-weight: 600;
+    font-size: 16px;
+    color: vars.$dark;
+  }
+}
 
 .input {
   display: flex;
