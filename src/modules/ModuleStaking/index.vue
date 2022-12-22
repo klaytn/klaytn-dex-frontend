@@ -109,7 +109,7 @@ const poolsPaginated = computed<Pool[] | null>(() => {
 
 const poolsFinal = poolsPaginated
 
-const isLoading = computed(() => poolsFinal.value === null)
+const isLoading = computed(() => !poolsFinal.value)
 
 function handleStakedUnstaked() {
   quickPoll.value = true
