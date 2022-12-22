@@ -10,6 +10,7 @@ import PoolHead from './PoolHead.vue'
 import WalletConnectButton from '@/components/WalletConnectButton.vue'
 import AddToWallet from './PoolAddToWallet.vue'
 import { useBalance } from '../ModuleEarnShared/composable.balance'
+import { KlayIconClock } from '~klay-icons'
 
 const dexStore = useDexStore()
 const tokensStore = useTokensStore()

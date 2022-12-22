@@ -65,7 +65,7 @@ FarmingQuery.onResult(() => {
   handleFarmingQueryResult()
 })
 
-const { rewards, areRewardsFetched } = useFetchFarmingRewards({
+const { rewards } = useFetchFarmingRewards({
   poolIds: farmingPoolIds,
   updateBlockNumber,
   pollInterval,
@@ -124,15 +124,27 @@ const expandPools = computed(() => poolsPaginated.value?.length === 1)
 </script>
 
 <template>
-  <div v-bem>
+  <div
+    :class="$style.moduleFarming"
+    class="flex-1 flex flex-col"
+  >
     <div
-      v-if="!farming?.pools.length && !isLoading"
+      v-if="!poolsFinal?.length && !isLoading"
+      :class="$style.empty"
       class="flex-1 flex items-center justify-center"
     >
-      There are no farming pools at the moment
+      <template v-if="farming?.pools.length">
+        There are no farming pools match the current filter
+      </template>
+      <template v-else>
+        There are no farming pools at the moment
+      </template>
     </div>
-    <template v-if="farming">
-      <div v-bem="'list'">
+    <template v-if="poolsFinal?.length">
+      <div
+        :class="$style.list"
+        class="flex-1 flex flex-col"
+      >
         <ModuleFarmingPool
           v-for="pool in poolsFinal"
           :key="pool.id"
@@ -144,7 +156,8 @@ const expandPools = computed(() => poolsPaginated.value?.length === 1)
       </div>
       <div
         v-if="showViewMore"
-        v-bem="'view-more'"
+        :class="$style.viewMore"
+        class="flex justify-center w-full py-2"
       >
         <KlayButton
           v-bem="'view-more-button'"
@@ -159,32 +172,33 @@ const expandPools = computed(() => poolsPaginated.value?.length === 1)
     </template>
     <div
       v-if="isLoading && !showViewMore"
-      v-bem="'loader'"
+      :class="$style.loader"
+      class="flex-1 flex justify-center items-center"
     >
       <KlayLoader />
     </div>
   </div>
 </template>
 
-<style lang="sass">
-$padding-bottom: 19px
+<style lang="scss" module>
+@use '@/styles/vars';
 
-.module-farming
-  flex: 1
-  display: flex
-  flex-direction: column
-  padding-bottom: $padding-bottom
-  &__view-more
-    display: flex
-    justify-content: center
-    width: 100%
-    padding: 8px 0
-    margin-bottom: - $padding-bottom
-  &__loader
-    flex: 1
-    display: flex
-    justify-content: center
-    align-items: center
-    min-height: 82px + $padding-bottom
-    margin-bottom: - $padding-bottom
+$padding-bottom: 19px;
+
+.module-staking {
+  padding-bottom: $padding-bottom;
+}
+
+.view-more {
+  margin-bottom: -$padding-bottom;
+}
+
+.loader {
+  min-height: 82px + $padding-bottom;
+  margin-bottom: -$padding-bottom;
+}
+
+.empty {
+  color: vars.$gray3;
+}
 </style>
