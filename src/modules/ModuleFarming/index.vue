@@ -133,11 +133,12 @@ const expandPools = computed(() => poolsPaginated.value?.length === 1)
       :class="$style.empty"
       class="flex-1 flex items-center justify-center"
     >
-      {{
-        !farming?.pools.length
-          ? 'There are no farming pools at the moment'
-          : 'There are no farming pools match the current filter'
-      }}
+      <template v-if="farming?.pools.length">
+        There are no farming pools match the current filter
+      </template>
+      <template v-else>
+        There are no farming pools at the moment
+      </template>
     </div>
     <template v-if="poolsFinal?.length">
       <div
