@@ -126,7 +126,11 @@ function handleStakedUnstaked() {
       :class="$style.empty"
       class="flex-1 flex items-center justify-center"
     >
-      {{ !pools?.length ? 'There are no staking pools at the moment' : 'There are no staking pools match the current filter' }}
+      {{
+        !pools?.length
+          ? 'There are no staking pools at the moment'
+          : 'There are no staking pools match the current filter'
+      }}
     </div>
     <template v-if="poolsFinal?.length">
       <div
@@ -177,15 +181,15 @@ $padding-bottom: 19px;
 }
 
 .view-more {
-  margin-bottom: - $padding-bottom;
+  margin-bottom: -$padding-bottom;
 }
 
 .loader {
   min-height: 82px + $padding-bottom;
-  margin-bottom: - $padding-bottom;
+  margin-bottom: -$padding-bottom;
 }
 
 .empty {
-  color: vars.$gray3
+  color: vars.$gray3;
 }
 </style>

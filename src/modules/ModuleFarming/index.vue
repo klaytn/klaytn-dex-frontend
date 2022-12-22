@@ -124,7 +124,7 @@ const expandPools = computed(() => poolsPaginated.value?.length === 1)
 </script>
 
 <template>
-  <div 
+  <div
     :class="$style.moduleFarming"
     class="flex-1 flex flex-col"
   >
@@ -133,10 +133,14 @@ const expandPools = computed(() => poolsPaginated.value?.length === 1)
       :class="$style.empty"
       class="flex-1 flex items-center justify-center"
     >
-      {{ !farming?.pools.length ? 'There are no farming pools at the moment' : 'There are no farming pools match the current filter' }}
+      {{
+        !farming?.pools.length
+          ? 'There are no farming pools at the moment'
+          : 'There are no farming pools match the current filter'
+      }}
     </div>
     <template v-if="poolsFinal?.length">
-      <div 
+      <div
         :class="$style.list"
         class="flex-1 flex flex-col"
       >
@@ -185,15 +189,15 @@ $padding-bottom: 19px;
 }
 
 .view-more {
-  margin-bottom: - $padding-bottom;
+  margin-bottom: -$padding-bottom;
 }
 
 .loader {
   min-height: 82px + $padding-bottom;
-  margin-bottom: - $padding-bottom;
+  margin-bottom: -$padding-bottom;
 }
 
 .empty {
-  color: vars.$gray3
+  color: vars.$gray3;
 }
 </style>
