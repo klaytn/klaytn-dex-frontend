@@ -9,8 +9,8 @@ const props = withDefaults(
   }>(),
   {
     length: 4,
-    keepPrefix: true
-  }
+    keepPrefix: true,
+  },
 )
 
 const formatted = computed(() => formatAddress(props.value, props.length, props.keepPrefix))
