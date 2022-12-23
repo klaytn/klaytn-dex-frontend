@@ -238,7 +238,7 @@ if (import.meta.vitest) {
     test('0.5% slippage with exact input', () => {
       expect(applySlippageForExactInput(new Wei(10000000), parseSlippage(new Percent(5, 1000)))).toMatchInlineSnapshot(`
         {
-          "amountOutMin": "9950249",
+          "amountOutMin": "9950000",
         }
       `)
     })
