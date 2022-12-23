@@ -16,7 +16,7 @@ export function parseSlippage(raw: Percent): SlippagePercent {
 }
 
 export function adjustDown(amount: Wei, slippage: SlippagePercent): Wei {
-  const adjusted = ONE.plus(slippage).invert().multipliedBy(new Fraction(amount.asBigInt)).quotient.decimalPlaces(0)
+  const adjusted = ONE.minus(slippage).multipliedBy(new Fraction(amount.asBigInt)).quotient.decimalPlaces(0)
   return new Wei(adjusted)
 }
 
