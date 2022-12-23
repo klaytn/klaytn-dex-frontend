@@ -17,7 +17,7 @@ const balancePrice = computed(() => {
 <template>
   <div
     v-if="balance"
-    class="token rounded-lg p-3 lt-md:hidden md:flex items-center space-x-1 mr-2"
+    class="token lt-md:flex-col flex justify-center items-center h-full rounded-lg md:py-3 px-3 gap-1 space-x-1 mr-2"
   >
     <div class="balance">
       <CurrencyFormatTruncate
@@ -30,7 +30,7 @@ const balancePrice = computed(() => {
     </div>
     <div
       v-if="balancePrice"
-      class="price"
+      class="price flex"
     >
       (<CurrencyFormatTruncate
         :amount="balancePrice"

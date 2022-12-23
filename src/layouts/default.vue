@@ -56,18 +56,18 @@ const menu = computed<HeaderMenuItem[]>(() => {
 
     <main class="layout flex justify-center">
       <div class="lt-sm:w-full md:w-full sm:lt-md:w-452px lt-sm:px-2 lt-md:py-4 sm:lt-md:px-4 md:px-10 md:py-8">
-        <header class="flex items-center justify-between mb-8">
+        <header class="flex items-center justify-between mb-8 h-10 md:h-8">
           <div class="lg:flex-1">
             <router-link :to="{ name: RouteName.Swap }">
               <KlayIconDexLogo class="lt-md:hidden" />
               <KlayIconDexLogoMobile class="md:hidden" />
             </router-link>
           </div>
-          <div class="flex justify-center lg:flex-1">
+          <div class="flex justify-center lt-md:h-full lg:flex-1">
             <HeaderMenu :items="menu" />
           </div>
 
-          <div class="w-306px lg:flex-1 flex justify-end">
+          <div class="w-306px h-full lg:flex-1 flex justify-end">
             <TheHeaderDexToken />
             <TheHeaderWallet />
           </div>
