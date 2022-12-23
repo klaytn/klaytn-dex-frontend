@@ -30,7 +30,7 @@ const balancePrice = computed(() => {
     </div>
     <div
       v-if="balancePrice"
-      class="price"
+      class="price flex"
     >
       (<CurrencyFormatTruncate
         :amount="balancePrice"
