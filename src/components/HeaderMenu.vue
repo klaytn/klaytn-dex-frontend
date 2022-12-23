@@ -44,7 +44,7 @@ const activeItem = computed(() => {
     <template #trigger>
       <div
         :class="$style.trigger"
-        class="md:hidden lt-md:flex items-center gap-1 rounded-lg p-3 bg-white text-xs font-bold"
+        class="md:hidden lt-md:flex items-center gap-1 rounded-lg p-2 bg-white text-xs font-bold"
       >
         {{ activeItem?.label ?? '' }}
         <KlayIconCollapseArrow :class="$style.triggerIcon" />
