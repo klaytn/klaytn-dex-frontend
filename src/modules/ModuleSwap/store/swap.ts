@@ -3,41 +3,39 @@ import invariant from 'tiny-invariant'
 import {
   Address,
   CurrencySymbol,
-  WeiAsToken,
-  Wei,
-  TokenImpl,
+  LP_TOKEN_DECIMALS,
+  POOL_COMMISSION,
   Pair,
   TokenAmount,
-  LP_TOKEN_DECIMALS,
+  TokenImpl,
   Trade,
-  POOL_COMMISSION,
+  Wei,
+  WeiAsToken,
 } from '@/core'
-import { TokenType, TokensPair, mirrorTokenType, buildPair } from '@/utils/pair'
+import { TokenType, TokensPair, buildPair, mirrorTokenType } from '@/utils/pair'
 import Debug from 'debug'
 import {
-  useSwapAmounts,
+  AmountsAdjusted,
   GetAmountsProps,
   computeSlippage,
   useSlippageParsed,
-  AmountsAdjusted,
+  useSwapAmounts,
 } from '../composable.get-amounts'
 import { useTrade } from '../composable.trade'
 import { useSwapValidation } from '../composable.validation'
 import {
-  usePairInput,
   useEstimatedLayer,
   useLocalStorageAddrsOrigin,
+  usePairInput,
 } from '../../ModuleTradeShared/composable.pair-input'
 import { Ref } from 'vue'
 import { useRates } from '@/modules/ModuleTradeShared/composable.rates'
 import { RouteName } from '@/types'
 import { useControlledComposedKey } from '@/utils/composable.controlled-composed-key'
 import { usePairsQuery } from '../query.pairs'
-import { numberToPercent } from '@/utils/common'
-import { match, P } from 'ts-pattern'
-import { computeFeesByAmounts, FeeItem } from '../utils'
-
-const SLIPPAGE_PRECISION = 5
+import { P, match } from 'ts-pattern'
+import { FeeItem, computeFeesByAmounts } from '../utils'
+import { DEFAULT_SLIPPAGE_TOLERANCE } from '../const'
 
 const dbg = Debug('swap-store')
 
@@ -135,7 +133,7 @@ export const useSwapStore = defineStore('swap', () => {
 
   const multihops = useLocalStorage<boolean>('swap-multi-hops', false)
 
-  const slippageTolerance = ref(0.005)
+  const { numeric: slippageNumeric, parsed: slippageParsed } = useRawSlippage(DEFAULT_SLIPPAGE_TOLERANCE)
 
   const expertMode = ref(false)
 
@@ -269,7 +267,7 @@ export const useSwapStore = defineStore('swap', () => {
   const amountsWithSlippage = computed(() =>
     match(gotAmountsResult.value)
       .with(P.not(P.nullish), ({ amountsResult, props }) => {
-        const adjusted = computeSlippage(amountsResult, numberToPercent(slippageTolerance.value, SLIPPAGE_PRECISION))
+        const adjusted = computeSlippage(amountsResult, slippageParsed.value)
         return { adjusted, props }
       })
       .otherwise(() => null),
@@ -424,7 +422,7 @@ export const useSwapStore = defineStore('swap', () => {
     resetInput,
     swapTokensWithEachOther,
 
-    slippageTolerance,
+    slippageNumeric,
     multihops,
     expertMode,
 

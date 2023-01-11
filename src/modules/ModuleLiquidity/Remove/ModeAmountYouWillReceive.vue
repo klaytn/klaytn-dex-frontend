@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { buildPair, TOKEN_TYPES } from '@/utils/pair'
+import { TOKEN_TYPES, buildPair } from '@/utils/pair'
 import cssRows from '../../ModuleTradeShared/rows.module.scss'
 import { KlayIconImportant } from '~klay-icons'
 

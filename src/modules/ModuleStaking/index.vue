@@ -5,10 +5,10 @@ import { usePoolsQuery } from './query.pools'
 import { useTokensQuery } from '@/query/tokens-derived-usd'
 import {
   PAGE_SIZE,
-  REFETCH_TOKENS_INTERVAL,
   POLL_INTERVAL,
   POLL_INTERVAL_QUICK,
   POLL_INTERVAL_QUICK_TIMEOUT,
+  REFETCH_TOKENS_INTERVAL,
 } from './const'
 import { useBlockNumber } from '../ModuleEarnShared/composable.block-number'
 import { useFetchStakingRewards } from './composable.fetch-rewards'
@@ -16,8 +16,6 @@ import { Address } from '@/core'
 import { useFilteredPools, useMappedPools, useSortedPools } from './composable.pools'
 
 const dexStore = useDexStore()
-
-const vBem = useBemClass()
 
 const stakingStore = useStakingStore()
 const { stakedOnly, searchQuery, sorting } = toRefs(stakingStore)
@@ -75,7 +73,7 @@ PoolsQuery.onResult(() => {
 // Workaround for cached results: https://github.com/vuejs/apollo/issues/1154
 if (PoolsQuery.result.value) handlePoolsQueryResult()
 
-const { rewards, areRewardsFetched } = useFetchStakingRewards({
+const { rewards } = useFetchStakingRewards({
   poolIds,
   updateBlockNumber: (v) => {
     blockNumber.value = v
@@ -111,7 +109,7 @@ const poolsPaginated = computed<Pool[] | null>(() => {
 
 const poolsFinal = poolsPaginated
 
-const isLoading = PoolsQuery.loading
+const isLoading = computed(() => !poolsFinal.value)
 
 function handleStakedUnstaked() {
   quickPoll.value = true
@@ -119,15 +117,26 @@ function handleStakedUnstaked() {
 </script>
 
 <template>
-  <div v-bem>
+  <div
+    :class="$style.moduleStaking"
+    class="flex-1 flex flex-col"
+  >
     <div
-      v-if="!pools?.length && !isLoading"
+      v-if="!poolsFinal?.length && !isLoading"
+      :class="$style.empty"
       class="flex-1 flex items-center justify-center"
     >
-      There are no staking pools at the moment
+      {{
+        !pools?.length
+          ? 'There are no staking pools at the moment'
+          : 'There are no staking pools match the current filter'
+      }}
     </div>
-    <template v-if="pools?.length">
-      <div v-bem="'list'">
+    <template v-if="poolsFinal?.length">
+      <div
+        :class="$style.list"
+        class="flex-1 flex flex-col"
+      >
         <ModuleStakingPool
           v-for="pool in poolsFinal"
           :key="pool.id"
@@ -139,10 +148,10 @@ function handleStakedUnstaked() {
       </div>
       <div
         v-if="showViewMore"
-        v-bem="'view-more'"
+        :class="$style.viewMore"
+        class="flex justify-center w-full py-2"
       >
         <SButton
-          v-bem="'view-more-button'"
           size="sm"
           type="primary"
           :loading="isLoading"
@@ -154,32 +163,33 @@ function handleStakedUnstaked() {
     </template>
     <div
       v-if="isLoading && !showViewMore"
-      v-bem="'loader'"
+      :class="$style.loader"
+      class="flex-1 flex justify-center items-center"
     >
       <KlayLoader />
     </div>
   </div>
 </template>
 
-<style lang="sass">
-$padding-bottom: 19px
+<style lang="scss" module>
+@use '@/styles/vars';
 
-.module-staking
-  flex: 1
-  display: flex
-  flex-direction: column
-  padding-bottom: $padding-bottom
-  &__view-more
-    display: flex
-    justify-content: center
-    width: 100%
-    padding: 8px 0
-    margin-bottom: - $padding-bottom
-  &__loader
-    flex: 1
-    display: flex
-    justify-content: center
-    align-items: center
-    min-height: 82px + $padding-bottom
-    margin-bottom: - $padding-bottom
+$padding-bottom: 19px;
+
+.module-staking {
+  padding-bottom: $padding-bottom;
+}
+
+.view-more {
+  margin-bottom: -$padding-bottom;
+}
+
+.loader {
+  min-height: 82px + $padding-bottom;
+  margin-bottom: -$padding-bottom;
+}
+
+.empty {
+  color: vars.$gray3;
+}
 </style>

@@ -30,6 +30,8 @@ onUnmounted(() => {
     <ModuleLiquidityRemoveModeAmount v-if="active === 'amount'" />
     <ModuleLiquidityRemoveModeDetailed v-else />
 
+    <SlippageToleranceInput v-model="rmStore.slippageNumeric" />
+
     <KlayButton
       type="primary"
       size="lg"

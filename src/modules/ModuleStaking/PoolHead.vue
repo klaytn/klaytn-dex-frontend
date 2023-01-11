@@ -11,6 +11,8 @@ const props = defineProps<{
   annualPercentageRate: BigNumber | null
   startsIn: number
   endsIn: number
+  userLimit: BigNumber | null
+  userLimitEndsIn: number
 }>()
 
 const emit = defineEmits(['click:roi-calculator'])
@@ -19,6 +21,7 @@ const totalRounded = computed(() => props.totalStakedUsd?.decimalPlaces(0, BigNu
 
 const nonNegativeStartsIn = computed(() => Math.max(0, props.startsIn))
 const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
+const nonNegativeUserLimitEndsIn = computed(() => Math.max(0, props.userLimitEndsIn))
 </script>
 
 <template>
@@ -75,7 +78,7 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
         APR
       </div>
       <div
-        :class="$style.value"
+        :class="[$style.value, { [$style.valueEmpty]: !annualPercentageRate }]"
         class="flex items-center"
       >
         <CurrencyFormatTruncate
@@ -136,6 +139,36 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
         </template>
       </div>
     </div>
+
+    <div :class="[$style.item, $style.mobile]">
+      <div :class="$style.title">
+        User limit
+      </div>
+      <div :class="[$style.value, { [$style.valueEmpty]: !userLimit }]">
+        <CurrencyFormatTruncate :amount="userLimit" />
+      </div>
+    </div>
+
+    <div :class="[$style.item, $style.mobile]">
+      <div :class="$style.title">
+        User limit ends in
+      </div>
+      <div
+        :class="[$style.value, { [$style.valueEmpty]: !nonNegativeUserLimitEndsIn }]"
+        class="flex items-center"
+      >
+        <template v-if="nonNegativeUserLimitEndsIn">
+          <span class="mr-2">
+            <CurrencyFormat :amount="nonNegativeUserLimitEndsIn" />
+          </span>
+
+          <KlayIconClock />
+        </template>
+        <template v-else>
+          &mdash;
+        </template>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -149,6 +182,12 @@ const nonNegativeEndsIn = computed(() => Math.max(0, props.endsIn))
   @media only screen and (min-width: vars.$md) {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+.mobile {
+  @media only screen and (min-width: vars.$md) {
+    display: none;
   }
 }
 

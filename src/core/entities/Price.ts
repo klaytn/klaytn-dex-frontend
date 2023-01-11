@@ -3,7 +3,7 @@ import { BigNumberIsh } from '../types'
 import Currency from './Currency'
 import Fraction from './Fraction'
 
-import { UniToken, UniPrice } from './uni-entities'
+import { UniPrice, UniToken } from './uni-entities'
 import TokenImpl from './TokenImpl'
 
 export default class Price extends Fraction {

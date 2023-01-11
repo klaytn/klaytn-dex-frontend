@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { buildPair, TOKEN_TYPES } from '@/utils/pair'
+import { TOKEN_TYPES, buildPair } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 import { LP_TOKEN_DECIMALS } from '@/core'
 import { formatCurrency } from '@/utils/composable.currency-input'

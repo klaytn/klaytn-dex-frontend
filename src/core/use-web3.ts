@@ -1,6 +1,6 @@
 import detectEthereumProvider from '@metamask/detect-provider'
-import { type ExternalProvider, Web3Provider, JsonRpcProvider } from '@ethersproject/providers'
-import type { Address, Kaikas, Network as AppNetwork } from './types'
+import { type ExternalProvider, JsonRpcProvider, Web3Provider } from '@ethersproject/providers'
+import type { Address, Network as AppNetwork, Kaikas } from './types'
 import { type MaybeRef } from '@vueuse/core'
 import { type Ref } from 'vue'
 import { type PromiseStateAtomic } from '@vue-kakuyaku/core'

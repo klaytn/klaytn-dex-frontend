@@ -1,4 +1,4 @@
-import { Address, Wei, Token } from '@/core'
+import { Address, Token, Wei } from '@/core'
 import BigNumber from 'bignumber.js'
 import invariant from 'tiny-invariant'
 import { InjectionKey } from 'vue'

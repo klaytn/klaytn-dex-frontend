@@ -7,7 +7,7 @@ import TokenImpl from './TokenImpl'
 import { TRADE_MAX_HOPS, TRADE_MAX_NUM_RESULTS, TRADE_MAX_PRICE_IMPACT } from '../const'
 import { Address } from '../types'
 
-import { UniTrade, UniTradeType, UniBestTradeOptions, UniToken, UniFraction } from './uni-entities'
+import { UniBestTradeOptions, UniFraction, UniToken, UniTrade, UniTradeType } from './uni-entities'
 
 type UniTradeWithUniTokens = UniTrade<UniToken, UniToken, any>
 

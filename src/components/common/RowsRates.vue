@@ -6,7 +6,7 @@ export default {
 
 <script setup lang="ts">
 import { CurrencySymbol } from '@/core'
-import { TokensPair, TOKEN_TYPES, mirrorTokenType, TokenType } from '@/utils/pair'
+import { TOKEN_TYPES, TokenType, TokensPair, mirrorTokenType } from '@/utils/pair'
 import { RatesRounded } from '@/utils/common'
 
 const props = defineProps<{

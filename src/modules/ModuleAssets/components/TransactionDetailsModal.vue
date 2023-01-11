@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { parseSwapAmounts, TransactionEnum } from '../query.transactions'
+import { TransactionEnum, parseSwapAmounts } from '../query.transactions'
 import { SModal } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
 import { useMinimalTokensApi } from '@/utils/minimal-tokens-api'

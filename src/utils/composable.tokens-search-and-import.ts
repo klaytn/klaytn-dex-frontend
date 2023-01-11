@@ -1,4 +1,4 @@
-import { Address, isAddress, Token } from '@/core'
+import { Address, Token, isAddress } from '@/core'
 import { Ref } from 'vue'
 import escapeStringRegex from 'escape-string-regexp'
 import { useMinimalTokensApi } from './minimal-tokens-api'

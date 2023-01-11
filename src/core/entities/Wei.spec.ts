@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js'
 import BN from 'bn.js'
 import { BigNumber as EthersBigNumber } from 'ethers'
-import { test, describe, expect } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import Wei, { WeiAsToken } from './Wei'
 
 describe.each([0n, 42n, 15n * 10n ** 18n, 99n * 10n ** 40n])('Wei creation & cast: %s', (NUMBER) => {

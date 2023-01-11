@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PoolId, CurrencySymbol, WeiAsToken, LP_TOKEN_DECIMALS } from '@/core'
+import { CurrencySymbol, LP_TOKEN_DECIMALS, PoolId, WeiAsToken } from '@/core'
 import { formatCurrency } from '@/utils/composable.currency-input'
 import BigNumber from 'bignumber.js'
 import { ModalOperation } from './types'

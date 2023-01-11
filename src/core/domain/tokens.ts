@@ -1,13 +1,13 @@
 import { isEmptyAddress } from '../utils'
-import type { Address, Token, CurrencySymbol } from '../types'
+import type { Address, CurrencySymbol, Token } from '../types'
 import { Wei } from '../entities'
 import CommonContracts from './CommonContracts'
 import invariant from 'tiny-invariant'
-import { map01ToPair, TokensPair, TokenType } from '@/utils/pair'
-import { AgentPure, Agent } from './agent'
+import { TokenType, TokensPair, map01ToPair } from '@/utils/pair'
+import { Agent, AgentPure } from './agent'
 import { IsomorphicContract } from '../isomorphic-contract'
 import MulticallPure, { CallStruct } from './MulticallPure'
-import { defaultAbiCoder, Interface, JsonFragment } from '@ethersproject/abi'
+import { Interface, JsonFragment, defaultAbiCoder } from '@ethersproject/abi'
 import { BigNumber as EthersBigNumber } from '@ethersproject/bignumber'
 
 export interface GetTokenQuoteProps extends TokensPair<Address> {

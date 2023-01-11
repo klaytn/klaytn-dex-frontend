@@ -48,7 +48,6 @@ const balanceInUsd = computed(() => {
             <FormatAddress
               :value="token.address"
               :length="6"
-              keep-prefix
             />
           </span>
           <KlayExternalLink

@@ -4,7 +4,7 @@ import escapeStringRegexp from 'escape-string-regexp'
 import { Ref } from 'vue'
 import { BLOCKS_PER_YEAR } from './const'
 import { PoolsQueryResult } from './query.pools'
-import { PercentageRate, Pool, Rewards, Sorting, TokenPriceInUSD, AmountInUSD } from './types'
+import { AmountInUSD, PercentageRate, Pool, Rewards, Sorting, TokenPriceInUSD } from './types'
 import { Tokens } from '@/query/tokens-derived-usd'
 import invariant from 'tiny-invariant'
 
@@ -97,7 +97,8 @@ export function useMappedPools(props: {
       const createdAtBlock = Number(pool.createdAtBlock)
 
       const blocksForUserLimit = Number(pool.blocksForUserLimit)
-      const isUserLimitActive = (roundedBlockNumber.value ?? 0) <= startBlock + blocksForUserLimit
+      const userLimitEndBlock = startBlock + blocksForUserLimit
+      const isUserLimitActive = (roundedBlockNumber.value ?? 0) <= userLimitEndBlock
       const userLimit = isUserLimitActive ? new Wei(pool.userLimit).decimals(pool.stakeToken) : null
 
       mappedPools.push({
@@ -107,6 +108,7 @@ export function useMappedPools(props: {
         earned,
         staked,
         userLimit,
+        userLimitEndBlock,
         stakeTokenPrice,
         createdAtBlock,
         annualPercentageRate,
