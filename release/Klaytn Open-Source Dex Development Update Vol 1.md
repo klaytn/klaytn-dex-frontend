@@ -21,7 +21,7 @@ Other implementations included in this release are;
 - Loading the Dex swap form from a new in-browser session is now possible
 - Price formatting for $USD has been updated
 - Slippage information was included in the add & remove liquidity forms
-- Refactoring has been added to the code, which will make it faster to execute and improve the overall user experience.
+- Refactoring has been added to the code, which will make it faster to execute and improve the overall user experience. [[1](https://github.com/klaytn/klaytn-dex-frontend/issues/102)]
 
 We appreciate your ongoing interest and support in the Klaytn Open-Source Dex and we would like to remind you that testing will be ongoing until January 20th, with regular updates released we will continue to inform you of the changes and improvements.
 
