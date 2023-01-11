@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { Address, DexPure, Dex, Token, Wei, isNativeToken, NATIVE_TOKEN } from '@/core'
+import { Address, Dex, DexPure, NATIVE_TOKEN, Token, Wei, isNativeToken } from '@/core'
 import { WHITELIST_TOKENS } from '@/core'
 import { Ref } from 'vue'
 import { TokensQueryResult, useTokensQuery } from '@/query/tokens-derived-usd'
@@ -65,12 +65,12 @@ function useImportedTokens() {
       const { state, run } = useTask(() => loadTokens(dex, tokens.value), { immediate: true })
       usePromiseLog(state, 'imported-tokens')
       useErrorRetry(state, run)
-      return state
+      return { state, run }
     },
   )
 
-  const isPending = computed(() => scope.value.expose.pending)
-  const result = computed(() => scope.value.expose.fulfilled?.value ?? null)
+  const isPending = computed(() => scope.value.expose.state.pending)
+  const result = computed(() => scope.value.expose.state.fulfilled?.value ?? null)
   const isLoaded = computed(() => !!result.value)
 
   const tokensFetched = computed<null | Token[]>(() => {
@@ -78,15 +78,9 @@ function useImportedTokens() {
     return listItemsFromMapOrNull(tokens.value, result.value)
   })
 
-  /**
-   * Saves new imported token.
-   * Does not fetch token data again
-   */
   function importToken(token: Token): void {
     tokens.value.unshift(token.address)
-    if (result.value) {
-      result.value.set(token.address, token)
-    }
+    scope.value.expose.run()
   }
 
   return {

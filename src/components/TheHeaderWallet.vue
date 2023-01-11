@@ -24,7 +24,7 @@ const addressFormatted = computed(() => account.value && formatAddress(account.v
   >
     <template #trigger>
       <div
-        class="wallet rounded-lg p-2 flex items-center space-x-2 cursor-pointer"
+        class="wallet h-full rounded-lg p-2 flex items-center space-x-2 cursor-pointer"
         :class="{ 'wallet--warning': wrongChain }"
       >
         <WalletIcon

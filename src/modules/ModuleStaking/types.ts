@@ -1,6 +1,6 @@
 import { Address, CurrencySymbol, WeiAsToken } from '@/core'
 import BigNumber from 'bignumber.js'
-import { TokenPriceInUSD, AmountInUSD, PercentageRate } from '../ModuleEarnShared/types'
+import { AmountInUSD, PercentageRate, TokenPriceInUSD } from '../ModuleEarnShared/types'
 export * from '../ModuleEarnShared/types'
 
 export interface Pool {
@@ -27,6 +27,7 @@ export interface Pool {
   endBlock: number
   active: boolean
   userLimit: WeiAsToken<BigNumber> | null
+  userLimitEndBlock: number
 }
 
 export const Sorting = {

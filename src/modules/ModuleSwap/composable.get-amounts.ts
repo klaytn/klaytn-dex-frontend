@@ -1,15 +1,15 @@
-import { TokensPair, TokenType } from '@/utils/pair'
+import { TokenType, TokensPair } from '@/utils/pair'
 import { Ref } from 'vue'
 import Debug from 'debug'
-import { Trade, SwapPure, Wei, Percent, TokenAmount, TokenImpl, Token } from '@/core'
+import { Percent, SwapPure, Token, TokenAmount, TokenImpl, Trade, Wei } from '@/core'
 import {
   AmountsExactIn,
   AmountsExactOut,
   GetAmountsReturn,
   applySlippageForExactInput,
   applySlippageForExactOutput,
-  parseSlippage,
 } from '@/core/domain/swap'
+import { parseSlippage } from '@/core/slippage'
 import { match } from 'ts-pattern'
 
 const debug = Debug('swap-amounts')

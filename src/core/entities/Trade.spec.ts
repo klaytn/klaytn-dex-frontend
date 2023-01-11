@@ -1,4 +1,4 @@
-import { test, expect, describe } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import { CurrencySymbol } from '../types'
 import { parseAddress } from '../utils'
 import Pair from './Pair'

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ModalOperation } from './types'
 import BigNumber from 'bignumber.js'
-import { Wei, WeiAsToken, Token, Address } from '@/core'
+import { Address, Token, Wei, WeiAsToken } from '@/core'
 import invariant from 'tiny-invariant'
 import { formatCurrency } from '@/utils/composable.currency-input'
 import StakeUserLimit from '../ModuleEarnShared/StakeUserLimit.vue'

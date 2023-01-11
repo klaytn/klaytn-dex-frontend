@@ -1,4 +1,4 @@
-import { match, P } from 'ts-pattern'
+import { P, match } from 'ts-pattern'
 
 type Element = string
 type Modifiers = Record<string, string | boolean>

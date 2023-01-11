@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { WeiAsToken } from '@/core'
 import { nonNullSet } from '@/utils/common'
-import { buildPair, TOKEN_TYPES } from '@/utils/pair'
+import { TOKEN_TYPES, buildPair } from '@/utils/pair'
 import BigNumber from 'bignumber.js'
 import { storeToRefs } from 'pinia'
-import { KlayIconPlus, KlayIconImportant } from '~klay-icons'
+import { KlayIconImportant, KlayIconPlus } from '~klay-icons'
 import InputToken from '@/components/InputToken.vue'
 
 const liquidityStore = useLiquidityAddStore()
@@ -22,7 +22,7 @@ const models = reactive(
       }),
       addr: computed({
         get: () => addrs.value[type],
-        set: (addr) => addr && liquidityStore.setTokenAddress(type, addr),
+        set: (addr) => liquidityStore.setTokenAddress(type, addr),
       }),
     }
   }),
