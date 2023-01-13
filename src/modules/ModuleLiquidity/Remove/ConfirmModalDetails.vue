@@ -5,7 +5,7 @@ import cssRows from '../../ModuleTradeShared/rows.module.scss'
 import { POOL_SHARE_PERCENT_FORMAT_DECIMALS } from '../const'
 
 const store = useLiquidityRmStore()
-const { poolShare, rates, selectedTokensSymbols: symbols, liquidity, fee } = storeToRefs(store)
+const { poolShare, rates, selectedTokensSymbols: symbols, liquidity, fee, slippageParsed } = storeToRefs(store)
 
 const feeKlay = computed(() => fee.value?.decimals({ decimals: NATIVE_TOKEN_DECIMALS }) ?? null)
 const liquidityKlay = computed(() => liquidity.value?.decimals({ decimals: NATIVE_TOKEN_DECIMALS }) ?? null)
@@ -58,7 +58,10 @@ const liquidityKlay = computed(() => liquidity.value?.decimals({ decimals: NATIV
 
     <div class="klay-divider my-3" />
 
-    <p>Output is estimated. If the price changes by more than 0.8% your transaction will revert.</p>
+    <p>
+      Output is estimated. If the price changes by more than {{ slippageParsed.toFormat() }} your transaction will
+      revert.
+    </p>
   </div>
 </template>
 

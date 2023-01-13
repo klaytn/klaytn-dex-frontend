@@ -3,7 +3,7 @@ import { storeToRefs } from 'pinia'
 import { ValidationError } from '@/modules/ModuleSwap/composable.validation'
 import invariant from 'tiny-invariant'
 import { useTradeStore } from '@/modules/ModuleTradeShared/trade-store'
-import { match, P } from 'ts-pattern'
+import { P, match } from 'ts-pattern'
 
 const swapStore = useSwapStore()
 const { isValid, validationError, isValidationPending, prepareState, gotAmountFor, tokens, isRefreshing } =
@@ -53,7 +53,7 @@ const buttonLabel = computed<string | null>(() =>
   <div class="space-y-4 pt-5 px-4">
     <ModuleSwapExchangeRate />
 
-    <SlippageToleranceInput v-model="swapStore.slippageTolerance" />
+    <SlippageToleranceInput v-model="swapStore.slippageNumeric" />
 
     <KlayButton
       class="w-full"

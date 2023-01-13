@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { SModal } from '@soramitsu-ui/ui'
-import { Token, Address } from '@/core'
+import { Address, Token } from '@/core'
 import invariant from 'tiny-invariant'
 import { useTokensSearchAndImport } from '@/utils/composable.tokens-search-and-import'
 import TokenSelectModalListItem from './TokenSelectModalListItem.vue'

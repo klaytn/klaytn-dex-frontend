@@ -1,5 +1,5 @@
 import { Plugin } from '@/types'
-import { TOASTS_API_KEY, defineToastsApi, ToastsApi } from '@soramitsu-ui/ui'
+import { TOASTS_API_KEY, ToastsApi, defineToastsApi } from '@soramitsu-ui/ui'
 import KlayToast from '@/components/common/KlayToast.vue'
 import invariant from 'tiny-invariant'
 

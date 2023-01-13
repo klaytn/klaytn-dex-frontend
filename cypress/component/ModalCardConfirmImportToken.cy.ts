@@ -1,5 +1,5 @@
 import CardImportToken from '@/components/common/ModalCardConfirmImportToken.vue'
-import { Address, Token, CurrencySymbol, Wei } from '@/core'
+import { Address, CurrencySymbol, Token, Wei } from '@/core'
 import { MODAL_API_KEY, ModalApi } from '@soramitsu-ui/ui'
 import BigNumber from 'bignumber.js'
 

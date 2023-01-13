@@ -1,20 +1,20 @@
 <script setup lang="ts" name="ModuleFarmingPool">
-import { RouteName, RoiType } from '@/types'
+import { RoiType, RouteName } from '@/types'
 import { ModalOperation, Pool } from './types'
 import { FORMATTED_BIG_INT_DECIMALS } from './const'
 import BigNumber from 'bignumber.js'
 import { useEnableState } from '../ModuleEarnShared/composable.check-enabled'
 import { CONSTANT_FARMING_DECIMALS } from './utils'
 import {
-  Wei,
   ADDRESS_FARMING,
-  WeiAsToken,
-  CurrencySymbol,
-  makeExplorerLinkToAccount,
-  LP_TOKEN_DECIMALS,
   Address,
+  CurrencySymbol,
+  LP_TOKEN_DECIMALS,
+  Wei,
+  WeiAsToken,
+  makeExplorerLinkToAccount,
 } from '@/core'
-import { formatCurrency, SYMBOL_USD } from '@/utils/composable.currency-input'
+import { SYMBOL_USD, formatCurrency } from '@/utils/composable.currency-input'
 import { TokensPair } from '@/utils/pair'
 import StakeUnstakeModal from './Modal.vue'
 import WalletConnectButton from '@/components/WalletConnectButton.vue'

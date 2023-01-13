@@ -1,6 +1,6 @@
 <script setup lang="ts" name="SwapModuleExchangeRate">
 import { storeToRefs } from 'pinia'
-import { buildPair, TOKEN_TYPES } from '@/utils/pair'
+import { TOKEN_TYPES, buildPair } from '@/utils/pair'
 import { KlayIconArrowDown } from '~klay-icons'
 import { nonNullSet } from '@/utils/common'
 import BigNumber from 'bignumber.js'

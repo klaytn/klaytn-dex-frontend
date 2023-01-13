@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { buildPair, nonNullPair, TOKEN_TYPES } from '@/utils/pair'
+import { TOKEN_TYPES, buildPair, nonNullPair } from '@/utils/pair'
 import { storeToRefs } from 'pinia'
 
 const store = useSwapStore()

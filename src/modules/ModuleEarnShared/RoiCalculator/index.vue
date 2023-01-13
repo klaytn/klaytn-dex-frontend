@@ -6,8 +6,8 @@ import BigNumber from 'bignumber.js'
 import { RoiType } from '@/types'
 import { PERIOD_DAYS, PERIOD_NAMES } from './const'
 import { makeTabsArray } from '@/utils/common'
-import { StakeTabs, CompoundingTabs, StakeUnits } from './types'
-import { useFormattedCurrency, MaskSymbol, SYMBOL_USD as MASK_SYMBOL_USD } from '@/utils/composable.currency-input'
+import { CompoundingTabs, StakeTabs, StakeUnits } from './types'
+import { SYMBOL_USD as MASK_SYMBOL_USD, MaskSymbol, useFormattedCurrency } from '@/utils/composable.currency-input'
 import { Ref } from 'vue'
 import { MaybeRef } from '@vueuse/core'
 import { trimTrailingZerosWithPeriod } from '@/utils/common'
@@ -190,7 +190,7 @@ const poolCommissionFormatted = trimTrailingZerosWithPeriod(POOL_COMMISSION.toFi
       :title="t('ModuleEarnSharedRoiCalculator.title')"
     >
       <template #body>
-        <div class="px-4 pb-5 space-y-4">
+        <div class="px-4 pb-5 space-y-4 overflow-y-scroll">
           <div class="space-y-2 flex flex-col items-start">
             <span class="label"> Staked for </span>
             <KlayTabs

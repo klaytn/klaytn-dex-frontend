@@ -1,5 +1,5 @@
 import invariant from 'tiny-invariant'
-import { Address, Token, CurrencySymbol } from '../types'
+import { Address, CurrencySymbol, Token } from '../types'
 import { parseAddress } from '../utils'
 import Currency from './Currency'
 
