@@ -443,6 +443,8 @@ To view details of a proposal, click on it, and you will be taken to the page th
 
 ### Vote
 
+* Kaikas Wallet users can't vote on the current version of Dex
+
 Once you navigate to a proposal page, at the top of the page you will find the `Vote` button and the available voting options.
 
 ![](./img/voting/voting-proposal.png)
