@@ -29,9 +29,7 @@ const createProposalHref = computed(() => {
           target="_blank"
           :href="createProposalHref"
         >
-          <KlayButton type="primary">
-            Create Proposal
-          </KlayButton>
+          <KlayButton type="primary"> Create Proposal </KlayButton>
         </a>
         <a
           class="md:hidden"
@@ -41,9 +39,7 @@ const createProposalHref = computed(() => {
           <KlayButton
             type="primary"
             size="sm"
-          >
-            Create Proposal
-          </KlayButton>
+          > Create Proposal </KlayButton>
         </a>
       </div>
       <KlaySwitch
@@ -56,9 +52,7 @@ const createProposalHref = computed(() => {
         class="ml-auto"
         :options="sortingOptions"
       />
-      <SearchFilter
-        v-model="searchQuery"
-      />
+      <SearchFilter v-model="searchQuery" />
     </div>
     <slot />
   </div>
