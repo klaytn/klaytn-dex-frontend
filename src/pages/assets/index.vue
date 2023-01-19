@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia'
 import { KlayIconArrowDown_2, KlayIconRefresh } from '~klay-icons'
 import { RouteName, Tab } from '@/types'
 import TheTokensApiProvider from '@/components/TheTokensApiProvider.vue'
+import WalletConnectButton from '@/components/WalletConnectButton.vue'
 import { WRAP_HEIGHT } from '@/modules/ModuleAssets/const'
 
 const AssetsTabs = {
@@ -58,9 +59,18 @@ const onAssetDetails = computed(() => tab.value === null)
     >
       <div
         v-if="!account"
-        class="p-4 text-center"
+        class="flex flex-col h-full p-4"
       >
-        Connect Wallet
+        <h1 class="py-0.5 text-lg font-bold">
+          Assets
+        </h1>
+        <h1 class="flex-1 flex justify-center items-center text-lg font-bold">
+          Connect wallet to view assets
+        </h1>
+        <WalletConnectButton
+          type="secondary"
+          size="lg"
+        />
       </div>
 
       <template v-else-if="onAssetDetails">
