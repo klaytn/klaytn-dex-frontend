@@ -1,5 +1,6 @@
 <script setup lang="ts" name="ModuleGovernanceListWrap">
 import { Sorting } from '../types'
+import CONFIG from '~config'
 
 const { t } = useI18n()
 const vBem = useBemClass()
@@ -13,11 +14,34 @@ const sortingOptions = computed(() => {
     label: t(`ModuleGovernanceWrap.sorting.options.${option}`),
   }))
 })
+
+const createProposalHref = computed(() => {
+  return `https://snapshot.org/#/${CONFIG.snapshotSpace}/create/0`
+})
 </script>
 
 <template>
   <div v-bem>
-    <div class="flex flex-wrap items-center gap-3 mx-4 md:mx-6 py-4 md:h-74px">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mx-4 md:mx-6 py-4 md:h-74px">
+      <div class="flex justify-end lt-md:w-full md:order-1">
+        <a
+          class="lt-md:hidden"
+          target="_blank"
+          :href="createProposalHref"
+        >
+          <KlayButton type="primary"> Create Proposal </KlayButton>
+        </a>
+        <a
+          class="md:hidden"
+          target="_blank"
+          :href="createProposalHref"
+        >
+          <KlayButton
+            type="primary"
+            size="sm"
+          > Create Proposal </KlayButton>
+        </a>
+      </div>
       <KlaySwitch
         v-model="onlyActive"
         v-bem="'only-active'"
@@ -28,10 +52,7 @@ const sortingOptions = computed(() => {
         class="ml-auto"
         :options="sortingOptions"
       />
-      <SearchFilter
-        v-model="searchQuery"
-        class="ml-2"
-      />
+      <SearchFilter v-model="searchQuery" />
     </div>
     <slot />
   </div>

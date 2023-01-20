@@ -140,8 +140,11 @@ function viewMore() {
       border-top: 1px solid vars.$gray5
     &-voter, &-vp
       width: calc(50% - 150px)
+    &-voter
+      min-width: 65px
     &-vp
-      text-align: right
+      display: flex
+      justify-content: flex-end
   &__view-more
     display: flex
     justify-content: center
