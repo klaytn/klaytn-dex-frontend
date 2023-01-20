@@ -30,7 +30,7 @@ import { SButton } from '@soramitsu-ui/ui'
     }
   }
   &_type_primary.s-button_disabled {
-    background: vars.$gray4;
+    background-color: vars.$gray4;
   }
   &_type_secondary {
     background: vars.$white;
