@@ -16,14 +16,17 @@ const showViewMore = ref(true)
 const governanceStore = useGovernanceStore()
 const { onlyActive, searchQuery, sorting } = toRefs(governanceStore)
 
-const ProposalsQuery = useProposalsQuery(
-  computed(() => ({
-    onlyActive: onlyActive.value,
-    skip: 0,
-    orderBy: sorting.value,
-    query: searchQuery.value,
-  })),
-)
+const proposalsQueryProps = computed(() => ({
+  onlyActive: onlyActive.value,
+  skip: 0,
+  orderBy: sorting.value,
+  query: searchQuery.value,
+}))
+watch(proposalsQueryProps, () => {
+  page.value = 1
+})
+
+const ProposalsQuery = useProposalsQuery(proposalsQueryProps)
 const rawProposals = computed(() => {
   return ProposalsQuery.result.value?.proposals ?? null
 })
