@@ -2,7 +2,7 @@
 
 This specification provides the detailed description of Klaytn-DEX frontend. First, we describe the tools that were used for Klaytn-DEX frontend. Then, we provide an overview of its structure and modules. For the instructions on how to deploy Klaytn-DEX, refer to [Klaytn-DEX Deployment Guide](./deploy.md).
 
-For the detailed specification of the Dex smart contracts, refer to [Klaytn-DEX Specification](https://github.com/soramitsu/klaytn-dex-contracts/blob/develop/docs/dex-specification.md).
+For the detailed specification of the Dex smart contracts, refer to [Klaytn-DEX Specification](https://github.com/klaytn/klaytn-dex-contracts/blob/4d04d439c80a667f081c48adc1bc6414aa2cdbf5/docs/README.md).
 
 Check [Klaytn-DEX User Guide](guide.md) for instructions on working with the Klaytn-DEX from the user side.
 
